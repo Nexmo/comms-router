@@ -1,0 +1,24 @@
+{
+  "configuration": {
+    "appenders": {
+      "appender": [
+        {
+          "name": "CONSOLE",
+          "type": "Console",
+          "PatternLayout": {
+            "pattern": "%d [%thread] %level %logger{1.} %msg %n"
+          }
+        }
+      ]
+    },
+    "loggers": {
+      "logger": [],
+      "root": {
+        "level": "all",
+        "AppenderRef": {
+          "ref": "CONSOLE"
+        }
+      }
+    }
+  }
+}

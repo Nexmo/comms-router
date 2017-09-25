@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${parent.name} ${project.name} Swagger UI</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<iframe id="frame"></iframe>
+<script type="application/javascript">
+  const contextPath = "/" + window.location.pathname.replace("swagger-ui.html", "").split("/").filter(Boolean).join();
+  const swaggerUI = (!contextPath.endsWith("/") ? contextPath : "" ) + "/webjars/swagger-ui/${swagger-ui.version}/";
+  const swaggerJson = "?url=" + window.location.origin + (!contextPath.endsWith("/") ? contextPath : "" ) + "/api/swagger.json";
+  document.getElementById("frame").src = swaggerUI + swaggerJson;
+</script>
+</body>
+</html>
