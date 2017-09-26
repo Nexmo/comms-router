@@ -61,4 +61,9 @@ public class Plan extends RouterObject {
     rule.setPlan(null);
   }
 
+  public void removeRules() {
+    rules.stream().forEach(rule -> rule.setPlan(null));
+    rules.clear();
+  }
+
 }

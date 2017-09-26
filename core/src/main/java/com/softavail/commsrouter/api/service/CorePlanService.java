@@ -12,10 +12,8 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
-import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.util.Fields;
 
-import java.util.List;
 
 
 /**
@@ -32,7 +30,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     return app.db.transactionManager.execute((em) -> {
       Plan plan = new Plan(ensureIdPresent(createArg));
-      plan.setRules(app.entityMapper.plan.toJpaRules(plan, createArg.getRules()));
+      app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
       em.persist(plan);
       return entityMapper.toDto(plan);
     });
@@ -43,8 +41,10 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, updateArg);
-      // List<Rule> rules = app.entityMapper.plan.toJpaRules(plan, updateArg.getRules());
-      // Fields.update(plan::setRules, plan.getRules(), rules);
+      if (updateArg.getRules() != null) {
+        plan.removeRules();
+        app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
+      }
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }

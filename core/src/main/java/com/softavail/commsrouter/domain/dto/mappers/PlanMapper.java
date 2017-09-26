@@ -9,7 +9,6 @@ import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Rule;
-import com.softavail.commsrouter.util.Uuid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +24,11 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     PlanDto dto = new PlanDto();
     copyId(dto, jpa);
     dto.setDescription(jpa.getDescription());
-    dto.setRules(fromJpaRules(jpa.getRules()));
+    dto.setRules(toDtoRules(jpa.getRules()));
     return dto;
   }
 
-  private RuleDto fromJpa(Rule jpa) {
+  private RuleDto toDto(Rule jpa) {
     RuleDto dto = new RuleDto();
     dto.setPredicate(jpa.getPredicate());
     dto.setQueueId(jpa.getQueueId());
@@ -37,25 +36,25 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     return dto;
   }
 
-  private Rule toJpa(Plan plan, RuleDto dto) {
-    Rule jpa = new Rule();
-    jpa.setPlan(plan);
-    jpa.setPredicate(dto.getPredicate());
-    jpa.setQueueId(dto.getQueueId());
-    jpa.setTag(dto.getTag());
-    return jpa;
+  private Rule fromDto(RuleDto dto) {
+    Rule rule = new Rule();
+    rule.setPredicate(dto.getPredicate());
+    rule.setQueueId(dto.getQueueId());
+    rule.setTag(dto.getTag());
+    return rule;
   }
 
-  private List<RuleDto> fromJpaRules(List<Rule> jpaRules) {
+  private List<RuleDto> toDtoRules(List<Rule> jpaRules) {
     List<RuleDto> dtoRules = new ArrayList<>();
-    jpaRules.stream().forEach(jpa -> dtoRules.add(fromJpa(jpa)));
+    jpaRules.stream().forEach(jpa -> dtoRules.add(toDto(jpa)));
     return dtoRules;
   }
 
-  public List<Rule> toJpaRules(Plan plan, List<RuleDto> dtoRules) {
-    List<Rule> jpaRules = new ArrayList<>();
-    dtoRules.stream().forEach(dto -> jpaRules.add(toJpa(plan, dto)));
-    return jpaRules;
+  public void addDtoRules(Plan plan, List<RuleDto> dtoRules) {
+    if (dtoRules == null) {
+      return;
+    }
+    dtoRules.stream().forEach(dto -> plan.addRule(fromDto(dto)));
   }
 
 }
