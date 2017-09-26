@@ -233,6 +233,9 @@ public class AttributesMapper {
     AttributeGroup jpa = new AttributeGroup();
     dto.forEach((key, value) -> {
       try {
+        if (value == null) {
+          throw new RuntimeException("Unexpected NULL value for \"" + key + "\"");
+        }
         value.accept(new AttributeValueVisitor() {
           @Override
           public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
