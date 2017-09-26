@@ -78,7 +78,6 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
 
     CreateRouterArg createRouterArg = new CreateRouterArg();
-    createRouterArg.setId(id);
     service.create(createRouterArg);
 
     printList(service.list());

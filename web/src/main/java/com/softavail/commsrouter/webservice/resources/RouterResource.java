@@ -3,6 +3,7 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.service.CoreRouterService;
@@ -131,9 +132,9 @@ public class RouterResource {
         .build();
   }
 
-  @PUT
+  @POST
   @Path("{id}")
-  @ApiOperation(value = "Update an existing router", tags = "routers")
+  @ApiOperation(value = "Update an existing router properties", tags = "routers")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(
@@ -160,11 +161,58 @@ public class RouterResource {
           UpdateRouterArg routerArg)
       throws CommsRouterException {
 
-    routerArg.setId(id);
+    ApiObjectId routerId = new ApiObjectId(id);
 
     LOGGER.debug("Updating router: {}", routerArg);
 
-    routerService.update(routerArg);
+    routerService.update(routerArg, routerId);
+  }
+
+  @PUT
+  @Path("{id}")
+  @ApiOperation(
+      value = "Replace an existing router", 
+      notes = "If the router with the specified id does not exist, it creates it", 
+      tags = "routers")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(
+          code = 400,
+          message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(
+          code = 404,
+          message = "Router not found",
+          response = ExceptionPresentation.class),
+      @ApiResponse(
+          code = 405,
+          message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public Response put(
+      @ApiParam(
+          value = "The id of the router to be updated",
+          required = true)
+      @PathParam("id")
+          String id,
+      @ApiParam(
+          value = "CreateRouterArg object specifying all the parameters",
+          required = true)
+          CreateRouterArg routerArg)
+      throws CommsRouterException {
+
+    LOGGER.debug("Replacing router: {}, with id: {}", routerArg, id);
+    
+    ApiObjectId objectId = new ApiObjectId(id);
+    RouterDto router = routerService.put(routerArg, objectId);
+
+    URI createLocation = UriBuilder.fromResource(this.getClass())
+        .path("{id}")
+        .build(router.getId());
+
+    return Response.status(Status.CREATED)
+        .header(HttpHeaders.LOCATION, createLocation.toString())
+        .entity(new ApiObject(router))
+        .build();
   }
 
   @DELETE
