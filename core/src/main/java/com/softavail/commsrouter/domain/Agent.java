@@ -57,6 +57,16 @@ public class Agent extends RouterObject {
     this.capabilities = capabilities;
   }
 
+  public void removeCapabilities() {
+    if (capabilities != null) {
+      capabilities.getAttributes().stream().forEach(attribute -> {
+        attribute.setAttributeGroup(null);
+      });
+      capabilities.getAttributes().clear();
+      capabilities = null;
+    }
+  }
+
   public String getAddress() {
     return address;
   }

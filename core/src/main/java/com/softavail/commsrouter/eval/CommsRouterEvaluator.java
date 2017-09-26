@@ -178,6 +178,10 @@ public class CommsRouterEvaluator {
   private Boolean setEvaluatorAttributeVariables(Evaluator evaluator,
       AttributeGroupDto attributesGroup) {
     Boolean result = true;
+    if (attributesGroup == null) {
+      LOGGER.warn("Missing attributes for matching to predicate");
+      return true;
+    }
     Set<String> keys = attributesGroup.keySet();
     if (keys.isEmpty()) {
       LOGGER.warn("Missing attributes for matching to predicate");
@@ -261,6 +265,9 @@ public class CommsRouterEvaluator {
   }
 
   private String reMapVariableKeysInPredicate(AttributeGroupDto attributesGroup, String predicate) {
+    if (attributesGroup == null) {
+      return predicate;
+    }
     String result = predicate;
     Set<String> keys = attributesGroup.keySet();
     for (String key : keys) {
