@@ -70,8 +70,9 @@ public class HasFunction implements Function {
       throw new FunctionException(exceptionMessage);
     }
 
+    String argumentOne = null;
     try {
-      String argumentOne = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(0),
+      argumentOne = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(0),
           evaluator.getQuoteCharacter());
       String argumentTwo = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(1),
           evaluator.getQuoteCharacter());
@@ -85,7 +86,8 @@ public class HasFunction implements Function {
     } catch (FunctionException fe) {
       throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
-      throw new FunctionException(exceptionMessage, e);
+      throw new FunctionException(String.format("function %s() first argument is \"%s\": %s",
+          getName(), argumentOne, e.getLocalizedMessage()));
     } catch (Exception e) {
       throw new FunctionException(exceptionMessage, e);
     }

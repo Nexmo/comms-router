@@ -70,10 +70,11 @@ public class InFunction implements Function {
       throw new FunctionException(exceptionMessage);
     }
 
+    String argumentTwo = null;
     try {
       String argumentOne = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(0),
           evaluator.getQuoteCharacter());
-      String argumentTwo = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(1),
+      argumentTwo = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(1),
           evaluator.getQuoteCharacter());
       JSONArray jsonArray = new JSONArray(argumentTwo);
       ArrayList<String> list = new ArrayList<>();
@@ -85,7 +86,8 @@ public class InFunction implements Function {
     } catch (FunctionException fe) {
       throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
-      throw new FunctionException(exceptionMessage, e);
+      throw new FunctionException(String.format("function %s() second argument is \"%s\": %s",
+          getName(), argumentTwo, e.getLocalizedMessage()));
     } catch (Exception e) {
       throw new FunctionException(exceptionMessage, e);
     }
