@@ -57,7 +57,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
         String queueId = app.evaluator.evaluateNewTaskToQueueByPlanRules(createArg, plan);
         if (queueId == null) {
           throw new IllegalArgumentException(
-              "PlanExecutor didn't match task to queue using the plan rules.");
+              "Evaluator didn't match task to any queues using the plan rules.");
         }
       }
 

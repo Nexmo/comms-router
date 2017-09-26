@@ -185,7 +185,7 @@ public class CommsRouterEvaluator {
     Set<String> keys = attributesGroup.keySet();
     if (keys.isEmpty()) {
       LOGGER.warn("Missing attributes for matching to predicate");
-      result = false;
+      result = true;
     }
     keys.forEach((String key) -> {
       AttributeValueDto attributeValue = attributesGroup.get(key);
