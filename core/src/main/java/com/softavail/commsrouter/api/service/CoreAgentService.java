@@ -45,8 +45,6 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return app.db.transactionManager.execute((EntityManager em) -> {
       return doCreate(em, createArg, objectId);
     });
-
-
   }
 
   @Override
@@ -160,7 +158,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     Agent agent = new Agent(objectId);
     agent.setAddress(createArg.getAddress());
     agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
-    agent.setState(createArg.getState());
+    agent.setState(AgentState.offline);
 
     if (objectId.getRouterId() != null) {
       List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
