@@ -1,8 +1,8 @@
 package com.softavail.comms.demo.application.client;
 
-import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.net.URI;
 import java.util.List;
@@ -24,7 +24,8 @@ public abstract class ServiceClientBase<T> {
     this.responseType = responseType;
   }
 
-  protected T post(ApiObject o) {
+  // POST over container creates. Returns object
+  protected T post(Object o) {
     URI uri = getApiUrl().clone().build();
     return getClient()
         .target(uri)
@@ -32,36 +33,61 @@ public abstract class ServiceClientBase<T> {
         .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
-  protected T post(RouterObject o) {
-    URI uri = getApiUrl().clone()
-        .build(o.getRouterId());
-
-    return getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
-  }
-
-  protected void put(ApiObject o) {
-    URI uri = getApiUrl().clone().build();
-    getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
-  }
-
-  protected void put(RouterObject o) {
+  // POST over resource updates. Returns void
+  protected void post(Object o, ApiObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
-        .build(o.getRouterId(), o.getId());
+        .build(id.getId());
+
     getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
+        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected T getItem(String id) {
-    URI uri = getApiUrl().clone().path(id).build();
+  // POST over container creates. Returns object
+  protected T post(Object o, String containerId) {
+    URI uri = getApiUrl().clone()
+        .build(containerId);
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+  }
+
+  // POST over resource updates. Returns void
+  protected void post(Object o, RouterObjectId id) {
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .build(id.getRouterId(), id.getId());
+
+    getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
+  }
+
+  protected T put(Object o, ApiObjectId id) {
+    URI uri = getApiUrl().clone().build(id.getId());
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+  }
+
+  protected T put(Object o, RouterObjectId id) {
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .build(id.getRouterId(), id.getId());
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+  }
+
+  protected T getItem(ApiObjectId id) {
+    URI uri = getApiUrl().clone().path(id.getId()).build();
 
     return getClient()
         .target(uri)
@@ -69,10 +95,10 @@ public abstract class ServiceClientBase<T> {
         .get(responseType);
   }
 
-  protected T getItem(RouterObject routerObject) {
+  protected T getItem(RouterObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
-        .build(routerObject.getRouterId(), routerObject.getId());
+        .build(id.getRouterId(), id.getId());
 
     return getClient()
         .target(uri)
@@ -114,8 +140,8 @@ public abstract class ServiceClientBase<T> {
     return new PaginatedList<>(list, page, perPage, totalCount);
   }
 
-  protected void delete(String id) {
-    URI uri = getApiUrl().clone().path(id).build();
+  protected void delete(ApiObjectId id) {
+    URI uri = getApiUrl().clone().path(id.getId()).build();
 
     getClient()
         .target(uri)
@@ -123,10 +149,10 @@ public abstract class ServiceClientBase<T> {
         .delete();
   }
 
-  protected void delete(RouterObject routerObject) {
+  protected void delete(RouterObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
-        .build(routerObject.getRouterId(), routerObject.getId());
+        .build(id.getRouterId(), id.getId());
 
     getClient()
         .target(uri)
@@ -137,5 +163,4 @@ public abstract class ServiceClientBase<T> {
   abstract UriBuilder getApiUrl();
 
   abstract Client getClient();
-
 }

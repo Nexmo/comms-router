@@ -15,6 +15,7 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.exception.BadValueException;
@@ -120,7 +121,8 @@ public class CommsCallbackResource {
       updateArg.setState(TaskState.completed);
 
       try {
-        taskServiceClient.update(updateArg);
+        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
+        taskServiceClient.update(updateArg, taskObjectId);
       } catch (BadValueException | NotFoundException e1) {
         LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
         e1.printStackTrace();

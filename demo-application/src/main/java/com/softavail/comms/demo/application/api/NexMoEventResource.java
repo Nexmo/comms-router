@@ -11,8 +11,10 @@ import com.softavail.comms.demo.application.model.NexMoCall;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
+import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.exception.BadValueException;
@@ -41,6 +43,9 @@ public class NexMoEventResource {
   
   private ConversationService conversationService = new NexMoConversationServiceImpl();
 
+  @Inject
+  Configuration configuration;
+  
   @Inject
   TaskServiceClient taskServiceClient;
 
@@ -261,12 +266,12 @@ public class NexMoEventResource {
 
   private void updateTaskServiceState(String taskId, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
-    updTaskReq.setId(taskId);
     updTaskReq.setState(state);
     
     try {
       LOGGER.trace("Update task: {} in router as completed", taskId);
-      taskServiceClient.update(updTaskReq);
+      taskServiceClient.update(updTaskReq,
+          new RouterObjectId(taskId, configuration.getCommsRouterId()));
     } catch (BadValueException | NotFoundException e) {
       LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
       e.printStackTrace();

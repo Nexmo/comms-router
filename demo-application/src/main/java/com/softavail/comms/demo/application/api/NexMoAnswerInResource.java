@@ -13,6 +13,7 @@ import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -81,12 +82,11 @@ public class NexMoAnswerInResource {
 
     // Create new conversation into our service
     String conversationId = "conversation-" + UUID.randomUUID().toString();
-    String taskId = UUID.randomUUID().toString();
     CreateTaskArg taskReq = new CreateTaskArg();
-    taskReq.setId(taskId);
-    taskReq.setRouterId(configuration.getCommsRouterId());
+    RouterObjectId taskId =
+        new RouterObjectId(UUID.randomUUID().toString(), configuration.getCommsRouterId());
     URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl()).path("comms_callback")
-        .path(taskId).queryParam("callId", conversationId).build();
+        .path(taskId.getId()).queryParam("callId", conversationId).build();
     taskReq.setCallbackUrl(uri.toURL());
     taskReq.setQueueId(queueId);
 
@@ -99,7 +99,7 @@ public class NexMoAnswerInResource {
     TaskDto task = null;
 
     try {
-      task = taskServiceClient.create(taskReq);
+      task = taskServiceClient.put(taskReq, taskId);
     } catch (NotFoundException e) {
       e.printStackTrace();
     } catch (Exception ex) {
@@ -118,7 +118,7 @@ public class NexMoAnswerInResource {
     }
 
     // create a conversation for tracking
-    conversationService.createConversation(conversationId, call, taskId);
+    conversationService.createConversation(conversationId, call, taskId.getId());
     UpdateNexMoConversationArg updateArg =
         new UpdateNexMoConversationArg(NexMoConversationStatus.WAITING);
     conversationService.updateConversation(conversationId, updateArg);
