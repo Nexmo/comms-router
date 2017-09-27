@@ -117,7 +117,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       }
     }
 
-    Task task = new Task(createArg, objectId);
+    Task task = new Task(objectId);
     task.setState(TaskState.waiting);
 
     Queue queue = app.db.queue.get(em, RouterObject.builder().setId(createArg.getQueueId())

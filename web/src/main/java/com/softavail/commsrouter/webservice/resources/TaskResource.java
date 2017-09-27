@@ -69,11 +69,11 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @POST
   @Path("{resourceId}")
   @ApiOperation(value = "Update an existing Task",
-      notes = "Update some properties of an existing Task", tags = "agents")
+      notes = "Update some properties of an existing Task", tags = "tasks")
   @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
-      @ApiResponse(code = 404, message = "Agent not found", response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Task not found", response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public void update(@PathParam("resourceId") String resourceId, UpdateTaskArg taskArg)
@@ -98,7 +98,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public Response put(
-      @ApiParam(value = "The id of the task to be updated",
+      @ApiParam(value = "The id of the task to be replaced",
           required = true) @PathParam("resourceId") String resourceId,
       @ApiParam(value = "CreateTaskArg object specifying all the parameters") CreateTaskArg taskArg)
       throws CommsRouterException {

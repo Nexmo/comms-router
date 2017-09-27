@@ -56,7 +56,7 @@ public class Task extends RouterObject {
 
   public Task() {}
 
-  public Task(CreateTaskArg createArg, RouterObjectId objectId) {
+  public Task(RouterObjectId objectId) {
     super(objectId.getId(), objectId.getRouterId());
   }
 
