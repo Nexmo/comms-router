@@ -61,7 +61,9 @@ public class CoreApiObjectService<DTOENTITYT, ENTITYT>
 
   @Override
   public void delete(String id) throws CommsRouterException {
-    repo.delete(id);
+    app.db.transactionManager.executeVoid((em) -> {
+      repo.delete(em, id);
+    });
   }
 
 }

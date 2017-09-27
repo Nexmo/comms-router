@@ -11,7 +11,7 @@ import com.softavail.commsrouter.api.dto.model.ApiObject;
  *
  * @author ikrustev
  */
-public class CreateRouterArg extends ApiObject {
+public class CreateRouterArg {
 
   private String name;
   private String description;

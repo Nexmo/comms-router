@@ -5,8 +5,6 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-
 /**
  *
  * @author ikrustev
@@ -17,12 +15,6 @@ public class RouterDto extends ApiObject {
   private String description;
 
   public RouterDto() {}
-
-  public RouterDto(CreateRouterArg createArg) {
-    super(createArg);
-    this.name = createArg.getName();
-    this.description = createArg.getDescription();
-  }
 
   public RouterDto(RouterDto jpa) {
     super(jpa);

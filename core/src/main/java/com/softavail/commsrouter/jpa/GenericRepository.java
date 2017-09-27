@@ -52,13 +52,11 @@ public class GenericRepository<ENTITYT> {
     return result;
   }
 
-  public void delete(String id) throws CommsRouterException {
-    transactionManager.executeVoid((em) -> {
-      ENTITYT jpaEntity = em.find(entityClass, id);
-      if (jpaEntity != null) {
-        em.remove(jpaEntity);
-      }
-    });
+  public void delete(EntityManager em, String id) throws CommsRouterException {
+    ENTITYT entity = em.find(entityClass, id);
+    if (entity != null) {
+      em.remove(entity);
+    }
   }
 
 }
