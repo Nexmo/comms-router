@@ -1,7 +1,5 @@
 package com.softavail.commsrouter.api.dto.model;
 
-import java.util.Objects;
-
 public class RouterObjectId extends ApiObjectId {
   
   private String routerId;
@@ -57,21 +55,4 @@ public class RouterObjectId extends ApiObjectId {
   public static Builder builder() {
     return new Builder();
   }
-
-  @Override
-  public boolean equals(Object object) {
-    boolean equals = super.equals(object);
-    if (equals) {
-      RouterObjectId routerObject = (RouterObjectId) object;
-      return Objects.equals(getRouterId(), routerObject.getRouterId());
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getId(), getRouterId(), getClass());
-  }
-
-
 }
