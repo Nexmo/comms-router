@@ -12,11 +12,13 @@ import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import com.softavail.commsrouter.webservice.model.SizeWrapper;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -107,7 +109,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
           value = "CreateQueueArg object specifying all the parameters") CreateQueueArg createArg)
       throws CommsRouterException {
 
-    LOGGER.debug("Replacing Queue {}", createArg);
+    LOGGER.debug("Replacing queue: {}, with id: {}", createArg, resourceId);
 
     RouterObjectId objectId =
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
@@ -121,7 +123,8 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   @GET
   @Path("{resourceId}/size")
   @ApiOperation(value = "Get the size of the Queue",
-      notes = "Returns the number of Tasks in waiting state in the Queue identified by {resourceId}",
+      notes = "Returns the number of Tasks in waiting state in "
+          + "the Queue identified by {resourceId}",
       response = SizeWrapper.class)
   public SizeWrapper count(@PathParam("resourceId") String resourceId) throws CommsRouterException {
 

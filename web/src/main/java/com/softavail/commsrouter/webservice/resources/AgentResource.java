@@ -102,7 +102,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
           value = "CreateAgentArg object specifying all the parameters") CreateAgentArg agentArg)
       throws CommsRouterException {
 
-    LOGGER.debug("Updating agent {}", agentArg);
+    LOGGER.debug("Replacing agent: {}, with id: {}", agentArg, resourceId);
 
     RouterObjectId objectId =
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
