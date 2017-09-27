@@ -42,7 +42,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       Agent agent = new Agent(ensureIdPresent(createArg));
       agent.setAddress(createArg.getAddress());
       agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
-      agent.setState(createArg.getState());
+      agent.setState(AgentState.offline);
 
       if (createArg.getRouterId() != null) {
         List<Queue> queues = app.db.queue.list(em, createArg.getRouterId());

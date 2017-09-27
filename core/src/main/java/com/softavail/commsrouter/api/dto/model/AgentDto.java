@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
 import java.util.List;
@@ -22,13 +21,6 @@ public class AgentDto extends RouterObject {
   private List<String> queueIds;
 
   public AgentDto() {}
-
-  public AgentDto(CreateAgentArg createArg) {
-    super(createArg);
-    address = createArg.getAddress();
-    capabilities = createArg.getCapabilities();
-    state = createArg.getState();
-  }
 
   public AttributeGroupDto getCapabilities() {
     return capabilities;
