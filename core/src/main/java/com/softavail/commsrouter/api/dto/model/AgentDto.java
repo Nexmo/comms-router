@@ -23,8 +23,8 @@ public class AgentDto extends RouterObject {
 
   public AgentDto() {}
 
-  public AgentDto(CreateAgentArg createArg) {
-    super(createArg);
+  public AgentDto(CreateAgentArg createArg, RouterObject objectId) {
+    super(objectId.getId(), objectId.getRouterId());
     address = createArg.getAddress();
     capabilities = createArg.getCapabilities();
     state = createArg.getState();

@@ -70,12 +70,11 @@ public class CommsRouterEvaluator {
    * @param queue the queue that will be evaluated
    * @return true - if matched queue
    */
-  public Boolean evaluateNewAgentForQueue(CreateAgentArg createAgentArg, Queue queue)
-      throws CommsRouterException {
+  public Boolean evaluateNewAgentForQueue(String agentId, CreateAgentArg createAgentArg,
+      Queue queue) throws CommsRouterException {
     AttributeGroupDto attrbutes = createAgentArg.getCapabilities();
     if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The agent with ID={} matched to queue with ID={}", createAgentArg.getId(),
-          queue.getId());
+      LOGGER.info("The agent with ID={} matched to queue with ID={}", agentId, queue.getId());
       return true;
     }
 
@@ -88,12 +87,12 @@ public class CommsRouterEvaluator {
    * @param queue the queue that will be evaluated
    * @return true - if matched queue
    */
-  public Boolean evaluateUpdateAgentForQueue(UpdateAgentArg updateAgentArg, Queue queue)
-      throws CommsRouterException {
+  public Boolean evaluateUpdateAgentForQueue(String agentId, UpdateAgentArg updateAgentArg,
+      Queue queue) throws CommsRouterException {
     AttributeGroupDto attrbutes = updateAgentArg.getCapabilities();
     if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The updated agent with ID={} matched to queue with ID={}",
-          updateAgentArg.getId(), queue.getId());
+      LOGGER.info("The updated agent with ID={} matched to queue with ID={}", agentId,
+          queue.getId());
       return true;
     }
 

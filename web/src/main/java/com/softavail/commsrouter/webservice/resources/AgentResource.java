@@ -4,13 +4,18 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
+import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,41 +48,68 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
   }
 
   @POST
-  @ApiOperation(
-      value = "Add new Agent",
-      notes = "Add new Agent and associate it with a Router",
+  @ApiOperation(value = "Add new Agent", notes = "Add new Agent and associate it with a Router",
       response = ApiObject.class)
-  public Response create(CreateAgentArg agentArg)
-      throws CommsRouterException {
+  public Response create(CreateAgentArg agentArg) throws CommsRouterException {
 
-    agentArg.setRouterId(routerId);
     LOGGER.debug("Creating agent {}", agentArg);
 
-    AgentDto agent = agentService.create(agentArg);
+    RouterObjectId objectId = RouterObjectId.builder().setRouterId(routerId).build();
+
+    AgentDto agent = agentService.create(agentArg, objectId);
 
     return createResponse(agent);
   }
 
-  @PUT
+  @POST
   @Path("{resourceId}")
-  @ApiOperation(
-      value = "Update an existing Agent",
-      notes = "Update some properties of an existing Agent")
+  @ApiOperation(value = "Update an existing Agent",
+      notes = "Update some properties of an existing Agent", tags = "agents")
+  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Agent not found", response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
   public void update(
-      @ApiParam(value = "ID of the agent to be updated")
-      @PathParam("resourceId")
-          String resourceId,
-      @ApiParam(
-          value = "UpdateAgentArg object representing parameters of the Agent to be updated",
-          required = true)
-          UpdateAgentArg agentArg)
+      @ApiParam(value = "ID of the agent to be updated") @PathParam("resourceId") String resourceId,
+      @ApiParam(value = "UpdateAgentArg object representing parameters of the Agent to be updated",
+          required = true) UpdateAgentArg agentArg)
       throws CommsRouterException {
 
-    agentArg.setRouterId(routerId);
-    agentArg.setId(resourceId);
     LOGGER.debug("Updating agent {}", agentArg);
 
-    agentService.update(agentArg);
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+
+    agentService.update(agentArg, objectId);
+  }
+
+  @PUT
+  @Path("{resourceId}")
+  @ApiOperation(value = "Replace an existing Agent",
+      notes = "If the agent with the specified id does not exist, it creates it", tags = "agents")
+  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Agent not found", response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public Response put(
+      @ApiParam(value = "The id of the agent to be replaced",
+          required = true) @PathParam("resourceId") String resourceId,
+      @ApiParam(
+          value = "CreateAgentArg object specifying all the parameters") CreateAgentArg agentArg)
+      throws CommsRouterException {
+
+    LOGGER.debug("Updating agent {}", agentArg);
+
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+
+    AgentDto agent = agentService.put(agentArg, objectId);
+
+    return createResponse(agent);
   }
 
 }
