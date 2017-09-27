@@ -52,14 +52,13 @@ public class CommsRouterEvaluator {
    * @return matched queue ID for the matched RuleDto OR null if not match
    *
    */
-  public String evaluateNewTaskToQueueByPlanRules(CreateTaskArg createTaskArg, Plan plan)
-      throws CommsRouterException {
+  public String evaluateNewTaskToQueueByPlanRules(String taskId, CreateTaskArg createTaskArg,
+      Plan plan) throws CommsRouterException {
     AttributeGroupDto attrbutes = createTaskArg.getRequirements();
     String queueId = evaluatePlanQueueByAttributes(attrbutes, plan);
     if (queueId != null) {
       createTaskArg.setQueueId(queueId);
-      LOGGER.info("The task with ID={} matched to queue with ID={}", createTaskArg.getId(),
-          queueId);
+      LOGGER.info("The task with ID={} matched to queue with ID={}", taskId, queueId);
     }
 
     return queueId;

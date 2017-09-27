@@ -13,7 +13,7 @@ import java.net.URL;
 /**
  * @author ikrustev
  */
-public class CreateTaskArg extends RouterObject {
+public class CreateTaskArg {
 
   private String queueId;
   private String planId;
