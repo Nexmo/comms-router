@@ -1,7 +1,5 @@
 package com.softavail.commsrouter.api.dto.model;
 
-import java.util.Objects;
-
 public class ApiObjectId {
 
   private String id;
@@ -23,22 +21,4 @@ public class ApiObjectId {
   public void setId(String id) {
     this.id = id;
   }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-    if (object == null || getClass() != object.getClass()) {
-      return false;
-    }
-    ApiObjectId apiObjectId = (ApiObjectId) object;
-    return Objects.equals(getId(), apiObjectId.getId());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getId(), getClass());
-  }
-
 }

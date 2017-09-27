@@ -1,16 +1,18 @@
 package com.softavail.comms.demo.application.client;
 
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterDto;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.api.interfaces.RouterService;
 
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.UriBuilder;
-import com.softavail.commsrouter.api.interfaces.RouterService;
 
 /**
  * Created by @author mapuo on 04.09.17.
@@ -47,15 +49,21 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto>
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg)
+  public void update(UpdateRouterArg updateArg, ApiObjectId id)
       throws NotFoundException {
 
-    put(updateArg);
+    post(updateArg, id);
   }
 
   @Override
   public RouterDto get(String id) throws NotFoundException {
-    return getItem(id);
+    return getItem(new ApiObjectId(id));
+  }
+
+  @Override
+  public RouterDto put(CreateRouterArg createArg, ApiObjectId objectId) 
+      throws CommsRouterException {
+    return put(createArg, objectId);
   }
 
   @Override
@@ -65,7 +73,7 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto>
 
   @Override
   public void delete(String id) {
-    super.delete(id);
+    super.delete(new ApiObjectId(id));
   }
 
 }

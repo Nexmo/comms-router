@@ -4,6 +4,7 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -49,7 +50,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
   public PlanDto get(RouterObject routerObject)
       throws NotFoundException {
 
-    return getItem(routerObject);
+    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
   @Override
@@ -65,7 +66,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
   @Override
   public void delete(RouterObject routerObject) {
     routerObject.setRouterId(configuration.getCommsRouterId());
-    super.delete(routerObject);
+    super.delete(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
   
   @Override
@@ -73,7 +74,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
 
     createArg.setRouterId(configuration.getCommsRouterId());
     
-    return post(createArg);
+    return post(createArg, configuration.getCommsRouterId());
   }
 
   @Override
@@ -81,7 +82,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
 
     updateArg.setRouterId(configuration.getCommsRouterId());
 
-    put(updateArg);
+    put(updateArg, new RouterObjectId(updateArg.getId(), configuration.getCommsRouterId()));
   }
 
 }
