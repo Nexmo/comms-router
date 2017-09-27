@@ -8,6 +8,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 
 import java.util.Collection;
@@ -73,18 +74,24 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg)
+  public QueueDto create(CreateQueueArg createArg, RouterObjectId id)
       throws NotFoundException {
 
-    createArg.setRouterId(configuration.getCommsRouterId());
-    return post(createArg);
+    return post(createArg, id.getRouterId());
+  }
+  
+  @Override
+  public QueueDto put(CreateQueueArg createArg, RouterObjectId objectId) 
+      throws CommsRouterException {
+
+    return put(createArg, objectId);
   }
 
   @Override
-  public void update(UpdateQueueArg updateArg)
+  public void update(UpdateQueueArg updateArg, RouterObjectId id)
       throws NotFoundException {
 
-    put(updateArg, new RouterObjectId(updateArg.getId(), configuration.getCommsRouterId()));
+    post(updateArg, id);
   }
 
   @Override
