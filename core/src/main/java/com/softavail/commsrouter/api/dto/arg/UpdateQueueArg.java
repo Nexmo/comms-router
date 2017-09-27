@@ -1,11 +1,9 @@
 package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
-
 /**
  * Created by @author mapuo on 05.09.17.
  */
-public class UpdateQueueArg extends RouterObject {
+public class UpdateQueueArg {
 
   private String predicate;
   private String description;
