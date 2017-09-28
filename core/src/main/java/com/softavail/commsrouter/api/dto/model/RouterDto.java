@@ -9,7 +9,7 @@ package com.softavail.commsrouter.api.dto.model;
  *
  * @author ikrustev
  */
-public class RouterDto extends ApiObject {
+public class RouterDto extends ApiObjectId {
 
   private String name;
   private String description;

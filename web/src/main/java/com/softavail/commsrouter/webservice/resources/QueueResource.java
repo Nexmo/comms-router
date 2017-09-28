@@ -128,7 +128,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
       response = SizeWrapper.class)
   public SizeWrapper count(@PathParam("resourceId") String resourceId) throws CommsRouterException {
 
-    long queueSize = queueService.getQueueSize(getRouterObject(resourceId));
+    long queueSize = queueService.getQueueSize(getRouterObjectId(resourceId));
 
     return new SizeWrapper(queueSize);
   }
@@ -141,7 +141,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   public Collection<TaskDto> getTasks(@PathParam("resourceId") String resourceId)
       throws CommsRouterException {
 
-    return queueService.getTasks(getRouterObject(resourceId));
+    return queueService.getTasks(getRouterObjectId(resourceId));
   }
 
 }

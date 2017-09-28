@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class QueueDto extends RouterObject {
+public class QueueDto extends RouterObjectId {
 
   private String description;
   private String predicate;

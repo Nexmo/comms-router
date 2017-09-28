@@ -2,7 +2,6 @@ package com.softavail.comms.demo.application.client;
 
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
@@ -54,7 +53,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
   @Override
   public void update(UpdateTaskArg updateArg, RouterObjectId id) throws CommsRouterException {
 
-    // post on resource, updates it with parameters provided 
+    // post on resource, updates it with parameters provided
     post(updateArg, id);
   }
 
@@ -70,9 +69,9 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
 
     return put(createArg, objectId);
   }
-  
+
   @Override
-  public TaskDto get(RouterObject routerObject) throws NotFoundException {
+  public TaskDto get(RouterObjectId routerObject) throws NotFoundException {
 
     routerObject.setRouterId(configuration.getCommsRouterId());
 
@@ -90,7 +89,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
   }
 
   @Override
-  public void delete(RouterObject routerObject) {
+  public void delete(RouterObjectId routerObject) {
     routerObject.setRouterId(configuration.getCommsRouterId());
     super.delete(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }

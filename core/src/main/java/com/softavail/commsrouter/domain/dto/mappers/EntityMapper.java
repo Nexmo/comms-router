@@ -7,6 +7,7 @@ package com.softavail.commsrouter.domain.dto.mappers;
 
 import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public abstract class EntityMapper<DTOENTITYT, JPAENTITYT> {
     return dtoList;
   }
 
-  protected void copyId(RouterObject to, RouterObject from) {
+  protected void copyId(RouterObjectId to, RouterObject from) {
     to.setId(from.getId());
     to.setRouterId(from.getRouterId());
   }

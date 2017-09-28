@@ -8,7 +8,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -67,7 +67,7 @@ public class JpaPlayground implements AutoCloseable {
     db.close();
   }
 
-  private <ENTITYT extends ApiObject> void printList(List<ENTITYT> list) {
+  private <ENTITYT extends ApiObjectId> void printList(List<ENTITYT> list) {
     list.stream().forEach(e -> System.out.println(e.getClass().getSimpleName() + ": " + e));
   }
 
@@ -84,8 +84,8 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
   }
 
-  private <DTOENTITYT extends RouterObject, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
-      RouterObject routerObject, SERVICET service, VoidTransactionLogic transaction)
+  private <DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
+      RouterObjectId routerObject, SERVICET service, VoidTransactionLogic transaction)
       throws CommsRouterException {
 
     System.out.println("testRouterObject:" + service.getDtoEntityClass().getSimpleName());
@@ -100,8 +100,8 @@ public class JpaPlayground implements AutoCloseable {
     void run() throws CommsRouterException;
   }
 
-  private <DTOENTITYT extends RouterObject, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
-      RouterObject routerObject, SERVICET service, Creator creator) throws CommsRouterException {
+  private <DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
+      RouterObjectId routerObject, SERVICET service, Creator creator) throws CommsRouterException {
 
     System.out.println("testRouterObject:" + service.getDtoEntityClass().getSimpleName());
     printList(service.list(routerObject.getRouterId()));
@@ -116,7 +116,7 @@ public class JpaPlayground implements AutoCloseable {
 
     testRouter("router-id", routerService);
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("queue-id1").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id1").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
@@ -124,7 +124,7 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(queue);
         });
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("queue-id2").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
@@ -132,7 +132,7 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(queue);
         });
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("queue-id-6").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-6").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
@@ -141,7 +141,7 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(queue);
         });
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("queue-id-5").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-5").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
@@ -150,60 +150,7 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(queue);
         });
 
-    // testRouterObject(RouterObject.builder().setRouterId("router-id").setId("task-id").build(),
-    // taskService, (em) -> {
-    // Queue queue = db.queue.get(em,
-    // RouterObject.builder().setRouterId("router-id").setId("queue-id1").build());
-    // Task task = new Task();
-    // AttributeGroup requrements = new AttributeGroup();
-    // requrements.add("language", "en");
-    // requrements.add("color", "red");
-    // requrements.add("price", 42L);
-    // task.setRequirements(requrements);
-    // task.setQueue(queue);
-    // task.setState(TaskState.waiting);
-    // task.setId("task-id");
-    // task.setRouterId("router-id");
-    // em.persist(task);
-    // });
-
-    // testRouterObject(RouterObject.builder().setRouterId("router-id").setId("task-id2").build(),
-    // taskService, (em) -> {
-    // Queue queue = db.queue.get(em,
-    // RouterObject.builder().setRouterId("router-id").setId("queue-id1").build());
-    // Task task = new Task();
-    // AttributeGroup requrements = new AttributeGroup();
-    // requrements.add("language", "es");
-    // requrements.add("color", "green");
-    // requrements.add("price", 24L);
-    // task.setRequirements(requrements);
-    // task.setQueue(queue);
-    // task.setState(TaskState.waiting);
-    // task.setId("task-id2");
-    // task.setRouterId("router-id");
-    // em.persist(task);
-    // });
-
-    // testRouterObject(RouterObject.builder().setRouterId("router-id").setId("task-id2").build(),
-    // taskService, () -> {
-    // CreateTaskArg createTaskArg = new CreateTaskArg();
-    // AttributeGroupDto requrements = new AttributeGroupDto();
-    // requrements.put("language", new StringAttributeValueDto("es"));
-    // requrements.put("color", new StringAttributeValueDto("green"));
-    // requrements.put("price", new LongAttributeValueDto(43L));
-    // createTaskArg.setRequirements(requrements);
-    // createTaskArg.setQueueId("queue-id1");
-    // createTaskArg.setId("task-id2");
-    // createTaskArg.setRouterId("router-id");
-    // try {
-    // createTaskArg.setCallbackUrl(new URL("http://localhost/2"));
-    // } catch (MalformedURLException ex) {
-    // throw new RuntimeException("Bad URL");
-    // }
-    // taskService.create(createTaskArg);
-    // });
-    //
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("plan-id").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("plan-id").build(),
         planService, (em) -> {
           Plan plan = new Plan();
           plan.setDescription("my plan");
@@ -228,12 +175,12 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(plan);
         });
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("agent-id").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("agent-id").build(),
         agentService, (em) -> {
           Queue queue1 = db.queue.get(em,
-              RouterObject.builder().setRouterId("router-id").setId("queue-id1").build());
+              RouterObjectId.builder().setRouterId("router-id").setId("queue-id1").build());
           Queue queue2 = db.queue.get(em,
-              RouterObject.builder().setRouterId("router-id").setId("queue-id2").build());
+              RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build());
           Agent agent = new Agent();
           AttributeGroup capabilities = new AttributeGroup();
           capabilities.add("language", "en");
@@ -250,7 +197,7 @@ public class JpaPlayground implements AutoCloseable {
           em.persist(agent);
         });
 
-    testRouterObject(RouterObject.builder().setRouterId("router-id").setId("task-id").build(),
+    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("task-id").build(),
         taskService, () -> {
           CreateTaskArg createTaskArg = new CreateTaskArg();
           AttributeGroupDto requrements = new AttributeGroupDto();

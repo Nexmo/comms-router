@@ -7,6 +7,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.app.AppContext;
@@ -20,9 +21,8 @@ import java.util.List;
 /**
  * @author ikrustev
  */
-public class CoreRouterObjectService<DTOENTITYT extends RouterObject, ENTITYT extends RouterObject>
-    extends CoreService
-    implements RouterObjectService<DTOENTITYT> {
+public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject>
+    extends CoreService implements RouterObjectService<DTOENTITYT> {
 
   protected final Class<DTOENTITYT> dtoEntityClass;
   protected final Class<ENTITYT> entityClass;
@@ -48,7 +48,7 @@ public class CoreRouterObjectService<DTOENTITYT extends RouterObject, ENTITYT ex
   }
 
   @Override
-  public DTOENTITYT get(RouterObject routerObjectId) throws CommsRouterException {
+  public DTOENTITYT get(RouterObjectId routerObjectId) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
       ENTITYT entity = repo.get(em, routerObjectId);
       return entityMapper.toDto(entity);
@@ -71,26 +71,21 @@ public class CoreRouterObjectService<DTOENTITYT extends RouterObject, ENTITYT ex
     return app.db.transactionManager.execute((em) -> {
 
       String qlString =
-          "SELECT e FROM " + entityClass.getSimpleName() + " e "
-              + "WHERE e.routerId = :routerId";
-      List<ENTITYT> jpaResult = em.createQuery(qlString)
-          .setParameter("routerId", routerId)
-          .setFirstResult((page - 1) * perPage)
-          .setMaxResults(perPage)
-          .getResultList();
+          "SELECT e FROM " + entityClass.getSimpleName() + " e " + "WHERE e.routerId = :routerId";
+      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerId", routerId)
+          .setFirstResult((page - 1) * perPage).setMaxResults(perPage).getResultList();
 
       String countString = "SELECT COUNT(e.id) FROM " + entityClass.getSimpleName() + " e "
           + "WHERE e.routerId = :routerId";
-      long countResult = (long) em.createQuery(countString)
-          .setParameter("routerId", routerId)
-          .getSingleResult();
+      long countResult =
+          (long) em.createQuery(countString).setParameter("routerId", routerId).getSingleResult();
 
       return new PaginatedList<>(entityMapper.toDto(jpaResult), page, perPage, countResult);
     });
   }
 
   @Override
-  public void delete(RouterObject routerObjectId) throws CommsRouterException {
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
     repo.delete(routerObjectId);
   }
 

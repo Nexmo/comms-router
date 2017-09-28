@@ -3,7 +3,6 @@ package com.softavail.commsrouter.api.service;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -86,30 +85,30 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public long getQueueSize(RouterObject routerObject) throws CommsRouterException {
+  public long getQueueSize(RouterObjectId routerObjectId) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.get(em, routerObject); // Check that queue exists
+      app.db.queue.get(em, routerObjectId); // Check that queue exists
 
       String qlString = "SELECT COUNT(t.id) FROM Task t "
           + "JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
 
-      return (long) em.createQuery(qlString).setParameter("queueId", routerObject.getId())
+      return (long) em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
           .setParameter("state", TaskState.waiting).getSingleResult();
     });
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Collection<TaskDto> getTasks(RouterObject routerObject) throws CommsRouterException {
+  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.get(em, routerObject); // Check that queue exists
+      app.db.queue.get(em, routerObjectId); // Check that queue exists
 
       String qlString =
           "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
 
-      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObject.getId())
+      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
           .setParameter("state", TaskState.waiting).getResultList();
 
       return app.entityMapper.task.toDto(list);
