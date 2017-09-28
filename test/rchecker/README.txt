@@ -1,1 +1,6 @@
-This is the stub README.txt for the "rchecker" project.
+* Install sbcl
+* run sbcl with quicklisp installed
+* start with
+(ql:quickload :rchecker)
+(in-package :rchecker)
+(test-router)
