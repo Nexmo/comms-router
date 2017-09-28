@@ -14,6 +14,7 @@ import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.util.Fields;
+import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
 
@@ -32,6 +33,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   public PlanDto create(CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    objectId.setId(Uuid.get());
     return app.db.transactionManager.execute((em) -> {
       return doCreate(em, createArg, objectId);
     });
