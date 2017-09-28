@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class UpdateAgentArg extends RouterObject {
+public class UpdateAgentArg {
 
   private String address;
   private AttributeGroupDto capabilities;

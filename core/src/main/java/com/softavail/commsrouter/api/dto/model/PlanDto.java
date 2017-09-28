@@ -22,8 +22,8 @@ public class PlanDto extends RouterObject {
 
   public PlanDto() {}
 
-  public PlanDto(CreatePlanArg createArg) {
-    super(createArg);
+  public PlanDto(CreatePlanArg createArg, RouterObjectId objectId) {
+    super(objectId.getId(), objectId.getRouterId());
     this.description = createArg.getDescription();
   }
 

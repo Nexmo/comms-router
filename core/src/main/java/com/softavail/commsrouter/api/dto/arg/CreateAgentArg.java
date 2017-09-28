@@ -8,11 +8,10 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class CreateAgentArg extends RouterObject {
+public class CreateAgentArg {
 
   private String address;
   private AttributeGroupDto capabilities;
-  private AgentState state;
 
   public String getAddress() {
     return address;

@@ -4,9 +4,11 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 
 import java.util.Collection;
@@ -52,7 +54,7 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
   public QueueDto get(RouterObject routerObject)
       throws NotFoundException {
 
-    return getItem(routerObject);
+    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
   @Override
@@ -68,24 +70,28 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
   @Override
   public void delete(RouterObject routerObject) {
     routerObject.setRouterId(configuration.getCommsRouterId());
-    super.delete(routerObject);
+    super.delete(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg)
+  public QueueDto create(CreateQueueArg createArg, RouterObjectId id)
       throws NotFoundException {
 
-    createArg.setRouterId(configuration.getCommsRouterId());
-    return post(createArg);
+    return post(createArg, id.getRouterId());
+  }
+  
+  @Override
+  public QueueDto put(CreateQueueArg createArg, RouterObjectId objectId) 
+      throws CommsRouterException {
+
+    return put(createArg, objectId);
   }
 
   @Override
-  public void update(UpdateQueueArg updateArg)
+  public void update(UpdateQueueArg updateArg, RouterObjectId id)
       throws NotFoundException {
 
-    updateArg.setRouterId(configuration.getCommsRouterId());
-
-    put(updateArg);
+    post(updateArg, id);
   }
 
   @Override

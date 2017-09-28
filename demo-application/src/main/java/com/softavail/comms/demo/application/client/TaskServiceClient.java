@@ -3,6 +3,7 @@ package com.softavail.comms.demo.application.client;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
@@ -44,34 +45,38 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
   }
 
   @Override
-  public TaskDto create(CreateTaskArg createArg) throws CommsRouterException {
+  public TaskDto create(CreateTaskArg createArg, RouterObjectId id) throws CommsRouterException {
 
-    createArg.setRouterId(configuration.getCommsRouterId());
-
-    return post(createArg);
+    // post on container, creates object with auto generated id
+    return post(createArg, id.getRouterId());
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId id) throws CommsRouterException {
 
-    updateArg.setRouterId(configuration.getCommsRouterId());
-
-    put(updateArg);
+    // post on resource, updates it with parameters provided 
+    post(updateArg, id);
   }
 
   @Override
   public void update(UpdateTaskContext taskContext) throws CommsRouterException {
     taskContext.setRouterId(configuration.getCommsRouterId());
 
-    put(taskContext);
+    post(taskContext, new RouterObjectId(taskContext.getId(), configuration.getCommsRouterId()));
   }
 
+  @Override
+  public TaskDto put(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
+
+    return put(createArg, objectId);
+  }
+  
   @Override
   public TaskDto get(RouterObject routerObject) throws NotFoundException {
 
     routerObject.setRouterId(configuration.getCommsRouterId());
 
-    return getItem(routerObject);
+    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
   @Override
@@ -87,7 +92,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
   @Override
   public void delete(RouterObject routerObject) {
     routerObject.setRouterId(configuration.getCommsRouterId());
-    super.delete(routerObject);
+    super.delete(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
 }

@@ -5,8 +5,6 @@
 
 package com.softavail.commsrouter.api.service;
 
-import javax.persistence.EntityManager;
-
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
@@ -18,11 +16,12 @@ import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
+import javax.persistence.EntityManager;
+
 /**
  * @author ikrustev
  */
-public class CoreRouterService
-    extends CoreApiObjectService<RouterDto, Router>
+public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     implements RouterService {
 
   public CoreRouterService(AppContext app) {
@@ -30,8 +29,7 @@ public class CoreRouterService
   }
 
   @Override
-  public RouterDto create(CreateRouterArg createArg)
-      throws CommsRouterException {
+  public RouterDto create(CreateRouterArg createArg) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       ApiObjectId objectId = new ApiObjectId(Uuid.get());
@@ -40,8 +38,7 @@ public class CoreRouterService
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, ApiObjectId objectId)
-      throws CommsRouterException {
+  public void update(UpdateRouterArg updateArg, ApiObjectId objectId) throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
       Router router = app.db.router.get(em, objectId.getId());

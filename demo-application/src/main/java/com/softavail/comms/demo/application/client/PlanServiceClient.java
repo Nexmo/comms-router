@@ -4,8 +4,10 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import java.util.List;
 import javax.inject.Inject;
@@ -49,7 +51,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
   public PlanDto get(RouterObject routerObject)
       throws NotFoundException {
 
-    return getItem(routerObject);
+    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
 
   @Override
@@ -65,23 +67,26 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
   @Override
   public void delete(RouterObject routerObject) {
     routerObject.setRouterId(configuration.getCommsRouterId());
-    super.delete(routerObject);
+    super.delete(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
   }
   
   @Override
-  public PlanDto create(CreatePlanArg createArg) {
-
-    createArg.setRouterId(configuration.getCommsRouterId());
+  public PlanDto create(CreatePlanArg createArg, RouterObjectId id) {
     
-    return post(createArg);
+    return post(createArg, id.getRouterId());
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg) throws NotFoundException {
+  public void update(UpdatePlanArg updateArg, RouterObjectId id) throws NotFoundException {
 
-    updateArg.setRouterId(configuration.getCommsRouterId());
+    post(updateArg, id);
+  }
 
-    put(updateArg);
+  @Override
+  public PlanDto put(CreatePlanArg createArg, RouterObjectId objectId) 
+      throws CommsRouterException {
+
+    return put(createArg, objectId);
   }
 
 }

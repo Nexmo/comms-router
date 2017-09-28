@@ -7,6 +7,7 @@ package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 
 import javax.persistence.CascadeType;
@@ -55,8 +56,8 @@ public class Task extends RouterObject {
 
   public Task() {}
 
-  public Task(CreateTaskArg createArg) {
-    super(createArg);
+  public Task(RouterObjectId objectId) {
+    super(objectId.getId(), objectId.getRouterId());
   }
 
   public AttributeGroup getRequirements() {

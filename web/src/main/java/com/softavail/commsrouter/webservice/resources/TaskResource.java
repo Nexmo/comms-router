@@ -4,13 +4,18 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
+import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,36 +53,64 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   }
 
   @POST
-  @ApiOperation(
-      value = "Add new Task",
-      notes = "Add new Task and associate it with a Router",
+  @ApiOperation(value = "Add new Task", notes = "Add new Task and associate it with a Router",
       response = ApiObject.class)
-  public Response create(CreateTaskArg taskArg)
-      throws CommsRouterException {
+  public Response create(CreateTaskArg taskArg) throws CommsRouterException {
 
-    taskArg.setRouterId(routerId);
+    RouterObjectId objectId = RouterObjectId.builder().setRouterId(routerId).build();
 
     LOGGER.debug("Creating Task: {}", taskArg);
 
-    TaskDto task = taskService.create(taskArg);
+    TaskDto task = taskService.create(taskArg, objectId);
 
     return createResponse(task);
   }
 
-  @PUT
+  @POST
   @Path("{resourceId}")
-  @ApiOperation(
-      value = "Update an existing Task",
-      notes = "Update some properties of an existing Task")
+  @ApiOperation(value = "Update an existing Task",
+      notes = "Update some properties of an existing Task", tags = "tasks")
+  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Task not found", response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
   public void update(@PathParam("resourceId") String resourceId, UpdateTaskArg taskArg)
       throws CommsRouterException {
 
-    taskArg.setRouterId(routerId);
-    taskArg.setId(resourceId);
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
     LOGGER.debug("Updating task: {}", taskArg);
 
-    taskService.update(taskArg);
+    taskService.update(taskArg, objectId);
+  }
+
+  @PUT
+  @Path("{resourceId}")
+  @ApiOperation(value = "Replace an existing Task",
+      notes = "If the task with the specified id does not exist, it creates it", tags = "tasks")
+  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Task not found", response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public Response put(
+      @ApiParam(value = "The id of the task to be replaced",
+          required = true) @PathParam("resourceId") String resourceId,
+      @ApiParam(value = "CreateTaskArg object specifying all the parameters") CreateTaskArg taskArg)
+      throws CommsRouterException {
+
+    LOGGER.debug("Replacing task: {}, with id: {}", taskArg, resourceId);
+
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+
+    TaskDto task = taskService.put(taskArg, objectId);
+
+    return createResponse(task);
   }
 
   // Sub-resources

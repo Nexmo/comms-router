@@ -23,8 +23,8 @@ public class QueueDto extends RouterObject {
 
   public QueueDto() {}
 
-  public QueueDto(CreateQueueArg queueArg) {
-    super(queueArg);
+  public QueueDto(CreateQueueArg queueArg, RouterObject objectId) {
+    super(objectId.getId(), objectId.getRouterId());
     description = queueArg.getDescription();
     predicate = queueArg.getPredicate();
   }

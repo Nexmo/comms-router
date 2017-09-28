@@ -10,6 +10,7 @@ import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
@@ -258,14 +259,14 @@ public class JpaPlayground implements AutoCloseable {
           requrements.put("price", new LongAttributeValueDto(42L));
           createTaskArg.setRequirements(requrements);
           createTaskArg.setQueueId("queue-id1");
-          createTaskArg.setId("task-id");
-          createTaskArg.setRouterId("router-id");
+          RouterObjectId objectId =
+              RouterObjectId.builder().setId("task-id").setRouterId("router-id").build();
           try {
             createTaskArg.setCallbackUrl(new URL("http://localhost"));
           } catch (MalformedURLException ex) {
             throw new RuntimeException("Bad URL");
           }
-          taskService.create(createTaskArg);
+          taskService.create(createTaskArg, objectId);
         });
 
     // taskDispatcher.dispatchTask("task-id");
@@ -273,10 +274,10 @@ public class JpaPlayground implements AutoCloseable {
     taskDispatcher.dispatchAgent("agent-id");
     sleep();
     UpdateTaskArg updateTaskArg = new UpdateTaskArg();
-    updateTaskArg.setId("task-id");
-    updateTaskArg.setRouterId("router-id");
     updateTaskArg.setState(TaskState.completed);
-    taskService.update(updateTaskArg);
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId("task-id").setRouterId("router-id").build();
+    taskService.update(updateTaskArg, objectId);
     sleep();
   }
 

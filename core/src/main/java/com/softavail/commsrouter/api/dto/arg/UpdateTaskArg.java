@@ -12,7 +12,7 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
  *
  * @author ikrustev
  */
-public class UpdateTaskArg extends RouterObject {
+public class UpdateTaskArg {
   private TaskState state;
 
   public TaskState getState() {

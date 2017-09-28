@@ -5,6 +5,7 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
+import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
 /**
@@ -22,6 +23,15 @@ public class TaskDto extends RouterObject {
   private String callbackUrl;
 
   public TaskDto() {}
+
+  public TaskDto(CreateTaskArg createArg, RouterObject objectId) {
+    super(objectId.getId(), objectId.getRouterId());
+    requirements = createArg.getRequirements();
+    userContext = createArg.getUserContext();
+    planId = createArg.getPlanId();
+    queueId = createArg.getQueueId();
+    callbackUrl = createArg.getCallbackUrl().toString();
+  }
 
   public AttributeGroupDto getRequirements() {
     return requirements;
@@ -81,11 +91,9 @@ public class TaskDto extends RouterObject {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder().append("Task [")
-        .append("requirements = ").append(getRequirements())
-        .append(", userContext = ").append(getUserContext())
-        .append(", callbackUrl = ").append(getCallbackUrl())
-        .append("]");
+    StringBuilder sb = new StringBuilder().append("Task [").append("requirements = ")
+        .append(getRequirements()).append(", userContext = ").append(getUserContext())
+        .append(", callbackUrl = ").append(getCallbackUrl()).append("]");
     return sb.toString();
   }
 

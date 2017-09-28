@@ -4,8 +4,10 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import java.util.List;
 import javax.inject.Inject;
@@ -66,13 +68,19 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
   }
 
   @Override
-  public AgentDto create(CreateAgentArg createArg) throws NotFoundException {
+  public AgentDto create(CreateAgentArg createArg, RouterObjectId id) throws NotFoundException {
     return null;
   }
 
   @Override
-  public void update(UpdateAgentArg updateArg) throws NotFoundException {
+  public void update(UpdateAgentArg updateArg, RouterObjectId id) throws NotFoundException {
 
+  }
+
+  public AgentDto put(CreateAgentArg createArg, RouterObjectId objectId) 
+      throws CommsRouterException {
+    
+    return null;
   }
 
 }

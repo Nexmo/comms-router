@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class UpdatePlanArg extends RouterObject {
+public class UpdatePlanArg {
 
   private String description;
   private List<RuleDto> rules;
