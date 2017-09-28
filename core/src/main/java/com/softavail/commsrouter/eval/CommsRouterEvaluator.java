@@ -263,16 +263,17 @@ public class CommsRouterEvaluator {
   }
 
   private String reMapVariableKeysInPredicate(AttributeGroupDto attributesGroup, String predicate) {
-    if (attributesGroup == null) {
-      return predicate;
-    }
-    String result = predicate;
-    Set<String> keys = attributesGroup.keySet();
-    for (String key : keys) {
-      String newKey = String.format(EVAL_VARIABLES_FORMAT, key);
-      result = result.replaceAll(key, newKey);
-    }
-    return result;
+    // if (attributesGroup == null) {
+    // return predicate;
+    // }
+    // String result = predicate;
+    // Set<String> keys = attributesGroup.keySet();
+    // for (String key : keys) {
+    // String newKey = String.format(EVAL_VARIABLES_FORMAT, key);
+    // result = result.replaceAll(key, newKey);
+    // }
+    // return result;
+    return predicate;
   }
 
 }
