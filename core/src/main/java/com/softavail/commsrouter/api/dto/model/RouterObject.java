@@ -44,33 +44,6 @@ public class RouterObject extends ApiObject {
     return "" + getRouterId() + ":" + getId();
   }
 
-  public static class Builder {
-
-    private String id;
-    private String routerId;
-
-    public Builder() {}
-
-    public Builder setId(String id) {
-      this.id = id;
-      return this;
-    }
-
-    public Builder setRouterId(String routerId) {
-      this.routerId = routerId;
-      return this;
-    }
-
-    public RouterObject build() {
-      return new RouterObject(id, routerId);
-    }
-
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
-
   @Override
   public boolean equals(Object object) {
     boolean equals = super.equals(object);

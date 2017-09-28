@@ -3,7 +3,6 @@ package com.softavail.comms.demo.application.client;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
@@ -18,8 +17,7 @@ import com.softavail.commsrouter.api.interfaces.AgentService;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class AgentServiceClient extends ServiceClientBase<AgentDto>
-    implements AgentService {
+public class AgentServiceClient extends ServiceClientBase<AgentDto> implements AgentService {
 
   private Client client;
 
@@ -34,12 +32,8 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
 
   @Override
   UriBuilder getApiUrl() {
-    return UriBuilder
-        .fromPath(configuration.getCommsApiEndpoint())
-        .path("routers")
-        .path("{routerId}")
-        .path("agents")
-        .clone();
+    return UriBuilder.fromPath(configuration.getCommsApiEndpoint()).path("routers")
+        .path("{routerId}").path("agents").clone();
   }
 
   @Override
@@ -48,7 +42,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
   }
 
   @Override
-  public AgentDto get(RouterObject routerObjectId) throws NotFoundException {
+  public AgentDto get(RouterObjectId routerObjectId) throws NotFoundException {
     return null;
   }
 
@@ -63,7 +57,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
   }
 
   @Override
-  public void delete(RouterObject routerObjectId) {
+  public void delete(RouterObjectId routerObjectId) {
 
   }
 
@@ -77,9 +71,9 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
 
   }
 
-  public AgentDto put(CreateAgentArg createArg, RouterObjectId objectId) 
+  public AgentDto put(CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
-    
+
     return null;
   }
 

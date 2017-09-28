@@ -9,7 +9,6 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -115,7 +114,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     app.db.router.get(em, objectId.getRouterId());
 
     if (createArg.getPlanId() != null) {
-      Plan plan = app.db.plan.get(em, RouterObject.builder().setId(createArg.getPlanId())
+      Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
       List<Rule> rules = plan.getRules();
       String queueId = null;
@@ -141,7 +140,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     Task task = new Task(objectId);
     task.setState(TaskState.waiting);
 
-    Queue queue = app.db.queue.get(em, RouterObject.builder().setId(createArg.getQueueId())
+    Queue queue = app.db.queue.get(em, RouterObjectId.builder().setId(createArg.getQueueId())
         .setRouterId(objectId.getRouterId()).build());
 
     task.setQueue(queue);

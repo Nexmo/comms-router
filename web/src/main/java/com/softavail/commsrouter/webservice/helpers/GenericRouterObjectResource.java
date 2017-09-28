@@ -3,8 +3,8 @@ package com.softavail.commsrouter.webservice.helpers;
 import com.google.common.collect.Lists;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
@@ -40,7 +40,7 @@ import javax.ws.rs.core.UriBuilder;
  */
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
-public abstract class GenericRouterObjectResource<T extends RouterObject>
+public abstract class GenericRouterObjectResource<T extends RouterObjectId>
     extends RouterObjectResource {
 
   private static final Logger LOGGER = LogManager.getLogger(GenericRouterObjectResource.class);
@@ -52,7 +52,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObject>
         entryPoint.clone().path("{resourceId}").build(routerId, routerObject.getId());
 
     return Response.status(Status.CREATED).header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObject(routerObject)).build();
+        .entity(new ApiObjectId(routerObject)).build();
   }
 
   protected Link[] getLinks(PaginatedList<T> pagedList) {
@@ -125,11 +125,11 @@ public abstract class GenericRouterObjectResource<T extends RouterObject>
   @ApiOperation(value = "Get resource by ID", notes = "Returns resource by the given ID")
   public T get(@PathParam("resourceId") String resourceId) throws CommsRouterException {
 
-    RouterObject routerObject = getRouterObject(resourceId);
+    RouterObjectId routerObjectId = getRouterObjectId(resourceId);
 
-    LOGGER.debug("Getting {}", routerObject);
+    LOGGER.debug("Getting {}", routerObjectId);
 
-    return getService().get(routerObject);
+    return getService().get(routerObjectId);
   }
 
   @DELETE
@@ -142,11 +142,11 @@ public abstract class GenericRouterObjectResource<T extends RouterObject>
           response = ExceptionPresentation.class)})
   public void delete(@PathParam("resourceId") String resourceId) throws CommsRouterException {
 
-    RouterObject routerObject = getRouterObject(resourceId);
+    RouterObjectId routerObjectId = getRouterObjectId(resourceId);
 
-    LOGGER.debug("Deleting {}", routerObject);
+    LOGGER.debug("Deleting {}", routerObjectId);
 
-    getService().delete(routerObject);
+    getService().delete(routerObjectId);
   }
 
 }

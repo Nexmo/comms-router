@@ -1,6 +1,6 @@
 package com.softavail.commsrouter.webservice.helpers;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -20,11 +20,8 @@ public class RouterObjectResource {
     this.entryPoint = entryPoint;
   }
 
-  protected RouterObject getRouterObject(String id) {
-    return new RouterObject.Builder()
-        .setRouterId(routerId)
-        .setId(id)
-        .build();
+  protected RouterObjectId getRouterObjectId(String id) {
+    return new RouterObjectId.Builder().setRouterId(routerId).setId(id).build();
   }
 
 }

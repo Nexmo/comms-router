@@ -1,19 +1,18 @@
 package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
 /**
  * Created by @author mapuo on 18.09.17.
  */
-public class UpdateTaskContext extends RouterObject {
+public class UpdateTaskContext extends RouterObjectId {
 
   private AttributeGroupDto userContext;
 
-  public UpdateTaskContext() {
-  }
+  public UpdateTaskContext() {}
 
-  public UpdateTaskContext(RouterObject rhs) {
+  public UpdateTaskContext(RouterObjectId rhs) {
     super(rhs);
   }
 
@@ -21,8 +20,7 @@ public class UpdateTaskContext extends RouterObject {
     return userContext;
   }
 
-  public void setUserContext(
-      AttributeGroupDto userContext) {
+  public void setUserContext(AttributeGroupDto userContext) {
     this.userContext = userContext;
   }
 

@@ -12,7 +12,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
  *
  * @author ikrustev
  */
-public class TaskDto extends RouterObject {
+public class TaskDto extends RouterObjectId {
 
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;

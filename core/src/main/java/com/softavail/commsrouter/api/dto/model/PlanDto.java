@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class PlanDto extends RouterObject {
+public class PlanDto extends RouterObjectId {
 
   private String description;
   private List<RuleDto> rules = new ArrayList<>();
