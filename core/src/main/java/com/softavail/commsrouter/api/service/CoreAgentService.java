@@ -125,7 +125,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       if (!compareCapabilities(newAttributes, oldAttributes)) {
         List<Queue> matchedQueues = new ArrayList<>();
         List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
-        for (Queue queue : queues) {
+        queues.forEach((queue) -> {
           try {
             if (app.evaluator.evaluateUpdateAgentForQueue(objectId.getId(), updateArg, queue)) {
               matchedQueues.add(queue);
@@ -134,7 +134,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
             LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
                 ex.getLocalizedMessage());
           }
-        }
+        });
         if (matchedQueues.isEmpty()) {
           LOGGER.warn("Agent with ID={} didn't match to any queues.", agent.getId());
         }

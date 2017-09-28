@@ -19,7 +19,6 @@ import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
 
@@ -33,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,32 +41,36 @@ import java.util.Set;
 public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
-  private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
+  // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
 
   /**
    * 
+   * @param taskId new creating task ID
    * @param createTaskArg new task arguments
-   * @param plan CommsRouter plan object
+   * @param rule CommsRouter plan rule object
    * @return matched queue ID for the matched RuleDto OR null if not match
+   * @throws com.softavail.commsrouter.api.exception.CommsRouterException
    *
    */
-  public String evaluateNewTaskToQueueByPlanRules(String taskId, CreateTaskArg createTaskArg,
-      Plan plan) throws CommsRouterException {
+  public Boolean evaluateNewTaskToQueueByPlanRules(String taskId, CreateTaskArg createTaskArg,
+      Rule rule) throws CommsRouterException {
     AttributeGroupDto attrbutes = createTaskArg.getRequirements();
-    String queueId = evaluatePlanQueueByAttributes(attrbutes, plan);
-    if (queueId != null) {
-      createTaskArg.setQueueId(queueId);
-      LOGGER.info("The task with ID={} matched to queue with ID={}", taskId, queueId);
+    if (evaluatePredicateByAttributes(attrbutes, rule.getPredicate())) {
+      LOGGER.info("The task with ID={} matched to rule predicate for queue with ID={}", taskId,
+          rule.getQueueId());
+      return true;
     }
 
-    return queueId;
+    return false;
   }
 
   /**
    *
+   * @param agentId new creating agent ID
    * @param createAgentArg arguments for creating an agent
    * @param queue the queue that will be evaluated
    * @return true - if matched queue
+   * @throws CommsRouterException .
    */
   public Boolean evaluateNewAgentForQueue(String agentId, CreateAgentArg createAgentArg,
       Queue queue) throws CommsRouterException {
@@ -83,9 +85,11 @@ public class CommsRouterEvaluator {
 
   /**
    *
+   * @param agentId updating agent ID
    * @param updateAgentArg arguments for updating agent
    * @param queue the queue that will be evaluated
    * @return true - if matched queue
+   * @throws CommsRouterException .
    */
   public Boolean evaluateUpdateAgentForQueue(String agentId, UpdateAgentArg updateAgentArg,
       Queue queue) throws CommsRouterException {
@@ -105,6 +109,7 @@ public class CommsRouterEvaluator {
    * @param agentAttrbutes agent capabilities arguments for evaluate to queue predicate
    * @param queue the queue that will be evaluated
    * @return true - if matched queue
+   * @throws CommsRouterException .
    */
   public Boolean evaluateAgentCapabilitiesForQueue(String agentId, AttributeGroupDto agentAttrbutes,
       Queue queue) throws CommsRouterException {
@@ -114,50 +119,6 @@ public class CommsRouterEvaluator {
     }
 
     return false;
-  }
-
-  /**
-   *
-   * @param attributesGroup attributes group to evaluate some queues
-   * @param plan CommsRouter plan object
-   * @return matched queue ID for the matched RuleDto OR null if not match
-   */
-  public String evaluatePlanQueueByAttributes(AttributeGroupDto attributesGroup, Plan plan)
-      throws CommsRouterException {
-    Evaluator evaluator = new Evaluator();
-    evaluator.putFunction(new HasFunction());
-    evaluator.putFunction(new InFunction());
-    evaluator.putFunction(new ContainsFunction());
-    if (!setEvaluatorAttributeVariables(evaluator, attributesGroup)) {
-      return null;
-    }
-
-    List<Rule> rules = plan.getRules();
-    String queueId = null;
-    String throwException = null;
-    try {
-      for (int index = 0; index < rules.size(); ++index) {
-        Rule rule = rules.get(index);
-        String result =
-            evaluator.evaluate(reMapVariableKeysInPredicate(attributesGroup, rule.getPredicate()));
-        EvaluationResult res = new EvaluationResult(result, EvaluationConstants.SINGLE_QUOTE);
-        if (res.isBooleanFalse()) {
-          continue;
-        }
-
-        queueId = rule.getQueueId();
-        LOGGER.info("Matched to queue with ID={}", rule.getQueueId());
-        break;
-      }
-    } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getLocalizedMessage());
-      throwException = ex.getLocalizedMessage();
-    }
-    if (throwException != null && !throwException.isEmpty()) {
-      throw new EvaluatorException(throwException);
-    }
-
-    return queueId;
   }
 
   private Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
@@ -241,7 +202,7 @@ public class CommsRouterEvaluator {
       return false;
     }
 
-    String throwException = null;
+    String throwException;
     try {
       String result = evaluator.evaluate(reMapVariableKeysInPredicate(attributesGroup, predicate));
       EvaluationResult res = new EvaluationResult(result, EvaluationConstants.SINGLE_QUOTE);
@@ -249,17 +210,18 @@ public class CommsRouterEvaluator {
         return false;
       }
 
-      LOGGER.info("Attribute={} matched to queue predicate={}", attributesGroup, predicate);
+      LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
+      return true;
     } catch (EvaluationException ex) {
       LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getLocalizedMessage());
       throwException = ex.getLocalizedMessage();
-      // return false;
     }
+
     if (throwException != null && !throwException.isEmpty()) {
       throw new EvaluatorException(throwException);
     }
 
-    return true;
+    return false;
   }
 
   private String reMapVariableKeysInPredicate(AttributeGroupDto attributesGroup, String predicate) {

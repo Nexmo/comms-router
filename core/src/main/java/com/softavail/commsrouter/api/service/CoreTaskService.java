@@ -20,8 +20,14 @@ import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Uuid;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -29,6 +35,8 @@ import javax.persistence.EntityManager;
  * @author ikrustev
  */
 public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> implements TaskService {
+
+  private static final Logger LOGGER = LogManager.getLogger(CoreTaskService.class);
 
   public CoreTaskService(AppContext app) {
     super(app, app.db.task, app.entityMapper.task);
@@ -109,8 +117,21 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObject.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
-      String queueId =
-          app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, plan);
+      List<Rule> rules = plan.getRules();
+      String queueId = null;
+      for (int index = 0; index < rules.size(); ++index) {
+        Rule rule = rules.get(index);
+        try {
+          if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
+            queueId = rule.getQueueId();
+            break;
+          }
+        } catch (CommsRouterException ex) {
+          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", rule.getQueueId(),
+              ex.getLocalizedMessage());
+        }
+      }
+
       if (queueId == null) {
         throw new IllegalArgumentException(
             "Evaluator didn't match task to any queues using the plan rules.");

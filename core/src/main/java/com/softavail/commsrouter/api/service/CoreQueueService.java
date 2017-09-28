@@ -66,12 +66,17 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       List<Agent> matchedAgents = new ArrayList<>();
       if (newPredicate != null && !newPredicate.isEmpty()) {
         List<Agent> agents = app.db.agent.list(em, objectId.getRouterId());
-        for (Agent agent : agents) {
-          if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
-              app.entityMapper.attributes.toDto(agent.getCapabilities()), queue)) {
-            matchedAgents.add(agent);
+        agents.forEach((agent) -> {
+          try {
+            if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
+                app.entityMapper.attributes.toDto(agent.getCapabilities()), queue)) {
+              matchedAgents.add(agent);
+            }
+          } catch (CommsRouterException ex) {
+            LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
+                ex.getLocalizedMessage());
           }
-        }
+        });
         if (matchedAgents.isEmpty()) {
           LOGGER.warn("Queue with ID={} didn't match to any agent capabilities.", queue.getId());
         }
@@ -123,12 +128,17 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
     if (objectId.getRouterId() != null) {
       List<Agent> agents = app.db.agent.list(em, objectId.getRouterId());
-      for (Agent agent : agents) {
-        if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
-            app.entityMapper.attributes.toDto(agent.getCapabilities()), queue)) {
-          queue.getAgents().add(agent);
+      agents.forEach((agent) -> {
+        try {
+          if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
+              app.entityMapper.attributes.toDto(agent.getCapabilities()), queue)) {
+            queue.getAgents().add(agent);
+          }
+        } catch (CommsRouterException ex) {
+          LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
+              ex.getLocalizedMessage());
         }
-      }
+      });
     }
 
     if (queue.getAgents().isEmpty()) {
