@@ -9,7 +9,6 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.util.Fields;
 
-import java.util.List;
 
 /**
  *
@@ -19,7 +18,6 @@ public class QueueDto extends RouterObjectId {
 
   private String description;
   private String predicate;
-  private List<String> agentIds;
 
   public QueueDto() {}
 
@@ -43,14 +41,6 @@ public class QueueDto extends RouterObjectId {
 
   public void setDescription(String description) {
     this.description = description;
-  }
-
-  public List<String> getAgentIds() {
-    return agentIds;
-  }
-
-  public void setAgentIds(List<String> agentIds) {
-    this.agentIds = agentIds;
   }
 
   public void update(UpdateQueueArg updateArg) {

@@ -19,7 +19,6 @@ public class QueueMapper extends EntityMapper<QueueDto, Queue> {
     copyId(dto, jpa);
     dto.setDescription(jpa.getDescription());
     dto.setPredicate(jpa.getPredicate());
-    dto.setAgentIds(createIdList(jpa.getAgents()));
     return dto;
   }
 
