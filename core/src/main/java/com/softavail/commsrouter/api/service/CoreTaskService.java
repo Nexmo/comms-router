@@ -118,8 +118,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
           .setRouterId(objectId.getRouterId()).build());
       List<Rule> rules = plan.getRules();
       String queueId = null;
-      for (int index = 0; index < rules.size(); ++index) {
-        Rule rule = rules.get(index);
+      for (Rule rule : rules) {
         try {
           if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
             queueId = rule.getQueueId();
