@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 
 /**
@@ -14,6 +13,7 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
  */
 public class UpdateTaskArg {
   private TaskState state;
+  private Long priority;
 
   public TaskState getState() {
     return state;
@@ -21,5 +21,13 @@ public class UpdateTaskArg {
 
   public void setState(TaskState state) {
     this.state = state;
+  }
+
+  public Long getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Long priority) {
+    this.priority = priority;
   }
 }
