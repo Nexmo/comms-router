@@ -135,6 +135,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
         throw new IllegalArgumentException(
             "Evaluator didn't match task to any queues using the plan rules.");
       }
+
+      createArg.setQueueId(queueId);
     }
 
     Task task = new Task(objectId);
