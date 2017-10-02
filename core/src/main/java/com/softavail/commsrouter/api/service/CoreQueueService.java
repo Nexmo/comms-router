@@ -110,8 +110,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectId); // Check that queue exists
 
-      String qlString =
-          "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
+      String qlString = "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId "
+          + "AND t.state = :state ORDER BY t.priority DESC";
 
       List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
           .setParameter("state", TaskState.waiting).getResultList();

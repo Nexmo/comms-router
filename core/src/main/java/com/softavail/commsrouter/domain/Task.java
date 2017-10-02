@@ -2,10 +2,8 @@
  * To change this license header, choose License Headers in Project Attributes. To change this
  * template file, choose Tools | Templates and open the template in the editor.
  */
-
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -53,6 +51,9 @@ public class Task extends RouterObject {
 
   @Column(name = "callback_url")
   private String callbackUrl;
+
+  @Column(name = "priority", nullable = false)
+  private Long priority = new Long(0);
 
   public Task() {}
 
@@ -114,6 +115,16 @@ public class Task extends RouterObject {
 
   public void setAgent(Agent agent) {
     this.agent = agent;
+  }
+
+  public Long getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Long priority) {
+    if (priority != null) {
+      this.priority = priority;
+    }
   }
 
   @Override
