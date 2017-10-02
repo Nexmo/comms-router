@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -15,13 +16,14 @@ import com.softavail.commsrouter.api.dto.model.AgentDto;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import io.restassured.RestAssured;
 
 public class Agent extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Agent.class);
     public Agent(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.AGENT,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        //RestAssured.baseURI = properties.getProperty("baseURI");
     }
     public List<AgentDto> list(){
         AgentDto[] routers =given()
