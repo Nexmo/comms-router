@@ -27,14 +27,10 @@ public class Router extends ApiObject {
 
   public Router(CreateRouterArg createArg, ApiObjectId objectId) {
     super(objectId.getId());
-    this.name = createArg.getName();
-    this.description = createArg.getDescription();
-  }
-
-  public Router(Router jpa) {
-    super(jpa);
-    this.name = jpa.getName();
-    this.description = jpa.getDescription();
+    if (createArg != null) {
+      this.name = createArg.getName();
+      this.description = createArg.getDescription();
+    }
   }
 
   public String getName() {
