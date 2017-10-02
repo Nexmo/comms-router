@@ -23,12 +23,12 @@ public class Agent extends Resource{
     public Agent(HashMap<CommsRouterResource,String> state){
         super(state);
         RestAssured.baseURI = System.getProperty("autHost");
-        //RestAssured.baseURI = properties.getProperty("baseURI");
+        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<AgentDto> list(){
         AgentDto[] routers =given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER)).when()
-            .get("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents")
+            .get("/routers/{routerId}/agents")
             .then().statusCode(200)
             .extract().as(AgentDto[].class);
         return Arrays.asList(routers);
@@ -41,7 +41,7 @@ public class Agent extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().put("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(204) // TODO check if 201 is the right code
             .extract()
             .as(ApiObject.class);
@@ -55,7 +55,7 @@ public class Agent extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents")
+            .when().post("/routers/{routerId}/agents")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
@@ -69,7 +69,7 @@ public class Agent extends Resource{
         given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().delete("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(204);
     }
 
@@ -78,7 +78,7 @@ public class Agent extends Resource{
         return given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().get("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(AgentDto.class);
     }
@@ -89,7 +89,7 @@ public class Agent extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().post("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(204);
     }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -22,11 +23,13 @@ public class Task extends Resource{
     public Task(HashMap<CommsRouterResource,String> state){
         super(state);
         state.put(CommsRouterResource.TASK,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<TaskDto> list(){
         TaskDto[] routers =given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER)).when()
-            .get("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks")
+            .get("/routers/{routerId}/tasks")
             .then().statusCode(200)
             .extract().as(TaskDto[].class);
         return Arrays.asList(routers);
@@ -39,7 +42,7 @@ public class Task extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks/{queueId}")
+            .when().put("/routers/{routerId}/tasks/{queueId}")
             .then().statusCode(204) // TODO check if 201 is the right code
             .extract()
             .as(ApiObject.class);
@@ -52,12 +55,12 @@ public class Task extends Resource{
                     .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
                     .contentType("application/json")
                     .body(args)
-                    .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks").asString());
+                    .when().post("/routers/{routerId}/tasks").asString());
         ApiObject oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks")
+            .when().post("/routers/{routerId}/tasks")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
@@ -71,7 +74,7 @@ public class Task extends Resource{
         given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks/{queueId}")
+            .when().delete("/routers/{routerId}/tasks/{queueId}")
             .then().statusCode(204);
     }
 
@@ -80,7 +83,7 @@ public class Task extends Resource{
         return given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks/{queueId}")
+            .when().get("/routers/{routerId}/tasks/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(TaskDto.class);
     }
@@ -91,7 +94,7 @@ public class Task extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/tasks/{queueId}")
+            .when().post("/routers/{routerId}/tasks/{queueId}")
             .then().statusCode(204);
     }
 }

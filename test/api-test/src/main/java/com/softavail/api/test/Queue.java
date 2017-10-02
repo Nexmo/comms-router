@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -22,11 +23,13 @@ public class Queue extends Resource{
     public Queue(HashMap<CommsRouterResource,String> state){
         super(state);
         state.put(CommsRouterResource.QUEUE,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<QueueDto> list(){
         QueueDto[] routers =given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER)).when()
-            .get("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues")
+            .get("/routers/{routerId}/queues")
             .then().statusCode(200)
             .extract().as(QueueDto[].class);
         return Arrays.asList(routers);
@@ -39,7 +42,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues/{queueId}")
+            .when().put("/routers/{routerId}/queues/{queueId}")
             .then().statusCode(204) // TODO check if 201 is the right code
             .extract()
             .as(ApiObject.class);
@@ -53,7 +56,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues")
+            .when().post("/routers/{routerId}/queues")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
@@ -67,7 +70,7 @@ public class Queue extends Resource{
         given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues/{queueId}")
+            .when().delete("/routers/{routerId}/queues/{queueId}")
             .then().statusCode(204);
     }
 
@@ -76,7 +79,7 @@ public class Queue extends Resource{
         return given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues/{queueId}")
+            .when().get("/routers/{routerId}/queues/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(QueueDto.class);
     }
@@ -87,7 +90,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/queues/{queueId}")
+            .when().post("/routers/{routerId}/queues/{queueId}")
             .then().statusCode(204);
     }
 }
