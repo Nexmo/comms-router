@@ -4,7 +4,7 @@ import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
@@ -63,6 +63,7 @@ public class RouterTest
 
         r.delete();
     }
+    @Test
     public void replaceRouter() {
         // replace existing router
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();

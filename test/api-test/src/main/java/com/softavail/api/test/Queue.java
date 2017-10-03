@@ -13,10 +13,10 @@ import static org.hamcrest.MatcherAssert.*;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class Queue extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Queue.class);
@@ -82,6 +82,26 @@ public class Queue extends Resource{
             .when().get("/routers/{routerId}/queues/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(QueueDto.class);
+    }
+
+    public Integer size(){
+        String id = state().get(CommsRouterResource.QUEUE);
+        return given()
+            .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
+            .pathParam("queueId",id)
+            .when().get("/routers/{routerId}/queues/{queueId}/size")
+            .then().statusCode(200)
+            .extract().path("size");
+    }
+    public List<TaskDto> tasks(){
+        String id = state().get(CommsRouterResource.QUEUE);
+        TaskDto[] qtasks= given()
+            .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
+            .pathParam("queueId",id)
+            .when().get("/routers/{routerId}/queues/{queueId}/tasks")
+            .then().statusCode(200).body("id",equalTo(id))
+            .extract().as(TaskDto[].class);
+        return Arrays.asList(qtasks);
     }
 
     public void update(CreateQueueArg args){
