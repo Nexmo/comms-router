@@ -203,7 +203,8 @@ public class TaskDispatcher {
 
   public void onTaskAddedToQueue(TaskDto taskDto) {
 
-    LOGGER.debug("Task with ID='{}' added to queue='{}'", taskDto.getId(), taskDto.getQueueId());
+    LOGGER.debug("onTaskAddedToQueue(): Task with ID='{}' added to queue='{}'", taskDto.getId(),
+        taskDto.getQueueId());
     queuedTaskListeners.forEach((queuedTaskListener) -> {
       queuedTaskListener.onTaskAddedToQueue(taskDto);
     });
@@ -214,7 +215,8 @@ public class TaskDispatcher {
 
   public void onTaskAssignedToAgent(TaskDto taskDto) {
 
-    LOGGER.debug("Task with ID='{}' assigned to agent='{}'", taskDto.getId(), taskDto.getAgentId());
+    LOGGER.debug("onTaskAssignedToAgent(): Task with ID='{}' assigned to agent='{}'",
+        taskDto.getId(), taskDto.getAgentId());
     queuedTaskListeners.forEach((queuedTaskListener) -> {
       queuedTaskListener.onTaskAssignedToAgent(taskDto);
     });
@@ -222,34 +224,18 @@ public class TaskDispatcher {
 
   public void onQueuedTaskTimeout(TaskDto taskDto) {
 
-    LOGGER.debug("Task with ID='{}' timed-out", taskDto.getId());
-    try {
-      db.transactionManager.executeVoid((em) -> {
-        db.task.delete(em, taskDto.getId());
-      });
-
-      queuedTaskListeners.forEach((queuedTaskListener) -> {
-        queuedTaskListener.onQueuedTaskTimeout(taskDto);
-      });
-    } catch (CommsRouterException ex) {
-      LOGGER.debug("Failed to delete task after timedout in the Queue with error: {}",
-          ex.getLocalizedMessage());
-    }
+    LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskDto.getId());
+    queuedTaskListeners.forEach((queuedTaskListener) -> {
+      queuedTaskListener.onQueuedTaskTimeout(taskDto);
+    });
   }
 
   public void onQueuedTaskCompleted(TaskDto taskDto) {
 
-    try {
-      db.transactionManager.executeVoid((em) -> {
-        db.task.delete(em, taskDto.getId());
-      });
-
-      queuedTaskListeners.forEach((queuedTaskListener) -> {
-        queuedTaskListener.onTaskRemovedFromQueue(taskDto);
-      });
-    } catch (CommsRouterException ex) {
-      LOGGER.debug("Failed to delete task after complete with error: {}", ex.getLocalizedMessage());
-    }
+    LOGGER.debug("onQueuedTaskCompleted(): Task with ID='{}' timed-out", taskDto.getId());
+    queuedTaskListeners.forEach((queuedTaskListener) -> {
+      queuedTaskListener.onTaskRemovedFromQueue(taskDto);
+    });
   }
 
   public boolean addQueuedTaskListener(QueuedTaskListener queuedTaskListener) {
