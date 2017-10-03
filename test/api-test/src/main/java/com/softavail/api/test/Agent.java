@@ -42,7 +42,7 @@ public class Agent extends Resource{
             .pathParam("queueId", id)
             .body(args)
             .when().put("/routers/{routerId}/agents/{queueId}")
-            .then().statusCode(204) // TODO check if 201 is the right code
+            .then().statusCode(201)
             .extract()
             .as(ApiObject.class);
         state().put(CommsRouterResource.AGENT, oid.getId());

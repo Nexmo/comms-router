@@ -24,7 +24,7 @@ public class Router extends Resource{
         super(state);
         state.put(CommsRouterResource.ROUTER,"id");
         RestAssured.baseURI = System.getProperty("autHost");
-        RestAssured.basePath= "/comms-router-web/api";
+        RestAssured.basePath= "/comms-router-web/api/";
     }
     public List<RouterDto> list(){
         RouterDto[] routers =given().when()
@@ -53,7 +53,7 @@ public class Router extends Resource{
         ApiObject oid = given()
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers")
+            .when().post("/routers")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);

@@ -36,14 +36,14 @@ public class Task extends Resource{
     }
 
     public ApiObject replace(CreateTaskArg args){
-        String id = state().get(CommsRouterResource.TASK);
+        String id = state().get(CommsRouterResource.QUEUE);
         ApiObject oid = given()
             .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
             .when().put("/routers/{routerId}/tasks/{queueId}")
-            .then().statusCode(204) // TODO check if 201 is the right code
+            .then().log().ifError().statusCode(201)
             .extract()
             .as(ApiObject.class);
         state().put(CommsRouterResource.TASK, oid.getId());
