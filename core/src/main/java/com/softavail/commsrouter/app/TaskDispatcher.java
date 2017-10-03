@@ -118,7 +118,8 @@ public class TaskDispatcher {
         db.transactionManager.executeWithLockRetry((EntityManager em) -> {
 
           String qlString = "SELECT t, a FROM Task t "
-              + "JOIN t.queue q JOIN q.agents a WHERE t.id = :taskId and a.state = :agentState";
+              + "JOIN t.queue q JOIN q.agents a WHERE t.id = :taskId and a.state = :agentState"
+              + " ORDER BY t.priority DESC";
 
           List<Object[]> result = em.createQuery(qlString).setParameter("taskId", taskId)
               .setParameter("agentState", AgentState.ready).setMaxResults(1).getResultList();
@@ -162,7 +163,8 @@ public class TaskDispatcher {
     TaskAssignmentDto taskAssignment = db.transactionManager.executeWithLockRetry((em) -> {
 
       String qlString = "SELECT t, a FROM Task t " + "JOIN t.queue q JOIN q.agents a "
-          + "WHERE a.id = :agentId and a.state = :agentState and t.state = :taskState";
+          + "WHERE a.id = :agentId and a.state = :agentState and t.state = :taskState "
+          + "ORDER BY t.priority DESC";
 
       List<Object[]> result = em.createQuery(qlString).setParameter("agentId", agentId)
           .setParameter("agentState", AgentState.ready).setParameter("taskState", TaskState.waiting)

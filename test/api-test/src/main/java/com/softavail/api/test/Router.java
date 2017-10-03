@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -21,11 +22,12 @@ public class Router extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Router.class);
     public Router(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.ROUTER,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        RestAssured.basePath= "/comms-router-web/api/";
     }
     public List<RouterDto> list(){
         RouterDto[] routers =given().when()
-            .get("http://localhost:8080/comms-router-web/api/routers")
+            .get("/routers")
             .then().statusCode(200)
             .extract().as(RouterDto[].class);
         return Arrays.asList(routers);
@@ -37,7 +39,7 @@ public class Router extends Resource{
             .contentType("application/json")
             .pathParam("routerId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}")
+            .when().put("/routers/{routerId}")
             .then().statusCode(201)
             .extract()
             .as(ApiObject.class);
@@ -50,7 +52,7 @@ public class Router extends Resource{
         ApiObject oid = given()
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers")
+            .when().post("/routers")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
@@ -63,7 +65,7 @@ public class Router extends Resource{
         String id = state().get(CommsRouterResource.ROUTER);
         given()
             .pathParam("routerId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}")
+            .when().delete("/routers/{routerId}")
             .then().statusCode(204);
     }
 
@@ -71,7 +73,7 @@ public class Router extends Resource{
         String id = state().get(CommsRouterResource.ROUTER);
         return given()
             .pathParam("routerId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}")
+            .when().get("/routers/{routerId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(RouterDto.class);
     }
@@ -82,7 +84,7 @@ public class Router extends Resource{
             .contentType("application/json")
             .pathParam("routerId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}")
+            .when().post("/routers/{routerId}")
             .then().statusCode(204);
     }
 }

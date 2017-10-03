@@ -119,6 +119,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     app.db.router.get(em, objectId.getRouterId());
 
     Long queuedTimeout = null;
+    Task task = new Task(objectId);
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
@@ -143,15 +144,14 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       }
 
       createArg.setQueueId(queueId);
+      task.setPlan(plan);
     }
-
-    Task task = new Task(objectId);
-    task.setState(TaskState.waiting);
 
     Queue queue = app.db.queue.get(em, RouterObjectId.builder().setId(createArg.getQueueId())
         .setRouterId(objectId.getRouterId()).build());
-
     task.setQueue(queue);
+    task.setState(TaskState.waiting);
+    task.setPriority(createArg.getPriority());
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
     task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
     task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));

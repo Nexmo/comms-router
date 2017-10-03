@@ -26,11 +26,6 @@ public class AppTest
 
 {
     @Test
-    public void testApp()
-    {
-        get("http://localhost:8080/comms-router-web/api/routers").then().statusCode(200);
-    }
-    @Test
     public void crudRouter() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
@@ -47,16 +42,17 @@ public class AppTest
     public void crdQueue() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        Queue q = new Queue(state);
         ApiObject id = r.create(new CreateRouterArg());
+
+        Queue q = new Queue(state);
         CreateQueueArg qArg = new CreateQueueArg();
         qArg.setPredicate("1==1");
         id = q.create(new CreateQueueArg());
         QueueDto queue = q.get();
         assertThat(queue.getDescription(),nullValue());
         assertThat(q.list(),hasItems(hasProperty("id", is(id.getId()))));
-        //q.replace(new CreateQueueArg());
-        //q.update(new CreateQueueArg());
+        q.replace(new CreateQueueArg());
+        q.update(new CreateQueueArg());
         q.delete();
         r.delete();
     }
@@ -71,8 +67,8 @@ public class AppTest
         PlanDto resource = p.get();
         assertThat(resource.getDescription(),nullValue());
         assertThat(p.list(),hasItems(hasProperty("id", is(id.getId()))));
-        //p.replace(new CreatePlanArg());
-        //p.update(new CreatePlanArg());
+        p.replace(new CreatePlanArg());
+        p.update(new CreatePlanArg());
         p.delete();
         r.delete();
     }
@@ -87,8 +83,8 @@ public class AppTest
         AgentDto resource = a.get();
         assertThat(resource.getCapabilities(),nullValue());
         assertThat(a.list(),hasItems(hasProperty("id", is(id.getId()))));
-        //a.replace(new CreateAgentArg());
-        //a.update(new CreateAgentArg());
+        a.replace(new CreateAgentArg());
+        a.update(new CreateAgentArg());
         a.delete();
         r.delete();
     }
@@ -107,8 +103,8 @@ public class AppTest
         TaskDto resource = t.get();
         assertThat(resource.getRequirements(),nullValue());
         assertThat(t.list(),hasItems(hasProperty("id", is(id.getId()))));
-        //p.replace(new CreatePlanArg());
-        //p.update(new CreatePlanArg());
+        //t.replace(new CreateTaskArg());
+        //t.update(new CreateTaskArg());
         q.delete();
         t.delete();
         r.delete();

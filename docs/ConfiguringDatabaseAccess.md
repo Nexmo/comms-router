@@ -1,8 +1,5 @@
-Comms Router Web API
-==
-
 Configuring Database Access
---
+==
 
 The application expects database access to be provided
 from the Application Container via JNDI.

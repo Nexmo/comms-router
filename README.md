@@ -8,9 +8,9 @@ Comms Router implements routing tasks to agents for handling. Routing is based o
 
   * Task - work item characterized by its requirements - set of skills needed expressed by the user as key/value pairs.
   * Agent - abstract entity able to handle tasks, characterized by its capabilities - the skills it has expressed by the user as key/value pairs.
-  * Queue - container for tasks waiting for the next available agent. It has a predicated defined by the user that is matched agains the agents' skills to select these able to serve the queue.
-  * Plan - defines how a task is handled by the router selecting a queue for it
-  * Router - a container for the router entities allowing different user application to share the same database
+  * Queue - collection of tasks waiting for the next available agent. It has a predicated defined by the user that is matched agains the agents' skills to select these able to serve the queue.
+  * Plan - defines how a task is handled by the router selecting a queue for it.
+  * Router - a container for the router entities allowing different user application to share the same database.
 
 ### How it works
 
@@ -24,7 +24,7 @@ When an agent become available for this task, it is put into state "busy" and th
 
 The user's application then informs the agent about the task and tracks the task's completion. When the task is done, the user's application changes the task's state within the router, which makes the agent available for subsequent tasks.
 
-## The Router
+## Installing the router
 
 ### Requirements
 
@@ -52,7 +52,7 @@ Create database for the router.
 Create DB user to be used by the router and grant this user access to the newly created database.
 
 Configure JNDI data source with name "jdbc/commsRouterDB".
-Details on how to do this in Tomcat can be found [here](web/README.md).
+Details on how to do this in Tomcat can be found [here](docs/ConfiguringDatabaseAccess.md).
 
 Deploy comms-router-web.war into Tomcat.
 Depending on your Tomcat settings this can be done by simple copying it to the Tomcat's webapps directory.
@@ -63,85 +63,214 @@ List routers:
 
 `curl http://localhost:8080/comms-router-web/api/routers`
 
-## Demo application
+## Quick tutorial
 
-The purpose of the Demo application is to demonstrate how to
-integrate the Nexmo API with the CommsRouter.
+**Create a router**, providing it's ID:
 
-The demo application exposes a public REST API (WebHooks),
-which Nexmo can call into, in order to notify us when a new incoming call arrives.
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router`
 
-When a new WebHook call arrives to the Demo app, it creates a Task in the CommsRouter.
-The task contains a WebHook where the CommsRouter will callback us when an agent is found.
-When the CommsRouter calls the Task's WebHook, the Demo app then takes the agent's address and
-creates a voice call to the agent. Then the two call legs are put in a dedicated Nexmo conversation.
-When the agent's call leg ends, the task is marked as completed in the CommsRouter.
+Or request the system to assign an ID:
 
-### Prerequisites
-In order to use the demo application you'll need to:
+`curl -X POST http://localhost:8080/comms-router-web/api/routers`
 
-* Create a [Nexmo account](https://dashboard.nexmo.com/sign-up)
-* Create a [Nexmo Voice Application](https://dashboard.nexmo.com/voice/create-application)
-* [Buy](https://dashboard.nexmo.com/buy-numbers) one number from Nexmo and
-  associate it with the Nexmo Voice Application
-> [Here](https://developer.nexmo.com/tutorials/add-a-call-whisper-to-an-inbound-call#create-a-voice-application)
-  is a tutorial where you can see how to:
-> * Create a Voice Application
-> * Buy a Phone Number
-> * Link the Phone Number to a Nexmo Application
+The ID is returned in the response body:
 
-### Configuration
+`{"id":"HaOYogXa8qgX9NlRHJi9Y2"}`
 
-Before installing the demo app, you'll need to make some configuration changes.
+And URL of the created entity is in the header LOCATION of the response:
 
-Find application.properties file which has the following structure:
+`Location: http://localhost:8080/comms-router-web/api/routers/HaOYogXa8qgX9NlRHJi9Y2`
+
+**Create some queues.**
+
+For example, let's create one handled by English speaking agents:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'en\')"}}'
+`
+
+And one more handled by these speaking Spanish:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'es\')"}}'
+`
+
+**Create agents.**
+
+Let's assume we have have three agents - Alice speaking English, Juan speaking Spanish and Maria speaking both English and Spanish.
+
+So for Alice we'll have:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/alice -H 'Content-Type:application/json' -d'{"address":"sip:alice@comms-router.org","capabilities":{"language":["en"]}}'
+`
+
+for Juan:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/juan -H 'Content-Type:application/json' -d '{"address":"sip:juan@comms-router.org","capabilities":{"language":["es"]}}'
+`
+
+and for Maria:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d'{"address":"sip:maria@comms-router.org","capabilities":{"language":["en","es"]}}'
+`
+
+Note the _address_ field. It does not affect the router logic and is used by the user application to store information that it needs to route tasks to this agent. In our example addresses are SIP URIs.
+
+**List agents and note the queue assignments:**
+
+`curl http://localhost:8080/comms-router-web/api/routers/my-router/agents`
+
 ```
-app.callbackBaseUrl=
-app.phone=
-app.musicOnHoldUrl=
-comms.routerUrl=
-comms.routerId=
-nexmo.appId=
-nexmo.appPrivateKey=
+[
+  {
+    "id": "alice",
+    "routerId": "my-router",
+    "capabilities": {
+      "language": "en"
+    },
+    "address": "sip:alice@comms-router.org",
+    "state": "offline",
+    "queueIds": [
+      "queue-en"
+    ]
+  },
+  {
+    "id": "juan",
+    "routerId": "my-router",
+    "capabilities": {
+      "language": "es"
+    },
+    "address": "sip:juan@comms-router.org",
+    "state": "offline",
+    "queueIds": [
+      "queue-es"
+    ]
+  },
+  {
+    "id": "maria",
+    "routerId": "my-router",
+    "capabilities": {
+      "language": [
+        "es",
+        "en"
+      ]
+    },
+    "address": "sip:maria@comms-router.org",
+    "state": "offline",
+    "queueIds": [
+      "queue-es",
+      "queue-en"
+    ]
+  }
+]
 ```
-Please put the values inside the application properties as follow:
 
-* __app.callbackBaseUrl__ Base URL to the server where the demo app is
-  served from. For example http://host:port/demo-app-root/api
+**Create a plan.**
 
-* __app.phone__ This is the number you bought from Nexmo and associated it
-  with your voice application
+Let's create a plan with a rule that will route tasks requiring Spanish agent in our Spanish queue. Tasks that don't match this rule we will route to the English queue.
 
-* __app.musicOnHoldUrl__ This is an URL to the mp3 file to stream to the customer until an available Agent is found.
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"rules":[{"tag":"spanish","predicate":"#{language} = \'es\'","queueId":"queue-es"},{"tag":"default-english","predicate":"true","queueId":"queue-en"}]}'`
 
-* __comms.routerUrl__ This the base URL to the CommsRouter REST API.
-  For example  http://commsrouterhost:port/comms-router-web-api/api
+**Create tasks.**
 
-* __comms.routerId__ This is the id of the router object in the CommsRouter
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planId":"by-language","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'`
 
-* __nexmo.appId__ This is the app-id from your Nexmo Voice application
+Here the task requires agent speaking Spanish and we assign to it our plan that routes tasks by language.
 
-* __nexmo.appPrivateKey__ This is the filename (PEM file) with the private key
-  from your Nexmo voice application. This PEM file must be in the same directory
-  where _application.properties_ file is.
+The "callbackUrl" parameter specifies the user application entry point to be called by the router for activity related with this task. An easy way to test the router is to use a requestb.in to accept the callback, as we are doing in this example.
 
-Then add a system property of the JVM with key _comms.demo.app.config.path_ that
-will tell the app where to find the _application.properties_ file.
+In addition to using a plan to route tasks, the router accepts direct queue assignment by the user application:
 
-Ex. `java -Dcomms.demo.app.config.path=/configDir`.
-Ex. Tomcat has `bin/setenv.sh` where you can say
-```bash
-export CATALINA_OPTS="$CATALINA_OPTS -Dcomms.demo.app.config.path=/configDir"
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueId":"queue-en","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'`
+
+**Let's list the tasks and see the queues assigned:**
+
+`curl http://localhost:8080/comms-router-web/api/routers/my-router/tasks`
+
+```
+[
+  {
+    "id": "task-es",
+    "routerId": "my-router",
+    "requirements": {
+      "language": "es"
+    },
+    "userContext": null,
+    "state": "waiting",
+    "planId": null,
+    "queueId": "queue-es",
+    "agentId": null,
+    "callbackUrl": "https://requestb.in/1koh4zk1"
+  },
+  {
+    "id": "task-en",
+    "routerId": "my-router",
+    "requirements": null,
+    "userContext": null,
+    "state": "waiting",
+    "planId": null,
+    "queueId": "queue-en",
+    "agentId": null,
+    "callbackUrl": "https://requestb.in/1koh4zk1?inspect"
+  }
+]
 ```
 
-### Initialize CommsRouter
+All tasks are in state "waiting" as all our agents are in state "offline".
 
-Before using the demo app, you'll need to create a router object, a Queue and an Agent
-in the CommsRouter via its REST API.
+**Change agent's state.**
 
-Router object must be with an ID equal to the id specified in the *comms.routerId* parameter
-in _application.properties_ file.
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d '{"state":"ready"}'`
 
-A Queue object must be with an id set to _queue-demo_.
+Now the router assigns a task this agent and changes its state to "busy". Call to the provided callbackUrl can be observed in requestb.in.
 
-An Agent must have a valid address (phone number) where the Nexmo will make a voice call.
+**Complete Task.**
+
+When the user application is done with processing a task it must declare it as done:
+
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d '{"state":"completed"}'`
+
+The router then releases the agent and it is available for other tasks. As in this example the agent "Maria" can serve both queues, it will automatically get the other task we created:
+
+`curl http://localhost:8080/comms-router-web/api/routers/my-router/tasks`
+
+```
+[
+  {
+    "id": "task-es",
+    "routerId": "my-router",
+    "requirements": {
+      "language": "es"
+    },
+    "userContext": null,
+    "state": "completed",
+    "planId": null,
+    "queueId": "queue-es",
+    "agentId": null,
+    "callbackUrl": "https://requestb.in/1koh4zk1"
+  },
+  {
+    "id": "task-en",
+    "routerId": "my-router",
+    "requirements": null,
+    "userContext": null,
+    "state": "assigned",
+    "planId": null,
+    "queueId": "queue-en",
+    "agentId": "maria",
+    "callbackUrl": "https://requestb.in/1koh4zk1"
+  }
+]
+```
+
+We should finish our journey by making this task completed:
+
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d '{"state":"completed"}'`
+
+## Additional resources
+
+  * Browse [docs](docs) directory for additional documentation.
+  * See our [demo application](demo-application/README.md) as an example how to integrate the router with Nexmo API]

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -15,18 +16,19 @@ import com.softavail.commsrouter.api.dto.model.AgentDto;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import io.restassured.RestAssured;
 
 public class Agent extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Agent.class);
     public Agent(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.AGENT,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<AgentDto> list(){
         AgentDto[] routers =given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER)).when()
-            .get("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents")
+            .get("/routers/{routerId}/agents")
             .then().statusCode(200)
             .extract().as(AgentDto[].class);
         return Arrays.asList(routers);
@@ -39,8 +41,8 @@ public class Agent extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
-            .then().statusCode(204) // TODO check if 201 is the right code
+            .when().put("/routers/{routerId}/agents/{queueId}")
+            .then().statusCode(201)
             .extract()
             .as(ApiObject.class);
         state().put(CommsRouterResource.AGENT, oid.getId());
@@ -53,7 +55,7 @@ public class Agent extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents")
+            .when().post("/routers/{routerId}/agents")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
@@ -67,7 +69,7 @@ public class Agent extends Resource{
         given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().delete("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(204);
     }
 
@@ -76,18 +78,19 @@ public class Agent extends Resource{
         return given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
+            .when().get("/routers/{routerId}/agents/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(AgentDto.class);
     }
 
     public void update(CreateAgentArg args){
         String id = state().get(CommsRouterResource.AGENT);
-        given()
+        given().log().all()
+            .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/agents/{queueId}")
-            .then().statusCode(204);
+            .when().post("/routers/{routerId}/agents/{queueId}")
+            .then().log().all().statusCode(204);
     }
 }

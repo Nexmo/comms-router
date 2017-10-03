@@ -2,7 +2,6 @@
  * To change this license header, choose License Headers in Project AttributeGroupDto. To change
  * this template file, choose Tools | Templates and open the template in the editor.
  */
-
 package com.softavail.commsrouter.api.dto.model;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
@@ -23,6 +22,7 @@ public class TaskDto extends RouterObjectId {
   private String queueId;
   private String agentId;
   private String callbackUrl;
+  private Long priority;
   private Date createDate;
   private Date updateDate;
   private Long queuedTimeout;
@@ -36,6 +36,7 @@ public class TaskDto extends RouterObjectId {
     planId = createArg.getPlanId();
     queueId = createArg.getQueueId();
     callbackUrl = createArg.getCallbackUrl().toString();
+    priority = createArg.getPriority();
   }
 
   public AttributeGroupDto getRequirements() {
@@ -92,6 +93,14 @@ public class TaskDto extends RouterObjectId {
 
   public void setCallbackUrl(String callbackUrl) {
     this.callbackUrl = callbackUrl;
+  }
+
+  public Long getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Long priority) {
+    this.priority = priority;
   }
 
   public Date getCreateDate() {

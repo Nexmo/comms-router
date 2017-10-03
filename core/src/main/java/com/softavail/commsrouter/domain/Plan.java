@@ -14,6 +14,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 /**
@@ -27,6 +28,7 @@ public class Plan extends RouterObject {
   private String description;
 
   @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderColumn(name = "rule_order")
   private List<Rule> rules = new ArrayList<>();
 
   public Plan() {}

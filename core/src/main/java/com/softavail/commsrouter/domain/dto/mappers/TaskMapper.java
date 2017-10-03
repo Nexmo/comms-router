@@ -27,6 +27,7 @@ public class TaskMapper extends EntityMapper<TaskDto, Task> {
     dto.setRequirements(attributesMapper.toDto(jpa.getRequirements()));
     dto.setUserContext(attributesMapper.toDto(jpa.getUserContext()));
     dto.setState(jpa.getState());
+    dto.setPriority(jpa.getPriority());
     dto.setPlanId(getOptionalId(jpa.getPlan()));
     dto.setQueueId(getOptionalId(jpa.getQueue()));
     dto.setAgentId(getOptionalId(jpa.getAgent()));
