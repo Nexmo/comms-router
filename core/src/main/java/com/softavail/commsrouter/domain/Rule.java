@@ -38,6 +38,9 @@ public class Rule implements Serializable {
   @JoinColumn(name = "plan_id")
   private Plan plan;
 
+  @Column(name = "queued_task_timeout", nullable = false)
+  private Long queuedTaskTimeout = new Long(24 * 60 * 60); // default 24h - in seconds
+
   @Override
   public boolean equals(Object rhs) {
     if (this == rhs) {
@@ -92,6 +95,16 @@ public class Rule implements Serializable {
 
   public void setPlan(Plan plan) {
     this.plan = plan;
+  }
+
+  public Long getQueuedTaskTimeout() {
+    return queuedTaskTimeout;
+  }
+
+  public void setQueuedTaskTimeout(Long queuedTaskTimeout) {
+    if (queuedTaskTimeout != null) {
+      this.queuedTaskTimeout = queuedTaskTimeout;
+    }
   }
 
 }

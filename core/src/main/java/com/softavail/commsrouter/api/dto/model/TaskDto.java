@@ -8,6 +8,8 @@ package com.softavail.commsrouter.api.dto.model;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
+import java.util.Date;
+
 /**
  *
  * @author ikrustev
@@ -21,6 +23,9 @@ public class TaskDto extends RouterObjectId {
   private String queueId;
   private String agentId;
   private String callbackUrl;
+  private Date createDate;
+  private Date updateDate;
+  private Long queuedTimeout;
 
   public TaskDto() {}
 
@@ -87,6 +92,30 @@ public class TaskDto extends RouterObjectId {
 
   public void setCallbackUrl(String callbackUrl) {
     this.callbackUrl = callbackUrl;
+  }
+
+  public Date getCreateDate() {
+    return createDate;
+  }
+
+  public void setCreateDate(Date createDate) {
+    this.createDate = createDate;
+  }
+
+  public Date getUpdateDate() {
+    return updateDate;
+  }
+
+  public void setUpdateDate(Date updateDate) {
+    this.updateDate = updateDate;
+  }
+
+  public Long getQueuedTimeout() {
+    return queuedTimeout;
+  }
+
+  public void setQueuedTimeout(Long queuedTimeout) {
+    this.queuedTimeout = queuedTimeout;
   }
 
   @Override

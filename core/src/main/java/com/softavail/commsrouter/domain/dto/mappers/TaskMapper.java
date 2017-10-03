@@ -30,6 +30,9 @@ public class TaskMapper extends EntityMapper<TaskDto, Task> {
     dto.setPlanId(getOptionalId(jpa.getPlan()));
     dto.setQueueId(getOptionalId(jpa.getQueue()));
     dto.setAgentId(getOptionalId(jpa.getAgent()));
+    dto.setCreateDate(jpa.getCreateDate());
+    dto.setUpdateDate(jpa.getUpdateDate());
+    dto.setQueuedTimeout(jpa.getQueuedTimeout());
     return dto;
   }
 

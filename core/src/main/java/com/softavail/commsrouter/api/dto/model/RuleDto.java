@@ -16,6 +16,7 @@ public class RuleDto implements Serializable {
   private String tag;
   private String predicate;
   private String queueId;
+  private Long queuedTaskTimeout;
 
   public String getTag() {
     return tag;
@@ -39,6 +40,14 @@ public class RuleDto implements Serializable {
 
   public void setQueueId(String queueId) {
     this.queueId = queueId;
+  }
+
+  public Long getQueuedTaskTimeout() {
+    return queuedTaskTimeout;
+  }
+
+  public void setQueuedTaskTimeout(Long queuedTaskTimeout) {
+    this.queuedTaskTimeout = queuedTaskTimeout;
   }
 
 }

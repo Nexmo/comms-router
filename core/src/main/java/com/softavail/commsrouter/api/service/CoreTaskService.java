@@ -84,11 +84,13 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throw new BadValueException("Expected state: completed");
     }
 
-    app.db.transactionManager.executeVoid((em) -> {
+    TaskDto taskDto = app.db.transactionManager.execute((em) -> {
       Task task = app.db.task.get(em, objectId.getId());
       // @todo: check current state and throw if not appropriate and then agent == null would be
       // internal error
       task.setState(TaskState.completed);
+
+
       Agent agent = task.getAgent();
       if (agent != null) {
         if (agent.getState() == AgentState.busy) {
@@ -96,7 +98,10 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
           app.taskDispatcher.dispatchAgent(agent.getId());
         }
       }
+      return entityMapper.toDto(task);
     });
+
+    app.taskDispatcher.dispatchQueuedTask(taskDto);
   }
 
   @Override
@@ -113,6 +118,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     app.db.router.get(em, objectId.getRouterId());
 
+    Long queuedTimeout = null;
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
@@ -122,6 +128,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
         try {
           if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
             queueId = rule.getQueueId();
+            queuedTimeout = rule.getQueuedTaskTimeout();
             break;
           }
         } catch (CommsRouterException ex) {
@@ -148,9 +155,14 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
     task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
     task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
+    task.setQueuedTimeout(queuedTimeout);
 
     em.persist(task);
-    return entityMapper.toDto(task);
+
+    TaskDto taskDto = entityMapper.toDto(task);
+    app.taskDispatcher.dispatchQueuedTask(taskDto);
+
+    return taskDto;
   }
 
 }

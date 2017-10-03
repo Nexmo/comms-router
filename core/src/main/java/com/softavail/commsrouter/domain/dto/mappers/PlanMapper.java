@@ -33,6 +33,7 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     dto.setPredicate(jpa.getPredicate());
     dto.setQueueId(jpa.getQueueId());
     dto.setTag(jpa.getTag());
+    dto.setQueuedTaskTimeout(jpa.getQueuedTaskTimeout());
     return dto;
   }
 
@@ -41,6 +42,7 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     rule.setPredicate(dto.getPredicate());
     rule.setQueueId(dto.getQueueId());
     rule.setTag(dto.getTag());
+    rule.setQueuedTaskTimeout(dto.getQueuedTaskTimeout());
     return rule;
   }
 

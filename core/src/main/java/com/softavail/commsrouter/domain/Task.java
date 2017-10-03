@@ -5,10 +5,14 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.util.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -20,6 +24,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -53,6 +59,19 @@ public class Task extends RouterObject {
 
   @Column(name = "callback_url")
   private String callbackUrl;
+
+  @CreationTimestamp
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "create_date")
+  private Date createDate;
+
+  @UpdateTimestamp
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "update_date")
+  private Date updateDate;
+
+  @Column(name = "timeout", nullable = false)
+  private Long queuedTimeout;
 
   public Task() {}
 
@@ -114,6 +133,22 @@ public class Task extends RouterObject {
 
   public void setAgent(Agent agent) {
     this.agent = agent;
+  }
+
+  public Date getCreateDate() {
+    return createDate;
+  }
+
+  public Date getUpdateDate() {
+    return updateDate;
+  }
+
+  public Long getQueuedTimeout() {
+    return queuedTimeout;
+  }
+
+  public void setQueuedTimeout(Long queuedTimeout) {
+    this.queuedTimeout = queuedTimeout;
   }
 
   @Override
