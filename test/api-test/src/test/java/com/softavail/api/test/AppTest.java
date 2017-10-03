@@ -42,8 +42,9 @@ public class AppTest
     public void crdQueue() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        Queue q = new Queue(state);
         ApiObject id = r.create(new CreateRouterArg());
+
+        Queue q = new Queue(state);
         CreateQueueArg qArg = new CreateQueueArg();
         qArg.setPredicate("1==1");
         id = q.create(new CreateQueueArg());

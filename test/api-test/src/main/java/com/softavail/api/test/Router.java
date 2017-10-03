@@ -22,7 +22,6 @@ public class Router extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Router.class);
     public Router(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.ROUTER,"id");
         RestAssured.baseURI = System.getProperty("autHost");
         RestAssured.basePath= "/comms-router-web/api/";
     }
