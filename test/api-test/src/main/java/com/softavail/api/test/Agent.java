@@ -85,11 +85,12 @@ public class Agent extends Resource{
 
     public void update(CreateAgentArg args){
         String id = state().get(CommsRouterResource.AGENT);
-        given()
+        given().log().all()
+            .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
             .when().post("/routers/{routerId}/agents/{queueId}")
-            .then().statusCode(204);
+            .then().log().all().statusCode(204);
     }
 }

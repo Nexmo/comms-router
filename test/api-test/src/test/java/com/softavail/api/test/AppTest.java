@@ -51,7 +51,7 @@ public class AppTest
         assertThat(queue.getDescription(),nullValue());
         assertThat(q.list(),hasItems(hasProperty("id", is(id.getId()))));
         q.replace(new CreateQueueArg());
-        //q.update(new CreateQueueArg());
+        q.update(new CreateQueueArg());
         q.delete();
         r.delete();
     }
@@ -67,7 +67,7 @@ public class AppTest
         assertThat(resource.getDescription(),nullValue());
         assertThat(p.list(),hasItems(hasProperty("id", is(id.getId()))));
         p.replace(new CreatePlanArg());
-        //p.update(new CreatePlanArg());
+        p.update(new CreatePlanArg());
         p.delete();
         r.delete();
     }
@@ -83,7 +83,7 @@ public class AppTest
         assertThat(resource.getCapabilities(),nullValue());
         assertThat(a.list(),hasItems(hasProperty("id", is(id.getId()))));
         a.replace(new CreateAgentArg());
-        //a.update(new CreateAgentArg());
+        a.update(new CreateAgentArg());
         a.delete();
         r.delete();
     }

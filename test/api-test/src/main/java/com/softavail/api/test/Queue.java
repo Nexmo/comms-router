@@ -87,6 +87,7 @@ public class Queue extends Resource{
     public void update(CreateQueueArg args){
         String id = state().get(CommsRouterResource.QUEUE);
         given()
+            .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)

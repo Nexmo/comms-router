@@ -92,6 +92,7 @@ public class Plan extends Resource{
     public void update(CreatePlanArg args){
         String id = state().get(CommsRouterResource.PLAN);
         given()
+            .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
