@@ -51,11 +51,6 @@ public class Task extends Resource{
     }
 
     public ApiObject create(CreateTaskArg args){
-        LOGGER.info(given()
-                    .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
-                    .contentType("application/json")
-                    .body(args)
-                    .when().post("/routers/{routerId}/tasks").asString());
         ApiObject oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")

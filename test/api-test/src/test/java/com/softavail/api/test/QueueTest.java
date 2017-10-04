@@ -154,8 +154,8 @@ public class QueueTest
         q.delete();
     }
     @Test
-    @DisplayName("empty queue")
-    void emptyQueue(){
+    @DisplayName("empty queue - size is 0")
+    void emptyQueueSize(){
         String description="queue description";
         String predicate="1==1";
         CreateQueueArg queueArg= new CreateQueueArg();
@@ -164,6 +164,76 @@ public class QueueTest
         Queue q = new Queue(state);
         ApiObject id = q.create(queueArg);
         assertThat(q.size(), is(0));
+        q.delete();
+    }
+    @Test
+    @DisplayName("empty queue - no tasks")
+    void emptyQueueNoTasks(){
+        String description="queue description";
+        String predicate="1==1";
+        CreateQueueArg queueArg= new CreateQueueArg();
+        queueArg.setDescription(description);
+        queueArg.setPredicate(predicate);
+        Queue q = new Queue(state);
+        ApiObject id = q.create(queueArg);
+        assertThat(q.size(), is(0));
+        q.delete();
+    }
+    @Test
+    @DisplayName("queue with a task")
+    void queueWithTask()throws MalformedURLException {
+        String description="queue description";
+        String predicate="1==1";
+        CreateQueueArg queueArg= new CreateQueueArg();
+        queueArg.setDescription(description);
+        queueArg.setPredicate(predicate);
+        Queue q = new Queue(state);
+        ApiObject id = q.create(queueArg);
+
+        CreateTaskArg targ = new CreateTaskArg();
+        targ.setQueueId(state.get(CommsRouterResource.QUEUE));
+        targ.setCallbackUrl(new URL("http://example.com"));
+        Task t = new Task(state);
+        assertThat(q.size(), is(0));
+        t.create(targ);
+        assertThat(q.tasks(),hasSize(1));
+        assertThat(q.size(), is(1));
+        t.delete();
+        q.delete();
+    }
+
+    @Test
+    @DisplayName("queue should have task after replace")
+    void queueWithTaskReplace() throws MalformedURLException {
+        String description="queue description";
+        String predicate="1==1";
+        CreateQueueArg queueArg= new CreateQueueArg();
+        queueArg.setDescription(description);
+        queueArg.setPredicate(predicate);
+        Queue q = new Queue(state);
+        ApiObject id = q.create(queueArg);
+
+        CreateTaskArg targ = new CreateTaskArg();
+        targ.setQueueId(state.get(CommsRouterResource.QUEUE));
+        targ.setCallbackUrl(new URL("http://example.com"));
+        Task t = new Task(state);
+        assertThat(q.size(), is(0));
+        t.create(targ);
+        assertThat(q.tasks(),hasSize(1));
+        assertThat(q.size(), is(1));
+
+        queueArg.setDescription(null);
+        queueArg.setPredicate(null);
+
+        id = q.replace(queueArg);
+        QueueDto queue = q.get();
+        assertThat(queue.getPredicate(), is(nullValue()));
+        assertThat(queue.getDescription(), is(nullValue()));
+
+        assertThat(q.tasks(),hasSize(1));
+        assertThat(q.size(), is(1));
+
+        t.delete();
         q.delete();
     }
 }

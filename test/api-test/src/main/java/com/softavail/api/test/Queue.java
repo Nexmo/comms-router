@@ -99,7 +99,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
             .when().get("/routers/{routerId}/queues/{queueId}/tasks")
-            .then().statusCode(200).body("id",equalTo(id))
+            .then().statusCode(200)
             .extract().as(TaskDto[].class);
         return Arrays.asList(qtasks);
     }
