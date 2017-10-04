@@ -1,21 +1,15 @@
 package com.softavail.comms.demo.application.impl;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallInfo;
-import com.nexmo.client.voice.CallStatus;
-import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.api.NexMoAnswerInResource;
 import com.softavail.comms.demo.application.model.NexMoCall;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.ConversationService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 

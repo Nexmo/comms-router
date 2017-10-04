@@ -2,7 +2,7 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -154,7 +154,7 @@ public class RouterResource {
     LOGGER.debug("Replacing router: {}, with id: {}", routerArg, id);
 
     ApiObjectId objectId = new ApiObjectId(id);
-    RouterDto router = routerService.put(routerArg, objectId);
+    RouterDto router = routerService.replace(routerArg, objectId);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{id}").build(router.getId());

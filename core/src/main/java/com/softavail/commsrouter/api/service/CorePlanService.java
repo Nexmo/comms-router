@@ -40,7 +40,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   @Override
-  public PlanDto put(CreatePlanArg createArg, RouterObjectId objectId) throws CommsRouterException {
+  public PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.plan.delete(em, objectId.getId());

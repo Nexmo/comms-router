@@ -48,7 +48,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public RouterDto put(CreateRouterArg createArg, ApiObjectId objectId)
+  public RouterDto replace(CreateRouterArg createArg, ApiObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {

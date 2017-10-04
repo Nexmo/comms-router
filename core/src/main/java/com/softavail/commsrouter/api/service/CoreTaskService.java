@@ -68,7 +68,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public TaskDto put(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
+  public TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());

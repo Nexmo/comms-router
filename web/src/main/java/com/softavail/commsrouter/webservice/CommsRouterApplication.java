@@ -40,10 +40,7 @@ public class CommsRouterApplication extends ResourceConfig {
       AgentDto agent = taskAssignment.getAgent();
       ClientFactory clientFactory = new ClientFactory();
       Client client = clientFactory.provide();
-      TaskEventHandlerImpl handler = new TaskEventHandlerImpl(client);
-      handler.setTask(task);
-      handler.setAgent(agent);
-      handler.handle();
+      new TaskEventHandlerImpl(client, taskAssignment).handle();
       clientFactory.dispose(client);
     }, mappers);
     AppContext context = new AppContext(dbFacade, evaluator, taskDispatcher, mappers);

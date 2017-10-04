@@ -46,7 +46,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public QueueDto put(CreateQueueArg createArg, RouterObjectId objectId)
+  public QueueDto replace(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {

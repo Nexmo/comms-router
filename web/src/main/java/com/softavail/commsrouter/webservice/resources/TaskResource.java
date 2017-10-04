@@ -2,7 +2,7 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -107,7 +107,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
     RouterObjectId objectId =
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
-    TaskDto task = taskService.put(taskArg, objectId);
+    TaskDto task = taskService.replace(taskArg, objectId);
 
     return createResponse(task);
   }

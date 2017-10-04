@@ -5,7 +5,7 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.domain.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;

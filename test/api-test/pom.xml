@@ -43,7 +43,7 @@
   <dependencies>
     <dependency>
       <groupId>com.softavail.comms-router</groupId>
-      <artifactId>comms-router-core</artifactId>
+      <artifactId>client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

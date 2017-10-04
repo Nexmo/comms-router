@@ -3,7 +3,7 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
@@ -107,7 +107,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
     RouterObjectId objectId =
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
-    AgentDto agent = agentService.put(agentArg, objectId);
+    AgentDto agent = agentService.replace(agentArg, objectId);
 
     return createResponse(agent);
   }

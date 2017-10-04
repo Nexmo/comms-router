@@ -5,8 +5,8 @@
 
 package com.softavail.commsrouter.domain.dto.mappers;
 
-import com.softavail.commsrouter.api.dto.model.ApiObject;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.domain.ApiObject;
+import com.softavail.commsrouter.domain.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;

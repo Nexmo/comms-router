@@ -48,7 +48,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public AgentDto put(CreateAgentArg createArg, RouterObjectId objectId)
+  public AgentDto replace(CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
