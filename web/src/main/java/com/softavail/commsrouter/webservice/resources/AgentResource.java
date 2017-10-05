@@ -3,14 +3,13 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

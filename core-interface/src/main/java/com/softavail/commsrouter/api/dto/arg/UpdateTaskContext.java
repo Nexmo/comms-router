@@ -6,15 +6,9 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 /**
  * Created by @author mapuo on 18.09.17.
  */
-public class UpdateTaskContext extends RouterObjectId {
+public class UpdateTaskContext {
 
   private AttributeGroupDto userContext;
-
-  public UpdateTaskContext() {}
-
-  public UpdateTaskContext(RouterObjectId rhs) {
-    super(rhs);
-  }
 
   public AttributeGroupDto getUserContext() {
     return userContext;

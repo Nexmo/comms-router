@@ -23,7 +23,8 @@ import javax.persistence.EntityManager;
 /**
  * @author ikrustev
  */
-public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> implements PlanService {
+public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
+    implements PlanService {
 
   public CorePlanService(AppContext app) {
     super(app, app.db.plan, app.entityMapper.plan);
@@ -40,7 +41,8 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   @Override
-  public PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId) throws CommsRouterException {
+  public PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.plan.delete(em, objectId.getId());
@@ -49,7 +51,8 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdatePlanArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectId.getId());

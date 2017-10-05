@@ -59,11 +59,10 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto>
   }
 
   @Override
-  public void update(UpdateTaskContext taskContext)
+  public void update(UpdateTaskContext taskContext, RouterObjectId objectId)
       throws CommsRouterException {
 
-    taskContext.setRouterId(routerId);
-    post(taskContext, new RouterObjectId(taskContext.getId(), routerId));
+    post(taskContext, new RouterObjectId(objectId.getId(), routerId));
   }
 
   @Override

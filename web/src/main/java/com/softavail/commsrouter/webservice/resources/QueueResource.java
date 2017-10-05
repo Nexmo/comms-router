@@ -2,23 +2,21 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import com.softavail.commsrouter.webservice.model.SizeWrapper;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

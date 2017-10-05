@@ -25,16 +25,16 @@ public abstract class ServiceClientBase<T> {
   }
 
   // POST over container creates. Returns object
-  protected T post(Object o) {
+  protected T post(Object obj) {
     URI uri = getApiUrl().clone().build();
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
   // POST over resource updates. Returns void
-  protected void post(Object o, ApiObjectId id) {
+  protected void post(Object obj, ApiObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .build(id.getId());
@@ -42,22 +42,22 @@ public abstract class ServiceClientBase<T> {
     getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
   // POST over container creates. Returns object
-  protected T post(Object o, String containerId) {
+  protected T post(Object obj, String containerId) {
     URI uri = getApiUrl().clone()
         .build(containerId);
 
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
   // POST over resource updates. Returns void
-  protected void post(Object o, RouterObjectId id) {
+  protected void post(Object obj, RouterObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .build(id.getRouterId(), id.getId());
@@ -65,25 +65,25 @@ public abstract class ServiceClientBase<T> {
     getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE));
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected T put(Object o, ApiObjectId id) {
+  protected T put(Object obj, ApiObjectId id) {
     URI uri = getApiUrl().clone().build(id.getId());
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
-  protected T put(Object o, RouterObjectId id) {
+  protected T put(Object obj, RouterObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .build(id.getRouterId(), id.getId());
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(o, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
   protected T getItem(ApiObjectId id) {

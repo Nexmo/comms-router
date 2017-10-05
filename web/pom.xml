@@ -65,7 +65,7 @@
         <groupId>org.webjars</groupId>
         <artifactId>swagger-ui</artifactId>
         <version>${swagger-ui.version}</version>
-        <scope>runtime</scope>
+        <!--<scope>runtime</scope>-->
       </dependency>
       <dependency>
         <groupId>javax</groupId>

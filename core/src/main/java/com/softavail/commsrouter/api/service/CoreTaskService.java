@@ -33,7 +33,8 @@ import javax.persistence.EntityManager;
 /**
  * @author ikrustev
  */
-public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> implements TaskService {
+public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
+    implements TaskService {
 
   private static final Logger LOGGER = LogManager.getLogger(CoreTaskService.class);
 
@@ -68,7 +69,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
+  public TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
@@ -78,7 +80,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     if (updateArg.getState() != TaskState.completed) {
       throw new BadValueException("Expected state: completed");
@@ -100,10 +103,11 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public void update(UpdateTaskContext taskContext) throws CommsRouterException {
+  public void update(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Task task = app.db.task.get(em, taskContext.getId());
+      Task task = app.db.task.get(em, objectId.getId());
       task.setUserContext(app.entityMapper.attributes.toJpa(taskContext.getUserContext()));
     });
   }

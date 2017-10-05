@@ -10,14 +10,19 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public interface TaskService extends RouterObjectService<TaskDto> {
+public interface TaskService
+    extends RouterObjectService<TaskDto> {
 
-  TaskDto create(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  TaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException;
+  void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  void update(UpdateTaskContext taskContext) throws CommsRouterException;
+  void update(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException;
 
 }
