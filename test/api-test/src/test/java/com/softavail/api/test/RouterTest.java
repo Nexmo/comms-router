@@ -13,7 +13,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
@@ -36,7 +36,7 @@ public class RouterTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
         RouterDto router = r.get();
         assertThat(router.getName(), is(name));
         assertThat(router.getDescription(), is(description));
@@ -54,7 +54,7 @@ public class RouterTest
         routerArg.setDescription(description);
         routerArg.setName(name);
         state.put(CommsRouterResource.ROUTER,routerId);
-        ApiObject id = r.replace(routerArg);
+        ApiObjectId id = r.replace(routerArg);
 
         RouterDto router = r.get();
         assertThat(router.getName(),is(name));
@@ -73,12 +73,12 @@ public class RouterTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
         RouterDto router = r.get();
         assertThat(router.getName(), is(name));
         assertThat(router.getDescription(), is(description));
 
-        ApiObject id1 = r.replace( new CreateRouterArg());// replace with null values
+        ApiObjectId id1 = r.replace( new CreateRouterArg());// replace with null values
         assertThat(id.getId(),is(id1.getId()));
         router = r.get();
         assertThat(router.getName(), nullValue());
@@ -97,7 +97,7 @@ public class RouterTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
         RouterDto router = r.get();
         assertThat(router.getName(), is(name));
         assertThat(router.getDescription(), is(description));
@@ -105,9 +105,9 @@ public class RouterTest
         Queue q = new Queue(state);
         CreateQueueArg qArg = new CreateQueueArg();
         qArg.setPredicate("1==1");
-        ApiObject qid = q.create(new CreateQueueArg());
+        ApiObjectId qid = q.create(new CreateQueueArg());
 
-        ApiObject id1 = r.replace( new CreateRouterArg());// replace with null values
+        ApiObjectId id1 = r.replace( new CreateRouterArg());// replace with null values
         // check that queue is still there
         QueueDto queue = q.get();
         assertThat(queue.getDescription(),nullValue());
@@ -131,7 +131,7 @@ public class RouterTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
         RouterDto router = r.get();
         assertThat(router.getName(), is(name));
         assertThat(router.getDescription(), is(description));
@@ -168,7 +168,7 @@ public class RouterTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
         RouterDto router = r.get();
         assertThat(router.getName(), is(name));
         assertThat(router.getDescription(), is(description));

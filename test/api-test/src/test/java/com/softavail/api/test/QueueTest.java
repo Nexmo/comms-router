@@ -18,7 +18,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
@@ -42,7 +42,7 @@ public class QueueTest
         CreateRouterArg routerArg= new CreateRouterArg();
         routerArg.setDescription(description);
         routerArg.setName(name);
-        ApiObject id = r.create(routerArg);
+        ApiObjectId id = r.create(routerArg);
     }
     @AfterAll
     public void deleteRouter() {
@@ -58,7 +58,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
         QueueDto queue = q.get();
         assertThat(queue.getPredicate(), is(predicate));
         assertThat(queue.getDescription(), is(description));
@@ -76,7 +76,7 @@ public class QueueTest
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
         state.put(CommsRouterResource.QUEUE,queueId);
-        ApiObject id = q.replace(queueArg);
+        ApiObjectId id = q.replace(queueArg);
         QueueDto queue = q.get();
         assertThat(queue.getPredicate(), is(predicate));
         assertThat(queue.getDescription(), is(description));
@@ -96,7 +96,7 @@ public class QueueTest
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
         state.put(CommsRouterResource.QUEUE,queueId);
-        ApiObject id = q.replace(queueArg);
+        ApiObjectId id = q.replace(queueArg);
         QueueDto queue = q.get();
         assertThat(queue.getPredicate(), is(predicate));
         assertThat(queue.getDescription(), is(description));
@@ -122,7 +122,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
         QueueDto queue = q.get();
         assertThat(queue.getPredicate(), is(predicate));
         assertThat(queue.getDescription(), is(description));
@@ -162,7 +162,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
         assertThat(q.size(), is(0));
         q.delete();
     }
@@ -175,7 +175,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
         assertThat(q.size(), is(0));
         q.delete();
     }
@@ -188,7 +188,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
 
         CreateTaskArg targ = new CreateTaskArg();
         targ.setQueueId(state.get(CommsRouterResource.QUEUE));
@@ -211,7 +211,7 @@ public class QueueTest
         queueArg.setDescription(description);
         queueArg.setPredicate(predicate);
         Queue q = new Queue(state);
-        ApiObject id = q.create(queueArg);
+        ApiObjectId id = q.create(queueArg);
 
         CreateTaskArg targ = new CreateTaskArg();
         targ.setQueueId(state.get(CommsRouterResource.QUEUE));

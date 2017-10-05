@@ -13,7 +13,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
@@ -29,7 +29,7 @@ public class AppTest
     public void crudRouter() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        ApiObject id = r.create(new CreateRouterArg());
+        ApiObjectId id = r.create(new CreateRouterArg());
         RouterDto router = r.get();
         assertThat(router.getName(),nullValue());
         assertThat(r.list(),hasItems(hasProperty("id", is(id.getId()) )));
@@ -42,7 +42,7 @@ public class AppTest
     public void crdQueue() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        ApiObject id = r.create(new CreateRouterArg());
+        ApiObjectId id = r.create(new CreateRouterArg());
 
         Queue q = new Queue(state);
         CreateQueueArg qArg = new CreateQueueArg();
@@ -61,7 +61,7 @@ public class AppTest
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
         Plan p = new Plan(state);
-        ApiObject id = r.create(new CreateRouterArg());
+        ApiObjectId id = r.create(new CreateRouterArg());
         CreatePlanArg arg = new CreatePlanArg();
         id = p.create(arg);
         PlanDto resource = p.get();
@@ -76,7 +76,7 @@ public class AppTest
     public void crdAgent() {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        ApiObject id = r.create(new CreateRouterArg());
+        ApiObjectId id = r.create(new CreateRouterArg());
         Agent a = new Agent(state);
         CreateAgentArg arg = new CreateAgentArg();
         id = a.create(arg);
@@ -92,9 +92,9 @@ public class AppTest
     public void crdTask() throws MalformedURLException {
         HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
         Router r = new Router(state);
-        ApiObject id = r.create(new CreateRouterArg());
+        ApiObjectId id = r.create(new CreateRouterArg());
         Queue q = new Queue(state);
-        ApiObject queueId = q.create(new CreateQueueArg());
+        ApiObjectId queueId = q.create(new CreateQueueArg());
         Task t = new Task(state);
         CreateTaskArg arg = new CreateTaskArg();
         arg.setCallbackUrl(new URL("http://example.com"));

@@ -11,7 +11,8 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,9 +36,9 @@ public class Task extends Resource{
         return Arrays.asList(routers);
     }
 
-    public ApiObject replace(CreateTaskArg args){
+    public ApiObjectId replace(CreateTaskArg args){
         String id = state().get(CommsRouterResource.QUEUE);
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
@@ -45,34 +46,34 @@ public class Task extends Resource{
             .when().put("/routers/{routerId}/tasks/{queueId}")
             .then().log().ifError().statusCode(201)
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         state().put(CommsRouterResource.TASK, oid.getId());
         return oid;
     }
 
-    public ApiObject create(CreateTaskArg args){
-        ApiObject oid = given()
+    public ApiObjectId create(CreateTaskArg args){
+        ApiObjectId oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
             .when().post("/routers/{routerId}/tasks")
             .then().log().ifError().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         String id=oid.getId();
         state().put(CommsRouterResource.TASK,id);
         return oid;
     }
-    public ApiObject createWithPlan(CreateTaskArg args){
+    public ApiObjectId createWithPlan(CreateTaskArg args){
         args.setPlanId(state().get(CommsRouterResource.PLAN));
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
             .when().post("/routers/{routerId}/tasks")
             .then().log().ifError().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         String id=oid.getId();
         state().put(CommsRouterResource.TASK,id);
         return oid;

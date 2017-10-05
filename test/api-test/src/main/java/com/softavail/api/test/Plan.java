@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,9 +35,9 @@ public class Plan extends Resource{
         return Arrays.asList(routers);
     }
 
-    public ApiObject replace(CreatePlanArg args){
+    public ApiObjectId replace(CreatePlanArg args){
         String id = state().get(CommsRouterResource.PLAN);
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
@@ -45,26 +45,26 @@ public class Plan extends Resource{
             .when().put("/routers/{routerId}/plans/{queueId}")
             .then().statusCode(201)
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         state().put(CommsRouterResource.PLAN, oid.getId());
         return oid;
     }
 
-    public ApiObject create(CreatePlanArg args){
+    public ApiObjectId create(CreatePlanArg args){
         LOGGER.info(given()
                     .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
                     .contentType("application/json")
                     .body(args)
                     .when().post("/routers/{routerId}/plans")
                     .then() .extract().asString());
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
             .when().post("/routers/{routerId}/plans")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         String id=oid.getId();
         state().put(CommsRouterResource.PLAN,id);
         return oid;
