@@ -57,7 +57,9 @@ public class Queue extends Resource{
             .contentType("application/json")
             .body(args)
             .when().post("/routers/{routerId}/queues")
-            .then().statusCode(201).body("id", not(isEmptyString()) )
+            .then()
+            .statusCode(201)
+            .body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
         String id=oid.getId();
@@ -90,7 +92,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
             .when().get("/routers/{routerId}/queues/{queueId}/size")
-            .then().statusCode(200)
+            .then().log().ifError().statusCode(200)
             .extract().path("size");
     }
     public List<TaskDto> tasks(){
@@ -99,7 +101,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
             .when().get("/routers/{routerId}/queues/{queueId}/tasks")
-            .then().statusCode(200)
+            .then().log().ifError().statusCode(200)
             .extract().as(TaskDto[].class);
         return Arrays.asList(qtasks);
     }
@@ -112,6 +114,6 @@ public class Queue extends Resource{
             .pathParam("queueId", id)
             .body(args)
             .when().post("/routers/{routerId}/queues/{queueId}")
-            .then().statusCode(204);
+            .then().log().ifError().statusCode(204);
     }
 }

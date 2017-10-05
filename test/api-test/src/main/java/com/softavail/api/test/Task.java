@@ -56,14 +56,27 @@ public class Task extends Resource{
             .contentType("application/json")
             .body(args)
             .when().post("/routers/{routerId}/tasks")
-            .then().statusCode(201).body("id", not(isEmptyString()) )
+            .then().log().ifError().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
             .as(ApiObject.class);
         String id=oid.getId();
         state().put(CommsRouterResource.TASK,id);
         return oid;
     }
-
+    public ApiObject createWithPlan(CreateTaskArg args){
+        args.setPlanId(state().get(CommsRouterResource.PLAN));
+        ApiObject oid = given()
+            .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
+            .contentType("application/json")
+            .body(args)
+            .when().post("/routers/{routerId}/tasks")
+            .then().log().ifError().statusCode(201).body("id", not(isEmptyString()) )
+            .extract()
+            .as(ApiObject.class);
+        String id=oid.getId();
+        state().put(CommsRouterResource.TASK,id);
+        return oid;
+    }
     public void delete(){
         String id = state().get(CommsRouterResource.TASK);
         given()
