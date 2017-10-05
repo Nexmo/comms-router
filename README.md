@@ -65,6 +65,16 @@ List routers:
 
 ## Quick tutorial
 
+Note that the commands listed below are meant to be used with a Unix shell. Some of them need to be modified in order to work on Windows.
+
+For example, the command for creating queues would look like this:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"HAS(#{language},'es')\"}}"
+`
+
+For more information take a look at [this](winComms.bat) batch file.
+
 **Create a router**, providing it's ID:
 
 `curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router`
@@ -176,7 +186,7 @@ Let's create a plan with a rule that will route tasks requiring Spanish agent in
 
 **Create tasks.**
 
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planId":"by-language","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planId":"by-language","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'`
 
 Here the task requires agent speaking Spanish and we assign to it our plan that routes tasks by language.
 
@@ -184,7 +194,7 @@ The "callbackUrl" parameter specifies the user application entry point to be cal
 
 In addition to using a plan to route tasks, the user accepts direct queue assignment by the user application:
 
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueId":"queue-en","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueId":"queue-en","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'`
 
 **Let's list the tasks and see the queues assigned:**
 
@@ -223,7 +233,7 @@ All tasks are in state "waiting" as all our agents are in state "offline".
 
 **Change agent's state.**
 
-curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d '{"state":"ready"}'
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d '{"state":"ready"}'`
 
 Now the router assigns a task this agent and changes its state to "busy". Call to the provided callbackUrl can be observed in requestb.in.
 
@@ -231,7 +241,7 @@ Now the router assigns a task this agent and changes its state to "busy". Call t
 
 When the user application is done with processing a task it must declare it as done:
 
-curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d '{"state":"completed"}'
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d '{"state":"completed"}'`
 
 The router then releases the agent and it is available for other tasks. As in this example the agent "Maria" can serve both queues, it will automatically get the other task we created:
 
