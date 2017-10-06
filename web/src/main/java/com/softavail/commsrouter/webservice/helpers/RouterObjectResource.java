@@ -21,7 +21,10 @@ public class RouterObjectResource {
   }
 
   protected RouterObjectId getRouterObjectId(String id) {
-    return new RouterObjectId.Builder().setRouterId(routerId).setId(id).build();
+    return new RouterObjectId.Builder()
+        .setRouterId(routerId)
+        .setId(id)
+        .build();
   }
 
 }

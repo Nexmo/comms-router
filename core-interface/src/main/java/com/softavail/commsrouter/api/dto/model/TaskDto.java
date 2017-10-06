@@ -35,6 +35,17 @@ public class TaskDto extends RouterObjectId {
     priority = createArg.getPriority();
   }
 
+  public TaskDto(TaskDto taskDto) {
+    super(taskDto);
+    requirements = taskDto.requirements;
+    userContext = taskDto.userContext;
+    planId = taskDto.planId;
+    queueId = taskDto.queueId;
+    agentId = taskDto.agentId;
+    callbackUrl = taskDto.callbackUrl;
+    priority = taskDto.priority;
+  }
+
   public AttributeGroupDto getRequirements() {
     return requirements;
   }

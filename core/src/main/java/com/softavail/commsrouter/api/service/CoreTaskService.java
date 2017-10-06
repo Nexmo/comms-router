@@ -9,6 +9,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -78,7 +79,6 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     });
   }
 
-
   @Override
   public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
       throws CommsRouterException {
@@ -119,8 +119,10 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
 
     Task task = new Task(objectId);
     if (createArg.getPlanId() != null) {
-      Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
-          .setRouterId(objectId.getRouterId()).build());
+      Plan plan = app.db.plan.get(em, RouterObjectId.builder()
+          .setId(createArg.getPlanId())
+          .setRouterId(objectId.getRouterId())
+          .build());
       List<Rule> rules = plan.getRules();
       String queueId = null;
       for (Rule rule : rules) {
@@ -130,8 +132,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
             break;
           }
         } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", rule.getQueueId(),
-              ex.getLocalizedMessage());
+          LOGGER.warn("Evaluation for Queue with ID={} failed : {}",
+              rule.getQueueId(), ex.getLocalizedMessage());
         }
       }
 
@@ -144,8 +146,10 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
       task.setPlan(plan);
     }
 
-    Queue queue = app.db.queue.get(em, RouterObjectId.builder().setId(createArg.getQueueId())
-        .setRouterId(objectId.getRouterId()).build());
+    Queue queue = app.db.queue.get(em, RouterObjectId.builder()
+        .setId(createArg.getQueueId())
+        .setRouterId(objectId.getRouterId())
+        .build());
     task.setQueue(queue);
     task.setState(TaskState.waiting);
     task.setPriority(createArg.getPriority());
@@ -154,7 +158,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
 
     em.persist(task);
-    return entityMapper.toDto(task);
+
+    long queueTasks = app.db.queue.getQueueSize(em, queue.getId()) - 1;
+
+    TaskDto taskDto = entityMapper.toDto(task);
+
+    return new CreatedTaskDto(taskDto, queueTasks);
   }
 
 }
