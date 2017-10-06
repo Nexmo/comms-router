@@ -2,7 +2,6 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -17,9 +16,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.URL;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -45,6 +46,8 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskResource.class);
 
+  private static final String X_QUEUE_SIZE = "X-Queue-Size";
+
   @Inject
   TaskService taskService;
 
@@ -60,10 +63,21 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @ApiOperation(
       value = "Add new Task",
       notes = "Create a new Task within a Router",
-      response = ApiObjectId.class,
+      response = CreatedTaskFacade.class,
       code = 201)
   @ApiResponses(
-      @ApiResponse(code = 201, message = "Created successfully"))
+      @ApiResponse(
+          code = 201,
+          responseHeaders = {
+              @ResponseHeader(
+                  name = HttpHeaders.LOCATION,
+                  response = URL.class,
+                  description = "The path to the newly created resource"),
+              @ResponseHeader(
+                  name = X_QUEUE_SIZE,
+                  response = Long.class,
+                  description = "The number of tasks in the queue before that one")},
+          message = "Created successfully"))
   public Response create(CreateTaskArg taskArg)
       throws CommsRouterException {
 
@@ -82,7 +96,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     if (task instanceof CreatedTaskDto) {
       Long queueTasks = ((CreatedTaskDto) task).getQueueTasks();
-      builder.header("X-Queue-Size", queueTasks);
+      builder.header(X_QUEUE_SIZE, queueTasks);
     }
 
     return builder.build();
@@ -91,10 +105,11 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @POST
   @Path("{resourceId}")
   @ApiOperation(
+      code = 204,
       value = "Update an existing Task",
       notes = "Update some properties of an existing Task")
   @ApiResponses({
-      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Task not found",
@@ -114,11 +129,11 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @PUT
   @Path("{resourceId}")
   @ApiOperation(
+      code = 201,
       value = "Replace an existing Task",
-      notes = "If the task with the specified id does not exist, it creates it",
-      tags = "tasks")
+      notes = "If the task with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 201, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Task not found",
@@ -126,9 +141,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public Response replace(
-      @ApiParam(
-          value = "The id of the task to be replaced",
-          required = true)
+      @ApiParam(value = "The id of the task to be replaced", required = true)
       @PathParam("resourceId") String resourceId,
       @ApiParam("CreateTaskArg object specifying all the parameters") CreateTaskArg taskArg)
       throws CommsRouterException {

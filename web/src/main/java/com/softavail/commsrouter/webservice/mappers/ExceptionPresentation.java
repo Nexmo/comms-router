@@ -2,6 +2,9 @@ package com.softavail.commsrouter.webservice.mappers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
 
 /**
  * Created by @author mapuo on 03.09.17.
@@ -9,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class ExceptionPresentation {
 
+  @JsonInclude(Include.NON_NULL)
   class ErrorPresentation {
 
     public final String code;
@@ -31,8 +35,23 @@ public class ExceptionPresentation {
 
   }
 
+  class ConstraintPresentation {
+
+    public final String violation;
+
+    ConstraintPresentation(String violation) {
+      this.violation = violation;
+    }
+
+    ConstraintPresentation(ConstraintViolation violation) {
+      this.violation = violation.getMessage();
+    }
+
+  }
+
   private final ErrorPresentation error;
   private final HelpInformation information;
+  private final Set<ConstraintPresentation> violations;
 
   public ExceptionPresentation(Throwable exception) {
     this(exception.getClass().getSimpleName(), exception.getMessage());
@@ -43,12 +62,31 @@ public class ExceptionPresentation {
   }
 
   public ExceptionPresentation(String className, String message) {
-    this(className, message, null);
+    this(className, message, null, null);
   }
 
   public ExceptionPresentation(String className, String message, String url) {
     this.error = new ErrorPresentation(className, message);
     this.information = (url != null) ? new HelpInformation(url) : null;
+    this.violations = null;
+  }
+
+  public ExceptionPresentation(String className, Set<ConstraintViolation<?>> violations) {
+    this.error = new ErrorPresentation(className, null);
+    this.information = null;
+    this.violations = violations.stream()
+        .map(ConstraintPresentation::new)
+        .collect(Collectors.toSet());
+  }
+
+  public ExceptionPresentation(String className, String message, Set<ConstraintPresentation> violations) {
+    this(className, message, null, violations);
+  }
+
+  public ExceptionPresentation(String className, String message, String url, Set<ConstraintPresentation> violations) {
+    this.error = new ErrorPresentation(className, message);
+    this.information = (url != null) ? new HelpInformation(url) : null;
+    this.violations = violations;
   }
 
   public ErrorPresentation getError() {
@@ -57,6 +95,10 @@ public class ExceptionPresentation {
 
   public HelpInformation getInformation() {
     return information;
+  }
+
+  public Set<ConstraintPresentation> getViolations() {
+    return violations;
   }
 
 }

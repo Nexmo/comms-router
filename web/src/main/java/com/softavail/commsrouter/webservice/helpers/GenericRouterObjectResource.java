@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ResponseHeader;
+import javax.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,6 +47,8 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
 
   private static final Logger LOGGER = LogManager.getLogger(GenericRouterObjectResource.class);
 
+  private static final String X_TOTAL_COUNT = "X-Total-Count";
+
   protected abstract RouterObjectService<T> getService();
 
   protected URI getLocation(T routerObject) {
@@ -69,26 +72,26 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
     int pageNum = pagedList.getPage();
     int perPage = pagedList.getPerPage();
     long totalCount = pagedList.getTotalCount();
-    int maxPages = Math.toIntExact(totalCount / perPage);
+    int maxPages = Math.toIntExact((totalCount + perPage - 1) / perPage);
 
     // Check first
-    if (maxPages > 1) {
+    if (pageNum > 1) {
       result.add(createLink("first", 1, perPage));
     }
 
-    // Check last
-    if (maxPages > 1) {
-      result.add(createLink("last", maxPages, perPage));
-    }
-
     // Check prev
-    if ((pageNum - 1) > 0) {
+    if (pageNum - 1 > 0) {
       result.add(createLink("prev", pageNum - 1, perPage));
     }
 
     // Check next
-    if ((pageNum + 1) * perPage <= totalCount) {
+    if (pageNum + 1 <= maxPages) {
       result.add(createLink("next", pageNum + 1, perPage));
+    }
+
+    // Check last
+    if (maxPages > 1 && pageNum < maxPages) {
+      result.add(createLink("last", maxPages, perPage));
     }
 
     return result.toArray(new Link[result.size()]);
@@ -116,16 +119,25 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
           message = "Successful operation",
           responseHeaders = {
               @ResponseHeader(
-                  name = "X-Total-Count",
+                  name = X_TOTAL_COUNT,
                   description = "The total items from this listing",
                   response = Integer.class)}))
   public Response list(
-      @ApiParam(value = "Set the current page", defaultValue = "1")
-      @Min(1)
+      @ApiParam(
+          value = "The current page of the listing",
+          defaultValue = "1",
+          allowableValues = "range[1, infinity]")
+      @Valid
+      @Min(value = 1L, message = "{resource.list.min.page.number}")
       @DefaultValue("01")
       @QueryParam("page_num") int pageNum,
-      @ApiParam(value = "Set the items per page (Max. 50)", defaultValue = "10")
-      @Max(50)
+      @ApiParam(
+          value = "Number of items per page (Maximum 50)",
+          defaultValue = "10",
+          allowableValues = "range[1, 50]")
+      @Valid
+      @Min(value = 1L, message = "{resource.list.min.items.per.page}")
+      @Max(value = 50, message = "{resource.list.max.items.per.page}")
       @DefaultValue("10")
       @QueryParam("per_page") int perPage)
       throws CommsRouterException {
@@ -139,7 +151,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
 
     GenericEntity<List<T>> genericEntity = new GenericEntity<>(pagedList.getList(), List.class);
     return Response.ok()
-        .header("X-Total-Count", pagedList.getTotalCount())
+        .header(X_TOTAL_COUNT, pagedList.getTotalCount())
         .links(links)
         .entity(genericEntity)
         .type(MediaType.APPLICATION_JSON_TYPE)

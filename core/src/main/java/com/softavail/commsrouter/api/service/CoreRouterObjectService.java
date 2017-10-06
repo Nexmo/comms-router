@@ -17,12 +17,14 @@ import com.softavail.commsrouter.jpa.RouterObjectRepository;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import javax.validation.ValidationException;
 
 /**
  * @author ikrustev
  */
 public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject>
-    extends CoreService implements RouterObjectService<DTOENTITYT> {
+    extends CoreService
+    implements RouterObjectService<DTOENTITYT> {
 
   protected final Class<DTOENTITYT> dtoEntityClass;
   protected final Class<ENTITYT> entityClass;
@@ -70,17 +72,29 @@ public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT 
 
     return app.db.transactionManager.execute((em) -> {
 
-      String qlString =
-          "SELECT e FROM " + entityClass.getSimpleName() + " e " + "WHERE e.routerId = :routerId";
-      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerId", routerId)
-          .setFirstResult((page - 1) * perPage).setMaxResults(perPage).getResultList();
+      String simpleName = entityClass.getSimpleName();
 
-      String countString = "SELECT COUNT(e.id) FROM " + entityClass.getSimpleName() + " e "
+      String countString = "SELECT COUNT(e.id) FROM " + simpleName + " e "
           + "WHERE e.routerId = :routerId";
-      long countResult =
-          (long) em.createQuery(countString).setParameter("routerId", routerId).getSingleResult();
+      long totalCount =
+          (long) em.createQuery(countString)
+              .setParameter("routerId", routerId)
+              .getSingleResult();
 
-      return new PaginatedList<>(entityMapper.toDto(jpaResult), page, perPage, countResult);
+      int startPosition = (page * perPage) - perPage;
+
+      if (totalCount <= startPosition) {
+        throw new ValidationException("{resource.list.max.page.number}");
+      }
+
+      String qlString = "SELECT e FROM " + simpleName + " e WHERE e.routerId = :routerId";
+      List<ENTITYT> jpaResult = em.createQuery(qlString)
+          .setParameter("routerId", routerId)
+          .setFirstResult(startPosition)
+          .setMaxResults(perPage)
+          .getResultList();
+
+      return new PaginatedList<>(entityMapper.toDto(jpaResult), page, perPage, totalCount);
     });
   }
 
