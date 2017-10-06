@@ -2,6 +2,7 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -59,7 +60,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
 
     RouterObjectId objectId = RouterObjectId.builder().setRouterId(routerId).build();
 
-    QueueDto queue = queueService.create(createArg, objectId);
+    ApiObjectId queue = queueService.create(createArg, objectId);
 
     return createResponse(queue);
   }
@@ -113,7 +114,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
 
-    QueueDto queue = queueService.replace(createArg, objectId);
+    ApiObjectId queue = queueService.create(createArg, objectId);
 
     return createResponse(queue);
   }

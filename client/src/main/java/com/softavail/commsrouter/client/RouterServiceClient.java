@@ -16,7 +16,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class RouterServiceClient extends ServiceClientBase<RouterDto>
+public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectId>
     implements RouterService {
 
   private Client client;
@@ -24,7 +24,7 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto>
 
   @Inject
   public RouterServiceClient(Client client, String endpoint) {
-    super(RouterDto.class);
+    super(RouterDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
   }
@@ -42,12 +42,21 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto>
   }
 
   @Override
-  public RouterDto create(CreateRouterArg createArg) {
+  public ApiObjectId create(CreateRouterArg createArg)
+      throws CommsRouterException {
+
     return post(createArg);
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, ApiObjectId id)
+  public ApiObjectId create(CreateRouterArg createArg, String routerId)
+      throws CommsRouterException {
+
+    return put(createArg, routerId);
+  }
+
+  @Override
+  public void update(UpdateRouterArg updateArg, String id)
       throws NotFoundException {
 
     post(updateArg, id);
@@ -61,19 +70,16 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto>
   }
 
   @Override
-  public RouterDto replace(CreateRouterArg createArg, ApiObjectId objectId)
+  public List<RouterDto> list()
       throws CommsRouterException {
 
-    return put(createArg, objectId);
-  }
-
-  @Override
-  public List<RouterDto> list() {
     return getList();
   }
 
   @Override
-  public void delete(String id) {
+  public void delete(String id)
+      throws CommsRouterException {
+
     deleteRequest(new ApiObjectId(id));
   }
 

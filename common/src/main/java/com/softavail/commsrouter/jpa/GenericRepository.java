@@ -52,7 +52,9 @@ public class GenericRepository<ENTITYT> {
     return result;
   }
 
-  public void delete(EntityManager em, String id) throws CommsRouterException {
+  public void delete(EntityManager em, String id)
+      throws CommsRouterException {
+
     ENTITYT entity = em.find(entityClass, id);
     if (entity != null) {
       em.remove(entity);

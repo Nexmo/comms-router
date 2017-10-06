@@ -9,10 +9,13 @@ import java.util.List;
  */
 public interface ApiObjectService<ENTITYT> {
 
-  ENTITYT get(String id) throws CommsRouterException;
+  ENTITYT get(String id)
+      throws CommsRouterException;
 
-  List<ENTITYT> list() throws CommsRouterException;
+  List<ENTITYT> list()
+      throws CommsRouterException;
 
-  void delete(String id) throws CommsRouterException;
+  void delete(String id)
+      throws CommsRouterException;
 
 }

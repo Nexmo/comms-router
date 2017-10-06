@@ -47,22 +47,20 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
 
   private static final Logger LOGGER = LogManager.getLogger(GenericRouterObjectResource.class);
 
-  private static final String X_TOTAL_COUNT = "X-Total-Count";
-
   protected abstract RouterObjectService<T> getService();
 
-  protected URI getLocation(T routerObject) {
+  protected URI getLocation(ApiObjectId routerObject) {
     return entryPoint.clone()
         .path("{resourceId}")
         .build(routerId, routerObject.getId());
   }
 
-  protected Response createResponse(T routerObject) {
+  protected Response createResponse(ApiObjectId routerObject) {
     URI createLocation = getLocation(routerObject);
 
     return Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObjectId(routerObject))
+        .entity(routerObject)
         .build();
   }
 
@@ -99,10 +97,10 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
 
   private Link createLink(String rel, int pageNum, int perPage) {
     UriBuilder uriBuilder = entryPoint.clone()
-        .queryParam("page_num", String.valueOf(pageNum));
+        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, String.valueOf(pageNum));
 
     if (perPage != 10) {
-      uriBuilder.queryParam("per_page", String.valueOf(perPage));
+      uriBuilder.queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, String.valueOf(perPage));
     }
 
     return Link.fromUriBuilder(uriBuilder).rel(rel).build(routerId);
@@ -119,7 +117,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
           message = "Successful operation",
           responseHeaders = {
               @ResponseHeader(
-                  name = X_TOTAL_COUNT,
+                  name = RouterObjectService.TOTAL_COUNT_HEADER,
                   description = "The total items from this listing",
                   response = Integer.class)}))
   public Response list(
@@ -130,7 +128,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
       @Valid
       @Min(value = 1L, message = "{resource.list.min.page.number}")
       @DefaultValue("01")
-      @QueryParam("page_num") int pageNum,
+      @QueryParam(RouterObjectService.PAGE_NUMBER_PARAM) int pageNum,
       @ApiParam(
           value = "Number of items per page (Maximum 50)",
           defaultValue = "10",
@@ -139,7 +137,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
       @Min(value = 1L, message = "{resource.list.min.items.per.page}")
       @Max(value = 50, message = "{resource.list.max.items.per.page}")
       @DefaultValue("10")
-      @QueryParam("per_page") int perPage)
+      @QueryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM) int perPage)
       throws CommsRouterException {
 
     PaginatedList<T> pagedList = getService().listPage(routerId, pageNum, perPage);
@@ -151,7 +149,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
 
     GenericEntity<List<T>> genericEntity = new GenericEntity<>(pagedList.getList(), List.class);
     return Response.ok()
-        .header(X_TOTAL_COUNT, pagedList.getTotalCount())
+        .header(RouterObjectService.TOTAL_COUNT_HEADER, pagedList.getTotalCount())
         .links(links)
         .entity(genericEntity)
         .type(MediaType.APPLICATION_JSON_TYPE)

@@ -105,14 +105,15 @@ public class RouterResource {
 
     LOGGER.debug("Creating router: {}", routerArg);
 
-    RouterDto router = routerService.create(routerArg);
+    ApiObjectId router = routerService.create(routerArg);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{id}").build(router.getId());
 
     return Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObjectId(router)).build();
+        .entity(new ApiObjectId(router))
+        .build();
   }
 
   @POST
@@ -133,11 +134,9 @@ public class RouterResource {
           required = true) UpdateRouterArg routerArg)
       throws CommsRouterException {
 
-    ApiObjectId routerId = new ApiObjectId(id);
-
     LOGGER.debug("Updating router: {}", routerArg);
 
-    routerService.update(routerArg, routerId);
+    routerService.update(routerArg, id);
   }
 
   @PUT
@@ -163,14 +162,15 @@ public class RouterResource {
 
     LOGGER.debug("Replacing router: {}, with id: {}", routerArg, id);
 
-    ApiObjectId objectId = new ApiObjectId(id);
-    RouterDto router = routerService.replace(routerArg, objectId);
+    ApiObjectId router = routerService.create(routerArg, id);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{id}").build(router.getId());
 
-    return Response.status(Status.CREATED).header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObjectId(router)).build();
+    return Response.status(Status.CREATED)
+        .header(HttpHeaders.LOCATION, createLocation.toString())
+        .entity(router)
+        .build();
   }
 
   @DELETE

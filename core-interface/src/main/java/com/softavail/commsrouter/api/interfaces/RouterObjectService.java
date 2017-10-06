@@ -11,6 +11,10 @@ import java.util.List;
  */
 public interface RouterObjectService<ENTITYT extends RouterObjectId> {
 
+  String TOTAL_COUNT_HEADER = "X-Total-Count";
+  String PAGE_NUMBER_PARAM = "page_num";
+  String ITEMS_PER_PAGE_PARAM = "per_page";
+
   ENTITYT get(RouterObjectId routerObjectId) throws CommsRouterException;
 
   List<ENTITYT> list(String routerId) throws CommsRouterException;

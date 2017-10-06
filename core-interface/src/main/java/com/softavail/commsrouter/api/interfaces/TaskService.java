@@ -3,6 +3,7 @@ package com.softavail.commsrouter.api.interfaces;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -13,10 +14,12 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 public interface TaskService
     extends RouterObjectService<TaskDto> {
 
-  TaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+  String X_QUEUE_SIZE = "X-Queue-Size";
+
+  CreatedTaskDto create(CreateTaskArg createArg, String routerId)
       throws CommsRouterException;
 
-  TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId)
+  CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException;
 
   void update(UpdateTaskArg updateArg, RouterObjectId objectId)

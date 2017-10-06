@@ -3,6 +3,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -17,7 +18,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class PlanServiceClient extends ServiceClientBase<PlanDto>
+public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
     implements PlanService {
 
   private final Client client;
@@ -26,7 +27,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
 
   @Inject
   public PlanServiceClient(Client client, String endpoint, String routerId) {
-    super(PlanDto.class);
+    super(PlanDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -67,9 +68,16 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
   }
 
   @Override
-  public PlanDto create(CreatePlanArg createArg, RouterObjectId id) {
+  public ApiObjectId create(CreatePlanArg createArg, String id) {
 
-    return post(createArg, id.getRouterId());
+    return post(createArg, id);
+  }
+
+  @Override
+  public ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    return put(createArg, objectId);
   }
 
   @Override
@@ -77,13 +85,6 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto>
       throws NotFoundException {
 
     post(updateArg, id);
-  }
-
-  @Override
-  public PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId)
-      throws CommsRouterException {
-
-    return put(createArg, objectId);
   }
 
 }

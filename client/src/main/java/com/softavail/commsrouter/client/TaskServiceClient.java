@@ -4,6 +4,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -18,7 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class TaskServiceClient extends ServiceClientBase<TaskDto>
+public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto>
     implements TaskService {
 
   private final Client client;
@@ -27,7 +28,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto>
 
   @Inject
   public TaskServiceClient(Client client, String endpoint, String routerId) {
-    super(TaskDto.class);
+    super(TaskDto.class, CreatedTaskDto.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -45,31 +46,33 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto>
   }
 
   @Override
-  public TaskDto create(CreateTaskArg createArg, RouterObjectId id) throws CommsRouterException {
+  public CreatedTaskDto create(CreateTaskArg createArg, String routerId)
+      throws CommsRouterException {
 
     // post on container, creates object with auto generated id
-    return post(createArg, id.getRouterId());
+    return post(createArg, routerId);
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId id) throws CommsRouterException {
+  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId routerObjectId)
+      throws CommsRouterException {
+
+    return put(createArg, routerObjectId);
+  }
+
+  @Override
+  public void update(UpdateTaskArg updateArg, RouterObjectId routerObjectId)
+      throws CommsRouterException {
 
     // post on resource, updates it with parameters provided
-    post(updateArg, id);
+    post(updateArg, routerObjectId);
   }
 
   @Override
-  public void update(UpdateTaskContext taskContext, RouterObjectId objectId)
+  public void update(UpdateTaskContext taskContext, RouterObjectId routerObjectId)
       throws CommsRouterException {
 
-    post(taskContext, new RouterObjectId(objectId.getId(), routerId));
-  }
-
-  @Override
-  public TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId)
-      throws CommsRouterException {
-
-    return put(createArg, objectId);
+    post(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
   }
 
   @Override

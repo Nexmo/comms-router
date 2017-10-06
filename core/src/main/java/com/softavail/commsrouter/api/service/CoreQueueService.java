@@ -36,17 +36,21 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg, RouterObjectId objectId)
+  public QueueDto create(CreateQueueArg createArg, String routerId)
       throws CommsRouterException {
 
-    objectId.setId(Uuid.get());
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
+
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, objectId);
+      return doCreate(em, createArg, routerObjectId);
     });
   }
 
   @Override
-  public QueueDto replace(CreateQueueArg createArg, RouterObjectId objectId)
+  public QueueDto create(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {

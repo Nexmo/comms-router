@@ -2,6 +2,7 @@ package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -11,10 +12,13 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface PlanService extends RouterObjectService<PlanDto> {
 
-  PlanDto create(CreatePlanArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  ApiObjectId create(CreatePlanArg createArg, String routerId)
+      throws CommsRouterException;
 
-  PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  void update(UpdatePlanArg updateArg, RouterObjectId objectId) throws CommsRouterException;
+  void update(UpdatePlanArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
 }

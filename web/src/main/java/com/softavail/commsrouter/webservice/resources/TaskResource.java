@@ -2,7 +2,6 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
-import com.softavail.commsrouter.api.dto.facade.CreatedTaskFacade;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -46,10 +45,8 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskResource.class);
 
-  private static final String X_QUEUE_SIZE = "X-Queue-Size";
-
   @Inject
-  TaskService taskService;
+  private TaskService taskService;
 
   @Context
   private ResourceContext resourceContext;
@@ -59,17 +56,12 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
     return taskService;
   }
 
-  @Override
-  protected Response createResponse(TaskDto task) {
+  protected Response createResponse(CreatedTaskDto task) {
     ResponseBuilder builder = Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, getLocation(task).toString())
-        .entity(new CreatedTaskFacade(task))
+        .header(TaskService.X_QUEUE_SIZE, task.getQueueTasks())
+        .entity(task)
         .type(MediaType.APPLICATION_JSON_TYPE);
-
-    if (task instanceof CreatedTaskDto) {
-      Long queueTasks = ((CreatedTaskDto) task).getQueueTasks();
-      builder.header(X_QUEUE_SIZE, queueTasks);
-    }
 
     return builder.build();
   }
@@ -78,7 +70,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @ApiOperation(
       value = "Add new Task",
       notes = "Create a new Task within a Router",
-      response = CreatedTaskFacade.class,
+      response = CreatedTaskDto.class,
       code = 201)
   @ApiResponses(
       @ApiResponse(
@@ -89,7 +81,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
                   response = URL.class,
                   description = "The path to the newly created resource"),
               @ResponseHeader(
-                  name = X_QUEUE_SIZE,
+                  name = TaskService.X_QUEUE_SIZE,
                   response = Long.class,
                   description = "The number of tasks in the queue before that one")},
           message = "Created successfully"))
@@ -102,7 +94,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     LOGGER.debug("Creating Task: {}", taskArg);
 
-    TaskDto task = taskService.create(taskArg, objectId);
+    CreatedTaskDto task = taskService.create(taskArg, objectId);
 
     return createResponse(task);
   }
@@ -155,7 +147,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     RouterObjectId objectId = getRouterObjectId(resourceId);
 
-    TaskDto task = taskService.replace(taskArg, objectId);
+    CreatedTaskDto task = taskService.create(taskArg, objectId);
 
     return createResponse(task);
   }

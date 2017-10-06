@@ -31,17 +31,21 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   }
 
   @Override
-  public PlanDto create(CreatePlanArg createArg, RouterObjectId objectId)
+  public PlanDto create(CreatePlanArg createArg, String routerId)
       throws CommsRouterException {
 
-    objectId.setId(Uuid.get());
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
+
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, objectId);
+      return doCreate(em, createArg, routerObjectId);
     });
   }
 
   @Override
-  public PlanDto replace(CreatePlanArg createArg, RouterObjectId objectId)
+  public PlanDto create(CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {

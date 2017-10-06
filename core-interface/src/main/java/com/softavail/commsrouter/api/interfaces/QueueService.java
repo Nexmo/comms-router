@@ -2,6 +2,7 @@ package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -14,14 +15,19 @@ import java.util.Collection;
  */
 public interface QueueService extends RouterObjectService<QueueDto> {
 
-  QueueDto create(CreateQueueArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  ApiObjectId create(CreateQueueArg createArg, String routerId)
+      throws CommsRouterException;
 
-  QueueDto replace(CreateQueueArg createArg, RouterObjectId objectId) throws CommsRouterException;
+  ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  void update(UpdateQueueArg updateArg, RouterObjectId objectId) throws CommsRouterException;
+  void update(UpdateQueueArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException;
 
-  long getQueueSize(RouterObjectId objectId) throws CommsRouterException;
+  long getQueueSize(RouterObjectId objectId)
+      throws CommsRouterException;
 
-  Collection<TaskDto> getTasks(RouterObjectId objectId) throws CommsRouterException;
+  Collection<TaskDto> getTasks(RouterObjectId objectId)
+      throws CommsRouterException;
 
 }

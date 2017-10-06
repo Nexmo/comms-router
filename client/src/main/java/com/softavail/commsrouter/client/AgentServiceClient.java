@@ -4,6 +4,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
@@ -16,7 +17,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class AgentServiceClient extends ServiceClientBase<AgentDto>
+public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
     implements AgentService {
 
   private final Client client;
@@ -25,7 +26,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
 
   @Inject
   public AgentServiceClient(Client client, String endpoint, String routerId) {
-    super(AgentDto.class);
+    super(AgentDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -44,14 +45,14 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto>
 
 
   @Override
-  public AgentDto create(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateAgentArg createArg, String routerId)
       throws CommsRouterException {
 
-    return post(createArg, objectId.getRouterId());
+    return post(createArg, routerId);
   }
 
   @Override
-  public AgentDto replace(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return put(createArg, objectId);

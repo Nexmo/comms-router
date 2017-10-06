@@ -3,6 +3,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 
 import java.net.URI;
 import java.util.List;
@@ -16,21 +17,36 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public abstract class ServiceClientBase<T> {
+public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObjectId> {
 
   private final Class<T> responseType;
+  private final Class<R> createResponseType;
 
-  public ServiceClientBase(Class<T> responseType) {
+  public ServiceClientBase(Class<T> responseType, Class<R> createResponseType) {
     this.responseType = responseType;
+    this.createResponseType = createResponseType;
   }
 
   // POST over container creates. Returns object
-  protected T post(Object obj) {
-    URI uri = getApiUrl().clone().build();
+  protected R post(Object obj) {
+    URI uri = getApiUrl().clone()
+        .build();
+
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
+  }
+
+  // POST over container creates. Returns object
+  protected R post(Object obj, String containerId) {
+    URI uri = getApiUrl().clone()
+        .build(containerId);
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
   }
 
   // POST over resource updates. Returns void
@@ -45,17 +61,6 @@ public abstract class ServiceClientBase<T> {
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  // POST over container creates. Returns object
-  protected T post(Object obj, String containerId) {
-    URI uri = getApiUrl().clone()
-        .build(containerId);
-
-    return getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
-  }
-
   // POST over resource updates. Returns void
   protected void post(Object obj, RouterObjectId id) {
     URI uri = getApiUrl().clone()
@@ -68,22 +73,23 @@ public abstract class ServiceClientBase<T> {
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected T put(Object obj, ApiObjectId id) {
-    URI uri = getApiUrl().clone().build(id.getId());
+  protected T put(Object obj, String id) {
+    URI uri = getApiUrl().clone().build(id);
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
         .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
   }
 
-  protected T put(Object obj, RouterObjectId id) {
+  protected R put(Object obj, RouterObjectId id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .build(id.getRouterId(), id.getId());
+
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
   }
 
   protected T getItem(ApiObjectId id) {
@@ -125,8 +131,8 @@ public abstract class ServiceClientBase<T> {
 
   protected PaginatedList<T> getList(String routerId, int page, int perPage) {
     URI uri = getApiUrl().clone()
-        .queryParam("page_num", page)
-        .queryParam("per_page", perPage)
+        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, page)
+        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, perPage)
         .build(routerId);
 
     Response response = getClient()
@@ -135,7 +141,8 @@ public abstract class ServiceClientBase<T> {
         .get();
 
     List<T> list = response.readEntity(new GenericType<List<T>>() {});
-    Long totalCount = Long.valueOf(response.getHeaderString("X-Total-Count"));
+    Long totalCount = Long.valueOf(
+        response.getHeaderString(RouterObjectService.TOTAL_COUNT_HEADER));
 
     return new PaginatedList<>(list, page, perPage, totalCount);
   }

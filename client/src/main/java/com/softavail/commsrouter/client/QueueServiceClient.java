@@ -3,6 +3,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -10,16 +11,19 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 /**
  * Created by @author mapuo on 05.09.17.
  */
-public class QueueServiceClient extends ServiceClientBase<QueueDto>
+public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
     implements QueueService {
 
   private final Client client;
@@ -28,7 +32,7 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
 
   @Inject
   public QueueServiceClient(Client client, String endpoint, String routerId) {
-    super(QueueDto.class);
+    super(QueueDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -69,14 +73,14 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg, RouterObjectId id)
+  public ApiObjectId create(CreateQueueArg createArg, String id)
       throws NotFoundException {
 
-    return post(createArg, id.getRouterId());
+    return post(createArg, id);
   }
 
   @Override
-  public QueueDto replace(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return put(createArg, objectId);
@@ -92,13 +96,31 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto>
   @Override
   public long getQueueSize(RouterObjectId routerObjectId)
       throws NotFoundException {
-    return 0; // TODO
+
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .path("size")
+        .build(routerObjectId.getRouterId(), routerObjectId.getId());
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .get(Long.class);
   }
 
   @Override
   public Collection<TaskDto> getTasks(RouterObjectId routerObjectId)
       throws NotFoundException {
-    return null; // TODO
+
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .path("tasks")
+        .build(routerObjectId.getRouterId(), routerObjectId.getId());
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .get(new GenericType<Collection<TaskDto>>(){});
   }
 
 }

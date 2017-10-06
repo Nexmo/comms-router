@@ -13,8 +13,8 @@ import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
@@ -85,8 +85,11 @@ public class NexMoAnswerInResource {
     CreateTaskArg taskReq = new CreateTaskArg();
     RouterObjectId taskId =
         new RouterObjectId(UUID.randomUUID().toString(), configuration.getCommsRouterId());
-    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl()).path("comms_callback")
-        .path(taskId.getId()).queryParam("callId", conversationId).build();
+    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+        .path("comms_callback")
+        .path(taskId.getId())
+        .queryParam("callId", conversationId)
+        .build();
     taskReq.setCallbackUrl(uri.toURL());
     taskReq.setQueueId(queueId);
 
@@ -96,10 +99,10 @@ public class NexMoAnswerInResource {
     requirements.put("price", new LongAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
-    TaskDto task = null;
+    CreatedTaskDto task = null;
 
     try {
-      task = taskServiceClient.replace(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, taskId);
     } catch (NotFoundException e) {
       e.printStackTrace();
     } catch (Exception ex) {

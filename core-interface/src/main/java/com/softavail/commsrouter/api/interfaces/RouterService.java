@@ -11,10 +11,13 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface RouterService extends ApiObjectService<RouterDto> {
 
-  RouterDto create(CreateRouterArg createArg) throws CommsRouterException;
+  ApiObjectId create(CreateRouterArg createArg)
+      throws CommsRouterException;
 
-  void update(UpdateRouterArg updateArg, ApiObjectId objectId) throws CommsRouterException;
+  ApiObjectId create(CreateRouterArg createArg, String routerId)
+      throws CommsRouterException;
 
-  RouterDto replace(CreateRouterArg createArg, ApiObjectId objectId) throws CommsRouterException;
+  void update(UpdateRouterArg updateArg, String routerId)
+      throws CommsRouterException;
 
 }

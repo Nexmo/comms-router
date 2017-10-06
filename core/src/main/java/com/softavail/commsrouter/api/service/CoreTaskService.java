@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -23,12 +24,10 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Uuid;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 
 /**
@@ -44,34 +43,29 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
   }
 
   @Override
-  public TaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+  public CreatedTaskDto create(CreateTaskArg createArg, String routerId)
       throws CommsRouterException {
 
-    if (createArg.getCallbackUrl() == null) {
-      throw new IllegalArgumentException("callbackUrl is required");
-    }
+    validate(createArg);
 
-    if (createArg.getPlanId() == null && createArg.getQueueId() == null) {
-      throw new IllegalArgumentException(
-          "Missing required argument: please provide either planId or queueId");
-    }
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
 
-    if (createArg.getPlanId() != null && createArg.getQueueId() != null) {
-      throw new IllegalArgumentException("Provide either planId or queueId, but not both");
-    }
-
-    objectId.setId(Uuid.get());
-    TaskDto taskDto = app.db.transactionManager.execute((EntityManager em) -> {
-      return doCreate(em, createArg, objectId);
+    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((EntityManager em) -> {
+      return doCreate(em, createArg, routerObjectId);
     });
 
-    app.taskDispatcher.dispatchTask(taskDto.getId());
-    return taskDto;
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    return createdTaskDto;
   }
 
   @Override
-  public TaskDto replace(CreateTaskArg createArg, RouterObjectId objectId)
+  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
+
+    validate(createArg);
 
     return app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
@@ -112,19 +106,39 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     });
   }
 
-  private TaskDto doCreate(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
+  private CreatedTaskDto doCreate(
+      EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     app.db.router.get(em, objectId.getRouterId());
 
+    Task task = fromPlan(em, createArg, objectId);
+    task.setState(TaskState.waiting);
+    task.setPriority(createArg.getPriority());
+    task.setCallbackUrl(createArg.getCallbackUrl().toString());
+    task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
+    task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
+
+    em.persist(task);
+
+    long queueTasks = app.db.queue.getQueueSize(em, task.getQueue().getId()) - 1;
+
+    TaskDto taskDto = entityMapper.toDto(task);
+
+    return new CreatedTaskDto(taskDto, queueTasks);
+  }
+
+  private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
+      throws NotFoundException {
+
     Task task = new Task(objectId);
+    String queueId = createArg.getQueueId();
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObjectId.builder()
           .setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId())
           .build());
       List<Rule> rules = plan.getRules();
-      String queueId = null;
       for (Rule rule : rules) {
         try {
           if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
@@ -142,28 +156,35 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
             "Evaluator didn't match task to any queues using the plan rules.");
       }
 
-      createArg.setQueueId(queueId);
       task.setPlan(plan);
     }
 
     Queue queue = app.db.queue.get(em, RouterObjectId.builder()
-        .setId(createArg.getQueueId())
+        .setId(queueId)
         .setRouterId(objectId.getRouterId())
         .build());
     task.setQueue(queue);
-    task.setState(TaskState.waiting);
-    task.setPriority(createArg.getPriority());
-    task.setCallbackUrl(createArg.getCallbackUrl().toString());
-    task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
-    task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
 
-    em.persist(task);
+    return task;
+  }
 
-    long queueTasks = app.db.queue.getQueueSize(em, queue.getId()) - 1;
+  private void validate(CreateTaskArg createArg) {
 
-    TaskDto taskDto = entityMapper.toDto(task);
+    // TODO Do it with javax.validation?!
 
-    return new CreatedTaskDto(taskDto, queueTasks);
+    if (createArg.getCallbackUrl() == null) {
+      throw new IllegalArgumentException("callbackUrl is required");
+    }
+
+    if (createArg.getPlanId() == null && createArg.getQueueId() == null) {
+      throw new IllegalArgumentException(
+          "Missing required argument: please provide either planId or queueId");
+    }
+
+    if (createArg.getPlanId() != null && createArg.getQueueId() != null) {
+      throw new IllegalArgumentException("Provide either planId or queueId, but not both");
+    }
+
   }
 
 }

@@ -2,6 +2,7 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -55,7 +56,7 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
 
     RouterObjectId objectId = RouterObjectId.builder().setRouterId(routerId).build();
 
-    PlanDto plan = planService.create(planArg, objectId);
+    ApiObjectId plan = planService.create(planArg, objectId);
 
     return createResponse(plan);
   }
@@ -106,7 +107,7 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
     RouterObjectId objectId =
         RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
-    PlanDto plan = planService.replace(createArg, objectId);
+    ApiObjectId plan = planService.create(createArg, objectId);
 
     return createResponse(plan);
   }
