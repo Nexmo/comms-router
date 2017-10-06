@@ -65,6 +65,16 @@ List routers:
 
 ## Quick tutorial
 
+Note that the commands listed below are meant to be used with a Unix shell. Some of them need to be modified in order to work on Windows.
+
+For example, the command for creating queues would look like this:
+
+`
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"HAS(#{language},'es')\"}}"
+`
+
+For more information take a look at [this](winComms.bat) batch file.
+
 **Create a router**, providing it's ID:
 
 `curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router`

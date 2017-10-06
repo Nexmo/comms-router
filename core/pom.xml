@@ -42,12 +42,29 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>1.4.196</version>
+    <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.github.h-thurow</groupId>
       <artifactId>simple-jndi</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-dbcp2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>eclipselink</artifactId>
+      <version>2.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
+      <version>2.5.2</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>
