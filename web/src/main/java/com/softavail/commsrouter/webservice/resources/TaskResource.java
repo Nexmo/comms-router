@@ -2,6 +2,7 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.facade.CreatedTaskFacade;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -10,7 +11,6 @@ import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
-import com.softavail.commsrouter.webservice.model.CreatedTaskFacade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -59,6 +59,21 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
     return taskService;
   }
 
+  @Override
+  protected Response createResponse(TaskDto task) {
+    ResponseBuilder builder = Response.status(Status.CREATED)
+        .header(HttpHeaders.LOCATION, getLocation(task).toString())
+        .entity(new CreatedTaskFacade(task))
+        .type(MediaType.APPLICATION_JSON_TYPE);
+
+    if (task instanceof CreatedTaskDto) {
+      Long queueTasks = ((CreatedTaskDto) task).getQueueTasks();
+      builder.header(X_QUEUE_SIZE, queueTasks);
+    }
+
+    return builder.build();
+  }
+
   @POST
   @ApiOperation(
       value = "Add new Task",
@@ -89,17 +104,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     TaskDto task = taskService.create(taskArg, objectId);
 
-    ResponseBuilder builder = Response.status(Status.CREATED)
-        .header(HttpHeaders.LOCATION, getLocation(task).toString())
-        .entity(new CreatedTaskFacade(task))
-        .type(MediaType.APPLICATION_JSON_TYPE);
-
-    if (task instanceof CreatedTaskDto) {
-      Long queueTasks = ((CreatedTaskDto) task).getQueueTasks();
-      builder.header(X_QUEUE_SIZE, queueTasks);
-    }
-
-    return builder.build();
+    return createResponse(task);
   }
 
   @POST

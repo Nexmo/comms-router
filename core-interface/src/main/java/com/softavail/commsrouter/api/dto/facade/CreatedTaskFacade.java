@@ -1,4 +1,4 @@
-package com.softavail.commsrouter.webservice.model;
+package com.softavail.commsrouter.api.dto.facade;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
