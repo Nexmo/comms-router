@@ -58,7 +58,7 @@
 (defun step-bind(step-fn p-step-fn)
   #'(lambda()
       (destructuring-bind (result status descr) (funcall step-fn)
-        (print status)
+        ;(print status)
         (if status
             (funcall (funcall p-step-fn result descr))
             (list result status descr)))))
@@ -190,8 +190,11 @@
 
 ;;;
 ;;; plan
-(defun cplan-new()
+(defun cplan-new-empty()
   (check-step #'(lambda()(plan-new :rules ()))
+              (has-key "id")))
+(defun cplan-new(&key (predicate "true"))
+  (check-step #'(lambda()(plan-new :predicate predicate))
               (has-key "id")))
 
 (defun cplan()
@@ -214,6 +217,10 @@
 ;;; task
 (defun ctask-new()
   (check-step #'(lambda()(task-new))
+              (has-key "id")))
+
+(defun cptask-new()
+  (check-step #'(lambda()(ptask-new))
               (has-key "id")))
 
 (defun ctask()
@@ -254,6 +261,31 @@
 (def-generator generator-crouter()
   (list (or 'crouter 'crouter-update)))
 
+(defun match-task()
+#'(lambda(expr)
+    (funcall #'values
+             (rest
+              (funcall (step-seq (crouter-new)
+                                 (cqueue-new)
+                                 (cplan-new :predicate (format nil "~{~A~}" (flatten expr)))
+                                 (cptask-new)
+                                 (ctask-del)
+                                 (cplan-del)
+                                 (cqueue-del)
+                                 (crouter-del)))))))
+
+
+(defun test-task-queue()
+  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "1!=1")))
+        (composite (generator (tuple "(" (tuple simple
+                                                (list (tuple (or "&&" "||") simple))
+                                                ) ")"))))
+    (check-it (generator(tuple simple
+                               (list (tuple (or "&&" "||") simple)) ))
+              (match-task))
+    )
+
+)
 (defun test-router()
   (check-it (generator
              (tuple
