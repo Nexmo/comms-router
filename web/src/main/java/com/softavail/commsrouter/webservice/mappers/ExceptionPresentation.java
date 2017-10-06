@@ -2,6 +2,7 @@ package com.softavail.commsrouter.webservice.mappers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
@@ -79,11 +80,13 @@ public class ExceptionPresentation {
         .collect(Collectors.toSet());
   }
 
-  public ExceptionPresentation(String className, String message, Set<ConstraintPresentation> violations) {
+  public ExceptionPresentation(
+      String className, String message, Set<ConstraintPresentation> violations) {
     this(className, message, null, violations);
   }
 
-  public ExceptionPresentation(String className, String message, String url, Set<ConstraintPresentation> violations) {
+  public ExceptionPresentation(
+      String className, String message, String url, Set<ConstraintPresentation> violations) {
     this.error = new ErrorPresentation(className, message);
     this.information = (url != null) ? new HelpInformation(url) : null;
     this.violations = violations;
