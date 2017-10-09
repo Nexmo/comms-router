@@ -23,7 +23,7 @@ public class JpaDbFacade {
   public final JpaTransactionManager transactionManager;
 
   public final GenericRepository<Router> router;
-  public final RouterObjectRepository<Queue> queue;
+  public final QueueRepository queue;
   public final RouterObjectRepository<Plan> plan;
   public final RouterObjectRepository<Agent> agent;
   public final RouterObjectRepository<Task> task;

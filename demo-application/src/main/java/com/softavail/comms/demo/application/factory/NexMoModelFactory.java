@@ -6,11 +6,6 @@ import com.nexmo.client.voice.SipEndpoint;
 
 public class NexMoModelFactory {
 
-  /** .
-   * 
-   * @param value
-   * @return
-   */
   public static Endpoint createEndpoint(String value) {
     Endpoint endpoint = null;
     

@@ -11,28 +11,24 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.nexmo.client.voice.ncco.InputNcco;
 import com.nexmo.client.voice.ncco.Ncco;
 import com.nexmo.client.voice.ncco.TalkNcco;
 import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.api.CommsCallbackResource;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.nexmo.ncco.NccoFactory;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 
 public class AnswerStrategyWithCallback implements AnswerStrategy {
 
@@ -223,7 +219,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     }
 
     // Create a task in the router
-    TaskDto task = createCallbackTask(finalContext);
+    CreatedTaskDto task = createCallbackTask(finalContext);
     if (null == task ) {
       return respondWithErrorTalkNcco();
     }
@@ -258,7 +254,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       final MultivaluedMap<String, String> context) {
 
     String conversationId = "conv-" + UUID.randomUUID().toString();
-    TaskDto task = createRegularTask(conversationId);
+    CreatedTaskDto task = createRegularTask(conversationId);
     
     if (null == task) {
       return respondWithErrorTalkNcco();
@@ -276,8 +272,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return nccoResponse.toJson();
   }
   
-  private TaskDto createCallbackTask(Map<String, String> context) {
-    TaskDto task = null;
+  private CreatedTaskDto createCallbackTask(Map<String, String> context) {
+    CreatedTaskDto task = null;
 
     try {
       CreateTaskArg taskReq = new CreateTaskArg();
@@ -298,7 +294,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         LOGGER.error("taskServiceClient = null");
       }
 
-      task = taskServiceClient.put(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, taskId);
     } catch (CommsRouterException e) {
       e.printStackTrace();
     } catch (Exception ex) {
@@ -308,8 +304,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return task;
   }
   
-  private TaskDto createRegularTask(final String conversationId) {
-    TaskDto task = null;
+  private CreatedTaskDto createRegularTask(final String conversationId) {
+    CreatedTaskDto task = null;
 
     try {
       CreateTaskArg taskReq = new CreateTaskArg();
@@ -328,7 +324,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       userContext.put("conversationid", new StringAttributeValueDto(conversationId));
       taskReq.setUserContext(userContext);
 
-      task = taskServiceClient.put(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, taskId);
     } catch (CommsRouterException e) {
       e.printStackTrace();
     } catch (Exception ex) {

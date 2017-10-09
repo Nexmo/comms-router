@@ -66,7 +66,7 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
   }
 
   @Override
-  public String commsRouterID() {
+  public String commsRouterId() {
     return provider.getProperty("comms.routerId", String.class);
   }
 

@@ -29,7 +29,8 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public RouterDto create(CreateRouterArg createArg) throws CommsRouterException {
+  public ApiObjectId create(CreateRouterArg createArg)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       ApiObjectId objectId = new ApiObjectId(Uuid.get());
@@ -38,30 +39,32 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, ApiObjectId objectId) throws CommsRouterException {
+  public ApiObjectId create(CreateRouterArg createArg, String routerId)
+      throws CommsRouterException {
+
+    return app.db.transactionManager.execute((em) -> {
+      app.db.router.delete(em, routerId);
+      return doCreate(em, createArg, new ApiObjectId(routerId));
+    });
+  }
+
+  @Override
+  public void update(UpdateRouterArg updateArg, String routerId)
+      throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Router router = app.db.router.get(em, objectId.getId());
+      Router router = app.db.router.get(em, routerId);
       Fields.update(router::setName, router.getName(), updateArg.getName());
       Fields.update(router::setDescription, router.getDescription(), updateArg.getDescription());
     });
   }
 
-  @Override
-  public RouterDto put(CreateRouterArg createArg, ApiObjectId objectId)
-      throws CommsRouterException {
-
-    return app.db.transactionManager.execute((em) -> {
-      app.db.router.delete(em, objectId.getId());
-      return doCreate(em, createArg, objectId);
-    });
-  }
-
-  private RouterDto doCreate(EntityManager em, CreateRouterArg createArg, ApiObjectId objectId)
+  private ApiObjectId doCreate(EntityManager em, CreateRouterArg createArg, ApiObjectId objectId)
       throws CommsRouterException {
 
     Router router = new Router(createArg, objectId);
     em.persist(router);
-    return entityMapper.toDto(router);
+    RouterDto routerDto = entityMapper.toDto(router);
+    return new ApiObjectId(routerDto);
   }
 }

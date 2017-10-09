@@ -1,7 +1,5 @@
 package com.softavail.comms.nexmo.answer;
 
-import java.util.Map;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.fasterxml.jackson.databind.JsonNode;

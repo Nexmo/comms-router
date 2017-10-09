@@ -4,31 +4,25 @@ import com.nexmo.client.NexmoClientException;
 import com.nexmo.client.voice.Call;
 import com.nexmo.client.voice.CallEvent;
 import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversation;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
-import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
-import java.text.AttributedString;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -58,6 +52,14 @@ public class CommsCallbackResource {
   TaskServiceClient taskServiceClient;
 
   
+  @POST
+  public void taskAssignmentAnswer(
+      @QueryParam("callId") final String conversationId,
+      final TaskAssignmentDto taskAssignment) {
+
+    // TODO 
+  }
+
   @POST
   @Path("/{taskId}")
   public void taskAnswer(
@@ -139,10 +141,10 @@ public class CommsCallbackResource {
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        updateCtx.setId(taskId);
+        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.update(updateCtx);
+        taskServiceClient.update(updateCtx, taskObjectId);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -212,10 +214,10 @@ public class CommsCallbackResource {
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        updateCtx.setId(taskId);
+        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.update(updateCtx);
+        taskServiceClient.update(updateCtx, taskObjectId);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -232,7 +234,10 @@ public class CommsCallbackResource {
   public void oldtaskAnswer(
       @PathParam("taskId") String taskId,
       @QueryParam("callId") final String conversationId,
-      AgentDto agent) {
+      final TaskAssignmentDto taskAssignment) {
+
+    AgentDto agent = taskAssignment.getAgent();
+
     LOGGER.debug("/comms_callback/{}", taskId);
     LOGGER.debug("agent: {}", agent);
 

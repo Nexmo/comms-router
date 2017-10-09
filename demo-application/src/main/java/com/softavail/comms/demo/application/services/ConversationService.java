@@ -1,6 +1,5 @@
 package com.softavail.comms.demo.application.services;
 
-import com.nexmo.client.voice.CallInfo;
 import com.softavail.comms.demo.application.model.NexMoCall;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;

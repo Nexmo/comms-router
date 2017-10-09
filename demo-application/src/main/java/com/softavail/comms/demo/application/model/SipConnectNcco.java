@@ -3,109 +3,110 @@ package com.softavail.comms.demo.application.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nexmo.client.voice.MachineDetection;
 import com.nexmo.client.voice.SipEndpoint;
 import com.nexmo.client.voice.ncco.Ncco;
 import com.nexmo.client.voice.ncco.NccoSerializer;
-import com.nexmo.client.voice.MachineDetection;
 
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SipConnectNcco implements Ncco {
-    private static final String ACTION = "connect";
 
-    private SipEndpoint[] endpoint;
-    private String from = null;
-    private Integer timeout = null;
-    private Integer limit = null;
-    private MachineDetection machineDetection = null;
-    private String[] eventUrl = null;
-    private String eventMethod = null;
+  private static final String ACTION = "connect";
 
-    public SipConnectNcco(@JsonProperty("endpoint") SipEndpoint[] endpoint) {
-        this.endpoint = endpoint;
-    }
+  private SipEndpoint[] endpoint;
+  private String from = null;
+  private Integer timeout = null;
+  private Integer limit = null;
+  private MachineDetection machineDetection = null;
+  private String[] eventUrl = null;
+  private String eventMethod = null;
 
-    public SipConnectNcco(SipEndpoint endpoint) {
-        this(new SipEndpoint[]{endpoint});
-    }
+  public SipConnectNcco(@JsonProperty("endpoint") SipEndpoint[] endpoint) {
+    this.endpoint = endpoint;
+  }
 
-    public SipConnectNcco(String uri) {
-        this(new SipEndpoint(uri));
-    }
+  public SipConnectNcco(SipEndpoint endpoint) {
+    this(new SipEndpoint[]{endpoint});
+  }
 
-    public SipEndpoint[] getEndpoint() {
-        return endpoint;
-    }
+  public SipConnectNcco(String uri) {
+    this(new SipEndpoint(uri));
+  }
 
-    public void setEndpoint(SipEndpoint endpoint) {
-        setEndpoint(new SipEndpoint[]{endpoint});
-    }
+  public SipEndpoint[] getEndpoint() {
+    return endpoint;
+  }
 
-    @JsonProperty("endpoint")
-    public void setEndpoint(SipEndpoint[] endpoint) {
-        this.endpoint = endpoint;
-    }
+  public void setEndpoint(SipEndpoint endpoint) {
+    setEndpoint(new SipEndpoint[]{endpoint});
+  }
 
-    public String getFrom() {
-        return from;
-    }
+  @JsonProperty("endpoint")
+  public void setEndpoint(SipEndpoint[] endpoint) {
+    this.endpoint = endpoint;
+  }
 
-    public void setFrom(String from) {
-        this.from = from;
-    }
+  public String getFrom() {
+    return from;
+  }
 
-    public Integer getTimeout() {
-        return timeout;
-    }
+  public void setFrom(String from) {
+    this.from = from;
+  }
 
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
-    }
+  public Integer getTimeout() {
+    return timeout;
+  }
 
-    public Integer getLimit() {
-        return limit;
-    }
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
 
-    public void setLimit(Integer limit) {
-        this.limit = limit;
-    }
+  public Integer getLimit() {
+    return limit;
+  }
 
-    public MachineDetection getMachineDetection() {
-        return machineDetection;
-    }
+  public void setLimit(Integer limit) {
+    this.limit = limit;
+  }
 
-    public void setMachineDetection(MachineDetection machineDetection) {
-        this.machineDetection = machineDetection;
-    }
+  public MachineDetection getMachineDetection() {
+    return machineDetection;
+  }
 
-    public String[] getEventUrl() {
-        return eventUrl;
-    }
+  public void setMachineDetection(MachineDetection machineDetection) {
+    this.machineDetection = machineDetection;
+  }
 
-    public void setEventUrl(String eventUrl) {
-        setEventUrl(new String[]{eventUrl});
-    }
+  public String[] getEventUrl() {
+    return eventUrl;
+  }
 
-    @JsonProperty("eventUrl")
-    public void setEventUrl(String[] eventUrl) {
-        this.eventUrl = eventUrl;
-    }
+  public void setEventUrl(String eventUrl) {
+    setEventUrl(new String[]{eventUrl});
+  }
 
-    public String getEventMethod() {
-        return eventMethod;
-    }
+  @JsonProperty("eventUrl")
+  public void setEventUrl(String[] eventUrl) {
+    this.eventUrl = eventUrl;
+  }
 
-    public void setEventMethod(String eventMethod) {
-        this.eventMethod = eventMethod;
-    }
+  public String getEventMethod() {
+    return eventMethod;
+  }
 
-    @Override
-    public String getAction() {
-        return ACTION;
-    }
+  public void setEventMethod(String eventMethod) {
+    this.eventMethod = eventMethod;
+  }
 
-    @Override
-    public String toJson() {
-        return NccoSerializer.getInstance().serializeNcco(this);
-    }
+  @Override
+  public String getAction() {
+    return ACTION;
+  }
+
+  @Override
+  public String toJson() {
+    return NccoSerializer.getInstance().serializeNcco(this);
+  }
 }

@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
+import io.restassured.RestAssured;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,46 +23,48 @@ public class Plan extends Resource{
     public Plan(HashMap<CommsRouterResource,String> state){
         super(state);
         state.put(CommsRouterResource.PLAN,"id");
+        RestAssured.baseURI = System.getProperty("autHost");
+        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<PlanDto> list(){
         PlanDto[] routers =given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER)).when()
-            .get("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans")
+            .get("/routers/{routerId}/plans")
             .then().statusCode(200)
             .extract().as(PlanDto[].class);
         return Arrays.asList(routers);
     }
 
-    public ApiObject replace(CreatePlanArg args){
+    public ApiObjectId replace(CreatePlanArg args){
         String id = state().get(CommsRouterResource.PLAN);
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().put("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans/{queueId}")
-            .then().statusCode(204) // TODO check if 201 is the right code
+            .when().put("/routers/{routerId}/plans/{queueId}")
+            .then().statusCode(201)
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         state().put(CommsRouterResource.PLAN, oid.getId());
         return oid;
     }
 
-    public ApiObject create(CreatePlanArg args){
+    public ApiObjectId create(CreatePlanArg args){
         LOGGER.info(given()
                     .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
                     .contentType("application/json")
                     .body(args)
-                    .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans")
+                    .when().post("/routers/{routerId}/plans")
                     .then() .extract().asString());
-        ApiObject oid = given()
+        ApiObjectId oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans")
+            .when().post("/routers/{routerId}/plans")
             .then().statusCode(201).body("id", not(isEmptyString()) )
             .extract()
-            .as(ApiObject.class);
+            .as(ApiObjectId.class);
         String id=oid.getId();
         state().put(CommsRouterResource.PLAN,id);
         return oid;
@@ -72,7 +75,7 @@ public class Plan extends Resource{
         given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().delete("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans/{queueId}")
+            .when().delete("/routers/{routerId}/plans/{queueId}")
             .then().statusCode(204);
     }
 
@@ -81,7 +84,7 @@ public class Plan extends Resource{
         return given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
-            .when().get("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans/{queueId}")
+            .when().get("/routers/{routerId}/plans/{queueId}")
             .then().statusCode(200).body("id",equalTo(id))
             .extract().as(PlanDto.class);
     }
@@ -89,10 +92,11 @@ public class Plan extends Resource{
     public void update(CreatePlanArg args){
         String id = state().get(CommsRouterResource.PLAN);
         given()
+            .contentType("application/json")
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId", id)
             .body(args)
-            .when().post("http://localhost:8080/comms-router-web/api/routers/{routerId}/plans/{queueId}")
+            .when().post("/routers/{routerId}/plans/{queueId}")
             .then().statusCode(204);
     }
 }

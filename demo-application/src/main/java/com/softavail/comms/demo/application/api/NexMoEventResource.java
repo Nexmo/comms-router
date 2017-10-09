@@ -4,19 +4,11 @@ import com.nexmo.client.NexmoClientException;
 import com.nexmo.client.voice.Call;
 import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
-import com.nexmo.client.voice.CallInfo;
-import com.nexmo.client.voice.CallStatus;
 import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversation;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -29,10 +21,10 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
-import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,13 +32,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -59,10 +48,10 @@ import javax.ws.rs.core.UriBuilder;
 public class NexMoEventResource {
 
   private static final Logger LOGGER = LogManager.getLogger(NexMoEventResource.class);
-  
+
   @Inject
   Configuration configuration;
-  
+
   @Inject
   TaskServiceClient taskServiceClient;
 
@@ -77,7 +66,7 @@ public class NexMoEventResource {
       CallEvent callEvent) {
     
     if (callEvent != null) {
-      LOGGER.debug("/event with call uuid: {} status: {} direction: {}", 
+      LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
           callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
 
       if (kind != null && kind.equals("callback_agent")) {
@@ -90,7 +79,7 @@ public class NexMoEventResource {
         handleAgentCallEvent(callEvent, taskId, kind, conversationId);
       }
     }
-    
+
     Response response = Response.ok().build();
     return response;
   }
@@ -206,7 +195,7 @@ public class NexMoEventResource {
   private void updateTaskServiceState(String taskId, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
     updTaskReq.setState(state);
-    
+
     try {
       LOGGER.trace("Update task: {} in router as completed", taskId);
       taskServiceClient.update(updTaskReq,
@@ -299,10 +288,10 @@ public class NexMoEventResource {
       if (flagOk) {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        updateCtx.setId(taskId);
         userContext.put("customer_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.update(updateCtx);
+        taskServiceClient.update(updateCtx, 
+            new RouterObjectId(taskId, configuration.getCommsRouterId()));
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to update task context with error: {}", e1.getLocalizedMessage());

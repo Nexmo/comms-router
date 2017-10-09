@@ -1,35 +1,14 @@
 package com.softavail.comms.demo.application.api;
 
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallStatus;
-import com.nexmo.client.voice.ncco.TalkNcco;
-import com.nexmo.client.voice.servlet.NccoResponse;
-import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.ConversationNccoEx;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
-import com.softavail.comms.nexmo.answer.AnswerStrategy;
 import com.softavail.comms.nexmo.answer.AnswerStrategyException;
 import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -38,7 +17,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -128,8 +106,11 @@ public class NexMoAnswerInResource {
     CreateTaskArg taskReq = new CreateTaskArg();
     RouterObjectId taskId =
         new RouterObjectId(UUID.randomUUID().toString(), configuration.getCommsRouterId());
-    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl()).path("comms_callback")
-        .path(taskId.getId()).queryParam("callId", conversationId).build();
+    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+        .path("comms_callback")
+        .path(taskId.getId())
+        .queryParam("callId", conversationId)
+        .build();
     taskReq.setCallbackUrl(uri.toURL());
     taskReq.setQueueId(configuration.getCommsQueueId());
 
@@ -139,10 +120,10 @@ public class NexMoAnswerInResource {
     requirements.put("price", new LongAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
-    TaskDto task = null;
+    CreatedTaskDto task = null;
 
     try {
-      task = taskServiceClient.put(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, taskId);
     } catch (NotFoundException e) {
       e.printStackTrace();
     } catch (Exception ex) {

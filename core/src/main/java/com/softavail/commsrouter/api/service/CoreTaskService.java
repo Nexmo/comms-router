@@ -9,11 +9,13 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -22,18 +24,17 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Uuid;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 
 /**
  * @author ikrustev
  */
-public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> implements TaskService {
+public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
+    implements TaskService {
 
   private static final Logger LOGGER = LogManager.getLogger(CoreTaskService.class);
 
@@ -42,33 +43,29 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public TaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+  public CreatedTaskDto create(CreateTaskArg createArg, String routerId)
       throws CommsRouterException {
 
-    if (createArg.getCallbackUrl() == null) {
-      throw new IllegalArgumentException("callbackUrl is required");
-    }
+    validate(createArg);
 
-    if (createArg.getPlanId() == null && createArg.getQueueId() == null) {
-      throw new IllegalArgumentException(
-          "Missing required argument: please provide either planId or queueId");
-    }
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
 
-    if (createArg.getPlanId() != null && createArg.getQueueId() != null) {
-      throw new IllegalArgumentException("Provide either planId or queueId, but not both");
-    }
-
-    objectId.setId(Uuid.get());
-    TaskDto taskDto = app.db.transactionManager.execute((EntityManager em) -> {
-      return doCreate(em, createArg, objectId);
+    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((EntityManager em) -> {
+      return doCreate(em, createArg, routerObjectId);
     });
 
-    app.taskDispatcher.dispatchTask(taskDto.getId());
-    return taskDto;
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    return createdTaskDto;
   }
 
   @Override
-  public TaskDto put(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
+  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    validate(createArg);
 
     return app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
@@ -76,9 +73,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     if (updateArg.getState() != TaskState.completed) {
       throw new BadValueException("Expected state: completed");
@@ -100,34 +97,57 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public void update(UpdateTaskContext taskContext) throws CommsRouterException {
+  public void update(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Task task = app.db.task.get(em, taskContext.getId());
+      Task task = app.db.task.get(em, objectId.getId());
       task.setUserContext(app.entityMapper.attributes.toJpa(taskContext.getUserContext()));
     });
   }
 
-  private TaskDto doCreate(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
+  private CreatedTaskDto doCreate(
+      EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     app.db.router.get(em, objectId.getRouterId());
 
+    Task task = fromPlan(em, createArg, objectId);
+    task.setState(TaskState.waiting);
+    task.setPriority(createArg.getPriority());
+    task.setCallbackUrl(createArg.getCallbackUrl().toString());
+    task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
+    task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
+
+    em.persist(task);
+
+    long queueTasks = app.db.queue.getQueueSize(em, task.getQueue().getId()) - 1;
+
+    TaskDto taskDto = entityMapper.toDto(task);
+
+    return new CreatedTaskDto(taskDto, queueTasks);
+  }
+
+  private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
+      throws NotFoundException {
+
+    Task task = new Task(objectId);
+    String queueId = createArg.getQueueId();
     if (createArg.getPlanId() != null) {
-      Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
-          .setRouterId(objectId.getRouterId()).build());
+      Plan plan = app.db.plan.get(em, RouterObjectId.builder()
+          .setId(createArg.getPlanId())
+          .setRouterId(objectId.getRouterId())
+          .build());
       List<Rule> rules = plan.getRules();
-      String queueId = null;
-      for (int index = 0; index < rules.size(); ++index) {
-        Rule rule = rules.get(index);
+      for (Rule rule : rules) {
         try {
           if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
             queueId = rule.getQueueId();
             break;
           }
         } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", rule.getQueueId(),
-              ex.getLocalizedMessage());
+          LOGGER.warn("Evaluation for Queue with ID={} failed : {}",
+              rule.getQueueId(), ex.getLocalizedMessage());
         }
       }
 
@@ -136,22 +156,35 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
             "Evaluator didn't match task to any queues using the plan rules.");
       }
 
-      createArg.setQueueId(queueId);
+      task.setPlan(plan);
     }
 
-    Task task = new Task(objectId);
-    task.setState(TaskState.waiting);
-
-    Queue queue = app.db.queue.get(em, RouterObjectId.builder().setId(createArg.getQueueId())
-        .setRouterId(objectId.getRouterId()).build());
-
+    Queue queue = app.db.queue.get(em, RouterObjectId.builder()
+        .setId(queueId)
+        .setRouterId(objectId.getRouterId())
+        .build());
     task.setQueue(queue);
-    task.setCallbackUrl(createArg.getCallbackUrl().toString());
-    task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
-    task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
 
-    em.persist(task);
-    return entityMapper.toDto(task);
+    return task;
+  }
+
+  private void validate(CreateTaskArg createArg) {
+
+    // TODO Do it with javax.validation?!
+
+    if (createArg.getCallbackUrl() == null) {
+      throw new IllegalArgumentException("callbackUrl is required");
+    }
+
+    if (createArg.getPlanId() == null && createArg.getQueueId() == null) {
+      throw new IllegalArgumentException(
+          "Missing required argument: please provide either planId or queueId");
+    }
+
+    if (createArg.getPlanId() != null && createArg.getQueueId() != null) {
+      throw new IllegalArgumentException("Provide either planId or queueId, but not both");
+    }
+
   }
 
 }

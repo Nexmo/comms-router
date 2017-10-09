@@ -13,7 +13,7 @@ public interface ConfigurationProperties {
 
   String commsRouterUrl();
 
-  String commsRouterID();
+  String commsRouterId();
 
   String appId();
 

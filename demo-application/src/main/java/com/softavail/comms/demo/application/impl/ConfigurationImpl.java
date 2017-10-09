@@ -40,7 +40,7 @@ public class ConfigurationImpl implements Configuration {
     commsApiEndpoint = addTrailingSlash(properties.commsRouterUrl());
     LOGGER.debug("Comms Api Endpoint: {}", commsApiEndpoint);
 
-    commsRouterId = properties.commsRouterID();
+    commsRouterId = properties.commsRouterId();
 
     phoneEndpoint = new VoiceEndpoint(properties.phone());
     LOGGER.debug("phoneEndpoint: {}", phoneEndpoint);
