@@ -83,7 +83,7 @@ public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT 
 
       int startPosition = (page * perPage) - perPage;
 
-      if (totalCount <= startPosition) {
+      if (totalCount > 0 && totalCount <= startPosition) {
         throw new ValidationException("{resource.list.max.page.number}");
       }
 
