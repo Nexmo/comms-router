@@ -2,6 +2,7 @@
  * To change this license header, choose License Headers in Project Attributes. To change this
  * template file, choose Tools | Templates and open the template in the editor.
  */
+
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.RouterObject;
@@ -73,7 +74,11 @@ public class Task extends RouterObject {
   private Date updateDate;
 
   @Column(name = "timeout", nullable = false)
-  private Long queuedTimeout;
+  private Long queuedTimeout = new Long(24 * 60 * 60); // default 24h - in seconds
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "route_id")
+  private Route route;
 
   public Task() {}
 
@@ -160,7 +165,17 @@ public class Task extends RouterObject {
   }
 
   public void setQueuedTimeout(Long queuedTimeout) {
-    this.queuedTimeout = queuedTimeout;
+    if (queuedTimeout != null) {
+      this.queuedTimeout = queuedTimeout;
+    }
+  }
+
+  public Route getRoute() {
+    return route;
+  }
+
+  public void setRoute(Route route) {
+    this.route = route;
   }
 
   @Override

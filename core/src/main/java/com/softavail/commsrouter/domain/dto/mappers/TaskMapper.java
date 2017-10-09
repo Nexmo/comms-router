@@ -34,6 +34,9 @@ public class TaskMapper extends EntityMapper<TaskDto, Task> {
     dto.setCreateDate(jpa.getCreateDate());
     dto.setUpdateDate(jpa.getUpdateDate());
     dto.setQueuedTimeout(jpa.getQueuedTimeout());
+    if (jpa.getRoute() != null) {
+      dto.setRouteId(jpa.getRoute().getId());
+    }
     return dto;
   }
 

@@ -6,6 +6,8 @@
 package com.softavail.commsrouter.api.dto.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -15,8 +17,7 @@ public class RuleDto implements Serializable {
 
   private String tag;
   private String predicate;
-  private String queueId;
-  private Long queuedTaskTimeout;
+  private List<RouteDto> routes = new ArrayList<>();
 
   public String getTag() {
     return tag;
@@ -34,20 +35,12 @@ public class RuleDto implements Serializable {
     this.predicate = predicate;
   }
 
-  public String getQueueId() {
-    return queueId;
+  public List<RouteDto> getRoutes() {
+    return routes;
   }
 
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
-  }
-
-  public Long getQueuedTaskTimeout() {
-    return queuedTaskTimeout;
-  }
-
-  public void setQueuedTaskTimeout(Long queuedTaskTimeout) {
-    this.queuedTaskTimeout = queuedTaskTimeout;
+  public void setRoutes(List<RouteDto> routes) {
+    this.routes = routes;
   }
 
 }

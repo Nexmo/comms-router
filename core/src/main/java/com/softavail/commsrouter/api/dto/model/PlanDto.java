@@ -19,6 +19,7 @@ public class PlanDto extends RouterObjectId {
 
   private String description;
   private List<RuleDto> rules = new ArrayList<>();
+  private RouteDto defaultRoute;
 
   public PlanDto() {}
 
@@ -42,5 +43,14 @@ public class PlanDto extends RouterObjectId {
   public void setRules(List<RuleDto> rules) {
     this.rules = rules;
   }
+
+  public RouteDto getDefaultRoute() {
+    return defaultRoute;
+  }
+
+  public void setDefaultRoute(RouteDto defaultRoute) {
+    this.defaultRoute = defaultRoute;
+  }
+
 
 }

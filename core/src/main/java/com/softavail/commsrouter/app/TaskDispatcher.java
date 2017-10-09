@@ -20,7 +20,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
@@ -38,6 +41,8 @@ public class TaskDispatcher {
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
   private final List<QueuedTaskListener> queuedTaskListeners;
+  private static Map<String, ScheduledFuture<?>> scheduledWaitTasksTimers = new HashMap<>();
+
 
   public TaskDispatcher(JpaDbFacade dbFacade, TaskEventHandler taskEventHandler,
       EntityMappers dtoMappers) {
@@ -81,6 +86,12 @@ public class TaskDispatcher {
   }
 
   public void dispatchQueuedTask(TaskDto taskDto) {
+    threadPool.submit(() -> {
+      doDispatchQueuedTask(taskDto);
+    });
+  }
+
+  public void doDispatchQueuedTask(TaskDto taskDto) {
     if (taskDto == null) {
       return;
     }
@@ -149,9 +160,8 @@ public class TaskDispatcher {
     if (taskAssignment != null) {
       LOGGER.info("Dispatch task {}: task {} assgined to agent {}", taskId,
           taskAssignment.getTask(), taskAssignment.getAgent());
+      doDispatchQueuedTask(taskAssignment.getTask());
       taskEventHandler.onTaskAssigned(taskAssignment);
-
-      dispatchQueuedTask(taskAssignment.getTask());
     } else {
       LOGGER.info("Dispatch task {}: miss", taskId);
     }
@@ -187,9 +197,8 @@ public class TaskDispatcher {
     if (taskAssignment != null) {
       LOGGER.info("Dispatch agent {}: task {} assgined to agent {}", agentId,
           taskAssignment.getTask(), taskAssignment.getAgent());
+      doDispatchQueuedTask(taskAssignment.getTask());
       taskEventHandler.onTaskAssigned(taskAssignment);
-
-      dispatchQueuedTask(taskAssignment.getTask());
     } else {
       LOGGER.info("Dispatch agent {}: no suitable task or agent already busy", agentId);
     }
@@ -208,15 +217,22 @@ public class TaskDispatcher {
     queuedTaskListeners.forEach((queuedTaskListener) -> {
       queuedTaskListener.onTaskAddedToQueue(taskDto);
     });
-    threadPool.schedule(() -> {
+
+    ScheduledFuture<?> timer = threadPool.schedule(() -> {
       onQueuedTaskTimeout(taskDto);
     }, taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
+
+    scheduledWaitTasksTimers.put(taskDto.getId(), timer);
   }
 
   public void onTaskAssignedToAgent(TaskDto taskDto) {
 
     LOGGER.debug("onTaskAssignedToAgent(): Task with ID='{}' assigned to agent='{}'",
         taskDto.getId(), taskDto.getAgentId());
+    if (scheduledWaitTasksTimers.containsKey(taskDto.getId())) {
+      scheduledWaitTasksTimers.get(taskDto.getId()).cancel(true);
+      scheduledWaitTasksTimers.remove(taskDto.getId());
+    }
     queuedTaskListeners.forEach((queuedTaskListener) -> {
       queuedTaskListener.onTaskAssignedToAgent(taskDto);
     });
@@ -225,6 +241,9 @@ public class TaskDispatcher {
   public void onQueuedTaskTimeout(TaskDto taskDto) {
 
     LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskDto.getId());
+    if (scheduledWaitTasksTimers.containsKey(taskDto.getId())) {
+      scheduledWaitTasksTimers.remove(taskDto.getId());
+    }
     queuedTaskListeners.forEach((queuedTaskListener) -> {
       queuedTaskListener.onQueuedTaskTimeout(taskDto);
     });
@@ -233,8 +252,12 @@ public class TaskDispatcher {
   public void onQueuedTaskCompleted(TaskDto taskDto) {
 
     LOGGER.debug("onQueuedTaskCompleted(): Task with ID='{}' timed-out", taskDto.getId());
+    if (scheduledWaitTasksTimers.containsKey(taskDto.getId())) {
+      scheduledWaitTasksTimers.get(taskDto.getId()).cancel(true);
+      scheduledWaitTasksTimers.remove(taskDto.getId());
+    }
     queuedTaskListeners.forEach((queuedTaskListener) -> {
-      queuedTaskListener.onTaskRemovedFromQueue(taskDto);
+      queuedTaskListener.onQueuedTaskCompleted(taskDto);
     });
   }
 

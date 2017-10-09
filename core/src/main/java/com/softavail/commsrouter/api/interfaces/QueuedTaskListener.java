@@ -19,5 +19,5 @@ public interface QueuedTaskListener {
 
   void onQueuedTaskTimeout(TaskDto task);
 
-  void onTaskRemovedFromQueue(TaskDto task);
+  void onQueuedTaskCompleted(TaskDto task);
 }

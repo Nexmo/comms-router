@@ -19,7 +19,6 @@ public class CreateTaskArg {
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private URL callbackUrl;
-  private Long priority;
 
   public String getQueueId() {
     return queueId;
@@ -59,14 +58,6 @@ public class CreateTaskArg {
 
   public void setCallbackUrl(URL callbackUrl) {
     this.callbackUrl = callbackUrl;
-  }
-
-  public Long getPriority() {
-    return priority;
-  }
-
-  public void setPriority(Long priority) {
-    this.priority = priority;
   }
 
 }

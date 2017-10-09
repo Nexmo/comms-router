@@ -32,6 +32,7 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.app.AppContext;
+import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.jpa.VoidTransactionLogic;
 import java.net.MalformedURLException;
@@ -137,7 +138,7 @@ public class JpaPlayground implements AutoCloseable {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
           queue.setId("queue-id-6");
-          queue.setPredicate("CONTAINS(language, 'ru')");
+          queue.setPredicate("CONTAINS(language, 'es')");
           em.persist(queue);
         });
 
@@ -146,7 +147,7 @@ public class JpaPlayground implements AutoCloseable {
           Queue queue = new Queue();
           queue.setRouterId("router-id");
           queue.setId("queue-id-5");
-          queue.setPredicate("language == 'ru'");
+          queue.setPredicate("language == 'en'");
           em.persist(queue);
         });
 
@@ -154,25 +155,42 @@ public class JpaPlayground implements AutoCloseable {
         planService, (em) -> {
           Plan plan = new Plan();
           plan.setDescription("my plan");
+
+          Route route;
+          route = new Route();
+          route.setQueueId("queue-id-6");
           Rule rule;
           rule = new Rule();
           rule.setPredicate("language == 'es'");
-          rule.setTag("t4");
-          rule.setQueueId("queue-id-4");
+          rule.setTag("t6");
+          rule.getRoutes().add(route);
           plan.addRule(rule);
+
+          route = new Route();
+          route.setQueueId("queue-id-5");
           rule = new Rule();
           rule.setPredicate("toLowerCase(language)=='en'");
           rule.setTag("t5");
-          rule.setQueueId("queue-id-5");
+          rule.getRoutes().add(route);
           plan.addRule(rule);
+
+          route = new Route();
+          route.setQueueId("queue-id2");
           rule = new Rule();
           rule.setPredicate("B < 7");
-          rule.setTag("t3");
-          rule.setQueueId("queue-id-2");
+          rule.setTag("t2");
+          rule.getRoutes().add(route);
           plan.addRule(rule);
+
+          route = new Route();
+          route.setQueueId("queue-id-5");
+          plan.setDefaultRoute(route);
+
           plan.setId("plan-id");
           plan.setRouterId("router-id");
+
           em.persist(plan);
+
         });
 
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("agent-id").build(),

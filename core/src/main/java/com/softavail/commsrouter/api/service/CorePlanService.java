@@ -57,6 +57,8 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
         plan.removeRules();
         app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
       }
+      Fields.update(plan::setDefaultRoute, plan.getDefaultRoute(),
+          app.entityMapper.plan.fromRouteDto(updateArg.getDefaultRoute()));
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }
@@ -64,8 +66,18 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   private PlanDto doCreate(EntityManager em, CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    if (createArg.getDefaultRoute() == null) {
+      throw new IllegalArgumentException(
+          "Default route 'default_route' is mandatory option for plan creation.");
+    }
+
+    if (createArg.getDefaultRoute().getQueueId() == null) {
+      throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
+    }
+
     Plan plan = new Plan(createArg, objectId);
     app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
+    plan.setDefaultRoute(app.entityMapper.plan.fromRouteDto(createArg.getDefaultRoute()));
     em.persist(plan);
     return entityMapper.toDto(plan);
   }

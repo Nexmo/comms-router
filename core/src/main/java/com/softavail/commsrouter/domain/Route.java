@@ -6,52 +6,58 @@
 package com.softavail.commsrouter.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
  *
- * @author ikrustev
+ * @author ergyunsyuleyman
  */
 @Entity
-@Table(name = "rule")
-public class Rule implements Serializable {
+@Table(name = "route")
+public class Route implements Serializable {
 
   @Id
   @GeneratedValue
   private Long id;
 
-  private String tag;
+  @Column(name = "queue_id")
+  private String queueId;
+
   private String predicate;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "rule_id")
+  private Rule rule;
+
+  @Column(name = "task_priority")
+  private Long priority;
+
+  @Column(name = "queued_task_timeout")
+  private Long timeout;
+
+  @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "plan_id")
   private Plan plan;
-
-  @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true)
-  @OrderColumn(name = "route_order")
-  private List<Route> routes = new ArrayList<>();
 
   @Override
   public boolean equals(Object rhs) {
     if (this == rhs) {
       return true;
     }
-    if (!(rhs instanceof Rule)) {
+    if (!(rhs instanceof Route)) {
       return false;
     }
-    return Objects.equals(id, ((Rule) rhs).id);
+    return Objects.equals(id, ((Route) rhs).id);
   }
 
   @Override
@@ -67,20 +73,44 @@ public class Rule implements Serializable {
     this.id = id;
   }
 
-  public String getTag() {
-    return tag;
-  }
-
-  public void setTag(String tag) {
-    this.tag = tag;
-  }
-
   public String getPredicate() {
     return predicate;
   }
 
   public void setPredicate(String predicate) {
     this.predicate = predicate;
+  }
+
+  public String getQueueId() {
+    return queueId;
+  }
+
+  public void setQueueId(String queueId) {
+    this.queueId = queueId;
+  }
+
+  public Rule getRule() {
+    return rule;
+  }
+
+  public void setRule(Rule rule) {
+    this.rule = rule;
+  }
+
+  public Long getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Long priority) {
+    this.priority = priority;
+  }
+
+  public Long getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Long timeout) {
+    this.timeout = timeout;
   }
 
   public Plan getPlan() {
@@ -91,26 +121,4 @@ public class Rule implements Serializable {
     this.plan = plan;
   }
 
-  public List<Route> getRoutes() {
-    return routes;
-  }
-
-  public void setRoutes(List<Route> routes) {
-    this.routes = routes;
-  }
-
-  public void addRoute(Route route) {
-    route.setRule(this);
-    routes.add(route);
-  }
-
-  public void removeRoute(Route route) {
-    routes.remove(route);
-    route.setRule(null);
-  }
-
-  public void removeRoutes() {
-    routes.stream().forEach(route -> route.setRule(null));
-    routes.clear();
-  }
 }

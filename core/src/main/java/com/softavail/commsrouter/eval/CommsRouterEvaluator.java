@@ -56,8 +56,8 @@ public class CommsRouterEvaluator {
       Rule rule) throws CommsRouterException {
     AttributeGroupDto attrbutes = createTaskArg.getRequirements();
     if (evaluatePredicateByAttributes(attrbutes, rule.getPredicate())) {
-      LOGGER.info("The task with ID={} matched to rule predicate for queue with ID={}", taskId,
-          rule.getQueueId());
+      LOGGER.info("The task with ID={} matched to rule predicate with ID={}, name='{}'", taskId,
+          rule.getId(), rule.getTag());
       return true;
     }
 
@@ -121,7 +121,7 @@ public class CommsRouterEvaluator {
     return false;
   }
 
-  private Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
+  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
       throws CommsRouterException {
     if (pridicate == null || pridicate.isEmpty()) {
       return false;
