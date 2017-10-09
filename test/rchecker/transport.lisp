@@ -9,24 +9,27 @@
   str)
 
 (defun exec-shell(cmd)
-  (UIOP:run-program cmd :ignore-error-status t :input nil :output '(:string :stripped t)))
+  (multiple-value-bind (res err code)(UIOP:run-program cmd :ignore-error-status t :input nil :output '(:string :stripped t) :error-output '(:string :stripped t))
+    (format nil "~A~A"res err)))
 
 (defun cmd-curl(url method headers body)
-  (format nil "curl -X ~A ~A ~{-H '~{~A~^:~}'~} ~@[-d '~A'~]"
+  (format nil "curl -s -X ~A ~A ~{-H '~{~A~^:~}'~} ~@[-d '~A'~]"
           method url headers body))
 
 (defun transport(url method headers &optional body)
   (let* ((str  (exec-shell (dump (cmd-curl url method headers body))))
-         (json (jsown:parse str)))
-    (dump (if (equal json t) str
+         (json (handler-case (jsown:parse str) (error (e) (progn (format t "~S"e) t)))))
+    (dump (if (member json '(t nil) )
+              str
               (format-json str)))
-    (if (equal json t)str   json) ))
+    (if (member json '(t nil) ) str   json) ))
 
 (defun api-endpoint(path transport)
   #'(lambda(url method headers &optional body)
       (funcall transport (format nil "~A~A" path url) method headers body)))
 
-(defvar *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))
+(defparameter *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))
+
 (defun set-server(&key(host "localhost")(port 8080))
   (setf *transport* (api-endpoint (format nil "http://~A:~A/comms-router-web/api"host port) #'transport)))
 

@@ -16,6 +16,7 @@ import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 
@@ -23,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
+<<<<<<< HEAD
 public class Task extends Resource {
 
   private static final Logger LOGGER = LogManager.getLogger(Task.class);
