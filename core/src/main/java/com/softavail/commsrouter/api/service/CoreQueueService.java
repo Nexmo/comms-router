@@ -2,6 +2,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -14,7 +15,6 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +36,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg, String routerId)
+  public ApiObjectId create(CreateQueueArg createArg, String routerId)
       throws CommsRouterException {
 
     RouterObjectId routerObjectId = RouterObjectId.builder()
@@ -50,7 +50,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -124,7 +124,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     });
   }
 
-  private QueueDto doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
+  private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     Queue queue = new Queue(createArg, objectId);
@@ -149,7 +149,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
 
     em.persist(queue);
-    return entityMapper.toDto(queue);
+    QueueDto queueDto = entityMapper.toDto(queue);
+    return new ApiObjectId(queueDto);
   }
 
 }

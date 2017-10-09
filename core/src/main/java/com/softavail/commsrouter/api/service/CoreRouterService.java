@@ -64,7 +64,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
 
     Router router = new Router(createArg, objectId);
     em.persist(router);
-    return entityMapper.toDto(router);
+    RouterDto routerDto = entityMapper.toDto(router);
+    return new ApiObjectId(routerDto);
   }
-
 }

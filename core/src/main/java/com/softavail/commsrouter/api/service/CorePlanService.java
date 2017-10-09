@@ -7,6 +7,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -31,7 +32,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   }
 
   @Override
-  public PlanDto create(CreatePlanArg createArg, String routerId)
+  public ApiObjectId create(CreatePlanArg createArg, String routerId)
       throws CommsRouterException {
 
     RouterObjectId routerObjectId = RouterObjectId.builder()
@@ -45,7 +46,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   }
 
   @Override
-  public PlanDto create(CreatePlanArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -68,13 +69,14 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
     });
   }
 
-  private PlanDto doCreate(EntityManager em, CreatePlanArg createArg, RouterObjectId objectId)
+  private ApiObjectId doCreate(EntityManager em, CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     Plan plan = new Plan(createArg, objectId);
     app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
     em.persist(plan);
-    return entityMapper.toDto(plan);
+    PlanDto planDto = entityMapper.toDto(plan);
+    return new ApiObjectId(planDto);
   }
 
 }

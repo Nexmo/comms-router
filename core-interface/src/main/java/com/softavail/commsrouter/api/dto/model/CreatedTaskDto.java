@@ -5,7 +5,9 @@ package com.softavail.commsrouter.api.dto.model;
  */
 public class CreatedTaskDto extends ApiObjectId {
 
-  private final Long queueTasks;
+  private Long queueTasks;
+
+  public CreatedTaskDto() {}
 
   public CreatedTaskDto(ApiObjectId taskDto, Long queueTasks) {
     super(taskDto);

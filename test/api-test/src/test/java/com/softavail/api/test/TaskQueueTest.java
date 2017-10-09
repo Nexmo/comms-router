@@ -1,9 +1,11 @@
 package com.softavail.api.test;
+
 import static io.restassured.RestAssured.*;
 import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;
@@ -38,129 +40,142 @@ import java.util.Collections;
 //@TestInstance(Lifecycle.PER_CLASS)
 
 @DisplayName("Task to Queue mapping Tests")
-public class TaskQueueTest
-{
-    private HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
-    private Router r = new Router(state);
-    private Queue q = new Queue(state);
-    private Plan p = new Plan(state);
-    private Task t = new Task(state);
+public class TaskQueueTest {
 
-    @BeforeEach
-    public void createRouterAndQueue() {
-        CreateRouterArg routerArg= new CreateRouterArg();
-        routerArg.setDescription("Router description");
-        routerArg.setName("router-name");
-        ApiObjectId id = r.create(routerArg);
+  private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+  private Router r = new Router(state);
+  private Queue q = new Queue(state);
+  private Plan p = new Plan(state);
+  private Task t = new Task(state);
 
-        String predicate="1==1";
-        CreateQueueArg queueArg= new CreateQueueArg();
-        queueArg.setDescription("queue description");
-        queueArg.setPredicate(predicate);
-        q = new Queue(state);
-        id = q.create(queueArg);
-    }
+  @BeforeEach
+  public void createRouterAndQueue() {
+    CreateRouterArg routerArg = new CreateRouterArg();
+    routerArg.setDescription("Router description");
+    routerArg.setName("router-name");
+    ApiObjectId id = r.create(routerArg);
 
-    @AfterEach
-    public void deleteRouter() {
-        r.delete();
-        q.delete();
-    }
-    @AfterEach
-    public void deletePlanAndTask(){
-        p.delete();
-        q.delete();
-    }
-    private void createPlan(String predicate){
-        CreatePlanArg arg = new CreatePlanArg();
-        arg.setDescription("Rule with predicate "+predicate);
-        RuleDto rule=new RuleDto();
-        rule.setPredicate(predicate);
-        rule.setQueueId(state.get(CommsRouterResource.QUEUE));
-        arg.setRules(Collections.singletonList(rule));
-        ApiObjectId id = p.create(arg);
-    }
-    private void createTask(AttributeGroupDto requirements) throws MalformedURLException{
-        CreateTaskArg arg = new CreateTaskArg();
-        arg.setCallbackUrl(new URL("http://example.com"));
-        arg.setRequirements(requirements);
-        //("Task with  plan " + requirements.toString());
-        t.createWithPlan(arg);
-    }
-    private void addPlanTask(AttributeGroupDto requirements, String predicate) throws MalformedURLException{
-        createPlan(predicate);
-        createTask(requirements);
-    }
+    String predicate = "1==1";
+    CreateQueueArg queueArg = new CreateQueueArg();
+    queueArg.setDescription("queue description");
+    queueArg.setPredicate(predicate);
+    q = new Queue(state);
+    id = q.create(queueArg);
+  }
 
-    @Test
-    @DisplayName("Add task with no attribs queue.")
-    public void addTask() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        addPlanTask(taskAttribs, "1==1");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute to queue.")
-    public void addTaskOneAttribute() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("lang",new StringAttributeValueDto("en"));
-        addPlanTask(taskAttribs, "1==1");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it - ==.")
-    public void addTaskOneAttributeEquals() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-         AttributeGroupDto taskAttribs = new AttributeGroupDto();
-         taskAttribs.put("lang",new StringAttributeValueDto("en"));
-         addPlanTask(taskAttribs, "#{lang}=='en'");
-         assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it - !=.")
-    public void addTaskOneAttributeNotEquals() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("lang",new StringAttributeValueDto("en"));
-        addPlanTask(taskAttribs, "#{lang}!='bg'");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it - number >.")
-    public void addTaskOneAttributeCompare() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("age",new LongAttributeValueDto(20));
-        addPlanTask(taskAttribs, "#{age}>18 && #{age}<33");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it - with parents.")
-    public void addTaskOneAttributeParents() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("age",new LongAttributeValueDto(20));
-        addPlanTask(taskAttribs, "(#{age}>18 && #{age}<33)");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it - or.")
-    public void addTaskOneAttributeOr() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("age",new LongAttributeValueDto(20));
-        addPlanTask(taskAttribs, "true || false");
-        assertThat(q.size(), is(1));
-    }
-    @Test
-    @DisplayName("Add task with one attribute and predicate to check it true && true")
-    public void addTaskOneAttributeAndOnly() throws MalformedURLException{
-        assertThat(q.size(), is(0));
-        AttributeGroupDto taskAttribs = new AttributeGroupDto();
-        taskAttribs.put("age",new LongAttributeValueDto(20));
-        addPlanTask(taskAttribs, "true && true");
-        assertThat(q.size(), is(1));
-    }
+  @AfterEach
+  public void deleteRouter() {
+    r.delete();
+    q.delete();
+  }
+
+  @AfterEach
+  public void deletePlanAndTask() {
+    p.delete();
+    q.delete();
+  }
+
+  private void createPlan(String predicate) {
+    CreatePlanArg arg = new CreatePlanArg();
+    arg.setDescription("Rule with predicate " + predicate);
+    RuleDto rule = new RuleDto();
+    rule.setPredicate(predicate);
+    rule.setQueueId(state.get(CommsRouterResource.QUEUE));
+    arg.setRules(Collections.singletonList(rule));
+    ApiObjectId id = p.create(arg);
+  }
+
+  private void createTask(AttributeGroupDto requirements) throws MalformedURLException {
+    CreateTaskArg arg = new CreateTaskArg();
+    arg.setCallbackUrl(new URL("http://example.com"));
+    arg.setRequirements(requirements);
+    //("Task with  plan " + requirements.toString());
+    t.createWithPlan(arg);
+  }
+
+  private void addPlanTask(AttributeGroupDto requirements, String predicate)
+      throws MalformedURLException {
+    createPlan(predicate);
+    createTask(requirements);
+  }
+
+  @Test
+  @DisplayName("Add task with no attributes queue.")
+  public void addTask() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    addPlanTask(taskAttribs, "1==1");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute to queue.")
+  public void addTaskOneAttribute() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "1==1");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it - ==.")
+  public void addTaskOneAttributeEquals() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "#{lang}=='en'");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it - !=.")
+  public void addTaskOneAttributeNotEquals() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "#{lang}!='bg'");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it - number >.")
+  public void addTaskOneAttributeCompare() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "#{age}>18 && #{age}<33");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it - with parents.")
+  public void addTaskOneAttributeParents() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "(#{age}>18 && #{age}<33)");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it - or.")
+  public void addTaskOneAttributeOr() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "true || false");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate to check it true && true")
+  public void addTaskOneAttributeAndOnly() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "true && true");
+    assertThat(q.size(), is(1));
+  }
+
 }

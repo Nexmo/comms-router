@@ -69,12 +69,12 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @POST
   @ApiOperation(
       value = "Add new Task",
-      notes = "Create a new Task within a Router",
-      response = CreatedTaskDto.class,
-      code = 201)
+      notes = "Create a new Task within a Router")
   @ApiResponses(
       @ApiResponse(
           code = 201,
+          message = "Created successfully",
+          response = CreatedTaskDto.class,
           responseHeaders = {
               @ResponseHeader(
                   name = HttpHeaders.LOCATION,
@@ -83,16 +83,42 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
               @ResponseHeader(
                   name = TaskService.X_QUEUE_SIZE,
                   response = Long.class,
-                  description = "The number of tasks in the queue before that one")},
-          message = "Created successfully"))
+                  description = "The number of tasks in the queue before that one")}))
   public Response create(CreateTaskArg taskArg)
       throws CommsRouterException {
 
-    RouterObjectId objectId = RouterObjectId.builder()
-        .setRouterId(routerId)
-        .build();
-
     LOGGER.debug("Creating Task: {}", taskArg);
+
+    CreatedTaskDto task = taskService.create(taskArg, routerId);
+
+    return createResponse(task);
+  }
+
+  @PUT
+  @Path("{resourceId}")
+  @ApiOperation(
+      value = "Replace an existing Task",
+      notes = "If the task with the specified id does not exist, it creates it")
+  @ApiResponses({
+      @ApiResponse(code = 201, message = "Successful operation",
+          response = CreatedTaskDto.class),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Task not found",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public Response create(
+      @ApiParam(value = "The id of the task to be replaced", required = true)
+      @PathParam("resourceId")
+          String resourceId,
+      @ApiParam("CreateTaskArg object specifying all the parameters")
+          CreateTaskArg taskArg)
+      throws CommsRouterException {
+
+    LOGGER.debug("Replacing task: {}, with id: {}", taskArg, resourceId);
+
+    RouterObjectId objectId = getRouterObjectId(resourceId);
 
     CreatedTaskDto task = taskService.create(taskArg, objectId);
 
@@ -102,7 +128,6 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @POST
   @Path("{resourceId}")
   @ApiOperation(
-      code = 204,
       value = "Update an existing Task",
       notes = "Update some properties of an existing Task")
   @ApiResponses({
@@ -121,35 +146,6 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
     LOGGER.debug("Updating task: {}", taskArg);
 
     taskService.update(taskArg, objectId);
-  }
-
-  @PUT
-  @Path("{resourceId}")
-  @ApiOperation(
-      code = 201,
-      value = "Replace an existing Task",
-      notes = "If the task with the specified id does not exist, it creates it")
-  @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation"),
-      @ApiResponse(code = 400, message = "Invalid ID supplied",
-          response = ExceptionPresentation.class),
-      @ApiResponse(code = 404, message = "Task not found",
-          response = ExceptionPresentation.class),
-      @ApiResponse(code = 405, message = "Validation exception",
-          response = ExceptionPresentation.class)})
-  public Response replace(
-      @ApiParam(value = "The id of the task to be replaced", required = true)
-      @PathParam("resourceId") String resourceId,
-      @ApiParam("CreateTaskArg object specifying all the parameters") CreateTaskArg taskArg)
-      throws CommsRouterException {
-
-    LOGGER.debug("Replacing task: {}, with id: {}", taskArg, resourceId);
-
-    RouterObjectId objectId = getRouterObjectId(resourceId);
-
-    CreatedTaskDto task = taskService.create(taskArg, objectId);
-
-    return createResponse(task);
   }
 
   // Sub-resources

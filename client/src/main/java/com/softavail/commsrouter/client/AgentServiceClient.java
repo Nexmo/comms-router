@@ -34,8 +34,11 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
 
   @Override
   UriBuilder getApiUrl() {
-    return UriBuilder.fromPath(endpoint).path("routers")
-        .path("{routerId}").path("agents").clone();
+    return UriBuilder.fromPath(endpoint)
+        .path("routers")
+        .path("{routerId}")
+        .path("agents")
+        .clone();
   }
 
   @Override

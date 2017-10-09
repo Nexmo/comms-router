@@ -1,0 +1,21 @@
+{
+    "configuration": {
+        "appenders": {
+            "appender": [
+                {
+                    "name": "CONSOLE",
+                    "type": "Console"
+                }
+            ]
+        },
+        "loggers": {
+            "logger": [],
+            "root": {
+                "level": "debug",
+                "AppenderRef": {
+                    "ref": "CONSOLE"
+                }
+            }
+        }
+    }
+}

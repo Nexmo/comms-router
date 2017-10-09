@@ -35,8 +35,11 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
 
   @Override
   UriBuilder getApiUrl() {
-    return UriBuilder.fromPath(endpoint).path("routers")
-        .path("{routerId}").path("plans").clone();
+    return UriBuilder.fromPath(endpoint)
+        .path("routers")
+        .path("{routerId}")
+        .path("plans")
+        .clone();
   }
 
   @Override

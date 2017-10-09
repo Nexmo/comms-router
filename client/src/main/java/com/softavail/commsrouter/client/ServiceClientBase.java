@@ -4,6 +4,8 @@ import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 import java.util.List;
@@ -18,6 +20,8 @@ import javax.ws.rs.core.UriBuilder;
  * Created by @author mapuo on 04.09.17.
  */
 public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObjectId> {
+
+  private static final Logger LOGGER = LogManager.getLogger(ServiceClientBase.class);
 
   private final Class<T> responseType;
   private final Class<R> createResponseType;
@@ -73,12 +77,12 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected T put(Object obj, String id) {
+  protected R put(Object obj, String id) {
     URI uri = getApiUrl().clone().build(id);
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), responseType);
+        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
   }
 
   protected R put(Object obj, RouterObjectId id) {
