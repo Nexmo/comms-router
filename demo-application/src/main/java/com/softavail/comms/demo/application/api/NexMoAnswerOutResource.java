@@ -44,29 +44,62 @@ public class NexMoAnswerOutResource {
   @Path("/{conversationId}")
   public String getNccoResponse(
       @PathParam("conversationId") final String conversationId,
+      @QueryParam("kind") String kind,
       @QueryParam("conversation_uuid") String uuid) {
 
     LOGGER.debug("/answer_outbound/{}", conversationId);
     
-    NexMoCall call =  conversationService.getOutboundCallWithConversationId(uuid);
+    String answer = "";
 
-    NexMoConversation conversation = conversationService.getConversation(conversationId);
-    
-    if (null == conversation || null == call) {
-      TalkNcco talkNcco = new TalkNcco("Customer has left the conversation.");
-      talkNcco.setLoop(1);
-      NccoResponseBuilder builder = new NccoResponseBuilder();
-      builder.appendNcco(talkNcco);
+    //TODO: Check if the customer has left the conversation
 
-      NccoResponse nccoResponse = builder.getValue();
-      return nccoResponse.toJson();
+    // Handle the answer
+    if (kind != null && kind.equals("callback_agent")) {
+      answer = handleAnswerFromAgentForCallbackTask(conversationId);
+      // do not call the customer yet here
+    } else if (kind != null && kind.equals("callback_customer")) {
+      answer = handleAnswerFromCustomerForCallbackTask(conversationId);
+    } else {
+      answer = handleAnswerFromAgentForRegularTask(conversationId);
     }
     
-    UpdateNexMoConversationArg updateArg =
-        new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTED);
-    updateArg.setAgent(call);
-    conversationService.updateConversation(conversationId, updateArg);
+    LOGGER.debug("/answer_outbound response:{}", answer);
+    return answer;
+  }
 
+  
+  private String handleAnswerFromAgentForCallbackTask(String conversationId) {
+    
+    Thread thread = new Thread(new Runnable() {
+      
+      @Override
+      public void run() {
+        // blah blah
+      }
+    }
+    );
+    
+    thread.start();
+    
+    TalkNcco talkNcco = new TalkNcco("Please wait while we are connecting the the customer");
+    talkNcco.setLoop(1);
+
+    ConversationNccoEx convNcco = new ConversationNccoEx(conversationId);
+
+    NccoResponseBuilder builder = new NccoResponseBuilder();
+    builder.appendNcco(talkNcco);
+    builder.appendNcco(convNcco);
+    
+    NccoResponse nccoResponse = builder.getValue();
+    return nccoResponse.toJson();
+  }
+  
+  private String handleAnswerFromCustomerForCallbackTask(String conversationId) {
+    
+    return null;
+  }
+  
+  private String handleAnswerFromAgentForRegularTask(String conversationId) {
     TalkNcco talkNcco = new TalkNcco("Please wait while we connect you");
     talkNcco.setLoop(1);
 

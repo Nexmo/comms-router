@@ -67,7 +67,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto> implements Tas
   @Override
   public TaskDto put(CreateTaskArg createArg, RouterObjectId objectId) throws CommsRouterException {
 
-    return put(createArg, objectId);
+    return super.put(createArg, objectId);
   }
 
   @Override

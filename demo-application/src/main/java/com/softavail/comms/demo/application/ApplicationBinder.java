@@ -12,6 +12,9 @@ import com.softavail.comms.demo.application.impl.ExecutionFactory;
 import com.softavail.comms.demo.application.impl.NexMoServiceImpl;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.comms.nexmo.answer.AnswerStrategy;
+import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,6 +69,10 @@ public class ApplicationBinder extends AbstractBinder {
     bind(AgentServiceClient.class)
         .to(AgentService.class)
         .to(AgentServiceClient.class);
+    
+    bind(AnswerStrategyWithCallback.class)
+        .to(AnswerStrategy.class)
+        .to(AnswerStrategyWithCallback.class);
 
   }
 

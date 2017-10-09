@@ -28,6 +28,7 @@ public class ConfigurationImpl implements Configuration {
   private final String commsRouterId;
   private final String callbackBaseUrl;
   private final String musicOnHoldUrl;
+  private final String commsQueueId;
 
   @Inject
   public ConfigurationImpl(ConfigurationProperties properties) {
@@ -56,6 +57,8 @@ public class ConfigurationImpl implements Configuration {
 
     // set music on hold URL
     musicOnHoldUrl = properties.musicOnHoldUrl();
+    
+    commsQueueId = properties.commsQueueID();
   }
 
   @Override
@@ -86,6 +89,11 @@ public class ConfigurationImpl implements Configuration {
   @Override
   public String getMusicOnHoldUrl() {
     return musicOnHoldUrl;
+  }
+
+  @Override
+  public String getCommsQueueId() {
+    return commsQueueId;
   }
 
   private URL getFile(String path, String filename)

@@ -20,4 +20,5 @@ public interface Configuration {
 
   String getMusicOnHoldUrl();
 
+  String getCommsQueueId();
 }

@@ -85,4 +85,8 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
     return provider.getProperty("app.musicOnHoldUrl", String.class);
   }
 
+  @Override
+  public String commsQueueID() {
+    return provider.getProperty("comms.queueId", String.class);
+  }
 }
