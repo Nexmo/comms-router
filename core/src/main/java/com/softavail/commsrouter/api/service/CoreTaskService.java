@@ -64,10 +64,13 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     validate(createArg);
 
-    return app.db.transactionManager.execute((em) -> {
+    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
       return doCreate(em, createArg, objectId);
     });
+
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    return createdTaskDto;
   }
 
   @Override
