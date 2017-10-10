@@ -13,12 +13,12 @@
     (format nil "~A~A"res err)))
 
 (defun cmd-curl(url method headers body)
-  (format nil "curl -s -X ~A ~A ~{-H '~{~A~^:~}'~} ~@[-d '~A'~]"
+  (format nil "curl -s -X ~A ~A ~{-H '~{~A~^:~}'~} ~@[-d ~S~]"
           method url headers body))
 
 (defun transport(url method headers &optional body)
   (let* ((str  (exec-shell (dump (cmd-curl url method headers body))))
-         (json (handler-case (jsown:parse str) (error (e) (progn (format t "~S"e) t)))))
+         (json (unless (equal "" str)(handler-case (jsown:parse str) (error (e) (progn (format t "~S"e) t))))))
     (dump (if (member json '(t nil) )
               str
               (format-json str)))

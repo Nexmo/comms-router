@@ -33,6 +33,11 @@
       (if (not (search text member key (jsown:keywords json) :test #'equal))
           (list t (list (format nil "OK - result not contains text ~S" text)))
           (list nil (list (format nil "FAIL - ~S should not contain ~S" data text))))))
+(defun contains(text)
+  #'(lambda(data)
+      (if (search text (format nil "~S" data))
+          (list t (list (format nil "OK - result contains text ~S" text)))
+          (list nil (list (format nil "FAIL - ~S should contain ~S" data text))))))
 
 (defun is-equal(text)
   #'(lambda(data)
