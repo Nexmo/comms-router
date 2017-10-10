@@ -2,7 +2,7 @@ package com.softavail.commsrouter.nexmoapp.domain.dto.mappers;
 
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
 import com.softavail.commsrouter.nexmoapp.domain.Application;
-import com.softavail.commsrouter.nexmoapp.model.ApplicationDto;
+import com.softavail.commsrouter.nexmoapp.dto.model.ApplicationDto;
 
 /**
  * Created by @author mapuo on 10.10.17.

@@ -1,4 +1,4 @@
-package com.softavail.commsrouter.nexmoapp.model;
+package com.softavail.commsrouter.nexmoapp.dto.model;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 

@@ -1,6 +1,8 @@
 package com.softavail.commsrouter.nexmoapp.domain;
 
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.domain.ApiObject;
+import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,6 +23,15 @@ public class Application extends ApiObject {
 
   @Column(name = "private_key")
   private String privateKey;
+
+  public Application(CreateApplicationArg createArg, ApiObjectId objectId) {
+    super(objectId.getId());
+    if (createArg != null) {
+      nexmoAppId = createArg.getNexmoAppId();
+      publicKey = createArg.getPublicKey();
+      privateKey = createArg.getPrivateKey();
+    }
+  }
 
   public String getNexmoAppId() {
     return nexmoAppId;

@@ -24,11 +24,8 @@ import javax.persistence.EntityManager;
 public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     implements RouterService {
 
-  private final AppContext app;
-
   public CoreRouterService(AppContext app) {
     super(app.db.transactionManager, app.db.router, app.entityMapper.router);
-    this.app = app;
   }
 
   @Override
@@ -46,7 +43,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
       throws CommsRouterException {
 
     return transactionManager.execute((em) -> {
-      app.db.router.delete(em, routerId);
+      repository.delete(em, routerId);
       return doCreate(em, createArg, new ApiObjectId(routerId));
     });
   }
@@ -56,7 +53,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
       throws CommsRouterException {
 
     transactionManager.executeVoid((em) -> {
-      Router router = app.db.router.get(em, routerId);
+      Router router = repository.get(em, routerId);
       Fields.update(router::setName, router.getName(), updateArg.getName());
       Fields.update(router::setDescription, router.getDescription(), updateArg.getDescription());
     });
@@ -70,4 +67,5 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     RouterDto routerDto = entityMapper.toDto(router);
     return new ApiObjectId(routerDto);
   }
+
 }
