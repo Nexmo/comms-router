@@ -58,7 +58,8 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   @ApiResponses({
       @ApiResponse(code = 201, message = "Successful operation",
           response = ApiObjectId.class)})
-  public Response create(CreateQueueArg createArg) throws CommsRouterException {
+  public Response create(CreateQueueArg createArg)
+      throws CommsRouterException {
 
     LOGGER.debug("Creating Queue {}", createArg);
 

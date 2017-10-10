@@ -1,4 +1,4 @@
-package com.softavail.commsrouter.webservice.providers;
+package com.softavail.commsrouter.providers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
