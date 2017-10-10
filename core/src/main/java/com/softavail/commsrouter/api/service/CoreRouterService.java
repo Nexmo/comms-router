@@ -24,15 +24,18 @@ import javax.persistence.EntityManager;
 public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     implements RouterService {
 
+  private final AppContext app;
+
   public CoreRouterService(AppContext app) {
-    super(app, app.db.router, app.entityMapper.router);
+    super(app.db.transactionManager, app.db.router, app.entityMapper.router);
+    this.app = app;
   }
 
   @Override
   public ApiObjectId create(CreateRouterArg createArg)
       throws CommsRouterException {
 
-    return app.db.transactionManager.execute((em) -> {
+    return transactionManager.execute((em) -> {
       ApiObjectId objectId = new ApiObjectId(Uuid.get());
       return doCreate(em, createArg, objectId);
     });
@@ -42,7 +45,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   public ApiObjectId create(CreateRouterArg createArg, String routerId)
       throws CommsRouterException {
 
-    return app.db.transactionManager.execute((em) -> {
+    return transactionManager.execute((em) -> {
       app.db.router.delete(em, routerId);
       return doCreate(em, createArg, new ApiObjectId(routerId));
     });
@@ -52,7 +55,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   public void update(UpdateRouterArg updateArg, String routerId)
       throws CommsRouterException {
 
-    app.db.transactionManager.executeVoid((em) -> {
+    transactionManager.executeVoid((em) -> {
       Router router = app.db.router.get(em, routerId);
       Fields.update(router::setName, router.getName(), updateArg.getName());
       Fields.update(router::setDescription, router.getDescription(), updateArg.getDescription());

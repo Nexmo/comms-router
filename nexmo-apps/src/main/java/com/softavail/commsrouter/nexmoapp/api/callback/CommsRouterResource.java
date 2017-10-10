@@ -1,4 +1,4 @@
-package com.softavail.commsrouter.nexmoapp.api;
+package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 

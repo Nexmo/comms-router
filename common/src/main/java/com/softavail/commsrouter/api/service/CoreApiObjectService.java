@@ -7,9 +7,9 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.ApiObjectService;
-import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
 import com.softavail.commsrouter.jpa.GenericRepository;
+import com.softavail.commsrouter.jpa.JpaTransactionManager;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -19,19 +19,18 @@ import java.util.List;
  * @author ikrustev
  */
 public class CoreApiObjectService<DTOENTITYT, ENTITYT>
-    extends CoreService
     implements ApiObjectService<DTOENTITYT> {
 
   protected final Class<DTOENTITYT> dtoEntityClass;
-  protected final AppContext app;
-  protected final GenericRepository<ENTITYT> repo;
+  protected final JpaTransactionManager transactionManager;
+  protected final GenericRepository<ENTITYT> repository;
   protected final EntityMapper<DTOENTITYT, ENTITYT> entityMapper;
 
   @SuppressWarnings("unchecked")
-  public CoreApiObjectService(AppContext app, GenericRepository<ENTITYT> repo,
-      EntityMapper<DTOENTITYT, ENTITYT> entityMapper) {
-    this.app = app;
-    this.repo = repo;
+  public CoreApiObjectService(JpaTransactionManager transactionManager,
+      GenericRepository<ENTITYT> repository, EntityMapper<DTOENTITYT, ENTITYT> entityMapper) {
+    this.transactionManager = transactionManager;
+    this.repository = repository;
     this.entityMapper = entityMapper;
 
     Type tp = getClass().getGenericSuperclass();
@@ -45,24 +44,24 @@ public class CoreApiObjectService<DTOENTITYT, ENTITYT>
 
   @Override
   public DTOENTITYT get(String id) throws CommsRouterException {
-    return app.db.transactionManager.execute((em) -> {
-      ENTITYT entity = repo.get(em, id);
+    return transactionManager.execute((em) -> {
+      ENTITYT entity = repository.get(em, id);
       return entityMapper.toDto(entity);
     });
   }
 
   @Override
   public List<DTOENTITYT> list() throws CommsRouterException {
-    return app.db.transactionManager.execute((em) -> {
-      List<ENTITYT> list = repo.list(em);
+    return transactionManager.execute((em) -> {
+      List<ENTITYT> list = repository.list(em);
       return entityMapper.toDto(list);
     });
   }
 
   @Override
   public void delete(String id) throws CommsRouterException {
-    app.db.transactionManager.executeVoid((em) -> {
-      repo.delete(em, id);
+    transactionManager.executeVoid((em) -> {
+      repository.delete(em, id);
     });
   }
 

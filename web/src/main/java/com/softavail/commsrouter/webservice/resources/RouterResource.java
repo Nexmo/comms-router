@@ -194,8 +194,7 @@ public class RouterResource {
 
   @Path("{routerId}/plans")
   @ApiOperation(
-      value = "List all Plans",
-      notes = "Return a list of all Plans in the Router identified by {routerId}.",
+      value = "Plans sub-resource",
       response = PlanResource.class,
       tags = "plans")
   public PlanResource planResource(@PathParam("routerId") String routerId) {
@@ -211,8 +210,7 @@ public class RouterResource {
 
   @Path("{routerId}/queues")
   @ApiOperation(
-      value = "List all Queues",
-      notes = "Returns the list of Queues in the router identified by {routerId}.\n",
+      value = "Queues sub-resource",
       response = QueueResource.class,
       tags = "queues")
   public QueueResource queueResource(@PathParam("routerId") String routerId) {
@@ -228,8 +226,7 @@ public class RouterResource {
 
   @Path("{routerId}/tasks")
   @ApiOperation(
-      value = "List all Tasks",
-      notes = "Returns a list of Tasks waiting in the Router identified by {routerId}.",
+      value = "Tasks sub-resource",
       response = TaskResource.class,
       tags = "tasks")
   public TaskResource taskResource(@PathParam("routerId") String routerId) {
@@ -245,8 +242,7 @@ public class RouterResource {
 
   @Path("{routerId}/agents")
   @ApiOperation(
-      value = "List all Agents",
-      notes = "Returns the list of Agents for the Router identified by {routerId}.",
+      value = "Agents sub-resource",
       response = AgentResource.class,
       tags = "agents")
   public AgentResource agentResource(@PathParam("routerId") String routerId) {

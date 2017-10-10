@@ -19,8 +19,6 @@ import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
 
-
-
 /**
  * @author ikrustev
  */
