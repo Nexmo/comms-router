@@ -4,7 +4,6 @@ import com.nexmo.client.NexmoClientException;
 import com.nexmo.client.voice.Call;
 import com.nexmo.client.voice.CallEvent;
 import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.NexMoCall;
@@ -14,12 +13,14 @@ import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -52,11 +53,22 @@ public class CommsCallbackResource {
   TaskServiceClient taskServiceClient;
 
   @POST
+  public void taskAssignmentAnswer(
+      @QueryParam("callId") final String conversationId,
+      final TaskAssignmentDto taskAssignment) {
+
+    // TODO 
+  }
+
+  @POST
   @Path("/{taskId}")
   public void taskAnswer(
       @PathParam("taskId") String taskId,
       @QueryParam("callId") final String conversationId,
-      AgentDto agent) {
+      final TaskAssignmentDto taskAssignment) {
+
+    AgentDto agent = taskAssignment.getAgent();
+
     LOGGER.debug("/comms_callback/{}", taskId);
     LOGGER.debug("task: {}", agent);
 

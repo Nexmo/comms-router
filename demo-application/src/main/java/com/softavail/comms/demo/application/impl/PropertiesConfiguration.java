@@ -65,7 +65,7 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   }
 
   @Override
-  public String commsRouterID() {
+  public String commsRouterId() {
     return properties.getProperty(COMMS_ROUTER_ID);
   }
 

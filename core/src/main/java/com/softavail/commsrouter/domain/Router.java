@@ -6,7 +6,6 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 
 import javax.persistence.Entity;

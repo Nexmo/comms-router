@@ -1,6 +1,6 @@
 package com.softavail.commsrouter.api.service;
 
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.util.Uuid;
 
 /**

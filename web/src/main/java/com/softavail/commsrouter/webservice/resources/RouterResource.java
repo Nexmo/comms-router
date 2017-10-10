@@ -2,11 +2,11 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +37,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
-
 
 /**
  * Created by @author mapuo on 31.08.17.
@@ -87,11 +86,17 @@ public class RouterResource {
   }
 
   @POST
-  @ApiOperation(value = "Create a Router",
+  @ApiOperation(
+      value = "Create a Router",
       notes = "A Router is a container for your Tasks, Agents, Tasks, Plans and Rules.",
-      response = ApiObject.class, code = 201, tags = "routers")
-  @ApiResponses(@ApiResponse(code = 201, message = "Created",
-      responseHeaders = @ResponseHeader(name = "Location", response = URL.class,
+      response = ApiObject.class,
+      code = 201,
+      tags = "routers")
+  @ApiResponses(
+      @ApiResponse(code = 201, message = "Created",
+      responseHeaders = @ResponseHeader(
+          name = HttpHeaders.LOCATION,
+          response = URL.class,
           description = "The path to the newly created resource")))
   public Response create(
       @ApiParam(value = "Router object that needs to be added to the list of routers",
@@ -100,19 +105,22 @@ public class RouterResource {
 
     LOGGER.debug("Creating router: {}", routerArg);
 
-    RouterDto router = routerService.create(routerArg);
+    ApiObjectId router = routerService.create(routerArg);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{id}").build(router.getId());
 
-    return Response.status(Status.CREATED).header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObjectId(router)).build();
+    return Response.status(Status.CREATED)
+        .header(HttpHeaders.LOCATION, createLocation.toString())
+        .entity(new ApiObjectId(router))
+        .build();
   }
 
   @POST
   @Path("{id}")
   @ApiOperation(value = "Update an existing router properties", tags = "routers")
-  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",
@@ -126,17 +134,17 @@ public class RouterResource {
           required = true) UpdateRouterArg routerArg)
       throws CommsRouterException {
 
-    ApiObjectId routerId = new ApiObjectId(id);
-
     LOGGER.debug("Updating router: {}", routerArg);
 
-    routerService.update(routerArg, routerId);
+    routerService.update(routerArg, id);
   }
 
   @PUT
   @Path("{id}")
-  @ApiOperation(value = "Replace an existing router",
-      notes = "If the router with the specified id does not exist, it creates it", tags = "routers")
+  @ApiOperation(
+      value = "Replace an existing router",
+      notes = "If the router with the specified id does not exist, it creates it",
+      tags = "routers")
   @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
@@ -145,7 +153,8 @@ public class RouterResource {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public Response put(
-      @ApiParam(value = "The id of the router to be updated",
+      @ApiParam(
+          value = "The id of the router to be updated",
           required = true) @PathParam("id") String id,
       @ApiParam(value = "CreateRouterArg object specifying all the parameters",
           required = true) CreateRouterArg routerArg)
@@ -153,20 +162,22 @@ public class RouterResource {
 
     LOGGER.debug("Replacing router: {}, with id: {}", routerArg, id);
 
-    ApiObjectId objectId = new ApiObjectId(id);
-    RouterDto router = routerService.put(routerArg, objectId);
+    ApiObjectId router = routerService.create(routerArg, id);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{id}").build(router.getId());
 
-    return Response.status(Status.CREATED).header(HttpHeaders.LOCATION, createLocation.toString())
-        .entity(new ApiObjectId(router)).build();
+    return Response.status(Status.CREATED)
+        .header(HttpHeaders.LOCATION, createLocation.toString())
+        .entity(router)
+        .build();
   }
 
   @DELETE
   @Path("{id}")
   @ApiOperation(value = "Deletes an existing router by ID", tags = "routers")
-  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",
@@ -182,9 +193,11 @@ public class RouterResource {
   // Sub-resources
 
   @Path("{routerId}/plans")
-  @ApiOperation(value = "List all Plans",
+  @ApiOperation(
+      value = "List all Plans",
       notes = "Return a list of all Plans in the Router identified by {routerId}.",
-      response = PlanResource.class, tags = "plans")
+      response = PlanResource.class,
+      tags = "plans")
   public PlanResource planResource(@PathParam("routerId") String routerId) {
     LOGGER.debug("Router {} plans", routerId);
 
@@ -197,9 +210,11 @@ public class RouterResource {
   }
 
   @Path("{routerId}/queues")
-  @ApiOperation(value = "List all Queues",
+  @ApiOperation(
+      value = "List all Queues",
       notes = "Returns the list of Queues in the router identified by {routerId}.\n",
-      response = QueueResource.class, tags = "queues")
+      response = QueueResource.class,
+      tags = "queues")
   public QueueResource queueResource(@PathParam("routerId") String routerId) {
     LOGGER.debug("Router {} queues", routerId);
 
@@ -212,9 +227,11 @@ public class RouterResource {
   }
 
   @Path("{routerId}/tasks")
-  @ApiOperation(value = "List all Tasks",
+  @ApiOperation(
+      value = "List all Tasks",
       notes = "Returns a list of Tasks waiting in the Router identified by {routerId}.",
-      response = TaskResource.class, tags = "tasks")
+      response = TaskResource.class,
+      tags = "tasks")
   public TaskResource taskResource(@PathParam("routerId") String routerId) {
     LOGGER.debug("Router {} tasks", routerId);
 
@@ -227,9 +244,11 @@ public class RouterResource {
   }
 
   @Path("{routerId}/agents")
-  @ApiOperation(value = "List all Agents",
+  @ApiOperation(
+      value = "List all Agents",
       notes = "Returns the list of Agents for the Router identified by {routerId}.",
-      response = AgentResource.class, tags = "agents")
+      response = AgentResource.class,
+      tags = "agents")
   public AgentResource agentResource(@PathParam("routerId") String routerId) {
     LOGGER.debug("Router {} agents", routerId);
 

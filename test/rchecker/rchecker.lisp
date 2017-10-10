@@ -2,12 +2,25 @@
 (setf lparallel:*kernel* (lparallel:make-kernel 10))
 
 ;;; "rchecker" goes here. Hacks and glory await!
+(defun has-json()
+  #'(lambda(json)
+      (if (and (listp json) (not (null json)))
+          (list t (list (format nil "ok - Response is json")))
+          (list nil (list (format nil "FAIL- Response should be json, not ~A."json))))))
+
+(defun has-kv(key value)
+  #'(lambda(json)
+      (if (member key (jsown:keywords json) :test #'equal)
+          (if (equal (jsown:val json key) value)
+              (list t (list(format nil "ok - result contains key ~S=~S" key value)))
+              (list nil (list(format nil "FAIL- key ~S should be ~S but it is ~S" key value (jsown:val json key)))) )
+          (list nil (list(format nil "FAIL- ~A should have key ~S" (jsown:to-json json) key))))))
 
 (defun has-key(key)
   #'(lambda(json)
       (if (member key (jsown:keywords json) :test #'equal)
           (list t (list(format nil "ok - result contains key ~S" key)))
-          (list nil (list(format nil "FAIL- ~S should have key ~S" json key))))))
+          (list nil (list(format nil "FAIL- ~A should have key ~S" (jsown:to-json json) key))))))
 
 (defun has-keys(key)
   #'(lambda(json)
@@ -17,8 +30,8 @@
 
 (defun not-contains(text)
   #'(lambda(data)
-      (if (search text member key (jsown:keywords json) :test #'equal)
-          (list t (list (format nil "OK - result contains key ~S" text)))
+      (if (not (search text member key (jsown:keywords json) :test #'equal))
+          (list t (list (format nil "OK - result not contains text ~S" text)))
           (list nil (list (format nil "FAIL - ~S should not contain ~S" data text))))))
 
 (defun is-equal(text)
@@ -58,7 +71,7 @@
 (defun step-bind(step-fn p-step-fn)
   #'(lambda()
       (destructuring-bind (result status descr) (funcall step-fn)
-        (print status)
+        ;(print status)
         (if status
             (funcall (funcall p-step-fn result descr))
             (list result status descr)))))
@@ -156,7 +169,7 @@
 (defun cqueue-new-and-bind-to-agent()
   (check-step #'(lambda()(queue-new))
               (check-and (has-key "id")
-                         #'(lambda(json) (bind-agent-to-queue) (list nil '("bind agent to queue"))))))
+                         #'(lambda(json) (bind-agent-to-queue) (list nil '("bind agent to queue intentionally fail"))))))
 
 (defun cqueue-new()
   (check-step #'(lambda()(queue-new))
@@ -190,8 +203,11 @@
 
 ;;;
 ;;; plan
-(defun cplan-new()
+(defun cplan-new-empty()
   (check-step #'(lambda()(plan-new :rules ()))
+              (has-key "id")))
+(defun cplan-new(&key (predicate "true"))
+  (check-step #'(lambda()(plan-new :predicate predicate))
               (has-key "id")))
 
 (defun cplan()
@@ -214,6 +230,10 @@
 ;;; task
 (defun ctask-new()
   (check-step #'(lambda()(task-new))
+              (has-key "id")))
+
+(defun cptask-new()
+  (check-step #'(lambda()(ptask-new))
               (has-key "id")))
 
 (defun ctask()
@@ -246,13 +266,35 @@
     ((null all) t)
     ((listp all) (when (check-ops (first all))
                    (check-ops (rest all))))
-    (t (let((res (funcall (funcall all))))
+    (t (let((res (print(funcall (funcall all)))))
          (unless res
            (print res))
          (second res) )) ))
 
 (def-generator generator-crouter()
   (list (or 'crouter 'crouter-update)))
+
+(defun match-task()
+#'(lambda(expr)
+    (funcall #'values
+             (rest
+              (funcall (step-seq (crouter-new)
+                                 (cqueue-new)
+                                 (cplan-new :predicate (format nil "~{~A~}" (flatten expr)))
+                                 (cptask-new)
+                                 (ctask-del)
+                                 (cplan-del)
+                                 (cqueue-del)
+                                 (crouter-del)))))))
+
+(defun test-task-queue()
+  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "1!=1")))
+        (composite (generator (tuple "(" (tuple simple
+                                                (list (tuple (or "&&" "||") simple))
+                                                ) ")"))))
+    (check-it (generator(tuple simple
+                               (list (tuple (or "&&" "||") simple)) ))
+              (match-task))))
 
 (defun test-router()
   (check-it (generator

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
@@ -85,17 +86,31 @@ public class TaskDispatcher {
     });
   }
 
-  public void dispatchQueuedTask(TaskDto taskDto) {
+  public void dispatchQueuedTask(String taskId) {
     threadPool.submit(() -> {
-      doDispatchQueuedTask(taskDto);
+      doDispatchQueuedTask(taskId);
     });
   }
 
-  public void doDispatchQueuedTask(TaskDto taskDto) {
-    if (taskDto == null) {
+  public void doDispatchQueuedTask(String taskId) {
+    if (taskId == null) {
       return;
     }
-
+    TaskDto taskDto = null;
+    try {
+      taskDto = db.transactionManager.execute((em) -> {
+        Task task = db.task.get(em, taskId);
+        return mappers.task.toDto(task);
+      });
+    } catch (CommsRouterException ex) {
+      LOGGER.debug("doDispatchQueuedTask(): Task with ID='{}' not found. Error: {}", taskId,
+          ex.getLocalizedMessage());
+      return;
+    }
+    if (taskDto == null) {
+      LOGGER.debug("doDispatchQueuedTask(): Task with ID='{}' not found.", taskId);
+      return;
+    }
     switch (taskDto.getState()) {
       case waiting:
         onTaskAddedToQueue(taskDto);
@@ -160,7 +175,7 @@ public class TaskDispatcher {
     if (taskAssignment != null) {
       LOGGER.info("Dispatch task {}: task {} assgined to agent {}", taskId,
           taskAssignment.getTask(), taskAssignment.getAgent());
-      doDispatchQueuedTask(taskAssignment.getTask());
+      doDispatchQueuedTask(taskAssignment.getTask().getId());
       taskEventHandler.onTaskAssigned(taskAssignment);
     } else {
       LOGGER.info("Dispatch task {}: miss", taskId);
@@ -197,7 +212,7 @@ public class TaskDispatcher {
     if (taskAssignment != null) {
       LOGGER.info("Dispatch agent {}: task {} assgined to agent {}", agentId,
           taskAssignment.getTask(), taskAssignment.getAgent());
-      doDispatchQueuedTask(taskAssignment.getTask());
+      doDispatchQueuedTask(taskAssignment.getTask().getId());
       taskEventHandler.onTaskAssigned(taskAssignment);
     } else {
       LOGGER.info("Dispatch agent {}: no suitable task or agent already busy", agentId);
