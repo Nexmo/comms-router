@@ -32,7 +32,6 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
 
   @Inject
   public QueueServiceClient(Client client, String endpoint, String routerId) {
-    super(QueueDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -62,7 +61,7 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
   }
 
   @Override
-  public PaginatedList<QueueDto> listPage(String routerId, int page, int perPage) {
+  public PaginatedList<QueueDto> list(String routerId, int page, int perPage) {
     return getList(routerId, page, perPage);
   }
 

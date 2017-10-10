@@ -19,7 +19,7 @@ public interface RouterObjectService<ENTITYT extends RouterObjectId> {
 
   List<ENTITYT> list(String routerId) throws CommsRouterException;
 
-  PaginatedList<ENTITYT> listPage(String routerId, int page, int perPage)
+  PaginatedList<ENTITYT> list(String routerId, int page, int perPage)
       throws CommsRouterException;
 
   void delete(RouterObjectId routerObjectId) throws CommsRouterException;

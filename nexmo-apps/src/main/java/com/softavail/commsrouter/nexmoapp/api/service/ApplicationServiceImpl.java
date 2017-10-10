@@ -2,7 +2,7 @@ package com.softavail.commsrouter.nexmoapp.api.service;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.service.CoreApiObjectService;
+import com.softavail.commsrouter.api.service.PaginatedApiObjectService;
 import com.softavail.commsrouter.nexmoapp.domain.Application;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 import com.softavail.commsrouter.nexmoapp.dto.arg.UpdateApplicationArg;
@@ -18,7 +18,7 @@ import javax.persistence.EntityManager;
  * Created by @author mapuo on 10.10.17.
  */
 public class ApplicationServiceImpl
-    extends CoreApiObjectService<ApplicationDto, Application>
+    extends PaginatedApiObjectService<ApplicationDto, Application>
     implements ApplicationService {
 
   public ApplicationServiceImpl() {

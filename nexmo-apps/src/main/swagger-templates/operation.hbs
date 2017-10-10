@@ -78,3 +78,9 @@
 |-------------|-------------|----------------|
 {{#each responses}}| {{@key}}    | {{description}} | {{#schema.$ref}}<a href="{{schema.$ref}}">{{basename schema.$ref}}</a>{{/schema.$ref}}{{#ifeq schema.type "array"}}Array[<a href="{{schema.items.$ref}}">{{basename schema.items.$ref}}</a>]{{/ifeq}}{{^schema}} - {{/schema}}|
 {{/each}}
+
+** Headers **
+
+| Status Code | Header | Description | Schema |
+|-------------|--------|-------------|--------|
+{{#each responses}} {{#if headers}} | {{@key}} {{#each headers}}| {{@key}} | {{description}} | {{type}} ({{format}}) |{{/each}} {{/if}} {{/each}}

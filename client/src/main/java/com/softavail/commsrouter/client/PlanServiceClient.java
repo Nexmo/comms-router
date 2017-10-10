@@ -27,7 +27,6 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
 
   @Inject
   public PlanServiceClient(Client client, String endpoint, String routerId) {
-    super(PlanDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -60,7 +59,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
   }
 
   @Override
-  public PaginatedList<PlanDto> listPage(String routerId, int page, int perPage) {
+  public PaginatedList<PlanDto> list(String routerId, int page, int perPage) {
     return getList(routerId, page, perPage);
   }
 
