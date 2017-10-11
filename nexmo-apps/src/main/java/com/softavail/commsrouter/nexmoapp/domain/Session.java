@@ -20,8 +20,8 @@ public class Session extends ApiObject {
   private Application application;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "expression_id")
-  private Expression expression;
+  @JoinColumn(name = "current_module_id")
+  private Module currentModule;
 
   public Application getApplication() {
     return application;
@@ -31,12 +31,12 @@ public class Session extends ApiObject {
     this.application = application;
   }
 
-  public Expression getExpression() {
-    return expression;
+  public Module getCurrentModule() {
+    return currentModule;
   }
 
-  public void setExpression(Expression expression) {
-    this.expression = expression;
+  public void setCurrentModule(Module currentModule) {
+    this.currentModule = currentModule;
   }
 
 }

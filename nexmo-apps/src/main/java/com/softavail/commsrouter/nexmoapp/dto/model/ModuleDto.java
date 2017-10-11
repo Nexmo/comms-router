@@ -5,14 +5,14 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 /**
  * Created by @author mapuo on 09.10.17.
  */
-public class ExpressionDto extends ApiObjectId {
+public class ModuleDto extends ApiObjectId {
 
   private String program;
 
-  public ExpressionDto() {
+  public ModuleDto() {
   }
 
-  public ExpressionDto(String id, String program) {
+  public ModuleDto(String id, String program) {
     super(id);
     this.program = program;
   }

@@ -10,9 +10,9 @@ import com.softavail.commsrouter.nexmoapp.dto.model.SessionDto;
 public class SessionMapper extends EntityMapper<SessionDto, Session> {
 
   private final ApplicationMapper applicationMapper;
-  private final ExpressionMapper expressionMapper;
+  private final ModuleMapper expressionMapper;
 
-  public SessionMapper(ApplicationMapper applicationMapper, ExpressionMapper expressionMapper) {
+  public SessionMapper(ApplicationMapper applicationMapper, ModuleMapper expressionMapper) {
     this.applicationMapper = applicationMapper;
     this.expressionMapper = expressionMapper;
   }
@@ -22,7 +22,7 @@ public class SessionMapper extends EntityMapper<SessionDto, Session> {
     return new SessionDto(
         jpa.getId(),
         applicationMapper.toDto(jpa.getApplication()),
-        expressionMapper.toDto(jpa.getExpression()));
+        expressionMapper.toDto(jpa.getCurrentModule()));
   }
 
 }

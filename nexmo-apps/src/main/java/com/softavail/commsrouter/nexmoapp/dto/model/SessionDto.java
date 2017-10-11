@@ -8,15 +8,14 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 public class SessionDto extends ApiObjectId {
 
   private ApplicationDto application;
-  private ExpressionDto expression;
+  private ModuleDto currentModule;
 
-  public SessionDto() {
-  }
+  public SessionDto() {}
 
-  public SessionDto(String id, ApplicationDto application, ExpressionDto expression) {
+  public SessionDto(String id, ApplicationDto application, ModuleDto currentModule) {
     super(id);
     this.application = application;
-    this.expression = expression;
+    this.currentModule = currentModule;
   }
 
   public ApplicationDto getApplication() {
@@ -27,12 +26,12 @@ public class SessionDto extends ApiObjectId {
     this.application = application;
   }
 
-  public ExpressionDto getExpression() {
-    return expression;
+  public ModuleDto getCurrentModule() {
+    return currentModule;
   }
 
-  public void setExpression(ExpressionDto expression) {
-    this.expression = expression;
+  public void setCurrentModule(ModuleDto currentModule) {
+    this.currentModule = currentModule;
   }
 
 }

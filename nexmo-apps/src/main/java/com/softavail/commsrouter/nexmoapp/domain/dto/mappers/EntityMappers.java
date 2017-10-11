@@ -7,11 +7,11 @@ public class EntityMappers {
 
   public final ApplicationMapper applicationMapper;
   public final SessionMapper sessionMapper;
-  public final ExpressionMapper expressionMapper;
+  public final ModuleMapper expressionMapper;
 
   public EntityMappers() {
     applicationMapper = new ApplicationMapper();
-    expressionMapper = new ExpressionMapper();
+    expressionMapper = new ModuleMapper();
     sessionMapper = new SessionMapper(applicationMapper, expressionMapper);
   }
 

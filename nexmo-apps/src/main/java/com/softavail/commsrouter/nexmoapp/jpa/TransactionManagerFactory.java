@@ -24,7 +24,7 @@ public class TransactionManagerFactory implements ServletContextListener {
   private static JpaTransactionManager transactionManager;
   private static ApplicationRepository applicationRepository;
   private static SessionRepository sessionRepository;
-  private static ExpressionRepository expressionRepository;
+  private static ModuleRepository expressionRepository;
   private static EntityMappers entityMappers;
 
   @Override
@@ -35,7 +35,7 @@ public class TransactionManagerFactory implements ServletContextListener {
     transactionManager = new JpaTransactionManager(emf);
     applicationRepository = new ApplicationRepository(transactionManager);
     sessionRepository = new SessionRepository(transactionManager);
-    expressionRepository = new ExpressionRepository(transactionManager);
+    expressionRepository = new ModuleRepository(transactionManager);
     entityMappers = new EntityMappers();
   }
 
@@ -57,7 +57,7 @@ public class TransactionManagerFactory implements ServletContextListener {
     return sessionRepository;
   }
 
-  public static ExpressionRepository getExpressionRepository() {
+  public static ModuleRepository getExpressionRepository() {
     return expressionRepository;
   }
 
