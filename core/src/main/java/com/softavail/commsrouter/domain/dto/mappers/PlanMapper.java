@@ -12,14 +12,14 @@ import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Rule;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author ikrustev
  */
-public class PlanMapper extends EntityMapper<PlanDto, Plan> {
+public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   @Override
   public PlanDto toDto(Plan jpa) {
@@ -27,11 +27,11 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     copyId(dto, jpa);
     dto.setDescription(jpa.getDescription());
     dto.setRules(toDtoRules(jpa.getRules()));
-    dto.setDefaultRoute(toRouteDto(jpa.getDefaultRoute()));
+    dto.setDefaultRoute(toDto(jpa.getDefaultRoute()));
     return dto;
   }
 
-  private RouteDto toRouteDto(Route jpa) {
+  private RouteDto toDto(Route jpa) {
     RouteDto dto = new RouteDto();
     dto.setPredicate(jpa.getPredicate());
     dto.setQueueId(jpa.getQueueId());
@@ -40,7 +40,7 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     return dto;
   }
 
-  public Route fromRouteDto(RouteDto dto) {
+  public Route fromDto(RouteDto dto) {
     Route route = new Route();
     route.setPredicate(dto.getPredicate());
     route.setQueueId(dto.getQueueId());
@@ -49,7 +49,7 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     return route;
   }
 
-  private RuleDto toRuleDto(Rule jpa) {
+  private RuleDto toDto(Rule jpa) {
     RuleDto dto = new RuleDto();
     dto.setPredicate(jpa.getPredicate());
     dto.setTag(jpa.getTag());
@@ -57,7 +57,7 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
     return dto;
   }
 
-  private Rule fromRuleDto(RuleDto dto) {
+  private Rule fromDto(RuleDto dto) {
     Rule rule = new Rule();
     rule.setPredicate(dto.getPredicate());
     rule.setTag(dto.getTag());
@@ -66,29 +66,25 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
   }
 
   private List<RuleDto> toDtoRules(List<Rule> jpaRules) {
-    List<RuleDto> dtoRules = new ArrayList<>();
-    jpaRules.stream().forEach(jpa -> dtoRules.add(toRuleDto(jpa)));
-    return dtoRules;
+    return jpaRules.stream().map(this::toDto).collect(Collectors.toList());
   }
 
   public void addDtoRules(Plan plan, List<RuleDto> dtoRules) {
     if (dtoRules == null) {
       return;
     }
-    dtoRules.stream().forEach(dto -> plan.addRule(fromRuleDto(dto)));
+    dtoRules.forEach(dto -> plan.addRule(fromDto(dto)));
   }
 
   private List<RouteDto> toDtoRoutes(List<Route> jpaRoutes) {
-    List<RouteDto> dtoRoutes = new ArrayList<>();
-    jpaRoutes.stream().forEach(jpa -> dtoRoutes.add(toRouteDto(jpa)));
-    return dtoRoutes;
+    return jpaRoutes.stream().map(this::toDto).collect(Collectors.toList());
   }
 
   public void addDtoRoutes(Rule rule, List<RouteDto> dtoRoutes) {
     if (dtoRoutes == null) {
       return;
     }
-    dtoRoutes.stream().forEach(dto -> rule.addRoute(fromRouteDto(dto)));
+    dtoRoutes.forEach(dto -> rule.addRoute(fromDto(dto)));
   }
 
 }

@@ -30,7 +30,7 @@
 
 (defparameter *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))
 
-(defun set-server(&key(host "localhost")(port 8080))
-  (setf *transport* (api-endpoint (format nil "http://~A:~A/comms-router-web/api"host port) #'transport)))
+(defun set-server(&key(protocol "http") (host "localhost")(port 8080))
+  (setf *transport* (api-endpoint (format nil "'~A://~A:~A/comms-router-web/api'"protocol host port) #'transport)))
 
 (defvar *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))

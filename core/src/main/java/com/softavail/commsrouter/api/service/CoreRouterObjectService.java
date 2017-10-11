@@ -22,52 +22,51 @@ import javax.validation.ValidationException;
 /**
  * @author ikrustev
  */
-public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject>
-    extends CoreService
-    implements RouterObjectService<DTOENTITYT> {
+public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extends RouterObject>
+    implements RouterObjectService<DTOT> {
 
-  protected final Class<DTOENTITYT> dtoEntityClass;
+  protected final Class<DTOT> dtoEntityClass;
   protected final Class<ENTITYT> entityClass;
   protected final AppContext app;
-  protected final RouterObjectRepository<ENTITYT> repo;
-  protected final EntityMapper<DTOENTITYT, ENTITYT> entityMapper;
+  protected final RouterObjectRepository<ENTITYT> repository;
+  protected final EntityMapper<DTOT, ENTITYT> entityMapper;
 
   @SuppressWarnings("unchecked")
-  public CoreRouterObjectService(AppContext app, RouterObjectRepository<ENTITYT> repo,
-      EntityMapper<DTOENTITYT, ENTITYT> entityMapper) {
+  public CoreRouterObjectService(AppContext app, RouterObjectRepository<ENTITYT> repository,
+      EntityMapper<DTOT, ENTITYT> entityMapper) {
     this.app = app;
-    this.repo = repo;
+    this.repository = repository;
     this.entityMapper = entityMapper;
 
     Type tp = getClass().getGenericSuperclass();
     ParameterizedType pt = (ParameterizedType) tp;
-    this.dtoEntityClass = (Class<DTOENTITYT>) (pt.getActualTypeArguments()[0]);
+    this.dtoEntityClass = (Class<DTOT>) (pt.getActualTypeArguments()[0]);
     this.entityClass = (Class<ENTITYT>) (pt.getActualTypeArguments()[1]);
   }
 
-  public Class<DTOENTITYT> getDtoEntityClass() {
+  public Class<DTOT> getDtoEntityClass() {
     return dtoEntityClass;
   }
 
   @Override
-  public DTOENTITYT get(RouterObjectId routerObjectId) throws CommsRouterException {
+  public DTOT get(RouterObjectId routerObjectId) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      ENTITYT entity = repo.get(em, routerObjectId);
+      ENTITYT entity = repository.get(em, routerObjectId);
       return entityMapper.toDto(entity);
     });
   }
 
   @Override
-  public List<DTOENTITYT> list(String routerId) throws CommsRouterException {
+  public List<DTOT> list(String routerId) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      List<ENTITYT> list = repo.list(em, routerId);
+      List<ENTITYT> list = repository.list(em, routerId);
       return entityMapper.toDto(list);
     });
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public PaginatedList<DTOENTITYT> listPage(String routerId, int page, int perPage)
+  public PaginatedList<DTOT> list(String routerId, int page, int perPage)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -100,7 +99,7 @@ public class CoreRouterObjectService<DTOENTITYT extends RouterObjectId, ENTITYT 
 
   @Override
   public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
-    repo.delete(routerObjectId);
+    repository.delete(routerObjectId);
   }
 
 }

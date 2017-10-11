@@ -42,6 +42,9 @@ public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
+  private static final int openBracketCharacter = '[';
+  private static final int closeBracketCharacter = ']';
+
 
   /**
    * 
@@ -204,7 +207,7 @@ public class CommsRouterEvaluator {
 
     String throwException;
     try {
-      String result = evaluator.evaluate(reMapVariableKeysInPredicate(attributesGroup, predicate));
+      String result = evaluator.evaluate(validateExpressionFormat(attributesGroup, predicate));
       EvaluationResult res = new EvaluationResult(result, EvaluationConstants.SINGLE_QUOTE);
       if (res.isBooleanFalse()) {
         return false;
@@ -236,6 +239,33 @@ public class CommsRouterEvaluator {
     // }
     // return result;
     return predicate;
+  }
+
+  private String supportArraysInExpression(String expression) {
+    String formatedExpression = expression;
+    int startIndex = 0;
+    do {
+      startIndex = formatedExpression.indexOf(openBracketCharacter, startIndex);
+      if (startIndex >= 0) {
+        int endIndex = formatedExpression.indexOf(closeBracketCharacter, startIndex + 1);
+        if (endIndex > 0) {
+          String arrayString = formatedExpression.substring(startIndex, endIndex + 1);
+          arrayString = String.format("'%s'", arrayString.replace(',', ';'));
+          formatedExpression = formatedExpression.substring(0, startIndex) + arrayString
+              + formatedExpression.substring(endIndex + 1);
+          endIndex += 3;
+        }
+        startIndex = endIndex;
+      }
+    } while (startIndex > 0);
+    return formatedExpression;
+  }
+
+  private String validateExpressionFormat(AttributeGroupDto attributesGroup, String expression) {
+    String formatedExpression = supportArraysInExpression(expression);
+    formatedExpression = reMapVariableKeysInPredicate(attributesGroup, formatedExpression);
+
+    return formatedExpression;
   }
 
 }

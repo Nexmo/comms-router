@@ -12,7 +12,7 @@ import com.softavail.commsrouter.domain.Queue;
  *
  * @author ikrustev
  */
-public class QueueMapper extends EntityMapper<QueueDto, Queue> {
+public class QueueMapper extends RouterObjectEntityMapper<QueueDto, Queue> {
 
   public QueueDto toDto(Queue jpa) {
     QueueDto dto = new QueueDto();

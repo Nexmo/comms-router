@@ -5,15 +5,12 @@
 
 package com.softavail.commsrouter.domain.dto.mappers;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.domain.ApiObject;
-import com.softavail.commsrouter.domain.RouterObject;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- *
  * @author ikrustev
  */
 public abstract class EntityMapper<DTOENTITYT, JPAENTITYT> {
@@ -21,20 +18,15 @@ public abstract class EntityMapper<DTOENTITYT, JPAENTITYT> {
   public abstract DTOENTITYT toDto(JPAENTITYT jpa);
 
   public List<DTOENTITYT> toDto(List<JPAENTITYT> jpaList) {
-    List<DTOENTITYT> dtoList = new ArrayList<>();
-    jpaList.stream().forEach(jpaEntity -> dtoList.add(EntityMapper.this.toDto(jpaEntity)));
-    return dtoList;
-  }
-
-  protected void copyId(RouterObjectId to, RouterObject from) {
-    to.setId(from.getId());
-    to.setRouterId(from.getRouterId());
+    return jpaList.stream()
+        .map(this::toDto)
+        .collect(Collectors.toList());
   }
 
   protected <ELEMENT extends ApiObject> List<String> createIdList(List<ELEMENT> from) {
-    List<String> ids = new ArrayList<>();
-    from.stream().forEach(o -> ids.add(o.getId()));
-    return ids;
+    return from.stream()
+        .map(ApiObject::getId)
+        .collect(Collectors.toList());
   }
 
   protected String getOptionalId(ApiObject apiObject) {

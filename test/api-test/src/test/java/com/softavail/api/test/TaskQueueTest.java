@@ -90,7 +90,6 @@ public class TaskQueueTest {
     CreateTaskArg arg = new CreateTaskArg();
     arg.setCallbackUrl(new URL("http://example.com"));
     arg.setRequirements(requirements);
-    //("Task with  plan " + requirements.toString());
     t.createWithPlan(arg);
   }
 
@@ -165,17 +164,17 @@ public class TaskQueueTest {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new LongAttributeValueDto(20));
-    addPlanTask(taskAttribs, "'true' || 'false'");
+    addPlanTask(taskAttribs, "1 || 0");
     assertThat(q.size(), is(1));
   }
 
   @Test
-  @DisplayName("Add task with one attribute and predicate to check it 'true' && 'true'")
+  @DisplayName("Add task with one attribute and predicate to check it 1 && 1")
   public void addTaskOneAttributeAndOnly() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new LongAttributeValueDto(20));
-    addPlanTask(taskAttribs, "'true' && 'true'");
+    addPlanTask(taskAttribs, "1 && 1");
     assertThat(q.size(), is(1));
   }
 

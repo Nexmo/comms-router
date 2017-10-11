@@ -19,26 +19,20 @@ import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
 
-
-
 /**
  * @author ikrustev
  */
-public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
-    implements PlanService {
+public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> implements PlanService {
 
   public CorePlanService(AppContext app) {
     super(app, app.db.plan, app.entityMapper.plan);
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, String routerId)
-      throws CommsRouterException {
+  public ApiObjectId create(CreatePlanArg createArg, String routerId) throws CommsRouterException {
 
-    RouterObjectId routerObjectId = RouterObjectId.builder()
-        .setId(Uuid.get())
-        .setRouterId(routerId)
-        .build();
+    RouterObjectId routerObjectId =
+        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
 
     return app.db.transactionManager.execute((em) -> {
       return doCreate(em, createArg, routerObjectId);
@@ -56,8 +50,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg, RouterObjectId objectId)
-      throws CommsRouterException {
+  public void update(UpdatePlanArg updateArg, RouterObjectId objectId) throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectId.getId());
@@ -66,7 +59,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
         app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
       }
       Fields.update(plan::setDefaultRoute, plan.getDefaultRoute(),
-          app.entityMapper.plan.fromRouteDto(updateArg.getDefaultRoute()));
+          app.entityMapper.plan.fromDto(updateArg.getDefaultRoute()));
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }
@@ -85,7 +78,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
 
     Plan plan = new Plan(createArg, objectId);
     app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
-    plan.setDefaultRoute(app.entityMapper.plan.fromRouteDto(createArg.getDefaultRoute()));
+    plan.setDefaultRoute(app.entityMapper.plan.fromDto(createArg.getDefaultRoute()));
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
     return new ApiObjectId(planDto);

@@ -92,7 +92,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
       throw new BadValueException("Expected state: completed");
     }
 
-    app.db.transactionManager.executeVoid((em) -> {
+    String releasedAgentId = app.db.transactionManager.execute((em) -> {
       Task task = app.db.task.get(em, objectId.getId());
       // @todo: check current state and throw if not appropriate and then agent == null would be
       // internal error
@@ -100,14 +100,19 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
 
 
       Agent agent = task.getAgent();
-      if (agent != null) {
-        if (agent.getState() == AgentState.busy) {
-          agent.setState(AgentState.ready);
-          app.taskDispatcher.dispatchAgent(agent.getId());
-        }
+      if (agent == null) {
+        return null;
       }
+      if (agent.getState() != AgentState.busy) {
+        return null;
+      }
+      agent.setState(AgentState.ready);
+      return agent.getId();
     });
 
+    if (releasedAgentId != null) {
+      app.taskDispatcher.dispatchAgent(releasedAgentId);
+    }
     app.taskDispatcher.dispatchQueuedTask(objectId.getId());
   }
 

@@ -1,4 +1,4 @@
-package com.softavail.commsrouter.webservice.mappers;
+package com.softavail.commsrouter.api.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

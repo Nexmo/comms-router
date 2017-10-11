@@ -1,5 +1,6 @@
 package com.softavail.commsrouter.webservice.mappers;
 
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

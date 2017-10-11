@@ -93,6 +93,6 @@ Servers/
 /**/.settings/
 /core/bin/
 
-/web/src/main/webapp/META-INF/
+**/META-INF/context.xml
 /demo-application/src/main/webapp
 

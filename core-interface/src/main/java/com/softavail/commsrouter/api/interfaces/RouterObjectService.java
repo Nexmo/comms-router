@@ -15,13 +15,16 @@ public interface RouterObjectService<ENTITYT extends RouterObjectId> {
   String PAGE_NUMBER_PARAM = "page_num";
   String ITEMS_PER_PAGE_PARAM = "per_page";
 
-  ENTITYT get(RouterObjectId routerObjectId) throws CommsRouterException;
-
-  List<ENTITYT> list(String routerId) throws CommsRouterException;
-
-  PaginatedList<ENTITYT> listPage(String routerId, int page, int perPage)
+  ENTITYT get(RouterObjectId routerObjectId)
       throws CommsRouterException;
 
-  void delete(RouterObjectId routerObjectId) throws CommsRouterException;
+  List<ENTITYT> list(String routerId)
+      throws CommsRouterException;
+
+  PaginatedList<ENTITYT> list(String routerId, int page, int perPage)
+      throws CommsRouterException;
+
+  void delete(RouterObjectId routerObjectId)
+      throws CommsRouterException;
 
 }

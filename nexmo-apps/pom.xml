@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>comms-router-master</artifactId>
+    <groupId>com.softavail.comms-router</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>nexmo-apps</artifactId>
+  <packaging>war</packaging>
+
+  <name>Nexmo Apps Web</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.softavail.comms-router</groupId>
+      <artifactId>common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.softavail.comms-router</groupId>
+      <artifactId>client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-bean-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-web-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.nexmo</groupId>
+      <artifactId>client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>nexmo-apps</finalName>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+      </plugin>
+      <plugin>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <configuration>
+          <skipSwaggerGeneration>false</skipSwaggerGeneration>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <locations>
+                <location>com.softavail.commsrouter.nexmoapp.api.resources</location>
+              </locations>
+              <basePath>/api</basePath>
+              <info>
+                <title>Nexmo Apps</title>
+                <version>v1</version>
+                <description>Nexmo Apps Integration</description>
+              </info>
+              <templatePath>
+                ${project.basedir}/src/main/swagger-templates/strapdown.html.hbs
+              </templatePath>
+              <outputPath>
+                ${project.build.directory}/${project.build.finalName}/api_documentation.html
+              </outputPath>
+              <swaggerDirectory>
+                ${project.build.directory}/${project.build.finalName}
+              </swaggerDirectory>
+              <swaggerFileName>api_swagger</swaggerFileName>
+              <attachSwaggerArtifact>true</attachSwaggerArtifact>
+            </apiSource>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <locations>
+                <location>com.softavail.commsrouter.nexmoapp.api.callback</location>
+              </locations>
+              <basePath>/callback</basePath>
+              <info>
+                <title>Nexmo Apps</title>
+                <version>v1</version>
+                <description>Nexmo Apps Integration</description>
+              </info>
+              <templatePath>
+                ${project.basedir}/src/main/swagger-templates/strapdown.html.hbs
+              </templatePath>
+              <outputPath>
+                ${project.build.directory}/${project.build.finalName}/callback_documentation.html
+              </outputPath>
+              <swaggerDirectory>
+                ${project.build.directory}/${project.build.finalName}
+              </swaggerDirectory>
+              <swaggerFileName>callback_swagger</swaggerFileName>
+              <attachSwaggerArtifact>true</attachSwaggerArtifact>
+            </apiSource>
+          </apiSources>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

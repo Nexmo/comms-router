@@ -2,17 +2,16 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.misc.SizeDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
-import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
-import com.softavail.commsrouter.webservice.model.SizeWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -58,7 +57,8 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   @ApiResponses({
       @ApiResponse(code = 201, message = "Successful operation",
           response = ApiObjectId.class)})
-  public Response create(CreateQueueArg createArg) throws CommsRouterException {
+  public Response create(CreateQueueArg createArg)
+      throws CommsRouterException {
 
     LOGGER.debug("Creating Queue {}", createArg);
 
@@ -139,13 +139,13 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
           + "the Queue identified by {resourceId}")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Successful operation",
-          response = SizeWrapper.class)})
-  public SizeWrapper count(@PathParam("resourceId") String resourceId)
+          response = SizeDto.class)})
+  public SizeDto count(@PathParam("resourceId") String resourceId)
       throws CommsRouterException {
 
     long queueSize = queueService.getQueueSize(getRouterObjectId(resourceId));
 
-    return new SizeWrapper(queueSize);
+    return new SizeDto(queueSize);
   }
 
   @GET
