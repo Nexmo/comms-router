@@ -246,6 +246,17 @@
         <artifactId>client</artifactId>
         <version>2.0.2</version>
       </dependency>
+      <dependency>
+        <groupId>org.cfg4j</groupId>
+        <artifactId>cfg4j-core</artifactId>
+        <version>4.4.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <!-- WEB DEPENDENCIES -->
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>

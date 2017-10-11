@@ -11,7 +11,8 @@ Setting up the JNDI datasource on Tomcat.
 1. You can create `comms-router-web.xml` in `$CATALINA_BASE/conf/[enginename]/[hostname]/`
     or use some other relevant file. [See Documentation][1]
 
-    Alternatively this resource can be added to encompassing contexts defined in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml`.
+    Alternatively this resource can be added to encompassing contexts defined 
+    in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml`.
 
 2. In the chosen file you should put the datasource resource definition. [See Documentation][2]
 
@@ -40,7 +41,8 @@ Setting up the JNDI datasource on Tomcat.
 
     So the recommended url should looks like:
 
-    `url="jdbc:mysql://{HOST}:{PORT}/{DB_NAME}?zeroDateTimeBehavior=convertToNull&amp;useJDBCCompliantTimezoneShift=false&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC&amp;useSSL=false"`
+    `url="jdbc:mysql://{HOST}:{PORT}/{DB_NAME}?zeroDateTimeBehavior=convertToNull&amp;
+    useJDBCCompliantTimezoneShift=false&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC&amp;useSSL=false"`
 
 3. Provide the JDBC driver in the JVM path
 
