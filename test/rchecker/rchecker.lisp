@@ -45,6 +45,9 @@
           (list t (list (format nil "OK - result equals to ~S" text)))
           (list nil (list (format nil "FAIL - ~S should be equal to ~S" data text))))))
 
+(defun js-val (key)
+  #'(lambda(json) (jsown:val json key)))
+
 (defun check-result(check descr)
   #'(lambda(json)(list check descr)))
 
