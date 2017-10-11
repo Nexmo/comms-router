@@ -43,6 +43,21 @@ public class JpaDbFacade {
 
   }
 
+    public JpaDbFacade(String unit) {
+
+    EntityManagerFactory emf =
+        Persistence.createEntityManagerFactory(unit);
+
+    transactionManager = new JpaTransactionManager(emf);
+
+    this.router = new RouterRepository(transactionManager);
+    this.queue = new QueueRepository(transactionManager);
+    this.plan = new PlanRepository(transactionManager);
+    this.agent = new AgentRepository(transactionManager);
+    this.task = new TaskRepository(transactionManager);
+
+  }
+
   public void close() {
     transactionManager.close();
   }

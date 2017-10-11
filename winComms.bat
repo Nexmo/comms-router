@@ -2,21 +2,21 @@
 
 @echo off
 title comms-router windows commands
-color 1f
 
 ::for testing - https://requestb.in/1koh4zk1?inspect
-SET /p callback= "Enter Callback Url: "
+
+IF NOT [%1] == [] (
+	SET callback=%1
+)
+
+IF [%1] == [] (
+	SET /p callback= "Enter Callback Url: " 
+)
 
 echo[
 
 echo Create a router, providing it's ID:
 curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router
-
-echo[
-echo[
-
-echo Or request the system to assign an ID:
-curl -X POST http://localhost:8080/comms-router-web/api/routers
 
 echo[
 echo[

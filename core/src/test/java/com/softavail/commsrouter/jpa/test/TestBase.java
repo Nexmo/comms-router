@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.softavail.commsrouter.domain.test;
+package com.softavail.commsrouter.jpa.test;
 
 import com.softavail.commsrouter.domain.Router;
 import javax.persistence.EntityManager;
@@ -21,13 +21,14 @@ public class TestBase {
     protected static EntityManager em;
     protected Router testRouter;
 
-    //Connects to the in-memory h2 database
+    //Connects to the in-memory h2 database and create table
     @Before
     public void initDb() {
         emf = Persistence.createEntityManagerFactory("mnf-pu-test");
         em = emf.createEntityManager();
-        createTable();
+        //Inserting two dummy routers into the database
         createRouter("name_one", "description_one", "01");
+        createRouter("name_two", "description_two", "02");
     }
 
     @After
@@ -36,15 +37,8 @@ public class TestBase {
         emf.close();
     }
 
-    //Creates the table for the router objects
-    public void createTable() {
-        em.getTransaction().begin();
-        em.createNativeQuery("CREATE TABLE router (name varchar(255),description varchar(255),id varchar(255),version number)").executeUpdate();
-        em.getTransaction().commit();
-    }
-
     //Creates and adds a new router object to the DB
-    public void createRouter(String name, String description, String id) {
+    public static void createRouter(String name, String description, String id) {
         em.getTransaction().begin();
         Router r = new Router();
         r.setDescription(description);
