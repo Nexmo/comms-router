@@ -3,6 +3,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.SizeDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
@@ -104,7 +105,8 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .get(Long.class);
+        .get(SizeDto.class)
+        .getSize();
   }
 
   @Override
