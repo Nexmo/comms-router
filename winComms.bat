@@ -52,7 +52,7 @@ echo[
 echo[
 
 echo Create a plan.
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H "Content-Type:application/json" -d "{\"rules\":[{\"tag\":\"spanish\",\"predicate\":\"#{language} = 'es'\",\"queueId\":\"queue-es\"},{\"tag\":\"default-english\",\"predicate\":\"true\",\"queueId\":\"queue-en\"}]}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H "Content-Type:application/json" -d "{\"description\":\"put your plan description\", \"rules\":[{\"tag\":\"spanish\",\"predicate\":\"#{language} == 'es'\", \"routes\":[{\"queueId\":\"queue-es\", \"priority\":3, \"timeout\":300}, {\"priority\":10, \"timeout\":800}]}], \"defaultRoute\":{\"queueId\":\"queue-en\"}}"
 
 echo[
 echo[
@@ -94,5 +94,3 @@ echo List tasks.
 curl http://localhost:8080/comms-router-web/api/routers/my-router/tasks
 
 pause>nul
-
-

@@ -182,7 +182,7 @@ Note the _address_ field. It does not affect the router logic and is used by the
 
 Let's create a plan with a rule that will route tasks requiring Spanish agent in our Spanish queue. Tasks that don't match this rule we will route to the English queue.
 
-`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"rules":[{"tag":"spanish","predicate":"#{language} = \'es\'","queueId":"queue-es"},{"tag":"default-english","predicate":"true","queueId":"queue-en"}]}'`
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueId":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueId":"queue-en"}}'`
 
 **Create tasks.**
 
