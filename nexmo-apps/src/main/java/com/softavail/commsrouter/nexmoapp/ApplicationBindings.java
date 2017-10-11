@@ -3,6 +3,8 @@ package com.softavail.commsrouter.nexmoapp;
 import com.softavail.commsrouter.nexmoapp.api.service.ApplicationServiceImpl;
 import com.softavail.commsrouter.nexmoapp.api.service.ExpressionServiceImpl;
 import com.softavail.commsrouter.nexmoapp.api.service.SessionServiceImpl;
+import com.softavail.commsrouter.nexmoapp.config.Configuration;
+import com.softavail.commsrouter.nexmoapp.config.ConfigurationImpl;
 import com.softavail.commsrouter.nexmoapp.interfaces.ApplicationService;
 import com.softavail.commsrouter.nexmoapp.interfaces.ExpressionService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
@@ -19,6 +21,10 @@ public class ApplicationBindings extends AbstractBinder {
 
   @Override
   protected void configure() {
+
+    bind(ConfigurationImpl.class)
+        .to(Configuration.class)
+        .in(Singleton.class);
 
     bindFactory(ClientFactory.class)
         .to(Client.class)
