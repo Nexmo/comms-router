@@ -83,7 +83,12 @@ public class HasFunction implements Function {
       for (int i = 0; i < len; i++) {
         String item = jsonArray.get(i).toString();
         if (isDouble) {
-          item = Double.valueOf(item).toString();
+          String boolVariable = EvaluatorHelpers.resolveBooleanVariable(item);
+          if (boolVariable != null) {
+            item = boolVariable;
+          } else {
+            item = Double.valueOf(item).toString();
+          }
         }
         list.add(item);
       }
