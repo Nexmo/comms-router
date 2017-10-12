@@ -226,7 +226,7 @@
 
 (defun queue-del(&key (router-id (get-event :router))
                    (id (get-event :queue)))
-  (tr-step (http-del (list "/routers" router-id "queues" id))
+  (tr-step (http-del "/routers" router-id "queues" id)
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :queue))))
 
@@ -252,7 +252,7 @@
 
 (defun task-context(&key (router-id (get-event :router))
               (id (get-event :task)))
-  (tr-step (http-get "/routers" router-id "tasks" id "userContext")
+  (tr-step (http-get "/routers" router-id "tasks" id "user_context")
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
 

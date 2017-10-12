@@ -12,7 +12,7 @@ import com.softavail.commsrouter.domain.Task;
  *
  * @author ikrustev
  */
-public class TaskMapper extends EntityMapper<TaskDto, Task> {
+public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
 
   public final AttributesMapper attributesMapper;
 

@@ -15,6 +15,10 @@ public class PaginatedList<ENTITYT> {
   public PaginatedList() {
   }
 
+  public PaginatedList(PagingRequest request, List<ENTITYT> list, long totalCount) {
+    this(list, request.getPage(), request.getPerPage(), totalCount);
+  }
+
   public PaginatedList(List<ENTITYT> list, int page, int perPage, long totalCount) {
     this.list = list;
     this.page = page;

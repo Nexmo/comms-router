@@ -23,6 +23,7 @@
     <module>client</module>
     <module>core</module>
     <module>web</module>
+    <module>nexmo-apps</module>
   </modules>
 
   <build>
@@ -52,6 +53,16 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>findbugs-maven-plugin</artifactId>
           <version>3.0.4</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-war-plugin</artifactId>
+          <groupId>org.apache.maven.plugins</groupId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.kongchen</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>3.1.5</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -230,6 +241,22 @@
         <artifactId>json</artifactId>
         <version>20080701</version>
       </dependency>
+      <dependency>
+        <groupId>com.nexmo</groupId>
+        <artifactId>client</artifactId>
+        <version>2.0.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cfg4j</groupId>
+        <artifactId>cfg4j-core</artifactId>
+        <version>4.4.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <!-- WEB DEPENDENCIES -->
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
@@ -270,6 +297,11 @@
       <dependency>
         <groupId>io.swagger</groupId>
         <artifactId>swagger-jersey2-jaxrs</artifactId>
+        <version>1.5.16</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-annotations</artifactId>
         <version>1.5.16</version>
       </dependency>
       <dependency>
@@ -318,6 +350,12 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
         <version>2.1.1</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>1.4.196</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

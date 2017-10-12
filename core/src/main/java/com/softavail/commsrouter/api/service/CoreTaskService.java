@@ -33,8 +33,7 @@ import javax.persistence.EntityManager;
 /**
  * @author ikrustev
  */
-public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
-    implements TaskService {
+public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> implements TaskService {
 
   private static final Logger LOGGER = LogManager.getLogger(CoreTaskService.class);
 
@@ -48,10 +47,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
 
     validate(createArg);
 
-    RouterObjectId routerObjectId = RouterObjectId.builder()
-        .setId(Uuid.get())
-        .setRouterId(routerId)
-        .build();
+    RouterObjectId routerObjectId =
+        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
 
     CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((EntityManager em) -> {
       return doCreate(em, createArg, routerObjectId);
@@ -67,33 +64,41 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
 
     validate(createArg);
 
-    return app.db.transactionManager.execute((em) -> {
+    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
       return doCreate(em, createArg, objectId);
     });
+
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    return createdTaskDto;
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
-      throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
 
     if (updateArg.getState() != TaskState.completed) {
       throw new BadValueException("Expected state: completed");
     }
 
-    app.db.transactionManager.executeVoid((em) -> {
+    String releasedAgentId = app.db.transactionManager.execute((em) -> {
       Task task = app.db.task.get(em, objectId.getId());
       // @todo: check current state and throw if not appropriate and then agent == null would be
       // internal error
       task.setState(TaskState.completed);
       Agent agent = task.getAgent();
-      if (agent != null) {
-        if (agent.getState() == AgentState.busy) {
-          agent.setState(AgentState.ready);
-          app.taskDispatcher.dispatchAgent(agent.getId());
-        }
+      if (agent == null) {
+        return null;
       }
+      if (agent.getState() != AgentState.busy) {
+        return null;
+      }
+      agent.setState(AgentState.ready);
+      return agent.getId();
     });
+
+    if (releasedAgentId != null) {
+      app.taskDispatcher.dispatchAgent(releasedAgentId);
+    }
   }
 
   @Override
@@ -106,9 +111,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     });
   }
 
-  private CreatedTaskDto doCreate(
-      EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
-      throws CommsRouterException {
+  private CreatedTaskDto doCreate(EntityManager em, CreateTaskArg createArg,
+      RouterObjectId objectId) throws CommsRouterException {
 
     app.db.router.get(em, objectId.getRouterId());
 
@@ -134,10 +138,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     Task task = new Task(objectId);
     String queueId = createArg.getQueueId();
     if (createArg.getPlanId() != null) {
-      Plan plan = app.db.plan.get(em, RouterObjectId.builder()
-          .setId(createArg.getPlanId())
-          .setRouterId(objectId.getRouterId())
-          .build());
+      Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
+          .setRouterId(objectId.getRouterId()).build());
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
         try {
@@ -146,8 +148,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
             break;
           }
         } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Queue with ID={} failed : {}",
-              rule.getQueueId(), ex.getLocalizedMessage());
+          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", rule.getQueueId(),
+              ex.getLocalizedMessage());
         }
       }
 
@@ -159,10 +161,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
       task.setPlan(plan);
     }
 
-    Queue queue = app.db.queue.get(em, RouterObjectId.builder()
-        .setId(queueId)
-        .setRouterId(objectId.getRouterId())
-        .build());
+    Queue queue = app.db.queue.get(em,
+        RouterObjectId.builder().setId(queueId).setRouterId(objectId.getRouterId()).build());
     task.setQueue(queue);
 
     return task;

@@ -24,7 +24,6 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectI
 
   @Inject
   public RouterServiceClient(Client client, String endpoint) {
-    super(RouterDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
   }

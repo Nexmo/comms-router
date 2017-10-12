@@ -6,8 +6,8 @@ import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
-import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -140,7 +140,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
       @QueryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM) int perPage)
       throws CommsRouterException {
 
-    PaginatedList<T> pagedList = getService().listPage(routerId, pageNum, perPage);
+    PaginatedList<T> pagedList = getService().list(routerId, pageNum, perPage);
 
     LOGGER.debug("Listing page {}/{} for router {}: {}",
         pageNum, perPage, routerId, pagedList);
