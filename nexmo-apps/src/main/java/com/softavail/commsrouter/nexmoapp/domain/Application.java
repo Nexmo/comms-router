@@ -7,9 +7,10 @@ import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 /**
@@ -28,8 +29,9 @@ public class Application extends ApiObject {
   @Column(name = "private_key")
   private String privateKey;
 
-  @OneToMany
-  @JoinTable(joinColumns = @JoinColumn(name = "application_id"))
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(name = "application_module", joinColumns = @JoinColumn(name = "application_id"),
+      inverseJoinColumns = @JoinColumn(name = "module_id"))
   private List<Module> modules;
 
   public Application() {}

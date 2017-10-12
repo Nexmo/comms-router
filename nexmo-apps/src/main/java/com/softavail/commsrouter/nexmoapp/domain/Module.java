@@ -46,8 +46,7 @@ public class Module extends ApiObject {
     return entryPoints;
   }
 
-  public void setEntryPoints(
-      List<EntryPoint> entryPoints) {
+  public void setEntryPoints(List<EntryPoint> entryPoints) {
     this.entryPoints = entryPoints;
   }
 
