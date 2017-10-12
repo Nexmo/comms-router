@@ -63,6 +63,10 @@
       <artifactId>jersey-container-servlet</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.cfg4j</groupId>
+      <artifactId>cfg4j-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
     </dependency>
@@ -101,7 +105,7 @@
             <apiSource>
               <springmvc>false</springmvc>
               <locations>
-                <location>com.softavail.commsrouter.nexmoapp</location>
+                <location>com.softavail.commsrouter.nexmoapp.api.resources</location>
               </locations>
               <basePath>/api</basePath>
               <info>
@@ -113,11 +117,35 @@
                 ${project.basedir}/src/main/swagger-templates/strapdown.html.hbs
               </templatePath>
               <outputPath>
-                ${project.build.directory}/${project.build.finalName}/documentation.html
+                ${project.build.directory}/${project.build.finalName}/api_documentation.html
               </outputPath>
               <swaggerDirectory>
-                ${project.build.directory}/${project.build.finalName}/
+                ${project.build.directory}/${project.build.finalName}
               </swaggerDirectory>
+              <swaggerFileName>api_swagger</swaggerFileName>
+              <attachSwaggerArtifact>true</attachSwaggerArtifact>
+            </apiSource>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <locations>
+                <location>com.softavail.commsrouter.nexmoapp.api.callback</location>
+              </locations>
+              <basePath>/callback</basePath>
+              <info>
+                <title>Nexmo Apps</title>
+                <version>v1</version>
+                <description>Nexmo Apps Integration</description>
+              </info>
+              <templatePath>
+                ${project.basedir}/src/main/swagger-templates/strapdown.html.hbs
+              </templatePath>
+              <outputPath>
+                ${project.build.directory}/${project.build.finalName}/callback_documentation.html
+              </outputPath>
+              <swaggerDirectory>
+                ${project.build.directory}/${project.build.finalName}
+              </swaggerDirectory>
+              <swaggerFileName>callback_swagger</swaggerFileName>
               <attachSwaggerArtifact>true</attachSwaggerArtifact>
             </apiSource>
           </apiSources>

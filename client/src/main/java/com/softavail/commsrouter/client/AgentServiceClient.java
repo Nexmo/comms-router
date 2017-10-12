@@ -26,7 +26,6 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
 
   @Inject
   public AgentServiceClient(Client client, String endpoint, String routerId) {
-    super(AgentDto.class, ApiObjectId.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -83,7 +82,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
   }
 
   @Override
-  public PaginatedList<AgentDto> listPage(String routerId, int page, int perPage)
+  public PaginatedList<AgentDto> list(String routerId, int page, int perPage)
       throws CommsRouterException {
 
     return getList(routerId, page, perPage);

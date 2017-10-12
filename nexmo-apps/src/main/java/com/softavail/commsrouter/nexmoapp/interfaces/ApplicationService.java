@@ -2,7 +2,7 @@ package com.softavail.commsrouter.nexmoapp.interfaces;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.interfaces.ApiObjectService;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 import com.softavail.commsrouter.nexmoapp.dto.arg.UpdateApplicationArg;
 import com.softavail.commsrouter.nexmoapp.dto.model.ApplicationDto;
@@ -10,7 +10,7 @@ import com.softavail.commsrouter.nexmoapp.dto.model.ApplicationDto;
 /**
  * Created by @author mapuo on 10.10.17.
  */
-public interface ApplicationService extends ApiObjectService<ApplicationDto> {
+public interface ApplicationService extends PaginatedService<ApplicationDto> {
 
   ApiObjectId create(CreateApplicationArg createArg)
       throws CommsRouterException;

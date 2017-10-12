@@ -7,6 +7,8 @@ import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.List;
 import javax.ws.rs.client.Client;
@@ -26,9 +28,12 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
   private final Class<T> responseType;
   private final Class<R> createResponseType;
 
-  public ServiceClientBase(Class<T> responseType, Class<R> createResponseType) {
-    this.responseType = responseType;
-    this.createResponseType = createResponseType;
+  @SuppressWarnings("unchecked")
+  public ServiceClientBase() {
+    Type tp = getClass().getGenericSuperclass();
+    ParameterizedType pt = (ParameterizedType) tp;
+    this.responseType = (Class<T>) (pt.getActualTypeArguments()[0]);
+    this.createResponseType = (Class<R>) (pt.getActualTypeArguments()[1]);
   }
 
   // POST over container creates. Returns object

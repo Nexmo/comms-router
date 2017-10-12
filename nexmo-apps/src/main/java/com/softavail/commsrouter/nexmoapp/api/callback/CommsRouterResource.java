@@ -1,6 +1,8 @@
 package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
@@ -17,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 /**
  * Created by @author mapuo on 09.10.17.
  */
+@Api
 @Path("{applicationId}/comms")
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -32,6 +35,7 @@ public class CommsRouterResource {
   private PluginService pluginService;
 
   @POST
+  @ApiOperation("Processes incoming Task with assigned Agent from the Comms Router")
   public void taskAssigned(
       @PathParam("applicationId") String applicationId,
       TaskAssignmentDto assignmentDto)

@@ -28,14 +28,14 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   protected final Class<DTOT> dtoEntityClass;
   protected final Class<ENTITYT> entityClass;
   protected final AppContext app;
-  protected final RouterObjectRepository<ENTITYT> repo;
+  protected final RouterObjectRepository<ENTITYT> repository;
   protected final EntityMapper<DTOT, ENTITYT> entityMapper;
 
   @SuppressWarnings("unchecked")
-  public CoreRouterObjectService(AppContext app, RouterObjectRepository<ENTITYT> repo,
+  public CoreRouterObjectService(AppContext app, RouterObjectRepository<ENTITYT> repository,
       EntityMapper<DTOT, ENTITYT> entityMapper) {
     this.app = app;
-    this.repo = repo;
+    this.repository = repository;
     this.entityMapper = entityMapper;
 
     Type tp = getClass().getGenericSuperclass();
@@ -51,7 +51,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   @Override
   public DTOT get(RouterObjectId routerObjectId) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      ENTITYT entity = repo.get(em, routerObjectId);
+      ENTITYT entity = repository.get(em, routerObjectId);
       return entityMapper.toDto(entity);
     });
   }
@@ -59,14 +59,14 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   @Override
   public List<DTOT> list(String routerId) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      List<ENTITYT> list = repo.list(em, routerId);
+      List<ENTITYT> list = repository.list(em, routerId);
       return entityMapper.toDto(list);
     });
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public PaginatedList<DTOT> listPage(String routerId, int page, int perPage)
+  public PaginatedList<DTOT> list(String routerId, int page, int perPage)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -99,7 +99,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
 
   @Override
   public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
-    repo.delete(routerObjectId);
+    repository.delete(routerObjectId);
   }
 
 }

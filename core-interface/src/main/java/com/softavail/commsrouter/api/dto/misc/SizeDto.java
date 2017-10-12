@@ -1,16 +1,16 @@
-package com.softavail.commsrouter.webservice.model;
+package com.softavail.commsrouter.api.dto.misc;
 
 /**
  * Created by @author mapuo on 05.09.17.
  */
-public class SizeWrapper {
+public class SizeDto {
 
   private long size;
 
-  public SizeWrapper() {
+  public SizeDto() {
   }
 
-  public SizeWrapper(long size) {
+  public SizeDto(long size) {
     this.size = size;
   }
 

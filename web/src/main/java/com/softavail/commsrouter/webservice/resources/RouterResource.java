@@ -5,9 +5,8 @@ import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.service.CoreRouterService;
-import com.softavail.commsrouter.domain.ApiObject;
-import com.softavail.commsrouter.webservice.mappers.ExceptionPresentation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -89,7 +88,7 @@ public class RouterResource {
   @ApiOperation(
       value = "Create a Router",
       notes = "A Router is a container for your Tasks, Agents, Tasks, Plans and Rules.",
-      response = ApiObject.class,
+      response = ApiObjectId.class,
       code = 201,
       tags = "routers")
   @ApiResponses(
@@ -120,7 +119,7 @@ public class RouterResource {
   @Path("{id}")
   @ApiOperation(value = "Update an existing router properties", tags = "routers")
   @ApiResponses({
-      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation"),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",

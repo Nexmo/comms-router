@@ -247,6 +247,17 @@
         <version>2.0.2</version>
       </dependency>
       <dependency>
+        <groupId>org.cfg4j</groupId>
+        <artifactId>cfg4j-core</artifactId>
+        <version>4.4.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.atteo.classindex</groupId>
         <artifactId>classindex</artifactId>
         <version>3.4</version>

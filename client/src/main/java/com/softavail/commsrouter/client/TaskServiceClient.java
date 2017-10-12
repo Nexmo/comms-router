@@ -28,7 +28,6 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
 
   @Inject
   public TaskServiceClient(Client client, String endpoint, String routerId) {
-    super(TaskDto.class, CreatedTaskDto.class);
     this.client = client;
     this.endpoint = endpoint;
     this.routerId = routerId;
@@ -89,7 +88,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public PaginatedList<TaskDto> listPage(String routerId, int page, int perPage) {
+  public PaginatedList<TaskDto> list(String routerId, int page, int perPage) {
     return getList(routerId, page, perPage);
   }
 

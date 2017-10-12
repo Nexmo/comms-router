@@ -2,6 +2,8 @@ package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.nexmoapp.domain.Module;
@@ -29,6 +31,7 @@ import javax.ws.rs.core.Response;
 /**
  * Created by @author mapuo on 09.10.17.
  */
+@Api
 @Path("{applicationId}/nexmo")
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -45,6 +48,7 @@ public class NexmoResource {
 
   @GET
   @Path("inbound")
+  @ApiOperation("Processes inbound calls from Nexmo")
   public Response answerInbound(
       @PathParam("applicationId") String applicationId,
       @QueryParam("from") String from,
@@ -59,6 +63,7 @@ public class NexmoResource {
 
   @GET
   @Path("outbound")
+  @ApiOperation("Processes outbound calls from Nexmo")
   public Response answerOutbound(
       @PathParam("applicationId") String applicationId,
       @QueryParam("conversation_uuid") String uuid) {
@@ -71,6 +76,7 @@ public class NexmoResource {
 
   @POST
   @Path("event")
+  @ApiOperation("Processes call events from Nexmo")
   public Response event(
       @PathParam("applicationId") String applicationId,
       CallEvent callEvent)
