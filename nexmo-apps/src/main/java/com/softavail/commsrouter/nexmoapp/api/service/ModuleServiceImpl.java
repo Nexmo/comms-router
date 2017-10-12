@@ -7,12 +7,12 @@ import com.softavail.commsrouter.nexmoapp.domain.Module;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateExpressionArg;
 import com.softavail.commsrouter.nexmoapp.dto.arg.UpdateExpressionArg;
 import com.softavail.commsrouter.nexmoapp.dto.model.ModuleDto;
+import com.softavail.commsrouter.nexmoapp.interfaces.ModuleService;
 import com.softavail.commsrouter.nexmoapp.jpa.TransactionManagerFactory;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
-import com.softavail.commsrouter.nexmoapp.interfaces.ModuleService;
 
 /**
  * Created by @author mapuo on 10.10.17.

@@ -23,6 +23,8 @@ public class Session extends ApiObject {
   @JoinColumn(name = "current_module_id")
   private Module currentModule;
 
+  public Session() {}
+
   public Application getApplication() {
     return application;
   }

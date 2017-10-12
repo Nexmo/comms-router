@@ -4,8 +4,12 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -23,6 +27,12 @@ public class Application extends ApiObject {
 
   @Column(name = "private_key")
   private String privateKey;
+
+  @OneToMany
+  @JoinTable(joinColumns = @JoinColumn(name = "application_id"))
+  private List<Module> modules;
+
+  public Application() {}
 
   public Application(CreateApplicationArg createArg, ApiObjectId objectId) {
     super(objectId.getId());
@@ -55,6 +65,14 @@ public class Application extends ApiObject {
 
   public void setPrivateKey(String privateKey) {
     this.privateKey = privateKey;
+  }
+
+  public List<Module> getModules() {
+    return modules;
+  }
+
+  public void setModules(List<Module> modules) {
+    this.modules = modules;
   }
 
 }
