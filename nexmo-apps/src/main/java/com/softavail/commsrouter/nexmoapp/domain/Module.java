@@ -24,8 +24,8 @@ public class Module extends ApiObject {
 
   @ElementCollection(targetClass = EntryPoint.class)
   @Enumerated(EnumType.STRING)
-  @CollectionTable(name = "module_entry_points", joinColumns = @JoinColumn(name = "module_id"))
-  @Column(name = "entry_points")
+  @CollectionTable(name = "module_entry_point", joinColumns = @JoinColumn(name = "module_id"))
+  @Column(name = "entry_point")
   private List<EntryPoint> entryPoints;
 
   @Enumerated(EnumType.STRING)
