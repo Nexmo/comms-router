@@ -51,7 +51,7 @@ So the recommended url should looks like:
 
 The application requires settings file to be provided with the following keys:
 
-- `comms.routerUrl` - The URL of the Comms Router API
+- `app.commsRouterUrl` - The URL of the Comms Router API
 - `app.callbackBaseUrl` - The URL of the application where Comms Router will send callbacks 
 
 #### JVM Parameter

@@ -1,14 +1,16 @@
 package com.softavail.commsrouter.nexmoapp.api.service;
 
 import com.google.common.collect.ImmutableMap;
+
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
 import com.softavail.commsrouter.nexmoapp.plugin.Plugin;
 import com.softavail.commsrouter.nexmoapp.plugin.PluginProvider;
+import org.atteo.classindex.ClassIndex;
+
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.stream.Collector;
 import java.util.stream.StreamSupport;
-import org.atteo.classindex.ClassIndex;
 
 /**
  * Created by @author mapuo on 12.10.17.
@@ -19,7 +21,6 @@ public class PluginServiceImpl implements PluginService {
     Iterable<Class<? extends Plugin>> annotated = ClassIndex.getSubclasses(Plugin.class);
     registry = StreamSupport.stream(annotated.spliterator(), true)
         .map(pluginImpl -> {
-          // String name = annotation.value();
           String name = pluginImpl.getName();
           PluginProvider annotation = pluginImpl.getAnnotation(PluginProvider.class);
           if (annotation != null && !name.trim().isEmpty()) {

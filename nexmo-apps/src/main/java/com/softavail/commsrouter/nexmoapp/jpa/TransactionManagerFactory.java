@@ -14,24 +14,20 @@ import javax.servlet.annotation.WebListener;
 /**
  * Created by @author mapuo on 10.10.17.
  */
-@WebListener("Provide EntityManager")
-public class TransactionManagerFactory implements ServletContextListener {
+public class TransactionManagerFactory {
 
   private static final Logger LOGGER = LogManager.getLogger(TransactionManagerFactory.class);
 
   private static final String PERSISTENCE_UNIT_NAME = "com.softavail.comms-router.nexmoapps-pu";
 
-  private static JpaTransactionManager transactionManager;
-  private static ApplicationRepository applicationRepository;
-  private static SessionRepository sessionRepository;
-  private static ModuleRepository expressionRepository;
-  private static EntityMappers entityMappers;
-  private static SessionReferenceRepository sessionReferenceRepository;
+  private final JpaTransactionManager transactionManager;
+  private final ApplicationRepository applicationRepository;
+  private final SessionRepository sessionRepository;
+  private final ModuleRepository expressionRepository;
+  private final EntityMappers entityMappers;
+  private final SessionReferenceRepository sessionReferenceRepository;
 
-  @Override
-  public void contextInitialized(ServletContextEvent sce) {
-    LOGGER.debug("contextInitialized: {}", sce);
-
+  public TransactionManagerFactory() {
     EntityManagerFactory emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
     transactionManager = new JpaTransactionManager(emf);
     applicationRepository = new ApplicationRepository(transactionManager);
@@ -41,29 +37,31 @@ public class TransactionManagerFactory implements ServletContextListener {
     entityMappers = new EntityMappers();
   }
 
-  @Override
-  public void contextDestroyed(ServletContextEvent sce) {
-    LOGGER.debug("contextDestroyed: {}", sce);
+  public void close() {
     transactionManager.close();
   }
 
-  public static JpaTransactionManager getTransactionManager() {
+  public JpaTransactionManager getTransactionManager() {
     return transactionManager;
   }
 
-  public static ApplicationRepository getApplicationRepository() {
+  public ApplicationRepository getApplicationRepository() {
     return applicationRepository;
   }
 
-  public static SessionRepository getSessionRepository() {
+  public SessionRepository getSessionRepository() {
     return sessionRepository;
   }
 
-  public static ModuleRepository getExpressionRepository() {
+  public SessionReferenceRepository getSessionReferenceRepository() {
+    return sessionReferenceRepository;
+  }
+
+  public ModuleRepository getExpressionRepository() {
     return expressionRepository;
   }
 
-  public static EntityMappers getEntityMappers() {
+  public EntityMappers getEntityMappers() {
     return entityMappers;
   }
 

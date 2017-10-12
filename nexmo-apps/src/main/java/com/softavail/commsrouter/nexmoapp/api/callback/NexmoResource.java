@@ -2,21 +2,23 @@ package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.nexmoapp.config.Configuration;
 import com.softavail.commsrouter.nexmoapp.domain.Module;
 import com.softavail.commsrouter.nexmoapp.domain.Session;
 import com.softavail.commsrouter.nexmoapp.domain.SessionReference;
-import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey.Type;
 import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey;
+import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey.Type;
 import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
 import com.softavail.commsrouter.nexmoapp.plugin.NexmoCallEvent;
 import com.softavail.commsrouter.nexmoapp.plugin.Plugin;
 import com.softavail.commsrouter.nexmoapp.plugin.PluginContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -45,6 +47,12 @@ public class NexmoResource {
 
   @Inject
   private PluginService pluginService;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ScheduledExecutorService executorService;
 
   @GET
   @Path("inbound")
@@ -82,23 +90,29 @@ public class NexmoResource {
       CallEvent callEvent)
       throws CommsRouterException {
 
-    callEvent.getConversationUuid();
-    callEvent.getStatus();
-
     String callId = callEvent.getUuid();
     SessionReferenceKey key = new SessionReferenceKey(Type.call, callId);
+
     if (callEvent.getDirection() == CallDirection.INBOUND) {
+
       // TODO Get Application and Module
       Session session = new Session();
       sessionService.create(session);
+
       SessionReference reference = new SessionReference(key, session);
       referenceService.create(reference);
+
     } else {
+
       Session session = referenceService.getSessionByKey(key);
       Module module = session.getCurrentModule();
       Plugin plugin = pluginService.findByName(module.getProgram());
-      // TODO Execute plugin in ThreadPool
-      plugin.handleEvent(new PluginContext(session), new NexmoCallEvent(callEvent));
+      final PluginContext context = new PluginContext(session, configuration);
+      final NexmoCallEvent nexmoEvent = new NexmoCallEvent(callEvent);
+      // Execute plugin in new Thread
+      executorService.execute(() ->
+          plugin.handleEvent(context, nexmoEvent));
+
     }
 
     return Response.ok()

@@ -1,13 +1,14 @@
 package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.nexmoapp.config.Configuration;
 import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -34,6 +35,10 @@ public class CommsRouterResource {
   @Inject
   private PluginService pluginService;
 
+  @Inject
+  private Configuration configuration;
+
+
   @POST
   @ApiOperation("Processes incoming Task with assigned Agent from the Comms Router")
   public void taskAssigned(
@@ -46,7 +51,7 @@ public class CommsRouterResource {
 
   @POST
   @Path("{sessionId}")
-  public void taskAssigned(
+  public void taskAssignedWithSession(
       @PathParam("applicationId") String applicationId,
       @PathParam("sessionId") String sessionId,
       TaskAssignmentDto assignmentDto)

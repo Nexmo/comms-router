@@ -7,6 +7,8 @@ import com.softavail.commsrouter.nexmoapp.dto.model.SessionDto;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
 import com.softavail.commsrouter.nexmoapp.jpa.TransactionManagerFactory;
 
+import javax.inject.Inject;
+
 /**
  * Created by @author mapuo on 10.10.17.
  */
@@ -14,10 +16,12 @@ public class SessionServiceImpl
     extends PaginatedApiObjectService<SessionDto, Session>
     implements SessionService {
 
-  public SessionServiceImpl() {
-    super(TransactionManagerFactory.getTransactionManager(),
-        TransactionManagerFactory.getSessionRepository(),
-        TransactionManagerFactory.getEntityMappers().sessionMapper);
+  @Inject
+  public SessionServiceImpl(TransactionManagerFactory factory) {
+    super(
+        factory.getTransactionManager(),
+        factory.getSessionRepository(),
+        factory.getEntityMappers().sessionMapper);
   }
 
   @Override

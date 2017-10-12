@@ -5,12 +5,14 @@ import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -33,6 +35,10 @@ public class Application extends ApiObject {
   @JoinTable(name = "application_module", joinColumns = @JoinColumn(name = "application_id"),
       inverseJoinColumns = @JoinColumn(name = "module_id"))
   private List<Module> modules;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "application_attribute_group_id")
+  private AttributeGroup attributes;
 
   public Application() {}
 
@@ -75,6 +81,14 @@ public class Application extends ApiObject {
 
   public void setModules(List<Module> modules) {
     this.modules = modules;
+  }
+
+  public AttributeGroup getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(AttributeGroup attributes) {
+    this.attributes = attributes;
   }
 
 }

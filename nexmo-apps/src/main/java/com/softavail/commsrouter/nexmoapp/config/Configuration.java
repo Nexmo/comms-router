@@ -11,4 +11,6 @@ public interface Configuration {
 
   String getCallbackBaseUrl();
 
+  int getThreadPoolSize();
+
 }

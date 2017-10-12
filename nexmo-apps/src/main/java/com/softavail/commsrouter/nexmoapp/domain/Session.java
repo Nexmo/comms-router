@@ -2,10 +2,12 @@ package com.softavail.commsrouter.nexmoapp.domain;
 
 import com.softavail.commsrouter.domain.ApiObject;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -22,6 +24,10 @@ public class Session extends ApiObject {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "current_module_id")
   private Module currentModule;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "session_attribute_group_id")
+  private AttributeGroup attributes;
 
   public Session() {}
 
@@ -44,6 +50,14 @@ public class Session extends ApiObject {
 
   public void setCurrentModule(Module currentModule) {
     this.currentModule = currentModule;
+  }
+
+  public AttributeGroup getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(AttributeGroup attributes) {
+    this.attributes = attributes;
   }
 
 }

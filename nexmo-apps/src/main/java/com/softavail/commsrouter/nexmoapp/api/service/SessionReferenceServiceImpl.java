@@ -7,6 +7,9 @@ import com.softavail.commsrouter.nexmoapp.domain.SessionReference;
 import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
 import com.softavail.commsrouter.nexmoapp.jpa.SessionReferenceRepository;
+import com.softavail.commsrouter.nexmoapp.jpa.TransactionManagerFactory;
+
+import javax.inject.Inject;
 
 /**
  * Created by @author mapuo on 12.10.17.
@@ -16,10 +19,10 @@ public class SessionReferenceServiceImpl implements SessionReferenceService {
   private final JpaTransactionManager transactionManager;
   private final SessionReferenceRepository repository;
 
-  public SessionReferenceServiceImpl(JpaTransactionManager transactionManager,
-      SessionReferenceRepository repository) {
-    this.transactionManager = transactionManager;
-    this.repository = repository;
+  @Inject
+  public SessionReferenceServiceImpl(TransactionManagerFactory factory) {
+    this.transactionManager = factory.getTransactionManager();
+    this.repository = factory.getSessionReferenceRepository();
   }
 
   @Override

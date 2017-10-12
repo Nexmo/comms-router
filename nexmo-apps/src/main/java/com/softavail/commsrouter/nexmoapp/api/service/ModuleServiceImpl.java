@@ -12,6 +12,7 @@ import com.softavail.commsrouter.nexmoapp.jpa.TransactionManagerFactory;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
 /**
@@ -21,10 +22,12 @@ public class ModuleServiceImpl
     extends PaginatedApiObjectService<ModuleDto, Module>
     implements ModuleService {
 
-  public ModuleServiceImpl() {
-    super(TransactionManagerFactory.getTransactionManager(),
-        TransactionManagerFactory.getExpressionRepository(),
-        TransactionManagerFactory.getEntityMappers().expressionMapper);
+  @Inject
+  public ModuleServiceImpl(TransactionManagerFactory factory) {
+    super(
+        factory.getTransactionManager(),
+        factory.getExpressionRepository(),
+        factory.getEntityMappers().expressionMapper);
   }
 
   @Override
