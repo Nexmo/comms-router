@@ -21,55 +21,11 @@ import javax.persistence.Table;
 @Table(name = "session_reference")
 public class SessionReference implements Serializable {
 
-  public static enum Type {
-    call, conversation, task
-  }
-
-  @Embeddable
-  public static class Key {
-
-    private Type type;
-    private String value;
-
-    @Override
-    public boolean equals(Object rhsObject) {
-      if (this == rhsObject) {
-        return true;
-      }
-      if (!(rhsObject instanceof Key)) {
-        return false;
-      }
-      Key rhs = (Key) rhsObject;
-      return Objects.equals(this.getType(), rhs.getType())
-          && Objects.equals(this.getValue(), rhs.getValue());
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(getType(), getValue());
-    }
-
-    public Type getType() {
-      return type;
-    }
-
-    public void setType(Type type) {
-      this.type = type;
-    }
-
-    public String getValue() {
-      return value;
-    }
-
-    public void setValue(String value) {
-      this.value = value;
-    }
-
-  }
 
   private static final long serialVersionUID = 1L;
+
   @EmbeddedId
-  private Key key;
+  private SessionReferenceKey key;
 
   @ManyToOne(fetch = FetchType.EAGER)
   private Session session;
@@ -91,11 +47,11 @@ public class SessionReference implements Serializable {
     return key != null ? key.hashCode() : 0;
   }
 
-  public Key getKey() {
+  public SessionReferenceKey getKey() {
     return key;
   }
 
-  public void setKey(Key key) {
+  public void setKey(SessionReferenceKey key) {
     this.key = key;
   }
 
