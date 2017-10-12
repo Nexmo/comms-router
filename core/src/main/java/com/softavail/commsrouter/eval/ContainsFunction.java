@@ -56,9 +56,9 @@ public class ContainsFunction implements Function {
     }
 
     try {
-      String argumentOne = FunctionHelper.trimAndRemoveQuoteChars((String) values.get(0),
+      String argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) values.get(0),
           evaluator.getQuoteCharacter());
-      String argumentTwo = FunctionHelper.trimAndRemoveQuoteChars((String) values.get(1),
+      String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) values.get(1),
           evaluator.getQuoteCharacter());
       Integer indexOf = new Integer(argumentOne.indexOf(argumentTwo, 0));
       if (indexOf >= 0) {

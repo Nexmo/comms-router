@@ -6,7 +6,7 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +45,8 @@ public class Agent extends RouterObject {
 
   public Agent() {}
 
-  public Agent(RouterObject createArg) {
-    super(createArg);
+  public Agent(RouterObjectId objectId) {
+    super(objectId.getId(), objectId.getRouterId());
   }
 
   public AttributeGroup getCapabilities() {

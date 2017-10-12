@@ -12,12 +12,13 @@ import com.softavail.commsrouter.domain.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author ikrustev
  */
-public class PlanMapper extends EntityMapper<PlanDto, Plan> {
+public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   @Override
   public PlanDto toDto(Plan jpa) {
@@ -45,16 +46,16 @@ public class PlanMapper extends EntityMapper<PlanDto, Plan> {
   }
 
   private List<RuleDto> toDtoRules(List<Rule> jpaRules) {
-    List<RuleDto> dtoRules = new ArrayList<>();
-    jpaRules.stream().forEach(jpa -> dtoRules.add(toDto(jpa)));
-    return dtoRules;
+    return jpaRules.stream()
+        .map(this::toDto)
+        .collect(Collectors.toList());
   }
 
   public void addDtoRules(Plan plan, List<RuleDto> dtoRules) {
     if (dtoRules == null) {
       return;
     }
-    dtoRules.stream().forEach(dto -> plan.addRule(fromDto(dto)));
+    dtoRules.forEach(dto -> plan.addRule(fromDto(dto)));
   }
 
 }

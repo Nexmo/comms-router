@@ -1,14 +1,12 @@
 package com.softavail.commsrouter.webservice;
 
-import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import com.softavail.commsrouter.providers.ClientFactory;
 import com.softavail.commsrouter.webservice.impl.TaskEventHandlerImpl;
-import com.softavail.commsrouter.webservice.providers.ClientFactory;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,16 +34,12 @@ public class CommsRouterApplication extends ResourceConfig {
     evaluator = new CommsRouterEvaluator();
     mappers = new EntityMappers();
     taskDispatcher = new TaskDispatcher(dbFacade, (taskAssignment) -> {
-      TaskDto task = taskAssignment.getTask();
-      AgentDto agent = taskAssignment.getAgent();
       ClientFactory clientFactory = new ClientFactory();
       Client client = clientFactory.provide();
-      TaskEventHandlerImpl handler = new TaskEventHandlerImpl(client);
-      handler.setTask(task);
-      handler.setAgent(agent);
-      handler.handle();
+      new TaskEventHandlerImpl(client, taskAssignment).handle();
       clientFactory.dispose(client);
     }, mappers);
+
     AppContext context = new AppContext(dbFacade, evaluator, taskDispatcher, mappers);
 
     register(new ApplicationBindings(context));

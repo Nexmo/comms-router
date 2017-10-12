@@ -1,13 +1,15 @@
 package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,10 +35,10 @@ public class UserContextResource {
   @Inject
   TaskService taskService;
 
-  private RouterObject routerObject;
+  private RouterObjectId routerObjectId;
 
-  public void setRouterObject(RouterObject routerObject) {
-    this.routerObject = routerObject;
+  public void setRouterObject(RouterObjectId routerObjectId) {
+    this.routerObjectId = routerObjectId;
   }
 
   @GET
@@ -46,7 +48,7 @@ public class UserContextResource {
   public Response getContext()
       throws CommsRouterException {
 
-    TaskDto taskDto = taskService.get(routerObject);
+    TaskDto taskDto = taskService.get(routerObjectId);
 
     return Response.ok(taskDto.getUserContext()).build();
   }
@@ -59,35 +61,36 @@ public class UserContextResource {
   public Response getUserContextKey(@PathParam("key") String key)
       throws CommsRouterException {
 
-    TaskDto taskDto = taskService.get(routerObject);
+    TaskDto taskDto = taskService.get(routerObjectId);
 
     return Response.ok(taskDto.getUserContext().get(key)).build();
   }
 
   @PUT
   @ApiOperation("Update the whole user context")
+  @ApiResponses(
+      @ApiResponse(code = 204, message = "Successful operation"))
   public void replaceContext(UpdateTaskContext taskContext)
       throws CommsRouterException {
 
-    taskContext.setRouterId(routerObject.getRouterId());
-    taskContext.setId(routerObject.getId());
-
-    taskService.update(taskContext);
+    taskService.update(taskContext, routerObjectId);
   }
 
   @PUT
   @Path("{key}")
   @ApiOperation("Create/Update a value with specified key in user context")
+  @ApiResponses(
+      @ApiResponse(code = 204, message = "Successful operation"))
   public void updateKey(@PathParam("key") String key, AttributeValueDto valueDto)
       throws CommsRouterException {
 
-    TaskDto taskDto = taskService.get(routerObject);
+    TaskDto taskDto = taskService.get(routerObjectId);
     taskDto.getUserContext().put(key, valueDto);
 
-    UpdateTaskContext context = new UpdateTaskContext(routerObject);
+    UpdateTaskContext context = new UpdateTaskContext();
     context.setUserContext(taskDto.getUserContext());
 
-    taskService.update(context);
+    taskService.update(context, routerObjectId);
   }
 
 }

@@ -6,13 +6,14 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 /**
@@ -26,12 +27,13 @@ public class Plan extends RouterObject {
   private String description;
 
   @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderColumn(name = "rule_order")
   private List<Rule> rules = new ArrayList<>();
 
   public Plan() {}
 
-  public Plan(CreatePlanArg createArg) {
-    super(createArg);
+  public Plan(CreatePlanArg createArg, RouterObjectId objectId) {
+    super(objectId.getId(), objectId.getRouterId());
     this.description = createArg.getDescription();
   }
 

@@ -4,6 +4,8 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -14,6 +16,7 @@ import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.util.Fields;
+import com.softavail.commsrouter.util.Uuid;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,50 +39,41 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public AgentDto create(CreateAgentArg createArg) throws CommsRouterException {
+  public ApiObjectId create(CreateAgentArg createArg, String routerId)
+      throws CommsRouterException {
+
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
 
     return app.db.transactionManager.execute((EntityManager em) -> {
-      Agent agent = new Agent(ensureIdPresent(createArg));
-      agent.setAddress(createArg.getAddress());
-      agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
-      agent.setState(AgentState.offline);
-
-      if (createArg.getRouterId() != null) {
-        List<Queue> queues = app.db.queue.list(em, createArg.getRouterId());
-        for (Queue queue : queues) {
-          try {
-            if (app.evaluator.evaluateNewAgentForQueue(createArg, queue)) {
-              agent.getQueues().add(queue);
-            }
-          } catch (CommsRouterException ex) {
-            LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
-                ex.getLocalizedMessage());
-          }
-        }
-      }
-
-      if (agent.getQueues().isEmpty()) {
-        LOGGER.warn("Agent with ID={} didn't match to any queues.", agent.getId());
-      }
-
-      em.persist(agent);
-      return app.entityMapper.agent.toDto(agent);
+      return doCreate(em, createArg, routerObjectId);
     });
-
-
   }
 
   @Override
-  public void update(UpdateAgentArg updateArg) throws CommsRouterException {
+  public ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
-    boolean becameReady = updateAgent(updateArg);
+    return app.db.transactionManager.execute((em) -> {
+      app.db.agent.delete(em, objectId.getId());
+      return doCreate(em, createArg, objectId);
+    });
+  }
+
+  @Override
+  public void update(UpdateAgentArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    boolean becameReady = updateAgent(updateArg, objectId);
     if (becameReady) {
-      app.taskDispatcher.dispatchAgent(updateArg.getId());
+      app.taskDispatcher.dispatchAgent(objectId.getId());
     }
 
   }
 
-  private Boolean compareCapabilities(AttributeGroupDto newAttributes,
+  private Boolean capabilitiesAreEqual(AttributeGroupDto newAttributes,
       AttributeGroupDto oldAttributes) {
     if (newAttributes == null && oldAttributes != null) {
       return false;
@@ -98,24 +92,19 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       if (!oldAttributes.containsKey(key)) {
         return false;
       }
-
-      // TODO: @EAS: add check by Value equals ...
-
     }
     return false; // !keys.isEmpty();
   }
 
-  private boolean updateAgent(UpdateAgentArg updateArg) throws CommsRouterException {
+  private boolean updateAgent(UpdateAgentArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     if (updateArg.getState() == AgentState.busy) {
       throw new BadValueException("Setting agent state to busy not allowed");
     }
 
-    AttributeGroupDto newAttributes = updateArg.getCapabilities();
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = app.db.agent.get(em, updateArg);
-      final AttributeGroupDto oldAttributes =
-          app.entityMapper.attributes.toDto(agent.getCapabilities());
+      Agent agent = app.db.agent.get(em, objectId.getId());
       AgentState oldState = agent.getState();
       boolean agentBecameAvailabe;
       if (oldState == updateArg.getState()) {
@@ -123,7 +112,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       } else {
         switch (oldState) {
           case busy:
-            throw new InvalidStateException("Changing state of a busy agent is not implemented");
+            throw new InvalidStateException(
+                "Changing state of a busy agent is not implemented");
           case offline:
             // check once again just in case
             agentBecameAvailabe = updateArg.getState() == AgentState.ready;
@@ -135,34 +125,81 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
             throw new InternalErrorException("Unexpected agent state");
         }
       }
-      if (!compareCapabilities(newAttributes, oldAttributes)) {
-        List<Queue> matchedQueues = new ArrayList<>();
-        List<Queue> queues = app.db.queue.list(em, updateArg.getRouterId());
-        for (Queue queue : queues) {
-          try {
-            if (app.evaluator.evaluateUpdateAgentForQueue(updateArg, queue)) {
-              matchedQueues.add(queue);
-            }
-          } catch (CommsRouterException ex) {
-            LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
-                ex.getLocalizedMessage());
-          }
-        }
-        if (matchedQueues.isEmpty()) {
-          LOGGER.warn("Agent with ID={} didn't match to any queues.", agent.getId());
-        }
-
-        Fields.update(agent::setQueues, agent.getQueues(), matchedQueues);
-        agent.removeCapabilities();
-      }
+      updateCapabilitiesAndQueues(em, agent, updateArg);
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
-      if (newAttributes != null) {
-        Fields.update(agent::setCapabilities, agent.getCapabilities(),
-            app.entityMapper.attributes.toJpa(newAttributes));
-      }
       Fields.update(agent::setState, agent.getState(), updateArg.getState());
       return agentBecameAvailabe;
     });
+  }
+
+  private void updateCapabilitiesAndQueues(
+      EntityManager em, Agent agent, UpdateAgentArg updateArg) {
+
+    final AttributeGroupDto newCapabilities = updateArg.getCapabilities();
+
+    if (newCapabilities == null) {
+      // no capabilities change requested
+      return;
+    }
+
+    final AttributeGroupDto oldCapabilities =
+        app.entityMapper.attributes.toDto(agent.getCapabilities());
+
+    if (capabilitiesAreEqual(newCapabilities, oldCapabilities)) {
+      return;
+    }
+
+    List<Queue> matchedQueues = new ArrayList<>();
+    List<Queue> queues = app.db.queue.list(em, agent.getRouterId());
+    queues.forEach((queue) -> {
+      try {
+        if (app.evaluator.evaluateUpdateAgentForQueue(agent.getId(), updateArg, queue)) {
+          matchedQueues.add(queue);
+        }
+      } catch (CommsRouterException ex) {
+        LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
+            ex.getLocalizedMessage());
+      }
+    });
+    if (matchedQueues.isEmpty()) {
+      LOGGER.warn("Agent with ID={} didn't match to any queues.", agent.getId());
+    }
+
+    Fields.update(agent::setQueues, agent.getQueues(), matchedQueues);
+    agent.removeCapabilities();
+
+    agent.setCapabilities(app.entityMapper.attributes.toJpa(newCapabilities));
+  }
+
+  private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    Agent agent = new Agent(objectId);
+    agent.setAddress(createArg.getAddress());
+    agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
+    agent.setState(AgentState.offline);
+
+    if (objectId.getRouterId() != null) {
+      List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
+      for (Queue queue : queues) {
+        try {
+          if (app.evaluator.evaluateNewAgentForQueue(objectId.getId(), createArg, queue)) {
+            agent.getQueues().add(queue);
+          }
+        } catch (CommsRouterException ex) {
+          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
+              ex.getLocalizedMessage());
+        }
+      }
+    }
+
+    if (agent.getQueues().isEmpty()) {
+      LOGGER.warn("Agent with ID={} didn't match to any queues.", agent.getId());
+    }
+
+    em.persist(agent);
+
+    return new ApiObjectId(app.entityMapper.agent.toDto(agent));
   }
 
 }

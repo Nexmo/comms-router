@@ -6,7 +6,7 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
-import com.softavail.commsrouter.api.dto.model.RouterObject;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +31,8 @@ public class Queue extends RouterObject {
 
   public Queue() {}
 
-  public Queue(CreateQueueArg queueArg) {
-    super(queueArg);
+  public Queue(CreateQueueArg queueArg, RouterObjectId objectId) {
+    super(objectId.getId(), objectId.getRouterId());
     description = queueArg.getDescription();
     predicate = queueArg.getPredicate();
   }

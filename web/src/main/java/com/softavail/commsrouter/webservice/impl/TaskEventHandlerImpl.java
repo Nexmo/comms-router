@@ -1,6 +1,7 @@
 package com.softavail.commsrouter.webservice.impl;
 
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 
 import javax.ws.rs.client.Client;
@@ -13,27 +14,27 @@ import javax.ws.rs.core.MediaType;
 public class TaskEventHandlerImpl {
 
   private final Client client;
-  private TaskDto task;
-  private AgentDto agent;
+  private TaskAssignmentDto taskAssignment;
 
   public TaskEventHandlerImpl(Client client) {
     this.client = client;
   }
 
-  public void setTask(TaskDto task) {
-    this.task = task;
+  public TaskEventHandlerImpl(Client client, TaskAssignmentDto taskAssignment) {
+    this.client = client;
+    this.taskAssignment = taskAssignment;
   }
 
-  public void setAgent(AgentDto agent) {
-    this.agent = agent;
+  public void setTaskAssignment(TaskAssignmentDto taskAssignment) {
+    this.taskAssignment = taskAssignment;
   }
 
   public void handle() {
-    String callbackUrl = task.getCallbackUrl();
+    String callbackUrl = taskAssignment.getTask().getCallbackUrl();
 
     client.target(callbackUrl)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(agent, MediaType.APPLICATION_JSON_TYPE));
+        .post(Entity.entity(taskAssignment, MediaType.APPLICATION_JSON_TYPE));
   }
 
 }

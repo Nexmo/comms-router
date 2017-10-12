@@ -12,7 +12,7 @@ import com.softavail.commsrouter.domain.Agent;
  *
  * @author ikrustev
  */
-public class AgentMapper extends EntityMapper<AgentDto, Agent> {
+public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
 
   public final AttributesMapper attributesMapper;
 

@@ -8,13 +8,13 @@ CommsRouter uses a custom expression syntax for binding Agents to Queues and fil
 For example, a Queue expression looks like:
 
 ```
-"HAS(skills,'electronics') && IN(language,['en','ru','es'])"
+"HAS(#{skills},'electronics') && IN(#{language},['en','ru','es'])"
 ```
 
 And a Plan filter expression looks like:
 
 ```
-"customer_value == 'Gold' && type == 'ticket'"
+"#{customer_value} == 'Gold' && #{type} == 'ticket'"
 ```
 
 ## Expression Structure
@@ -26,14 +26,14 @@ Examples:
 ```
 1 == 1
 0 != 1
-''alice' != 'bob'
-key > 1
-object.param != 'bob'
-(condition1 == true) || (condition2 == true)
-(language == 'en' || language == 'fr') && skill_rating >= 5.1
-IN(language, ['en', 'es'])
-HAS(computer_languages, 'java')
-CONTAINS(lvalue, 'market')
+'alice' != 'bob'
+#{key} > 1
+#{param} != 'bob'
+(#{condition1} == true) || (#{condition2} == true)
+(#{language} == 'en' || #{language} == 'fr') && #{skill_rating} >= 5.1
+IN(#{language}, ['en', 'es'])
+HAS(#{computer_languages}, 'java')
+CONTAINS(#{lvalue}, 'market')
 ```
 
 ### Constants
@@ -46,15 +46,26 @@ There are 3 types of constants supported:
 
 Constants can be the left or right values of a comparison operator.
 
+### Attributes
+
+Attributes must be enclosed by a pound sign and open brace __#{__ and a closed brace __}__.
+
+An expression with attribute could be:
+```
+#{a} == #{b}
+#{temperature} < 100
+#{name} != 'john'
+```
+
 ### References
 
-References to JSON object keys can also exist in the expression--for example, in a Plan document when evaluating Task attributes. These are resolved against the JSON document being evaluated and the value in the document is substituted. Keys are represented as unquoted strings. If the document does not contain the requested key, it resolves to NULL.
+References to JSON object keys can also exist in the expression--for example, in a Plan document when evaluating Task attributes. These are resolved against the JSON document being evaluated and the value in the document is substituted. If the document does not contain the requested key, it resolves to NULL.
 
 Given the Task attributes:
 
 ```
 {
-    "string_const": "foo",
+    "string_attribute": "foo",
     "string_array": ["a","b","c"],
     "int_array": [1,2,3,4,5],
     "int_const": 123
@@ -63,7 +74,7 @@ Given the Task attributes:
 
 The following are valid keys in a Plan configuration, and would resolve as follows:
 
-* __string_const__ - a string that resolves to __"foo"__
+* __string_attribute__ - a string that resolves to __"foo"__
 * __string_array__ - an array that resolves to __["a","b","c"]__
 * __int_array__ - an array that resolves to __[1,2,3,4,5]__
 * __int_array__ - an integer that resolves to __123__
@@ -86,9 +97,9 @@ Valid scalar operators are:
 
 Valid functions are:
 
-* __HAS(array, value)__ - does array in the first argument contain the value in the second argument
-* __IN(value, array)__ - does the scalar value on the first argument exists in the array on the second argument.
-* __CONTAINS(value1, value2)__ - does the scalar value on the left contain the scalar value on the right.
+* __HAS(#{array}, 'value')__ - does array in the first argument contain the value in the second argument
+* __IN('value', #{array})__ - does the scalar value on the first argument exists in the array on the second argument.
+* __CONTAINS(#{value1}, #{value2})__ - does the scalar value on the left contain the scalar value on the right.
 
 ### Logical Operators
 

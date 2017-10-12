@@ -12,7 +12,7 @@ import com.softavail.commsrouter.domain.Task;
  *
  * @author ikrustev
  */
-public class TaskMapper extends EntityMapper<TaskDto, Task> {
+public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
 
   public final AttributesMapper attributesMapper;
 
@@ -27,6 +27,7 @@ public class TaskMapper extends EntityMapper<TaskDto, Task> {
     dto.setRequirements(attributesMapper.toDto(jpa.getRequirements()));
     dto.setUserContext(attributesMapper.toDto(jpa.getUserContext()));
     dto.setState(jpa.getState());
+    dto.setPriority(jpa.getPriority());
     dto.setPlanId(getOptionalId(jpa.getPlan()));
     dto.setQueueId(getOptionalId(jpa.getQueue()));
     dto.setAgentId(getOptionalId(jpa.getAgent()));

@@ -2,14 +2,19 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObject;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,14 +49,15 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
   @POST
   @ApiOperation(
       value = "Add new Plan",
-      notes = "Add new Plan and associate it with a Router",
-      response = ApiObject.class)
+      notes = "Add new Plan and associate it with a Router")
+  @ApiResponses({
+      @ApiResponse(code = 201, message = "Successful operation",
+          response = ApiObjectId.class)})
   public Response create(CreatePlanArg planArg) throws CommsRouterException {
-    planArg.setRouterId(routerId);
 
     LOGGER.debug("Creating plan {}", planArg);
 
-    PlanDto plan = planService.create(planArg);
+    ApiObjectId plan = planService.create(planArg, routerId);
 
     return createResponse(plan);
   }
@@ -59,18 +65,60 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
   @PUT
   @Path("{resourceId}")
   @ApiOperation(
-      value = "Update an existing Plan",
-      notes = "Update some properties of an existing Plan")
-  public void update(@PathParam("resourceId") String resourceId, UpdatePlanArg planArg)
+      value = "Replace an existing Plan",
+      notes = "If the plan with the specified id does not exist, it creates it")
+  @ApiResponses({
+      @ApiResponse(code = 201, message = "Successful operation",
+          response = ApiObjectId.class),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Plan not found",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public Response create(
+      @ApiParam(value = "The id of the plan to be replaced", required = true)
+      @PathParam("resourceId")
+          String resourceId,
+      @ApiParam(value = "CreatePlanArg object specifying all the parameters")
+          CreatePlanArg createArg)
       throws CommsRouterException {
 
-    planArg.setRouterId(routerId);
-    planArg.setId(resourceId);
+    LOGGER.debug("Replacing plan: {}, with id: {}", createArg, resourceId);
+
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+
+    ApiObjectId plan = planService.create(createArg, objectId);
+
+    return createResponse(plan);
+  }
+
+  @POST
+  @Path("{resourceId}")
+  @ApiOperation(
+      value = "Update an existing Plan",
+      notes = "Update some properties of an existing Plan")
+  @ApiResponses({
+      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Plan not found",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public void update(
+      @ApiParam(value = "ID of the plan to be updated") @PathParam("resourceId") String resourceId,
+      @ApiParam(value = "UpdatePlanArg object representing parameters of the Plan to be updated",
+          required = true) UpdatePlanArg planArg)
+      throws CommsRouterException {
 
     LOGGER.debug("Updating plan {}", planArg);
 
-    planService.update(planArg);
-  }
+    RouterObjectId objectId =
+        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
 
+    planService.update(planArg, objectId);
+  }
 
 }

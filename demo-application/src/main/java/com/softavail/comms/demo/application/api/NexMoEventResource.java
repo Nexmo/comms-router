@@ -3,26 +3,25 @@ package com.softavail.comms.demo.application.api;
 import com.nexmo.client.NexmoClientException;
 import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
-import com.nexmo.client.voice.CallInfo;
 import com.nexmo.client.voice.CallStatus;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.NexMoCall;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
+import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
-import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
-
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -38,8 +37,11 @@ import javax.ws.rs.core.Response;
 public class NexMoEventResource {
 
   private static final Logger LOGGER = LogManager.getLogger(NexMoEventResource.class);
-  
+
   private ConversationService conversationService = new NexMoConversationServiceImpl();
+
+  @Inject
+  Configuration configuration;
 
   @Inject
   TaskServiceClient taskServiceClient;
@@ -49,26 +51,26 @@ public class NexMoEventResource {
 
   @POST
   public Response callState(CallEvent callEvent) {
-    
+
     if (callEvent != null) {
-      LOGGER.debug("/event with call uuid: {} status: {} direction: {}", 
+      LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
           callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
 
       // Update call info. Creates the call if it does not exist
       NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
       call.setDirection(callEvent.getDirection());
       call.setStatus(callEvent.getStatus());
-      
+
       conversationService.updateCall(call);
-      
+
       if (callEvent.getDirection() == CallDirection.INBOUND) {
         handleInboundCallEvent(callEvent);
       } else {
         handleOutboundCallEvent(callEvent);
       }
-      
+
     }
-    
+
     Response response = Response.ok().build();
     return response;
   }
@@ -81,14 +83,14 @@ public class NexMoEventResource {
 
   private void handleInboundCallEvent(CallEvent callEvent) {
     LOGGER.trace("handleInboundCallEvent");
-    
-    NexMoCall call = 
+
+    NexMoCall call =
         conversationService.getCallWithUuid(callEvent.getUuid());
-        
+
     if (null != call) {
-          
+
       switch (call.getStatus()) {
-        case STARTED: 
+        case STARTED:
           handleStartedInboundCallEvent(callEvent);
           break;
         case RINGING:
@@ -110,15 +112,15 @@ public class NexMoEventResource {
       LOGGER.trace("could not find call with conv_uuid: {}", callEvent.getConversationUuid());
     }
   }
-  
+
   private void handleOutboundCallEvent(CallEvent callEvent) {
     LOGGER.trace("handleOutboundCallEvent");
-    NexMoCall call = 
+    NexMoCall call =
         conversationService.getCallWithUuid(callEvent.getUuid());
 
     if (null != call) {
       switch (call.getStatus()) {
-        case STARTED: 
+        case STARTED:
           break;
         case RINGING:
           break;
@@ -139,7 +141,7 @@ public class NexMoEventResource {
       LOGGER.trace("could not find call with conv_uuid: {}", callEvent.getConversationUuid());
     }
   }
-  
+
   private void handleStartedInboundCallEvent(CallEvent callEvent) {
     LOGGER.trace("handleStartedInboundCallEvent");
 
@@ -154,7 +156,7 @@ public class NexMoEventResource {
       LOGGER.debug("[TEMP_CALL] ****** would remove temp call: {}", call.getUuid());
       conversationService.removeCallWithUuid(callEvent.getConversationUuid());
     }
-    
+
     NexMoConversation conversation =
         conversationService.getConversationWithInboundCall(callEvent.getConversationUuid());
 
@@ -172,12 +174,12 @@ public class NexMoEventResource {
   }
 
   private void handleCompletedInboundCallEvent(CallEvent callEvent) {
-    NexMoConversation conversation = 
+    NexMoConversation conversation =
         conversationService.getConversationWithInboundCall(callEvent.getUuid());
 
     if (null != conversation) {
-      
-      NexMoCall agent = conversation.getAgent(); 
+
+      NexMoCall agent = conversation.getAgent();
       if (agent != null) {
         NexMoCall outboundCall = conversationService.getCallWithUuid(agent.getUuid());
         if (null != outboundCall && outboundCall.getStatus() == CallStatus.ANSWERED) {
@@ -192,10 +194,10 @@ public class NexMoEventResource {
             LOGGER.error("Hangup call unexpected error: {}", e.getLocalizedMessage());
             e.printStackTrace();
           }
-          
+
         }
       }
-      
+
     } else {
       LOGGER.trace("could not find conversation with inbound call uuid: {}", callEvent.getUuid());
     }
@@ -206,7 +208,7 @@ public class NexMoEventResource {
 
   private void handleCompletedOutboundCallEvent(CallEvent callEvent) {
     LOGGER.trace("handleCompletedOutboundCallEvent");
-    NexMoConversation conversation = 
+    NexMoConversation conversation =
         conversationService.getConversationWithOutboundCall(callEvent.getUuid());
 
     if (null != conversation) {
@@ -214,11 +216,11 @@ public class NexMoEventResource {
         UpdateNexMoConversationArg updateArg =
             new UpdateNexMoConversationArg(NexMoConversationStatus.COMPLETED);
         conversationService.updateConversation(conversation.getId(), updateArg);
-        
+
         updateTaskServiceState(conversation.getTaskId(), TaskState.completed);
       }
-      
-      NexMoCall caller = conversation.getCaller(); 
+
+      NexMoCall caller = conversation.getCaller();
       if (caller != null) {
         NexMoCall inboundCall = conversationService.getCallWithUuid(caller.getUuid());
         if (null != inboundCall && inboundCall.getStatus() == CallStatus.ANSWERED) {
@@ -236,12 +238,12 @@ public class NexMoEventResource {
         }
       }
     }
-    
+
   }
-  
+
   private void handleTimedoutOutboundCallEvent(CallEvent callEvent) {
     LOGGER.trace("handleTimedoutOutboundCallEvent");
-    NexMoConversation conversation = 
+    NexMoConversation conversation =
         conversationService.getConversationWithOutboundCall(callEvent.getUuid());
 
     if (null != conversation) {
@@ -254,19 +256,19 @@ public class NexMoEventResource {
         updateTaskServiceState(conversation.getTaskId(), TaskState.completed);
       }
     }
-    
+
     // Remove the call from the internal storage
     conversationService.removeCallWithUuid(callEvent.getUuid());
   }
 
   private void updateTaskServiceState(String taskId, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
-    updTaskReq.setId(taskId);
     updTaskReq.setState(state);
-    
+
     try {
       LOGGER.trace("Update task: {} in router as completed", taskId);
-      taskServiceClient.update(updTaskReq);
+      taskServiceClient.update(updTaskReq,
+          new RouterObjectId(taskId, configuration.getCommsRouterId()));
     } catch (BadValueException | NotFoundException e) {
       LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
       e.printStackTrace();
@@ -274,6 +276,6 @@ public class NexMoEventResource {
       LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
-    
+
   }
 }
