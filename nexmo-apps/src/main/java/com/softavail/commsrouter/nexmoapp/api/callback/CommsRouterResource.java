@@ -2,6 +2,11 @@ package com.softavail.commsrouter.nexmoapp.api.callback;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
+import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
+import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -17,11 +22,35 @@ import javax.ws.rs.core.MediaType;
 @Consumes({MediaType.APPLICATION_JSON})
 public class CommsRouterResource {
 
+  @Inject
+  private SessionService sessionService;
+
+  @Inject
+  private SessionReferenceService referenceService;
+
+  @Inject
+  private PluginService pluginService;
+
   @POST
   public void taskAssigned(
       @PathParam("applicationId") String applicationId,
-      TaskAssignmentDto assignmentDto) {
-    // TODO 
+      TaskAssignmentDto assignmentDto)
+      throws CommsRouterException {
+
+    // TODO
+  }
+
+  @POST
+  @Path("{sessionId}")
+  public void taskAssigned(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("sessionId") String sessionId,
+      TaskAssignmentDto assignmentDto)
+      throws CommsRouterException {
+
+    // TODO
+    sessionService.get(sessionId); // TODO
+
   }
 
 }

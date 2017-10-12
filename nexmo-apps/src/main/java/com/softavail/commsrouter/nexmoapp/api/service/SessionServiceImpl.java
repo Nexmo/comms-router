@@ -1,5 +1,6 @@
 package com.softavail.commsrouter.nexmoapp.api.service;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.service.CoreApiObjectService;
 import com.softavail.commsrouter.nexmoapp.domain.Session;
 import com.softavail.commsrouter.nexmoapp.dto.model.SessionDto;
@@ -17,6 +18,11 @@ public class SessionServiceImpl
     super(TransactionManagerFactory.getTransactionManager(),
         TransactionManagerFactory.getSessionRepository(),
         TransactionManagerFactory.getEntityMappers().sessionMapper);
+  }
+
+  @Override
+  public void create(Session session) throws CommsRouterException {
+    transactionManager.executeVoid(em -> em.persist(session));
   }
 
 }

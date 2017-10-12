@@ -26,6 +26,7 @@ public class TransactionManagerFactory implements ServletContextListener {
   private static SessionRepository sessionRepository;
   private static ModuleRepository expressionRepository;
   private static EntityMappers entityMappers;
+  private static SessionReferenceRepository sessionReferenceRepository;
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
@@ -36,6 +37,7 @@ public class TransactionManagerFactory implements ServletContextListener {
     applicationRepository = new ApplicationRepository(transactionManager);
     sessionRepository = new SessionRepository(transactionManager);
     expressionRepository = new ModuleRepository(transactionManager);
+    sessionReferenceRepository = new SessionReferenceRepository(transactionManager);
     entityMappers = new EntityMappers();
   }
 

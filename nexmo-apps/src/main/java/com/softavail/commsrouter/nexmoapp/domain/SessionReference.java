@@ -21,7 +21,6 @@ import javax.persistence.Table;
 @Table(name = "session_reference")
 public class SessionReference implements Serializable {
 
-
   private static final long serialVersionUID = 1L;
 
   @EmbeddedId
@@ -29,6 +28,13 @@ public class SessionReference implements Serializable {
 
   @ManyToOne(fetch = FetchType.EAGER)
   private Session session;
+
+  public SessionReference() {}
+
+  public SessionReference(SessionReferenceKey key, Session session) {
+    this.key = key;
+    this.session = session;
+  }
 
   @Override
   public boolean equals(Object rhsObject) {

@@ -30,6 +30,13 @@ public class SessionReferenceKey implements Serializable {
 
   private String value;
 
+  public SessionReferenceKey() {}
+
+  public SessionReferenceKey(Type type, String value) {
+    this.type = type;
+    this.value = value;
+  }
+
   @Override
   public boolean equals(Object rhsObject) {
     if (this == rhsObject) {

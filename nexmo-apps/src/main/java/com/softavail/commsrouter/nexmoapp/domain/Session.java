@@ -25,6 +25,11 @@ public class Session extends ApiObject {
 
   public Session() {}
 
+  public Session(Application application, Module currentModule) {
+    this.application = application;
+    this.currentModule = currentModule;
+  }
+
   public Application getApplication() {
     return application;
   }

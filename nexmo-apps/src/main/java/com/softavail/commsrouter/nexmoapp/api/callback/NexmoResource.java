@@ -1,7 +1,21 @@
 package com.softavail.commsrouter.nexmoapp.api.callback;
 
+import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.nexmoapp.domain.Module;
+import com.softavail.commsrouter.nexmoapp.domain.Session;
+import com.softavail.commsrouter.nexmoapp.domain.SessionReference;
+import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey.Type;
+import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey;
+import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
+import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
+import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
+import com.softavail.commsrouter.nexmoapp.plugin.NexmoCallEvent;
+import com.softavail.commsrouter.nexmoapp.plugin.Plugin;
+import com.softavail.commsrouter.nexmoapp.plugin.PluginContext;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -20,6 +34,15 @@ import javax.ws.rs.core.Response;
 @Consumes({MediaType.APPLICATION_JSON})
 public class NexmoResource {
 
+  @Inject
+  private SessionService sessionService;
+
+  @Inject
+  private SessionReferenceService referenceService;
+
+  @Inject
+  private PluginService pluginService;
+
   @GET
   @Path("inbound")
   public Response answerInbound(
@@ -28,7 +51,7 @@ public class NexmoResource {
       @QueryParam("to") String to,
       @QueryParam("conversation_uuid") String uuid) {
 
-    // TODO
+    // TODO Find the app
 
     return Response.ok()
         .build();
@@ -50,9 +73,27 @@ public class NexmoResource {
   @Path("event")
   public Response event(
       @PathParam("applicationId") String applicationId,
-      CallEvent callEvent) {
+      CallEvent callEvent)
+      throws CommsRouterException {
 
-    // TODO
+    callEvent.getConversationUuid();
+    callEvent.getStatus();
+
+    String callId = callEvent.getUuid();
+    SessionReferenceKey key = new SessionReferenceKey(Type.call, callId);
+    if (callEvent.getDirection() == CallDirection.INBOUND) {
+      // TODO Get Application and Module
+      Session session = new Session();
+      sessionService.create(session);
+      SessionReference reference = new SessionReference(key, session);
+      referenceService.create(reference);
+    } else {
+      Session session = referenceService.getSessionByKey(key);
+      Module module = session.getCurrentModule();
+      Plugin plugin = pluginService.findByName(module.getProgram());
+      // TODO Execute plugin in ThreadPool
+      plugin.handleEvent(new PluginContext(session), new NexmoCallEvent(callEvent));
+    }
 
     return Response.ok()
         .build();
