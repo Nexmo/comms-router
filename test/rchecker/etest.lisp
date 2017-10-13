@@ -30,12 +30,11 @@
         #'(lambda(res)
             (apply #'tand steps)))
       step))
-(assert (funcall(tand (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
-                      (tstep-result 'description1 'response1 'check1 'steps-to-repro1 '(check-descr1))))
-        '(RESPONSE1 CHECK1
-          ((DESCRIPTION CHECK STEPS-TO-REPRO RESPONSE (CHECK-DESCR))
-           (DESCRIPTION1 CHECK1 STEPS-TO-REPRO1 RESPONSE1 (CHECK-DESCR1))))
-        )
+(assert (equal (funcall(tand (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
+                       (tstep-result 'description1 'response1 'check1 'steps-to-repro1 '(check-descr1))))
+               '(RESPONSE1 CHECK1
+                 ((DESCRIPTION CHECK STEPS-TO-REPRO RESPONSE (CHECK-DESCR))
+                  (DESCRIPTION1 CHECK1 STEPS-TO-REPRO1 RESPONSE1 (CHECK-DESCR1)))) ) )
 
 (defun twait (step &key (timeout 10) (delay 1) (end-time (+ (* timeout internal-time-units-per-second)
                                                   (get-internal-real-time))))
