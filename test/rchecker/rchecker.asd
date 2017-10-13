@@ -14,5 +14,6 @@
                (:file "transport")
                (:file "api")
                (:file "rchecker")
+               (:file "eapi")
                (:file "etest")
                (:file "tests/task-queue")))

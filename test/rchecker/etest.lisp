@@ -30,6 +30,12 @@
         #'(lambda(res)
             (apply #'tand steps)))
       step))
+(assert (funcall(tand (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
+                      (tstep-result 'description1 'response1 'check1 'steps-to-repro1 '(check-descr1))))
+        '(RESPONSE1 CHECK1
+          ((DESCRIPTION CHECK STEPS-TO-REPRO RESPONSE (CHECK-DESCR))
+           (DESCRIPTION1 CHECK1 STEPS-TO-REPRO1 RESPONSE1 (CHECK-DESCR1))))
+        )
 
 (defun twait (step &key (timeout 10) (delay 1) (end-time (+ (* timeout internal-time-units-per-second)
                                                   (get-internal-real-time))))
@@ -38,8 +44,12 @@
         (if result
             (list response  result description)
             (if (> end-time (get-internal-real-time))
-                (progn (sleep delay) (funcall (twait step :end-time end-time :delay delay)))
-                (list response  result (append description (list(list "Waiting failed" nil (format nil "wait for ~A sec"timeout) (jsown:to-json response) (list "Waiting step to complete has failed"))))))) ) ))
+                (progn (sleep delay) (funcall (twait step :end-time end-time :delay delay :timeout timeout)))
+                (list response  result
+                      (append description (list(list "Waiting failed" nil
+                                                     (format nil "wait for ~A sec" timeout)
+                                                     (jsown:to-json response)
+                                                     (list "Waiting step to complete has failed"))))))) ) ))
 
 (defun tapply(request)
   #'(lambda()
@@ -64,4 +74,28 @@
 (defun print-log(result)
   (destructuring-bind (result check log)result
     (format t "~{ ~{~%Description:~A~%Result:~:[FAIL~;pass~]~%Request:~A~%Response:~A~%~{Checks:~A~%~}~}~}"log)
-    (format t "Result:~:[FAIL~;pass~]" check)))
+    (format t "Result:~:[FAIL~;pass~]" check))
+  (second result))
+
+(defun remove-char(pos string)
+  (concatenate 'string (subseq string 0 pos) (subseq string (1+ pos))))
+
+(defun shrink (string fn)
+  (loop for x from 1 to (length string)
+     for small = (remove-char (1- x) string)
+     :if (funcall fn small) :collect small) )
+
+(defun shrink-some (string fn n)
+  (loop for x from 1 to n
+     for small = (remove-char (random n) string)
+     :if (funcall fn small) :collect small) )
+
+(defun find-smallest(candidates fn)
+  (when candidates
+    (let((smallest (shrink (first candidates) fn )))
+      (format t "~%~A->~A" (length (first candidates)) smallest)
+      (if smallest
+          (find-smallest (append smallest (rest candidates)) fn)
+          (if (rest candidates)
+              (find-smallest (rest candidates) fn)
+              (remove-if-not  fn candidates) ) )) ))
