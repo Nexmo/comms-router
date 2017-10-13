@@ -2,6 +2,7 @@ package com.softavail.commsrouter.nexmoapp.domain;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.domain.ApiObject;
+import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateApplicationArg;
 
 import java.util.List;

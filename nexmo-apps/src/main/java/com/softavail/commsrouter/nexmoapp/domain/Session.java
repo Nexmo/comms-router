@@ -1,6 +1,7 @@
 package com.softavail.commsrouter.nexmoapp.domain;
 
 import com.softavail.commsrouter.domain.ApiObject;
+import com.softavail.commsrouter.domain.AttributeGroup;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;

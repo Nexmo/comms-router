@@ -12,6 +12,7 @@ import com.softavail.commsrouter.nexmoapp.domain.SessionReferenceKey.Type;
 import com.softavail.commsrouter.nexmoapp.interfaces.PluginService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionReferenceService;
 import com.softavail.commsrouter.nexmoapp.interfaces.SessionService;
+import com.softavail.commsrouter.nexmoapp.jpa.TransactionManagerFactory;
 import com.softavail.commsrouter.nexmoapp.plugin.NexmoCallEvent;
 import com.softavail.commsrouter.nexmoapp.plugin.Plugin;
 import com.softavail.commsrouter.nexmoapp.plugin.PluginContext;
@@ -53,6 +54,9 @@ public class NexmoResource {
 
   @Inject
   private ScheduledExecutorService executorService;
+
+  @Inject
+  private TransactionManagerFactory transactionManagerFactory;
 
   @GET
   @Path("inbound")
@@ -107,7 +111,8 @@ public class NexmoResource {
       Session session = referenceService.getSessionByKey(key);
       Module module = session.getCurrentModule();
       Plugin plugin = pluginService.findByName(module.getProgram());
-      final PluginContext context = new PluginContext(session, configuration);
+      final PluginContext context =
+          new PluginContext(configuration, transactionManagerFactory, sessionService, session);
       final NexmoCallEvent nexmoEvent = new NexmoCallEvent(callEvent);
       // Execute plugin in new Thread
       executorService.execute(() ->

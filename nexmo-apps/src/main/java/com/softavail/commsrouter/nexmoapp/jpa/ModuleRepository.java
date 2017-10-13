@@ -6,10 +6,11 @@ import com.softavail.commsrouter.nexmoapp.domain.Application;
 import com.softavail.commsrouter.nexmoapp.domain.ApplicationEntryPointModule;
 import com.softavail.commsrouter.nexmoapp.domain.Module;
 import com.softavail.commsrouter.nexmoapp.dto.model.EntryPoint;
-import java.util.List;
-import javax.persistence.EntityManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+import javax.persistence.EntityManager;
 
 /**
  * Created by @author mapuo on 10.10.17.
@@ -22,14 +23,18 @@ public class ModuleRepository extends GenericRepository<Module> {
     super(transactionManager);
   }
 
+  @SuppressWarnings("unchecked")
   public ApplicationEntryPointModule getApplicationEntryPoint(EntityManager em,
       String applicationId, EntryPoint entryPoint) {
 
     String qlString = "SELECT a, m FROM Application a "
-        + "JOIN a.modules m JOIN m.entryPoints ep WHERE a.id = :applicationId AND ep = :entryPoint";
+        + "JOIN a.modules m JOIN m.entryPoints ep "
+        + "WHERE a.id = :applicationId AND ep = :entryPoint";
 
-    List<Object[]> result = em.createQuery(qlString).setParameter("applicationId", applicationId)
-        .setParameter("entryPoint", entryPoint).getResultList();
+    List<Object[]> result = em.createQuery(qlString)
+        .setParameter("applicationId", applicationId)
+        .setParameter("entryPoint", entryPoint)
+        .getResultList();
 
     if (result.isEmpty()) {
       return null;
