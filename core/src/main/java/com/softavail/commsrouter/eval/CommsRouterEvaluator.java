@@ -26,7 +26,6 @@ import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
 import net.sourceforge.jeval.Evaluator;
-import net.sourceforge.jeval.VariableResolver;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,29 +44,6 @@ public class CommsRouterEvaluator {
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
   private final int openBracketCharacter = '[';
   private final int closeBracketCharacter = ']';
-
-
-  public static class VariableResolverEx implements VariableResolver {
-
-    @Override
-    public String resolveVariable(String variableName) {
-      return EvaluatorHelpers.resolveBooleanVariable(variableName);
-    }
-  }
-
-  public static class EvaluatorEx extends Evaluator {
-
-    @Override
-    public String replaceVariables(final String expression) throws EvaluationException {
-      String replacedVariable = EvaluatorHelpers.resolveBooleanVariable(expression);
-      if (replacedVariable != null) {
-        return replacedVariable;
-      }
-
-      return super.replaceVariables(expression);
-    }
-  }
-
 
 
   /**
@@ -148,16 +124,25 @@ public class CommsRouterEvaluator {
     return false;
   }
 
+  public Boolean isValidExpression(String expression) {
+    if (expression == null || expression.isEmpty()) {
+      return false;
+    }
+
+    ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    evaluator.init();
+
+    return evaluator.isValidExpression(expression);
+  }
+
   private Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
       throws CommsRouterException {
     if (pridicate == null || pridicate.isEmpty()) {
       return false;
     }
-    Evaluator evaluator = new EvaluatorEx();
-    evaluator.putFunction(new HasFunction());
-    evaluator.putFunction(new InFunction());
-    evaluator.putFunction(new ContainsFunction());
-    evaluator.setVariableResolver(new VariableResolverEx());
+
+    ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    evaluator.init();
 
     return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
   }
