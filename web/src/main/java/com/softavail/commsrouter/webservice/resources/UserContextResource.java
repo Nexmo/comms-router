@@ -85,10 +85,15 @@ public class UserContextResource {
       throws CommsRouterException {
 
     TaskDto taskDto = taskService.get(routerObjectId);
-    taskDto.getUserContext().put(key, valueDto);
+    AttributeGroupDto userContext = taskDto.getUserContext();
+    if (userContext == null) {
+      userContext = new AttributeGroupDto();
+    }
+
+    userContext.put(key, valueDto);
 
     UpdateTaskContext context = new UpdateTaskContext();
-    context.setUserContext(taskDto.getUserContext());
+    context.setUserContext(userContext);
 
     taskService.update(context, routerObjectId);
   }
