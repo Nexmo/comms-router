@@ -80,7 +80,7 @@
 
 (defun agent-del(&key (router-id (get-event :router))
                    (id (get-event :agent)))
-  (tr-step (http-del (list "/routers" router-id "agents" id))
+  (tr-step (http-del  "/routers" router-id "agents" id)
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :agent))))
 
@@ -138,7 +138,7 @@
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
                         ("rules" rules)
-                        ("description" description)                                    ))
+                        ("description" description)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :plan) (jsown:val js "id")))))
 
@@ -253,8 +253,8 @@
 (defun task-context(&key (router-id (get-event :router))
               (id (get-event :task)))
   (tr-step (http-get "/routers" router-id "tasks" id "user_context")
-           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
-           #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
+           #'(lambda(js) (and (listp js) ))
+           #'(lambda(js) )))
 
 (defun task-put(&key (router-id (get-event :router))
                   (id (get-event :task))
@@ -288,7 +288,7 @@
 (defun task-new(&key (router-id (get-event :router))
 
                   (requirements (jsown:new-js ("key" t)))
-                  (callback-url (format nil "http://192.168.1.171:8787/?task"))
+                  (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                   (context (jsown:new-js ("key" "value")))
                   (queue-id (get-event :queue))
                   (plan-id :null))

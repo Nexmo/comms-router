@@ -26,6 +26,7 @@ import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
 import net.sourceforge.jeval.Evaluator;
+import net.sourceforge.jeval.VariableResolver;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,8 +43,31 @@ public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
-  private static final int openBracketCharacter = '[';
-  private static final int closeBracketCharacter = ']';
+  private final int openBracketCharacter = '[';
+  private final int closeBracketCharacter = ']';
+
+
+  public static class VariableResolverEx implements VariableResolver {
+
+    @Override
+    public String resolveVariable(String variableName) {
+      return EvaluatorHelpers.resolveBooleanVariable(variableName);
+    }
+  }
+
+  public static class EvaluatorEx extends Evaluator {
+
+    @Override
+    public String replaceVariables(final String expression) throws EvaluationException {
+      String replacedVariable = EvaluatorHelpers.resolveBooleanVariable(expression);
+      if (replacedVariable != null) {
+        return replacedVariable;
+      }
+
+      return super.replaceVariables(expression);
+    }
+  }
+
 
 
   /**
@@ -129,10 +153,11 @@ public class CommsRouterEvaluator {
     if (pridicate == null || pridicate.isEmpty()) {
       return false;
     }
-    Evaluator evaluator = new Evaluator();
+    Evaluator evaluator = new EvaluatorEx();
     evaluator.putFunction(new HasFunction());
     evaluator.putFunction(new InFunction());
     evaluator.putFunction(new ContainsFunction());
+    evaluator.setVariableResolver(new VariableResolverEx());
 
     return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
   }
@@ -155,7 +180,8 @@ public class CommsRouterEvaluator {
         attributeValue.accept(new AttributeValueVisitor() {
           @Override
           public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-            evaluator.putVariable(key, String.format("'%s'", value.getValue().toString()));
+            evaluator.putVariable(key, value.getValue() ? EvaluationConstants.BOOLEAN_STRING_TRUE
+                : EvaluationConstants.BOOLEAN_STRING_FALSE);
           }
 
           @Override

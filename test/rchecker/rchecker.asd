@@ -13,4 +13,7 @@
   :components ((:file "package")
                (:file "transport")
                (:file "api")
-               (:file "rchecker")))
+               (:file "rchecker")
+               (:file "eapi")
+               (:file "etest")
+               (:file "tests/task-queue")))
