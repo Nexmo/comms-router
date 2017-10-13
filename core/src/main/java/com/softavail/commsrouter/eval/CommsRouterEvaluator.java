@@ -129,10 +129,11 @@ public class CommsRouterEvaluator {
       return false;
     }
 
+    String formatedExpression = supportArraysInExpression(expression);
     ExpressionEvaluator evaluator = new ExpressionEvaluator();
     evaluator.init();
 
-    return evaluator.isValidExpression(expression);
+    return evaluator.isValidExpression(formatedExpression);
   }
 
   private Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
