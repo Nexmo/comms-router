@@ -5,16 +5,16 @@
 
 package com.softavail.commsrouter.nexmoapp.domain;
 
-import com.softavail.commsrouter.nexmoapp.dto.model.EntryPoint;
+import com.softavail.commsrouter.nexmoapp.dto.model.ModuleRole;
 
 /**
  *
  * @author ikrustev
  */
-public class ApplicationEntryPointModule {
+public class ApplicationModule {
 
   private Application application;
-  private EntryPoint entryPoint;
+  private ModuleRole moduleRole;
   private Module module;
 
   public Application getApplication() {
@@ -25,12 +25,12 @@ public class ApplicationEntryPointModule {
     this.application = application;
   }
 
-  public EntryPoint getEntryPoint() {
-    return entryPoint;
+  public ModuleRole getModuleRole() {
+    return moduleRole;
   }
 
-  public void setEntryPoint(EntryPoint entryPoint) {
-    this.entryPoint = entryPoint;
+  public void setModuleRole(ModuleRole moduleRole) {
+    this.moduleRole = moduleRole;
   }
 
   public Module getModule() {

@@ -3,7 +3,7 @@ package com.softavail.commsrouter.nexmoapp.domain;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.nexmoapp.dto.arg.CreateExpressionArg;
-import com.softavail.commsrouter.nexmoapp.dto.model.EntryPoint;
+import com.softavail.commsrouter.nexmoapp.dto.model.ModuleRole;
 
 import java.util.List;
 import javax.persistence.CollectionTable;
@@ -22,11 +22,11 @@ import javax.persistence.Table;
 @Table(name = "module")
 public class Module extends ApiObject {
 
-  @ElementCollection(targetClass = EntryPoint.class)
+  @ElementCollection(targetClass = ModuleRole.class)
   @Enumerated(EnumType.STRING)
-  @CollectionTable(name = "module_entry_point", joinColumns = @JoinColumn(name = "module_id"))
-  @Column(name = "entry_point")
-  private List<EntryPoint> entryPoints;
+  @CollectionTable(name = "module_roles", joinColumns = @JoinColumn(name = "module_id"))
+  @Column(name = "module_role")
+  private List<ModuleRole> moduleRoles;
 
   @Enumerated(EnumType.STRING)
   private ModuleType type;
@@ -42,12 +42,12 @@ public class Module extends ApiObject {
     }
   }
 
-  public List<EntryPoint> getEntryPoints() {
-    return entryPoints;
+  public List<ModuleRole> getModuleRoles() {
+    return moduleRoles;
   }
 
-  public void setEntryPoints(List<EntryPoint> entryPoints) {
-    this.entryPoints = entryPoints;
+  public void setModuleRoles(List<ModuleRole> moduleRoles) {
+    this.moduleRoles = moduleRoles;
   }
 
   public ModuleType getType() {

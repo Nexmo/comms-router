@@ -9,6 +9,6 @@ package com.softavail.commsrouter.nexmoapp.dto.model;
  *
  * @author ikrustev
  */
-public enum EntryPoint {
-  incoming_call, task_assgined
+public enum ModuleRole {
+  incoming_call_handler, task_creator, task_call_monitor, waiting_call_task_handler, callback_task_handler
 }
