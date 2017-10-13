@@ -188,7 +188,7 @@
                           (tapply (http-get "/routers" router-id "agents" agent-id))
                           (check-and (has-json) (has-kv "state" "ready")))) ) ) ) ) ) )
 
-(defun complete-task(&key (qpredicate "1==1") (tpredicate "1") (task-req (jsown:new-js ("bool" t)
+(defun test-complete-task(&key (qpredicate "1==1") (tpredicate "1") (task-req (jsown:new-js ("bool" t)
                                                                                            ("digit" 10)
                                                                                            ("array" (list 1 2 3 4))
                                                                                            ;;("float" 10.5)
@@ -219,7 +219,7 @@
   (tlet ((task-id (js-val "id")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
-                                            (jsown:new-js ("callbackUrl" (format nil "http://localhost:4343/taskk?router=~A&sleep=~A" router-id (random 2)))
+                                            (jsown:new-js ("callbackUrl" (format nil "http://localhost:4343/nowheretaskk?router=~A&sleep=~A" router-id (random 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
                                                           ("queueId" queue-id)
                                         ;("userContext" (jsown:new-js ))
@@ -240,7 +240,13 @@
     (tand
      (twait (tstep "Wait task to be completed" (tapply (http-get "/routers" router-id "tasks" task-id ))
                    (check-and (has-json) (has-kv "state" "completed")))
-            :timeout 30)
+            :delay 3 :timeout 30)
      (tstep "Ensure that there where no errors on handling task by checking userContext.result."
             (tapply (http-get "/routers" router-id "tasks" task-id "user_context" "result"))
-            (is-equal "true")) )))
+            (is-equal "true")))))
+
+(defun test-all()
+  (mapcar #'print-log
+          (remove-if #'second
+                     (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task))))
+          ) )
