@@ -1,6 +1,8 @@
 package com.softavail.comms.nexmo.answer;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,10 +24,20 @@ import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.nexmo.ncco.NccoFactory;
+import com.softavail.comms.nexmo.util.PhoneConverter;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
+import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.client.TaskServiceClient;
@@ -34,31 +46,43 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private static final Logger LOGGER = LogManager.getLogger(AnswerStrategyWithCallback.class);
 
-  private static final String KEY_STATE = "xstate";
-  private static final String KEY_NUMBER = "xnumber";
-
-  private static final String STATE_OFFER_CALLBACK = "OFFER_CALLBACK";
-  private static final String STATE_ASK_NUMBER = "ASK_NUMBER";
-  private static final String STATE_RECORD_NAME = "RECORD_NAME";
-  private static final String STATE_END = "END";
-
-  private static final String OFFER_CALLBACK_QUESTION =
-      "We are experiencing heavy load at this moment."
-          + " Please press 1 if you want to call you back";
-
-  private static final String GATHER_NUMBER_QUESTION =
-      "Please leave your number followed by pound sign";
+  private static final String KEY_STATE = "callback_state";
+  private static final String KEY_NUMBER = "callback_number";
+  private static final String KEY_TEMP_NUMBER = "temp_number";
+  private static final String KEY_CONV_NAME = "conv_name";
+  private static final String KEY_KIND = "kind";
   
-  private static final String RECORD_NAME_QUESTION =
-      "Please say your name after the beep";
+  private static final String STATE_PROMPT_CALLBACK = "prompt_callback";
+  private static final String STATE_PROMPT_CALLERID = "prompt_callerid";
+  private static final String STATE_GET_NUMBER = "get_number";
+  private static final String STATE_CONFIRM_NUMBER = "confirm_number";
+  private static final String STATE_END = "completed";
 
+  private static final String INFORM_CALLBACK_MESSAGE =
+      "We are experiencing a high call volume. "
+      + "We will call you back when an agent becomes available.";
+  
+  private static final String PROMPT_CALLBACK_MESSAGE = 
+      "We are experiencing a high call volume. "
+      + "If you want us to call you back when an agent becomes available, press 1 now. "
+      + "You will not lose your place in the queue. To continue waiting, press 2";
+
+  private static final String PROMPT_CALLERID_MESSAGE = 
+      "Is the best number we can reach you at %s? "
+      + "To use this number, press 1 now. To give us another number, press 2 now.";
+  
+  private static final String GET_NUMBER_MESSAGE = 
+      "Please enter your call back number followed by # now.";
+  
+  private static final String CONFIRM_NUMBER_MESSAGE =
+      "If %s is the correct number, press 1 now, otherwise, press 2 now.";
+  
   private static final String FINAL_MESSAGE =
       "Thank you. We will call you back when an agent is ready to handle your request";
   
   private static final String ERROR_MESSAGE_CRATE_TASK = "Sorry we can't serve your request";
   
   private static final String MESSAGE_REGULAR_TASK_GREETING = "Please wait while we connect you";
-  
   
   private NccoFactory nccoFactory = new NccoFactory(); 
   
@@ -76,6 +100,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   public String answerInboundCall(final String convUuid, final String from, final String to)
       throws AnswerStrategyException {
 
+    LOGGER.debug("answerInboundCall");
+    
     if (null == convUuid) {
       throw new AnswerStrategyException("Missing param: <conversation_uuid>");
     }
@@ -88,18 +114,34 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       throw new AnswerStrategyException("Missing param: <to>");
     }
 
-    // TODO: Gather queue size
+    // Create task 
+    String conversationName = "conv-" + UUID.randomUUID().toString();
+    CreatedTaskDto task = createRegularTask(conversationName, from);
+
+    if (null == task) {
+      return respondWithErrorTalkNcco();
+    }
     
-    URI uri = 
-        UriBuilder.fromPath(getEventUrl())
-        .queryParam(KEY_STATE, STATE_OFFER_CALLBACK)
-        .queryParam("conversation_uuid", convUuid)
-        .queryParam("from", from)
-        .queryParam("to", to)
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_KIND, new StringAttributeValueDto("callback"));
+    taskContext.put(KEY_STATE, new StringAttributeValueDto(STATE_PROMPT_CALLBACK));
+    
+    LOGGER.debug("will updateTaskContext with 'kind':'callback' and 'callback_state': {}", 
+        STATE_PROMPT_CALLBACK);
+
+    String taskId = task.getId();
+    boolean taskUpdated = updateTaskContext(taskId, taskContext);
+    
+    if (false == taskUpdated) {
+      return respondWithErrorTalkNcco();
+    }
+    
+    URI uri = UriBuilder.fromPath(getEventUrl())
+        .queryParam("taskId", taskId)
+        .queryParam(KEY_STATE, STATE_PROMPT_CALLBACK)
         .build();
-    
     String finalEventUrl = uri.toString();
-    List<Ncco> list = nccoFactory.nccoListWithOfferCallback(OFFER_CALLBACK_QUESTION, finalEventUrl);
+    List<Ncco> list = nccoFactory.nccoListWithPromptCallback(PROMPT_CALLBACK_MESSAGE, finalEventUrl);
     
     // preparing a response    
     NccoResponseBuilder builder = new NccoResponseBuilder();
@@ -113,26 +155,45 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   }
 
   @Override
-  public String continueAnswerInboundCall(final JsonNode userInfo,
-      final MultivaluedMap<String, String> context) throws AnswerStrategyException {
+  public String continueAnswerInboundCall(JsonNode userInfo, String taskId, String state)
+      throws AnswerStrategyException {
 
-    final String state = context.getFirst(KEY_STATE);
-    String nccoResponse = null;
-    final String number = parseDtmfFromUserInfo(userInfo);
+    LOGGER.debug("continueAnswerInboundCall");
+
+    TaskDto task = getTask(taskId);
+    if (null == task) {
+      LOGGER.warn("Can't get task: {}", taskId);
+      respondWithErrorTalkNcco();
+    }
+
+    AttributeGroupDto taskContext =  task.getUserContext();
+    if (null == taskContext) {
+      LOGGER.warn("Task does not have a context: {}", taskId);
+      respondWithErrorTalkNcco();
+    }
     
-    switch (state) {
-      case STATE_OFFER_CALLBACK:
-        if (null == number) {
-          nccoResponse = processInboundCallByCreateRegularTask(context);
-        } else {
-          nccoResponse = processInboundCallInStateGatherNumber(context);
-        }
+    String callbackState = stringAttributeValueDto(taskContext.get(KEY_STATE));
+    LOGGER.trace("evt state: {}, task state: {}", state, callbackState);
+    
+    // TODO: Check the state from task and from callback
+    
+    String nccoResponse = null;
+    
+    switch (callbackState) {
+      case STATE_PROMPT_CALLBACK:
+        nccoResponse = handlePromptCallbackResponse(userInfo, task);
         break;
-      case STATE_ASK_NUMBER:
-        nccoResponse = processInboundCallInStateEnd(number, context);
+      case STATE_PROMPT_CALLERID:
+        nccoResponse = handlePromptCallerIdResponse(userInfo, task);
+        break;
+      case STATE_GET_NUMBER:
+        nccoResponse = handleGetNumberResponse(userInfo, task);
+        break;
+      case STATE_CONFIRM_NUMBER:
+        nccoResponse = handleConfirmNumberResponse(userInfo, task);
         break;
       default:
-        nccoResponse = processInboundCallInStateEnd(number, context);
+        nccoResponse = respondWithErrorTalkNcco();
         break;
     }
 
@@ -143,87 +204,214 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return nccoResponse;
   }
 
-  private String processInboundCallInStateGatherNumber(MultivaluedMap<String, String> context) {
-    
-    // build event URL with the state
-    UriBuilder uriBuilder = UriBuilder.fromPath(getEventUrl());
-    Iterator<String> it = context.keySet().iterator();
-    while (it.hasNext()) {
-      String key = it.next();
-      String value = context.getFirst(key);
-      if (key.equals(KEY_STATE)) {
-        uriBuilder = uriBuilder.queryParam(key, STATE_ASK_NUMBER);
+  private String handlePromptCallbackResponse(JsonNode userInfo, TaskDto task) {
+    LOGGER.debug("handlePromptCallbackResponse");
+    String response = "[]";// empty NCCO
+    String number = parseDtmfFromUserInfo(userInfo);
+    if (number != null && number.equals("1")) {
+
+      String callbackNumber = attributeGroupDtogetString(KEY_NUMBER, task.getUserContext());
+      if (callbackNumber.length() > 9) {
+        response = respondByTransitionToPromptCallerId(task, callbackNumber);
       } else {
-        uriBuilder = uriBuilder.queryParam(key, value);
+        response = respondByTransitionToGetNumber(task);
       }
+    } else {
+      // continue regular
+      response = respondByTransitionToRegularTask(task);
     }
 
-    String finalEventUrl = uriBuilder.build().toString();
-    List<Ncco> list = nccoFactory.nccoListWithChangeNumber(GATHER_NUMBER_QUESTION, finalEventUrl);
+    return response;
+  }
+  
+  private String handlePromptCallerIdResponse(JsonNode userInfo, TaskDto task) {
+    LOGGER.debug("handlePromptCallerIdResponse");
+    String response = "[]";// empty NCCO
+    String number = parseDtmfFromUserInfo(userInfo);
+    if (number != null && number.equals("1")) {
+      response = respondByTransitionToEnd(task, null);
+    } else {
+      response = respondByTransitionToGetNumber(task);
+    }
+
+    return response;
+  }
+
+  private String handleGetNumberResponse(JsonNode userInfo, TaskDto task) {
+    LOGGER.debug("handleGetNumberResponse");
+    String response = "[]";// empty NCCO
+    String number = parseDtmfFromUserInfo(userInfo);
+
+    if (number != null && number.length() > 9) {
+      response = respondByTransitionToConfirmNumber(task, number);      
+    } else {
+      response = respondByTransitionToGetNumber(task);
+    }
+
+    return response;
+  }
+  
+  private String handleConfirmNumberResponse(JsonNode userInfo, TaskDto task) {
+    LOGGER.debug("handleConfirmNumberResponse");
+    String response = "[]";// empty NCCO
+    String dtmf = parseDtmfFromUserInfo(userInfo);
+
+    if (dtmf != null && dtmf.equals("1")) {
+      String number = attributeGroupDtogetString(KEY_TEMP_NUMBER, task.getUserContext());
+      AttributeGroupDto taskContext = new AttributeGroupDto();
+      taskContext.put(KEY_NUMBER, new StringAttributeValueDto(number));
+      response = respondByTransitionToEnd(task, taskContext);
+    } else {
+      response = respondByTransitionToGetNumber(task);
+    }
+
+    return response;
+  }
+  
+  private String respondByTransitionToRegularTask(TaskDto task) {
+    LOGGER.debug("respondByTransitionToRegularTask");
     
-    // preparing a response
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_KIND, new StringAttributeValueDto("regular"));
+    
+    boolean updateTaskContextResult = updateTaskContext(task.getId(), taskContext);
+    if (false == updateTaskContextResult) {
+      respondWithErrorTalkNcco();
+    }
+
+    try {
+      String convName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
+      Ncco talkNcco = nccoFactory.nccoTalkWithRegularTaskGreeting(MESSAGE_REGULAR_TASK_GREETING);
+      Ncco convNcco = nccoFactory.nccoConversationWithRegularTask(convName, getMusicOnHoldUrl());
+
+      NccoResponseBuilder builder = new NccoResponseBuilder();
+      builder.appendNcco(talkNcco);
+      builder.appendNcco(convNcco);
+
+      NccoResponse nccoResponse = builder.getValue();
+      return nccoResponse.toJson();
+    } catch (Exception e) {
+      LOGGER.error("respondByTransitionToRegularTask: {}", e.getMessage());
+    }
+
+    return respondWithErrorTalkNcco();
+  }
+  
+  private String respondByTransitionToPromptCallerId(TaskDto task, String callerId) {    
+    LOGGER.debug("respondByTransitionToPromptCallerId");
+    String taskId = task.getId();
+    String state = STATE_PROMPT_CALLERID;
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
+    boolean taskUpdated = updateTaskContext(taskId, taskContext);
+    
+    if (false == taskUpdated) {
+      return respondWithErrorTalkNcco();
+    }
+    
+    URI uri = UriBuilder.fromPath(getEventUrl())
+        .queryParam("taskId", taskId)
+        .queryParam(KEY_STATE, state)
+        .build();
+    String finalEventUrl = uri.toString();
+    String machineReadableCallerId = PhoneConverter.machineReadable(callerId); 
+    List<Ncco> list = nccoFactory.nccoListWithPromptCallerId(
+        String.format(PROMPT_CALLERID_MESSAGE, machineReadableCallerId), finalEventUrl);
+    
+    // preparing a response    
     NccoResponseBuilder builder = new NccoResponseBuilder();
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-
+    
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-
-  /*
-  private String processInboundCallInStateRecordName(final Map<String, String> context,
-      final String eventUrl) {
+  
+  private String respondByTransitionToGetNumber(TaskDto task) {
+    LOGGER.debug("respondByTransitionToGetNumber");
+    String taskId = task.getId();
+    String state = STATE_GET_NUMBER;
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
+    boolean taskUpdated = updateTaskContext(taskId, taskContext);
     
-    // preparing a response
-    NccoResponseBuilder builder = new NccoResponseBuilder();
-    Ncco talkNcco = nccoFactory.nccoTalkWithOfferCallback(RECORD_NAME_QUESTION);
-    builder.appendNcco(talkNcco);
-
-    // build event URL with the state
-    UriBuilder uriBuilder = UriBuilder.fromPath(eventUrl);
-    Iterator<String> it = context.keySet().iterator();
-    while (it.hasNext()) {
-      String key = it.next();
-      String value = context.get(key);
-      if (key.equals(KEY_STATE)) {
-        uriBuilder = uriBuilder.queryParam(key, RECORD_NAME);
-      } else {
-        uriBuilder = uriBuilder.queryParam(key, value);
-      }
-    }
-
-    // respond
-    NccoResponse nccoResponse = builder.getValue();
-    return nccoResponse.toJson();
-  }*/
-
-  private String processInboundCallInStateEnd(String number,
-      MultivaluedMap<String, String> context) {
-
-    HashMap<String, String> finalContext = new HashMap<String, String>();
-
-    // build event URL with the state
-    Iterator<String> it = context.keySet().iterator();
-    while (it.hasNext()) {
-      String key = it.next();
-      String value = context.getFirst(key);
-      if (false == key.equals(KEY_STATE)) {
-        finalContext.put(key, value);
-      }
-    }
-
-    if (null != number && number.length() > 0) {
-      finalContext.put(KEY_NUMBER, number);
-    }
-
-    // Create a task in the router
-    CreatedTaskDto task = createCallbackTask(finalContext);
-    if (null == task ) {
+    if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
     
+    URI uri = UriBuilder.fromPath(getEventUrl())
+        .queryParam("taskId", taskId)
+        .queryParam(KEY_STATE, state)
+        .build();
+    String finalEventUrl = uri.toString();
+    List<Ncco> list = nccoFactory.nccoListWithGetNumber(GET_NUMBER_MESSAGE, finalEventUrl);
+    
+    // preparing a response    
+    NccoResponseBuilder builder = new NccoResponseBuilder();
+    list.forEach(ncco -> {
+      builder.appendNcco(ncco);
+    });
+    
+    
+    // respond
+    NccoResponse nccoResponse = builder.getValue();
+    return nccoResponse.toJson();
+  }
+  
+  private String respondByTransitionToConfirmNumber(TaskDto task, String number) {
+    LOGGER.debug("respondByTransitionToConfirmNumber");
+    String taskId = task.getId();
+    String state = STATE_CONFIRM_NUMBER;
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
+    taskContext.put(KEY_TEMP_NUMBER, new StringAttributeValueDto(state));
+    boolean taskUpdated = updateTaskContext(taskId, taskContext);
+    
+    if (false == taskUpdated) {
+      return respondWithErrorTalkNcco();
+    }
+    
+    URI uri = UriBuilder.fromPath(getEventUrl())
+        .queryParam("taskId", taskId)
+        .queryParam(KEY_STATE, state)
+        .build();
+    String finalEventUrl = uri.toString();
+    String machineReadableNumber = PhoneConverter.machineReadable(number);
+    String confirmationMessage = String.format(CONFIRM_NUMBER_MESSAGE, machineReadableNumber);
+    List<Ncco> list = nccoFactory.nccoListWithConfirmNumber(confirmationMessage, finalEventUrl);
+    
+    // preparing a response    
+    NccoResponseBuilder builder = new NccoResponseBuilder();
+    list.forEach(ncco -> {
+      builder.appendNcco(ncco);
+    });
+    
+    // respond
+    NccoResponse nccoResponse = builder.getValue();
+    return nccoResponse.toJson();
+  }
+  
+  private String respondByTransitionToEnd(TaskDto task, AttributeGroupDto moreContext) {
+    LOGGER.debug("respondByTransitionToEnd");
+    String taskId = task.getId();
+    String state = STATE_END;
+    AttributeGroupDto taskContext = new AttributeGroupDto();
+    taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
+    
+    if (null != moreContext) {
+      moreContext.keySet().forEach(key -> {
+        taskContext.put(key, moreContext.get(key));
+      });
+    }
+    
+    boolean taskUpdated = updateTaskContext(taskId, taskContext);
+    
+    if (false == taskUpdated) {
+      return respondWithErrorTalkNcco();
+    }
+
     // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
     Ncco talkNcco = nccoFactory.nccoTalkWithRegularTaskGreeting(FINAL_MESSAGE);
@@ -233,7 +421,6 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-
   
   private String parseDtmfFromUserInfo(JsonNode userInfo) {
 
@@ -250,102 +437,64 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return null;
   }
   
-  private String processInboundCallByCreateRegularTask(
-      final MultivaluedMap<String, String> context) {
-
-    String conversationId = "conv-" + UUID.randomUUID().toString();
-    CreatedTaskDto task = createRegularTask(conversationId);
-    
-    if (null == task) {
-      return respondWithErrorTalkNcco();
-    }
-    
-    // Response with NCCO
-    Ncco talkNcco = nccoFactory.nccoTalkWithRegularTaskGreeting(MESSAGE_REGULAR_TASK_GREETING);
-    Ncco convNcco = nccoFactory.nccoConversationWithRegularTask(conversationId, getMusicOnHoldUrl());
-
-    NccoResponseBuilder builder = new NccoResponseBuilder();
-    builder.appendNcco(talkNcco);
-    builder.appendNcco(convNcco);
-
-    NccoResponse nccoResponse = builder.getValue();
-    return nccoResponse.toJson();
-  }
-  
-  private CreatedTaskDto createCallbackTask(Map<String, String> context) {
+  private CreatedTaskDto createRegularTask(String conversationName, String from) {
     CreatedTaskDto task = null;
 
     try {
       CreateTaskArg taskReq = new CreateTaskArg();
-      RouterObjectId taskId = new RouterObjectId(UUID.randomUUID().toString(), getRouterId());
-
-      URI uri = UriBuilder.fromPath(getTaskCallbackUrl()).path(taskId.getId())
-          .queryParam("kind", "callback").build();
-
-      taskReq.setCallbackUrl(uri.toURL());
-      taskReq.setQueueId(getQueueId());
-      
-      String conversationid = "conv-" + UUID.randomUUID().toString();
-      AttributeGroupDto userContext = createUserContext(context);
-      userContext.put("conversationid", new StringAttributeValueDto(conversationid));
-      taskReq.setUserContext(userContext);
-
-      if (null == taskServiceClient) {
-        LOGGER.error("taskServiceClient = null");
-      }
-
-      task = taskServiceClient.create(taskReq, taskId);
-    } catch (CommsRouterException e) {
-      e.printStackTrace();
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
-
-    return task;
-  }
-  
-  private CreatedTaskDto createRegularTask(final String conversationId) {
-    CreatedTaskDto task = null;
-
-    try {
-      CreateTaskArg taskReq = new CreateTaskArg();
-      RouterObjectId taskId = new RouterObjectId(UUID.randomUUID().toString(), getRouterId());
-
-      URI uri = UriBuilder.fromPath(getTaskCallbackUrl())
-          .path(taskId.getId())
-          .queryParam("kind", "regular")
-          .queryParam("callId", conversationId)
-          .build();
+      URI uri = UriBuilder.fromPath(getTaskCallbackUrl()).build();
 
       taskReq.setCallbackUrl(uri.toURL());
       taskReq.setQueueId(getQueueId());
 
       AttributeGroupDto userContext = new AttributeGroupDto(); 
-      userContext.put("conversationid", new StringAttributeValueDto(conversationId));
+      userContext.put(KEY_CONV_NAME, new StringAttributeValueDto(conversationName));
+      userContext.put(KEY_NUMBER, new StringAttributeValueDto(from));
       taskReq.setUserContext(userContext);
 
-      task = taskServiceClient.create(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, getRouterId());
     } catch (CommsRouterException e) {
-      e.printStackTrace();
+      LOGGER.error("createRegularTask failed: {}", e.getMessage());
     } catch (Exception ex) {
-      ex.printStackTrace();
+      LOGGER.error("createRegularTask failed: {}", ex.getMessage());
     }
 
     return task;
   }
   
-  private AttributeGroupDto createUserContext(Map<String, String> context) {
-    AttributeGroupDto userContext = new AttributeGroupDto();
-    Iterator<String> it = context.keySet().iterator();
+  private boolean updateTaskContext(String taskId, AttributeGroupDto taskContext) {
+    boolean result = false;
     
-    while (it.hasNext()) {
-      String key = it.next();
-      userContext.put(key, new StringAttributeValueDto(context.get(key)));
+    try {
+      RouterObjectId routerObjectId = new RouterObjectId(taskId, getRouterId());
+      UpdateTaskContext updTaskContext = new UpdateTaskContext();
+      updTaskContext.setUserContext(taskContext);
+      taskServiceClient.updateContext(updTaskContext, routerObjectId);
+      result = true;
+    } catch (CommsRouterException e) {
+      LOGGER.error("updateTaskContext failed: {}", e.getMessage());
+    } catch (Exception ex) {
+      LOGGER.error("updateTaskContext failed: {}", ex.getMessage());
     }
     
-    return userContext;
+    return result;
   }
   
+  private TaskDto getTask(String taskId) {
+    TaskDto task = null;
+    try {
+      RouterObjectId routerObjectId = new RouterObjectId(taskId, getRouterId());
+      task = taskServiceClient.get(routerObjectId);
+      
+      LOGGER.trace("task:{}", task);
+    } catch (CommsRouterException e) {
+      e.printStackTrace();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    
+    return task;
+  }
   
   private String respondWithErrorTalkNcco() {
     // preparing a response
@@ -378,4 +527,73 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return configuration.getMusicOnHoldUrl();
   }
 
+  private String stringAttributeValueDto(AttributeValueDto valueDto) {
+
+    if (null == valueDto) {
+      return "";
+    }
+    
+    String stringValue = null;
+    ArrayList<String> result = new ArrayList<String>();
+    
+    try {
+      
+      valueDto.accept( new AttributeValueVisitor() {
+        @Override
+        public void handleStringValue(StringAttributeValueDto value) throws IOException {
+          result.add(value.getValue());
+        }
+        
+        @Override
+        public void handleLongValue(LongAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+        
+        @Override
+        public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+      });
+    } catch (IOException e) {
+      LOGGER.error(e.getLocalizedMessage());
+    }
+    
+    if (result != null && result.size() > 0) {
+      stringValue = result.get(0);
+    }
+    
+    return stringValue;
+  }
+
+  private String attributeGroupDtogetString(String key, AttributeGroupDto groupDto) {
+    try {
+      return stringAttributeValueDto(groupDto.get(key));
+    } catch (Exception e) {
+      LOGGER.error("attributeGroupDtogetString: {}", e.getMessage());
+    }
+    return "";
+  }
 }

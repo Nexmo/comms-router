@@ -5,6 +5,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -33,19 +34,19 @@ public class NexMoEventCallbackResource {
   AnswerStrategyWithCallback strategy;
 
   @POST
-  public Response handleCallbackEvent(@Context UriInfo uriInfo,
+  public Response handleCallbackEvent(
+      @QueryParam("taskId") String taskId,
+      @QueryParam("callback_state") String callbackState,
       JsonNode payload) {
 
-    LOGGER.debug("/event_callback");
+    LOGGER.debug("/event_callback task:{},state:{}", taskId, callbackState);
     LOGGER.debug("payload: {}", payload);
-    LOGGER.debug("context: {}", uriInfo.getQueryParameters());
     
     Response response = null;
     
     
     try {
-      MultivaluedMap<String, String> context = uriInfo.getQueryParameters();
-      String answerNcco = strategy.continueAnswerInboundCall(payload, context);
+      String answerNcco = strategy.continueAnswerInboundCall(payload, taskId, callbackState);
       LOGGER.debug("/event_callback ncco: {}", answerNcco);
       response = Response.ok(answerNcco, MediaType.APPLICATION_JSON).build();
     } catch (AnswerStrategyException e) {

@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -74,6 +75,16 @@ public class UserContextResource {
       throws CommsRouterException {
 
     taskService.update(taskContext, routerObjectId);
+  }
+
+  @POST
+  @ApiOperation("Updates/Creates keys in the user context")
+  @ApiResponses(
+      @ApiResponse(code = 204, message = "Successful operation"))
+  public void updateContext(UpdateTaskContext taskContext)
+      throws CommsRouterException {
+
+    taskService.updateContext(taskContext, routerObjectId);
   }
 
   @PUT

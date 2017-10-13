@@ -10,13 +10,13 @@ import com.softavail.comms.demo.application.model.ConversationNccoEx;
 
 public class NccoFactory {
 
-  public List<Ncco> nccoListWithOfferCallback(String text, String eventUrl) {
+  public List<Ncco> nccoListWithPromptCallback(String text, String eventUrl) {
     TalkNcco talk = new TalkNcco(text);
     talk.setBargeIn(true);
 
     InputNcco input = new InputNcco();
     input.setEventUrl(eventUrl);
-    input.setTimeOut(10);
+    input.setTimeOut(5);
    
     ArrayList<Ncco> list = new ArrayList<Ncco>();
     list.add(talk);
@@ -25,7 +25,22 @@ public class NccoFactory {
     return list;
   }
 
-  public List<Ncco> nccoListWithChangeNumber(String text, String eventUrl) {
+  public List<Ncco> nccoListWithPromptCallerId(String text, String eventUrl) {
+    TalkNcco talk = new TalkNcco(text);
+    talk.setBargeIn(true);
+
+    InputNcco input = new InputNcco();
+    input.setEventUrl(eventUrl);
+    input.setTimeOut(5);
+   
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(talk);
+    list.add(input);
+    
+    return list;
+  }
+
+  public List<Ncco> nccoListWithGetNumber(String text, String eventUrl) {
 
     TalkNcco talk = new TalkNcco(text);
     talk.setBargeIn(true);
@@ -43,6 +58,22 @@ public class NccoFactory {
     return list;
   }
 
+  public List<Ncco> nccoListWithConfirmNumber(String text, String eventUrl) {
+
+    TalkNcco talk = new TalkNcco(text);
+    talk.setBargeIn(true);
+
+    InputNcco input = new InputNcco();
+    input.setEventUrl(eventUrl);
+    input.setTimeOut(10);
+   
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(talk);
+    list.add(input);
+    
+    return list;
+  }
+  
   public Ncco nccoTalkWithRegularTaskGreeting(String text) {
     TalkNcco ncco = new TalkNcco(text);
     return ncco;
@@ -58,6 +89,42 @@ public class NccoFactory {
     ncco.setRecord(false);
 
     return ncco;
+  }
+
+  public List<Ncco> nccoListWithAnswerFromAgentForCallbackTask(
+      String text, 
+      String conversationId,
+      String musicOnHoldUrl) {
+
+    TalkNcco talk = new TalkNcco(text);
+
+    ConversationNccoEx conv = new ConversationNccoEx(conversationId);
+    conv.setMusicOnHoldUrl(musicOnHoldUrl);
+    conv.setStartOnEnter(false);
+    conv.setRecord(false);
+   
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(talk);
+    list.add(conv);
+    
+    return list;
+  }
+
+  public List<Ncco> nccoListWithAnswerFromCustomerForCallbackTask(
+      String text, 
+      String conversationId,
+      String musicOnHoldUrl) {
+
+    TalkNcco talk = new TalkNcco(text);
+
+    ConversationNccoEx conv = new ConversationNccoEx(conversationId);
+    conv.setRecord(false);
+   
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(talk);
+    list.add(conv);
+    
+    return list;
   }
   
 }

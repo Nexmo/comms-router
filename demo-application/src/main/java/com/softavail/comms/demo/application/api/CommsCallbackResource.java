@@ -7,13 +7,22 @@ import com.nexmo.client.voice.Endpoint;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.comms.nexmo.util.PhoneConverter;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
+import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -23,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -33,6 +43,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 @Produces({MediaType.APPLICATION_JSON})
@@ -53,50 +64,42 @@ public class CommsCallbackResource {
 
   
   @POST
-  public void taskAssignmentAnswer(
-      @QueryParam("callId") final String conversationId,
+  public Response taskAssignmentAnswer(
       final TaskAssignmentDto taskAssignment) {
 
-    // TODO 
-  }
-
-  @POST
-  @Path("/{taskId}")
-  public void taskAnswer(
-      @PathParam("taskId") String taskId,
-      @QueryParam("kind") final String kind, 
-      @QueryParam("callId") final String conversationId, 
-      AgentDto agent) {
-
-    LOGGER.debug("/comms_callback/{}", taskId);
-    LOGGER.debug("agent: {}", agent);
-
-    if (null != kind && kind.equals("callback")) {
-      handleCallbackTask(taskId, agent);
-    } else {
-      handleRegularTask(taskId, conversationId, agent);
+    LOGGER.debug("/comms_callback");
+    if (null != taskAssignment) {
+      
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          doTaskAssignmentAnswer(taskAssignment);
+        }
+      }).start();
+      
     }
     
+    Response response = Response.ok().build();
+    LOGGER.debug("/comms_callback response: {}", response);
+    return response;
   }
 
-  private void handleRegularTask(
-      final String taskId, 
-      final String conversationId,
-      final AgentDto agent) {
+  private void handleRegularTask(TaskDto task, AgentDto agent) {
 
     boolean flagOk = false;
     CallEvent callEvent = null;
     
     try {
 
-      // obtain agent's endpoint to be called
-      Endpoint epAgent = NexMoModelFactory.createEndpoint(agent.getAddress());
-      Endpoint epFrom =
-          NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
+      String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
+      String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
+      Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
+      Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
+      
       URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
           .path("answer_outbound")
-          .path(conversationId)
-          .queryParam("kind", "regular")
+          .queryParam("kind", "regular_agent")
+          .queryParam("taskId", task.getId())
           .build();
       
       String answerUrl = uri.toString();
@@ -106,18 +109,18 @@ public class CommsCallbackResource {
 
       // set event url
       URI evturi = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
-          .path("event")
-          .queryParam("kind", "regular")
-          .queryParam("taskId", taskId)
-          .queryParam("callId", conversationId)
+          .path("event_outbound")
+          .queryParam("kind", "regular_agent")
+          .queryParam("taskId", task.getId())
           .build();
 
       String eventUrl = evturi.toString();
       callRequest.setEventUrl(eventUrl);
       
       // start a call to the agent
+      LOGGER.debug("calling agent at: {}", epAgent.toLog());
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-      LOGGER.debug("calling agent at: {} with uuid: {}", agent.getAddress(), callEvent.getUuid());
+      LOGGER.debug("uuid: {}", callEvent.getUuid());
       flagOk = true;
       
     } catch (IOException | NexmoClientException e) {
@@ -136,15 +139,17 @@ public class CommsCallbackResource {
         UpdateTaskArg updateArg = new UpdateTaskArg();
         // TODO: we need failed state for a task
         updateArg.setState(TaskState.completed);
-        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
+        RouterObjectId taskObjectId =
+            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
         taskServiceClient.update(updateArg, taskObjectId);
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
+        RouterObjectId taskObjectId =
+            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.update(updateCtx, taskObjectId);
+        taskServiceClient.updateContext(updateCtx, taskObjectId);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -155,22 +160,24 @@ public class CommsCallbackResource {
     }
   }
 
-  private void handleCallbackTask(
-      final String taskId, 
-      final AgentDto agent) {
+  private void handleCallbackTask(TaskDto task, AgentDto agent) {
 
     boolean flagOk = false;
     CallEvent callEvent = null;
     
     try {
-      String conversationId = "conv-" + UUID.randomUUID().toString();
-
       // obtain agent's endpoint to be called
-      Endpoint epAgent = NexMoModelFactory.createEndpoint(agent.getAddress());
-      Endpoint epFrom =
-          NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
-      URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl()).path("answer_outbound")
-          .path(conversationId).queryParam("kind", "callback_agent").build();
+      String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
+      String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
+      Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
+      Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
+
+      NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
+      URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+          .path("answer_outbound")
+          .queryParam("kind", "callback_agent")
+          .queryParam("taskId", task.getId())
+          .build();
 
       String answerUrl = uri.toString();
 
@@ -180,20 +187,23 @@ public class CommsCallbackResource {
       // set event url
       URI evturi = 
           UriBuilder.fromPath(configuration.getCallbackBaseUrl())
-          .path("event")
+          .path("event_outbound")
           .queryParam("kind", "callback_agent")
-          .queryParam("taskId", taskId)
-          .queryParam("callId", conversationId)
+          .queryParam("taskId", task.getId())
           .build();
 
       String eventUrl = evturi.toString();
       callRequest.setEventUrl(eventUrl);
 
       // start a call to the agent
+      LOGGER.debug("calling agent at: {}, answ_url: {}, evt_url: {}", 
+          epAgent.toLog(), answerUrl, eventUrl);
+      
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-      LOGGER.debug("calling agent at: {} with uuid: {}", agent.getAddress(), callEvent.getUuid());
       flagOk = true;
     
+      LOGGER.debug("uuid: {}",
+          callEvent.getUuid());
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
       LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
@@ -209,15 +219,17 @@ public class CommsCallbackResource {
         UpdateTaskArg updateArg = new UpdateTaskArg();
         // TODO: we need failed state for a task
         updateArg.setState(TaskState.completed);
-        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
+        RouterObjectId taskObjectId =
+            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
         taskServiceClient.update(updateArg, taskObjectId);
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
+        RouterObjectId taskObjectId =
+            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.update(updateCtx, taskObjectId);
+        taskServiceClient.updateContext(updateCtx, taskObjectId);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -313,5 +325,99 @@ public class CommsCallbackResource {
       }
     }
   }*/
+
+  
+  private String stringAttributeValueDto(AttributeValueDto valueDto) {
+
+    if (null == valueDto) {
+      return "";
+    }
+    
+    String stringValue = null;
+    ArrayList<String> result = new ArrayList<String>();
+    
+    try {
+      
+      valueDto.accept( new AttributeValueVisitor() {
+        @Override
+        public void handleStringValue(StringAttributeValueDto value) throws IOException {
+          result.add(value.getValue());
+        }
+        
+        @Override
+        public void handleLongValue(LongAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+        
+        @Override
+        public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+      });
+    } catch (IOException e) {
+      LOGGER.error(e.getLocalizedMessage());
+    }
+    
+    if (result != null && result.size() > 0) {
+      stringValue = result.get(0);
+    }
+    
+    return stringValue;
+  }
+
+  private String attributeGroupDtogetString(String key, AttributeGroupDto groupDto) {
+    try {
+      return stringAttributeValueDto(groupDto.get(key));
+    } catch (Exception e) {
+      LOGGER.error("attributeGroupDtogetString: {}", e.getMessage());
+    }
+    return "";
+  }
+
+  private void doTaskAssignmentAnswer(
+      final TaskAssignmentDto taskAssignment) {
+    
+    LOGGER.debug("agent: {}", taskAssignment.getAgent());
+    LOGGER.debug("task: {}", taskAssignment.getTask());
+    
+    try {
+      TaskDto task = taskAssignment.getTask();
+      AttributeGroupDto context = task.getUserContext(); 
+      if (null != context) {
+        String kind = attributeGroupDtogetString("kind", context);
+        if (null != kind && kind.equals("callback")) {
+          handleCallbackTask(task, taskAssignment.getAgent());
+          return;
+        }
+      }
+
+      handleRegularTask(taskAssignment.getTask(), taskAssignment.getAgent());
+    } catch (Exception e) {
+      LOGGER.error("taskAssignmentAnswer: {}", e.getMessage());
+    }
+  }
 
 }
