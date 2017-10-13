@@ -7,6 +7,7 @@
   :depends-on (#:alexandria
                #:jsown
                #:drakma
+               #:hunchentoot
                #:lparallel
                #:check-it)
   :serial t
@@ -16,4 +17,5 @@
                (:file "rchecker")
                (:file "eapi")
                (:file "etest")
+               (:file "auto-complete")
                (:file "tests/task-queue")))
