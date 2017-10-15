@@ -6,7 +6,7 @@
   <persistence-unit name="com.softavail.comms-router.nexmoapps-pu" transaction-type="RESOURCE_LOCAL">
 
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-    <jta-data-source>java:comp/env/jdbc/nexmoAppsDB</jta-data-source>
+    <non-jta-data-source>java:comp/env/jdbc/nexmoAppsDB</non-jta-data-source>
 
     <properties>
       <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
