@@ -46,7 +46,8 @@ Setting up the JNDI datasource on Tomcat.
 
 3. Optionally enable Database Connection Pool
 
-    You can set additional options to enable Database Connection Pooling. See documentation [here][3] and [here][4].
+    You can set additional options to enable Database Connection Pooling. 
+    See documentation [here][3] and [here][4].
 
     Example:
 
@@ -75,13 +76,43 @@ Setting up the JNDI datasource on Tomcat.
     Ex. The [MySql driver][5] is named _mysql-connector-java-5.1.XX-bin.jar_ and
     should be placed in the `lib` directory in the Tomcat installation.
 
-5. When running tomcat, java should be run with option '-Dhibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialect'
+5. Hibernate, the JPA provider we use, by default creates tables in MySQL with the MyISAM engine 
+    which is non-transactional storage engine. 
+    
+    The CommsRouter **requires** _transactional_ storage engine. To enable that with MySQL 
+    you should set one of those JVM options at start:
+    - `-Dhibernate.dialect=org.hibernate.dialect.MySQL5Dialect` 
+    or 
+    - `-Dhibernate.dialect.storage_engine=innodb`
 
-    Usually it is set in setevn.sh or setenv.bat in tomcat/bin folder
+    Ex. With Tomcat JVM properties are set like this:
+    * UNIX: `$CATALINA_BASE/bin/setenv.sh`
+    ```bash
+    export CATALINA_OPTS="$CATALINA_OPTS -Dhibernate.dialect.storage_engine=innodb"
+    ```
+    * Windows: `%CATALINA_BASE%\bin\setenv.bat`
+    ```bat
+    set CATALINA_OPTS=%CATALINA_OPTS% -Dhibernate.dialect.storage_engine=innodb
+    ```
 
 
-[1]: https://tomcat.apache.org/tomcat-8.0-doc/config/context.html  "Apache Tomcat 8 Configuration Reference"
-[2]: https://tomcat.apache.org/tomcat-8.0-doc/jndi-datasource-examples-howto.html "JNDI Datasource HOW-TO"
-[3]: https://tomcat.apache.org/tomcat-8.0-doc/jndi-datasource-examples-howto.html#Database_Connection_Pool_(DBCP_2)_Configurations "Database Connection Pool (DBCP 2) Configurations"
-[4]: http://commons.apache.org/proper/commons-dbcp/configuration.html "BasicDataSource Configuration Parameters"
-[5]: https://dev.mysql.com/downloads/connector/j/5.1.html "MySQL Connector/J"
+
+[1]: 
+https://tomcat.apache.org/tomcat-8.0-doc/config/context.html  
+"Apache Tomcat 8 Configuration Reference"
+
+[2]: 
+https://tomcat.apache.org/tomcat-8.0-doc/jndi-datasource-examples-howto.html 
+"JNDI Datasource HOW-TO"
+
+[3]: 
+https://tomcat.apache.org/tomcat-8.0-doc/jndi-datasource-examples-howto.html#Database_Connection_Pool_(DBCP_2)_Configurations 
+"Database Connection Pool (DBCP 2) Configurations"
+
+[4]: 
+http://commons.apache.org/proper/commons-dbcp/configuration.html 
+"BasicDataSource Configuration Parameters"
+
+[5]: 
+https://dev.mysql.com/downloads/connector/j/5.1.html 
+"MySQL Connector/J"
