@@ -29,8 +29,8 @@ public class ApplicationContext {
   private final Configuration configuration;
 
   public ApplicationContext(ServletContext servletContext) {
-    this.client = createClient();
     configuration = new ConfigurationImpl(servletContext);
+    client = createClient();
 
     JpaDbFacade db = new JpaDbFacade();
     CommsRouterEvaluator evaluator = new CommsRouterEvaluator();

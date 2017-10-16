@@ -4,17 +4,13 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
-import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 
-import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -84,20 +80,6 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectI
       throws CommsRouterException {
 
     deleteRequest(new ApiObjectId(id));
-  }
-
-  public void rejectAssignment(String id, TaskAssignmentDto taskAssignmentDto)
-      throws CommsRouterException {
-
-    URI uri = getApiUrl().clone()
-        .path("{id}")
-        .path("/rejectAssignment")
-        .build(id);
-
-    getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(taskAssignmentDto, MediaType.APPLICATION_JSON_TYPE));
   }
 
 }

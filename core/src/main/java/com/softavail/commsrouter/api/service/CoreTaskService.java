@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -77,28 +78,20 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    if (updateArg.getState() != TaskState.completed) {
-      throw new BadValueException("Expected state: completed");
-    }
-
-    String releasedAgentId = app.db.transactionManager.execute((em) -> {
-      Task task = app.db.task.get(em, objectId.getId());
-      // @todo: check current state and throw if not appropriate and then agent == null would be
-      // internal error
-      task.setState(TaskState.completed);
-      Agent agent = task.getAgent();
-      if (agent == null) {
-        return null;
-      }
-      if (agent.getState() != AgentState.busy) {
-        return null;
-      }
-      agent.setState(AgentState.ready);
-      return agent.getId();
-    });
-
-    if (releasedAgentId != null) {
-      app.taskDispatcher.dispatchAgent(releasedAgentId);
+    switch (updateArg.getState()) {
+      case waiting:
+        app.db.transactionManager
+            .execute(em -> app.taskDispatcher.rejectAssignment(em, objectId.getId()))
+            .ifPresent(app.taskDispatcher::dispatchTask);
+        break;
+      case completed:
+        app.db.transactionManager
+            .execute((em) -> completeTask(em, objectId.getId()))
+            .ifPresent(app.taskDispatcher::dispatchAgent);
+        break;
+      case assigned:
+      default:
+        throw new BadValueException("Expected state: waiting or completed");
     }
   }
 
@@ -110,6 +103,24 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Task task = app.db.task.get(em, objectId.getId());
       task.setUserContext(app.entityMapper.attributes.toJpa(taskContext.getUserContext()));
     });
+  }
+
+  private Optional<String> completeTask(EntityManager em, String taskId)
+      throws NotFoundException {
+
+    Task task = app.db.task.get(em, taskId);
+    // @todo: check current state and throw if not appropriate and then agent == null would be
+    // internal error
+    task.setState(TaskState.completed);
+    Agent agent = task.getAgent();
+    if (agent == null) {
+      return Optional.empty();
+    }
+    if (agent.getState() != AgentState.busy) {
+      return Optional.empty();
+    }
+    agent.setState(AgentState.ready);
+    return Optional.of(agent.getId());
   }
 
   private CreatedTaskDto doCreate(EntityManager em, CreateTaskArg createArg,

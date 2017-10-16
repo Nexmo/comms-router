@@ -6,11 +6,11 @@
 package com.softavail.commsrouter.app;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Task;
@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
@@ -90,17 +91,28 @@ public class TaskDispatcher {
     });
   }
 
-  public void redispatchAssignment(RouterObjectId agentId, RouterObjectId taskId)
+  private void redispatchAssignment(String taskId)
       throws CommsRouterException {
 
-    db.transactionManager.executeVoid(em -> {
-      Agent agent = db.agent.get(em, agentId);
+    db.transactionManager.execute(em -> rejectAssignment(em, taskId))
+        .ifPresent(this::dispatchTask);
+  }
+
+  public Optional<String> rejectAssignment(EntityManager em, String taskId)
+      throws NotFoundException {
+
+    Task task = db.task.get(em, taskId);
+    Agent agent = task.getAgent();
+
+    if (task.getState().isAssigned() && agent != null) {
       agent.setState(AgentState.unavailable);
-      Task task = db.task.get(em, taskId);
       task.setState(TaskState.waiting);
       task.setAgent(null);
-      dispatchTask(task.getId());
-    });
+
+      return Optional.of(task.getId());
+    }
+
+    return Optional.empty();
   }
 
   @SuppressWarnings("unchecked")
@@ -147,7 +159,7 @@ public class TaskDispatcher {
       try {
         taskEventHandler.onTaskAssigned(taskAssignment);
       } catch (AssignmentRejectedException e) {
-        redispatchAssignment(taskAssignment.getAgent(), taskAssignment.getTask());
+        redispatchAssignment(taskAssignment.getTask().getId());
       }
     } else {
       LOGGER.info("Dispatch task {}: miss", taskId);
