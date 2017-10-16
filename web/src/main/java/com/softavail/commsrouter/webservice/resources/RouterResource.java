@@ -7,7 +7,6 @@ import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.service.CoreRouterService;
-import com.softavail.commsrouter.app.TaskDispatcher;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -54,9 +53,6 @@ public class RouterResource {
 
   @Inject
   private CoreRouterService routerService;
-
-  @Inject
-  private TaskDispatcher taskDispatcher;
 
   @GET
   @ApiOperation(value = "Get All Routers",
