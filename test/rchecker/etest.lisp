@@ -6,7 +6,7 @@
 (defun check-result(result description)
   #'(lambda(res)(list result description)))
 
-(defun tstep-result(description response check steps-to-reproduce check-description)
+(defun tstep-result(description response check steps-to-reproduce check-description &optional sub-items)
   #'(lambda()
       (list response check (list (list description check steps-to-reproduce response check-description)))))
 
@@ -51,7 +51,8 @@
                                                      (list "Waiting step to complete has failed"))))))) ) ))
 
 (defun suite-result(results)
-  (reduce #'(lambda(state res)(destructuring-bind (pass skip fail) state (if (second res) (list (1+ pass) skip fail))))
+  (reduce #'(lambda(state res)(destructuring-bind (pass skip fail) state (if (second res) (list (1+ pass) skip fail)
+                                                                             (list pass  skip (1+ fail)))))
           results :initial-value (list 0 0 0)))
 
 (defun tsuite(description &rest steps)
@@ -64,7 +65,8 @@
                                (format nil "Executing tests: ~{~S~^, ~}." (mapcar #'first (mapcar #'first (mapcar #'third results))))
                                (if result (list "ok - All tests have passed.")
                                    (mapcar #'(lambda(case-info) (format nil "FAIL - case ~S has failed."(first(first case-info)) ))
-                                           (mapcar #'third (remove-if #'second results)))))))))
+                                           (mapcar #'third results)))
+                               results)))))
 
 (assert (funcall (tsuite "Sample suite"
                          (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
@@ -84,9 +86,10 @@
                            `(tlet ,(rest vars) ,@body)
                            `(progn ,@body) ) ) ) ))
 
-(defun print-log(result)
+(defun print-log(result &optional indent)
   (destructuring-bind (result check log)result
-    (format t "~{ ~{~%Description:~A~%Result:~:[FAIL~;pass~]~%Request:~A~%Response:~A~%~{Checks:~A~%~}~}~}"log)
+    (format t "~{~%---------------~{~%Description:~A~%Result:~:[FAIL~;pass~]~%Request:~A~%Response:~A~%~{Checks:~A~%~}~}~}" log)
+
     (format t "Result:~:[FAIL~;pass~]" check))
   (second result))
 

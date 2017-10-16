@@ -107,7 +107,7 @@
                         (check-and (has-json) (has-kv "state" "assigned")
                                    (has-kv "queueId" queue-id)
                                    (has-kv "agentId" agent-id)
-                                   (has-kv "planId" plan-id))))
+                                   )))
           (tstep "Agent has task.Check that it gets busy."
                  (tapply (http-get "/routers" router-id "agents" agent-id))
                  (check-and (has-json) (has-kv "state" "busy")))
@@ -161,7 +161,7 @@
                    (check-and (has-json) (has-kv "state" "assigned")
                               (has-kv "queueId" queue-id)
                               (has-kv "agentId" agent-id)
-                              (has-kv "planId" ())))
+                              ))
             (tstep "Agent has task.Check that it gets busy."
                    (tapply (http-get "/routers" router-id "agents" agent-id))
                    (check-and (has-json) (has-kv "state" "busy")))
@@ -199,7 +199,7 @@
    (setup-rqpt :qpredicate qpredicate :tpredicate tpredicate :task-req task-req
                :fn (process-one-task))
    (setup-rqt :qpredicate qpredicate
-              :fn (process-one-task))) )
+              :fn (process-one-task)) ) )
 
 (defun test-delete-agent()
   (setup-rqpt
@@ -255,6 +255,5 @@
   )
 
 (defun test-all()
-  (mapcar #'print-log
-          (remove-if #'second
-                     (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))) ) )
+  (mapcar #'print-log (remove-if #'second (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))))
+)
