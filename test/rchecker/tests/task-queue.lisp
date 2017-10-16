@@ -85,8 +85,7 @@
        (tstep "Check that task is in state waiting."
               (tapply (http-get "/routers" router-id "tasks" task-id ))
               (check-and (has-json) (has-kv "state" "waiting")
-                         (has-kv "queueId" queue-id)
-                         (has-kv "agentId" nil)))
+                         (has-kv "queueId" queue-id)))
        (tlet ((agent-id (js-val "id")
                         (tstep "Create agent"
                                (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
@@ -135,13 +134,12 @@
          (tstep "Check that high priority task is in state waiting."
                 (tapply (http-get "/routers" router-id "tasks" high-task-id ))
                 (check-and (has-json) (has-kv "state" "waiting")
-                           (has-kv "queueId" queue-id)
-                           (has-kv "agentId" nil)))
+                           (has-kv "queueId" queue-id)))
          (tstep "Check that low priority task is in state waiting."
                 (tapply (http-get "/routers" router-id "tasks" task-id ))
                 (check-and (has-json) (has-kv "state" "waiting")
-                           (has-kv "queueId" queue-id)
-                           (has-kv "agentId" nil)))
+                           (has-kv "queueId" queue-id)))
+
          (tlet ((agent-id (js-val "id")
                           (tstep "Create agent"
                                  (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
@@ -245,8 +243,18 @@
             (tapply (http-get "/routers" router-id "tasks" task-id "user_context" "result"))
             (is-equal "true")))))
 
+(defun test-push-tasks (count)
+  #'(lambda()
+      (router-new)
+      (queue-new)
+      (agent-new)
+      (agent-set)
+      (let ((result (remove-if #'second (lparallel:pmapcar #'(lambda(n)(funcall (push-a-task))) (loop :repeat count :collect 1) ))))
+        (mapcar #'print-log result) )
+      )
+  )
+
 (defun test-all()
   (mapcar #'print-log
           (remove-if #'second
-                     (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task))))
-          ) )
+                     (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))) ) )

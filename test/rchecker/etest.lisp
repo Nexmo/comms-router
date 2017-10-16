@@ -50,12 +50,26 @@
                                                      (jsown:to-json response)
                                                      (list "Waiting step to complete has failed"))))))) ) ))
 
-(defun tapply(request)
+(defun suite-result(results)
+  (reduce #'(lambda(state res)(destructuring-bind (pass skip fail) state (if (second res) (list (1+ pass) skip fail))))
+          results :initial-value (list 0 0 0)))
+
+(defun tsuite(description &rest steps)
   #'(lambda()
-      (list (apply #'cmd-curl (funcall request))
-            (apply *transport* (funcall request)))))
+      (let* ((results (mapcar #'funcall steps))
+             (result (every #'second results)))
+        (funcall (tstep-result description
+                               (suite-result results)
+                               result
+                               (format nil "Executing tests: ~{~S~^, ~}." (mapcar #'first (mapcar #'first (mapcar #'third results))))
+                               (if result (list "ok - All tests have passed.")
+                                   (mapcar #'(lambda(case-info) (format nil "FAIL - case ~S has failed."(first(first case-info)) ))
+                                           (mapcar #'third (remove-if #'second results)))))))))
 
-
+(assert (funcall (tsuite "Sample suite"
+                         (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
+                         (tstep-result 'description1 'response1 'check1 'steps-to-repro1 '(check-descr1))
+                         )))
 
 (defmacro tlet(vars &body body)
   `(step-bind ,(first (last (first vars)) )
