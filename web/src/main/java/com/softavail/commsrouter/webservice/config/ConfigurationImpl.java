@@ -28,7 +28,7 @@ public class ConfigurationImpl implements Configuration {
 
   private static final Logger LOGGER = LogManager.getLogger(ConfigurationImpl.class);
 
-  private final static Properties defaultProperties;
+  private static final Properties defaultProperties;
 
   static {
     defaultProperties = new Properties();
