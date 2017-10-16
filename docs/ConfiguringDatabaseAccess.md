@@ -11,7 +11,7 @@ Setting up the JNDI datasource on Tomcat.
 1. You can create `comms-router-web.xml` in `$CATALINA_BASE/conf/[enginename]/[hostname]/`
     or use some other relevant file. [See Documentation][1]
 
-    Alternatively this resource can be added to encompassing contexts defined 
+    Alternatively this resource can be added to encompassing contexts defined
     in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml`.
 
 2. In the chosen file you should put the datasource resource definition. [See Documentation][2]
@@ -47,9 +47,9 @@ Setting up the JNDI datasource on Tomcat.
 3. Optionally enable Database Connection Pool
 
     You can set additional options to enable Database Connection Pooling. See documentation [here][3] and [here][4].
-    
+
     Example:
-    
+
     ```xml
     <Resource
       name="jdbc/commsRouterDB"
@@ -66,7 +66,7 @@ Setting up the JNDI datasource on Tomcat.
       logAbandoned="true"
     />
     ```
-    
+
 
 4. Provide the JDBC driver in the JVM path
 
@@ -74,6 +74,11 @@ Setting up the JNDI datasource on Tomcat.
 
     Ex. The [MySql driver][5] is named _mysql-connector-java-5.1.XX-bin.jar_ and
     should be placed in the `lib` directory in the Tomcat installation.
+
+5. When running tomcat, java should be run with option '-Dhibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialect'
+
+    Usually it is set in setevn.sh or setenv.bat in tomcat/bin folder
+
 
 [1]: https://tomcat.apache.org/tomcat-8.0-doc/config/context.html  "Apache Tomcat 8 Configuration Reference"
 [2]: https://tomcat.apache.org/tomcat-8.0-doc/jndi-datasource-examples-howto.html "JNDI Datasource HOW-TO"
