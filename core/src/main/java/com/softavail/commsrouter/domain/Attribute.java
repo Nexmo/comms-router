@@ -34,8 +34,8 @@ public class Attribute implements Serializable {
   @Column(name = "name")
   private String name;
 
-  @Column(name = "long_value")
-  private Long longValue;
+  @Column(name = "double_value")
+  private Double doubleValue;
 
   @Column(name = "string_value")
   private String stringValue;
@@ -67,12 +67,12 @@ public class Attribute implements Serializable {
     this.name = name;
   }
 
-  public Long getLongValue() {
-    return longValue;
+  public Double getDoubleValue() {
+    return doubleValue;
   }
 
-  public void setLongValue(Long longValue) {
-    this.longValue = longValue;
+  public void setDoubleValue(Double doubleValue) {
+    this.doubleValue = doubleValue;
   }
 
   public String getStringValue() {
@@ -102,10 +102,10 @@ public class Attribute implements Serializable {
       return this;
     }
 
-    public Attribute build(Long value) {
+    public Attribute build(Double value) {
       Attribute attr = new Attribute();
       attr.setName(key);
-      attr.setLongValue(value);
+      attr.setDoubleValue(value);
       return attr;
     }
 

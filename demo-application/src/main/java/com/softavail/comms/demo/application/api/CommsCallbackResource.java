@@ -16,13 +16,13 @@ import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -345,7 +345,7 @@ public class CommsCallbackResource {
         }
         
         @Override
-        public void handleLongValue(LongAttributeValueDto value) throws IOException {
+        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
           
         }
@@ -364,7 +364,7 @@ public class CommsCallbackResource {
         }
         
         @Override
-        public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
             throws IOException {
           // TODO Auto-generated method stub
 

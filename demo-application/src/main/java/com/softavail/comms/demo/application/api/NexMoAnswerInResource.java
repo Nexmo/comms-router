@@ -117,7 +117,7 @@ public class NexMoAnswerInResource {
     AttributeGroupDto requirements = new AttributeGroupDto();
     requirements.put("language", new StringAttributeValueDto("en"));
     requirements.put("color", new StringAttributeValueDto("red"));
-    requirements.put("price", new LongAttributeValueDto(20));
+    requirements.put("price", new DoubleAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
     CreatedTaskDto task = null;
