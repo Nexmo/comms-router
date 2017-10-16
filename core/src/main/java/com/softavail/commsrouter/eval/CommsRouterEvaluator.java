@@ -9,29 +9,26 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
-
 import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
 import net.sourceforge.jeval.Evaluator;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-
 import java.util.Set;
 
 /**
@@ -171,8 +168,8 @@ public class CommsRouterEvaluator {
           }
 
           @Override
-          public void handleLongValue(LongAttributeValueDto value) throws IOException {
-            evaluator.putVariable(key, String.format("%d", (int) value.getValue()));
+          public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+            evaluator.putVariable(key, String.format("%f", (double) value.getValue()));
           }
 
           @Override
@@ -188,7 +185,7 @@ public class CommsRouterEvaluator {
           }
 
           @Override
-          public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+          public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
             evaluator.putVariable(key,
                 String.format("'%s'", value.getValue().toString().replace(',', ';')));

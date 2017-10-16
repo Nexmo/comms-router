@@ -30,15 +30,24 @@
 
 (defun not-contains(text)
   #'(lambda(data)
-      (if (not (search text member key (jsown:keywords json) :test #'equal))
+      (if (not (search text (format nil "~S" data)))
           (list t (list (format nil "OK - result not contains text ~S" text)))
           (list nil (list (format nil "FAIL - ~S should not contain ~S" data text))))))
+
+(defun contains(text)
+  #'(lambda(data)
+      (if (search text (format nil "~S" data))
+          (list t (list (format nil "OK - result contains text ~S" text)))
+          (list nil (list (format nil "FAIL - ~S should contain ~S" data text))))))
 
 (defun is-equal(text)
   #'(lambda(data)
       (if (equal text data)
           (list t (list (format nil "OK - result equals to ~S" text)))
           (list nil (list (format nil "FAIL - ~S should be equal to ~S" data text))))))
+
+(defun js-val (key)
+  #'(lambda(json) (jsown:val json key)))
 
 (defun check-result(check descr)
   #'(lambda(json)(list check descr)))
@@ -67,14 +76,6 @@
   #'(lambda()
       (let((res (funcall thunk-fn)))
         (list* res (funcall check-fn res))) ) )
-
-(defun step-bind(step-fn p-step-fn)
-  #'(lambda()
-      (destructuring-bind (result status descr) (funcall step-fn)
-        ;(print status)
-        (if status
-            (funcall (funcall p-step-fn result descr))
-            (list result status descr)))))
 
 (defun step-seq(step &rest steps)
   (if steps
@@ -149,7 +150,19 @@
 
 (defun cagent-update()
   (check-step #'(lambda()(agent-put))
+              (has-key "id")))
+
+(defun cagent-set()
+  (check-step #'(lambda()(agent-set :state "ready"))
               (is-equal "")))
+
+(defun cagent-ready()
+  (check-step #'(lambda()(agent))
+              (has-kv "state" "ready")))
+
+(defun cagent-busy()
+  (check-step #'(lambda()(agent))
+              (has-kv "state" "busy")))
 
 (defun cagent-del()
   (check-step #'(lambda()(agent-del))
@@ -245,7 +258,20 @@
 
 (defun ctask-update()
   (check-step #'(lambda()(task-put))
+              (has-key "id")))
+
+(defun ctask-set()
+  (check-step #'(lambda()(task-set :state "completed"))
               (is-equal "")))
+(defun ctask-waiting()
+  (check-step #'(lambda()(task))
+              (has-kv "state" "waiting")))
+(defun ctask-assigned()
+  (check-step #'(lambda()(task))
+              (has-kv "state" "assigned")))
+(defun ctask-completed()
+  (check-step #'(lambda()(task))
+              (has-kv "state" "completed")))
 
 (defun ctask-del()
   (check-step #'(lambda()(task-del))
@@ -288,7 +314,7 @@
                                  (crouter-del)))))))
 
 (defun test-task-queue()
-  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "1!=1")))
+  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "true" "IN(1,[2,1,3])" "HAS([1,2,3],2)")))
         (composite (generator (tuple "(" (tuple simple
                                                 (list (tuple (or "&&" "||") simple))
                                                 ) ")"))))
@@ -303,7 +329,7 @@
               (list
                (tuple
                 'cagent-new
-                'cqueue-new-and-bind-to-agent
+                ;;'cqueue-new-and-bind-to-agent
                 (or
                  (tuple 'ctask-new
                         (list (tuple 'ctask-update 'cagent-update))
@@ -314,6 +340,25 @@
                 (list 'cqueue-del :max-length 1)
                 (list 'cagent-del :max-length 1)))
               (list 'crouter-del :max-length 1))) #'check-ops))
+
+(defun test-task-path()
+  (check-it (generator
+             (tuple
+              'crouter-new
+              (list
+               (tuple
+                (or (tuple 'cagent-new 'cqueue-new 'ctask-new)
+                    (tuple 'cqueue-new (or (tuple 'ctask-new 'cagent-new)
+                                           (tuple 'cagent-new 'ctask-new))) )
+                'cagent-set
+                (list (or 'ctask-assigned 'cagent-busy) :max-length 2)
+                (list (tuple  'ctask-set (list 'cagent-set :max-length 1)
+                              (list (or 'ctask-completed'cagent-ready) :max-length 2)
+                              )
+                      :max-length 1)
+                )
+               :max-length 1)
+               )) #'check-ops))
 
 (defun crud (resource)
   (apply #'step-seq (mapcar #'(lambda(name)(funcall (symbol-function (intern name))))
