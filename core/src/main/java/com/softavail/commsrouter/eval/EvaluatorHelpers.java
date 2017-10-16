@@ -15,6 +15,11 @@ import net.sourceforge.jeval.function.FunctionHelper;
  */
 public class EvaluatorHelpers {
 
+  public static String VALIDATION_VARIABLE_KEY_NAME = "CREValidationVar";
+  public static String VALIDATION_VARIABLE_KEY_VALUE = EvaluationConstants.BOOLEAN_STRING_TRUE;
+  public static String VALIDATION_VARIABLE = EvaluationConstants.OPEN_VARIABLE
+      + VALIDATION_VARIABLE_KEY_NAME + EvaluationConstants.CLOSED_VARIABLE;
+
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();

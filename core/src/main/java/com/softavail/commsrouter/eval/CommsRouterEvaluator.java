@@ -131,7 +131,7 @@ public class CommsRouterEvaluator {
 
     String formatedExpression = supportArraysInExpression(expression);
     ExpressionEvaluator evaluator = new ExpressionEvaluator();
-    evaluator.init();
+    evaluator.init(true);
 
     return evaluator.isValidExpression(formatedExpression);
   }

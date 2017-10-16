@@ -6,6 +6,7 @@
 package com.softavail.commsrouter.eval;
 
 import net.sourceforge.jeval.EvaluationException;
+import net.sourceforge.jeval.EvaluationHelper;
 import net.sourceforge.jeval.Evaluator;
 
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +19,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class ExpressionEvaluator extends Evaluator {
 
+  private boolean isValidation = false;
   private static final Logger LOGGER = LogManager.getLogger(ExpressionEvaluator.class);
 
   @Override
@@ -27,20 +29,29 @@ public class ExpressionEvaluator extends Evaluator {
       return replacedVariable;
     }
 
+    if (isValidation) {
+      return EvaluationHelper.replaceAll(expression, EvaluatorHelpers.VALIDATION_VARIABLE,
+          EvaluatorHelpers.VALIDATION_VARIABLE_KEY_VALUE);
+    }
+
     return super.replaceVariables(expression);
   }
 
   public void init() {
+    init(false);
+  }
+
+  public void init(boolean isValidation) {
+    this.isValidation = isValidation;
     putFunction(new HasFunction());
     putFunction(new InFunction());
     putFunction(new ContainsFunction());
-    setVariableResolver(new CommsRouterVariableResolver());
+    setVariableResolver(new CommsRouterVariableResolver(isValidation));
   }
 
   public boolean isValidExpression(String expression) {
     try {
-      String test = " HASS(colors,'red') || IN('support', skills)";
-      parse(test);
+      evaluate(expression);
       return true;
     } catch (EvaluationException ex) {
       LOGGER.info("Expression validation failed with: {}", ex.getLocalizedMessage());
