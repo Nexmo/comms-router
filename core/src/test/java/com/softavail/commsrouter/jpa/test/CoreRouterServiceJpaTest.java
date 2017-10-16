@@ -10,17 +10,10 @@ import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.service.CoreRouterService;
-import com.softavail.commsrouter.app.AppContext;
-import com.softavail.commsrouter.app.TaskDispatcher;
-import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
-import com.softavail.commsrouter.jpa.JpaDbFacade;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import static org.junit.Assert.assertEquals;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -28,36 +21,7 @@ import org.junit.Test;
  */
 public class CoreRouterServiceJpaTest extends TestBase {
 
-    private static CoreRouterService routerService;
-    private static AppContext app;
-
     private static final Logger LOGGER = LogManager.getLogger(CoreRouterServiceJpaTest.class);
-
-    public CreateRouterArg returnNewCreateRouterArg(String name,String description) {
-        CreateRouterArg args = new CreateRouterArg();
-        args.setDescription(description);
-        args.setName(name);
-        return args;
-    }
-
-    public UpdateRouterArg returnNewUpdateRouterArg(String name,String description) {
-        UpdateRouterArg args = new UpdateRouterArg();
-        args.setDescription(description);
-        args.setName(name);
-        return args;
-    }
-
-    @BeforeClass
-    public static void setTestCoreRouterService() {
-
-        CommsRouterEvaluator ev = new CommsRouterEvaluator();
-        JpaDbFacade db = new JpaDbFacade("mnf-pu-test");
-        TaskDispatcher td = new TaskDispatcher(null, null, null);
-        EntityMappers enm = new EntityMappers();
-        app = new AppContext(db, ev, td, enm);
-        routerService = new CoreRouterService(app);
-
-    }
 
     //Testing the get method inherited from CoreApiObjectService
     @Test
