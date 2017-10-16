@@ -15,13 +15,13 @@ public interface AttributeValueVisitor {
 
   void handleBooleanValue(BooleanAttributeValueDto value) throws IOException;
 
-  void handleLongValue(LongAttributeValueDto value) throws IOException;
+  void handleDoubleValue(DoubleAttributeValueDto value) throws IOException;
 
   void handleStringValue(StringAttributeValueDto value) throws IOException;
 
   void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException;
 
-  void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value) throws IOException;
+  void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException;
 
   void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value) throws IOException;
 
