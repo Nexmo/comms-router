@@ -189,6 +189,26 @@ public class TaskQueueTest {
   }
 
   @Test
+  @DisplayName("Add task with one attribute and predicate HAS")
+  public void addTaskHasExpression() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "HAS([10,20,30],#{age})");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate IN")
+  public void addTaskExpressionIn() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new LongAttributeValueDto(20));
+    addPlanTask(taskAttribs, "IN(#{age},[10,20,30])");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   @DisplayName("Add task with one attribute and predicate to check it false || true || false")
   public void addTaskTrueFalseExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
