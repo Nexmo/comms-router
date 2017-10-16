@@ -9,29 +9,27 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Rule;
-
 import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
 import net.sourceforge.jeval.Evaluator;
-
+import net.sourceforge.jeval.VariableResolver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-
 import java.util.Set;
 
 /**
@@ -42,8 +40,31 @@ public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
-  private static final int openBracketCharacter = '[';
-  private static final int closeBracketCharacter = ']';
+  private final int openBracketCharacter = '[';
+  private final int closeBracketCharacter = ']';
+
+
+  public static class VariableResolverEx implements VariableResolver {
+
+    @Override
+    public String resolveVariable(String variableName) {
+      return EvaluatorHelpers.resolveBooleanVariable(variableName);
+    }
+  }
+
+  public static class EvaluatorEx extends Evaluator {
+
+    @Override
+    public String replaceVariables(final String expression) throws EvaluationException {
+      String replacedVariable = EvaluatorHelpers.resolveBooleanVariable(expression);
+      if (replacedVariable != null) {
+        return replacedVariable;
+      }
+
+      return super.replaceVariables(expression);
+    }
+  }
+
 
 
   /**
@@ -129,10 +150,11 @@ public class CommsRouterEvaluator {
     if (pridicate == null || pridicate.isEmpty()) {
       return false;
     }
-    Evaluator evaluator = new Evaluator();
+    Evaluator evaluator = new EvaluatorEx();
     evaluator.putFunction(new HasFunction());
     evaluator.putFunction(new InFunction());
     evaluator.putFunction(new ContainsFunction());
+    evaluator.setVariableResolver(new VariableResolverEx());
 
     return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
   }
@@ -155,12 +177,13 @@ public class CommsRouterEvaluator {
         attributeValue.accept(new AttributeValueVisitor() {
           @Override
           public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-            evaluator.putVariable(key, String.format("'%s'", value.getValue().toString()));
+            evaluator.putVariable(key, value.getValue() ? EvaluationConstants.BOOLEAN_STRING_TRUE
+                : EvaluationConstants.BOOLEAN_STRING_FALSE);
           }
 
           @Override
-          public void handleLongValue(LongAttributeValueDto value) throws IOException {
-            evaluator.putVariable(key, String.format("%d", (int) value.getValue()));
+          public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+            evaluator.putVariable(key, String.format("%f", (double) value.getValue()));
           }
 
           @Override
@@ -176,7 +199,7 @@ public class CommsRouterEvaluator {
           }
 
           @Override
-          public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+          public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
             evaluator.putVariable(key,
                 String.format("'%s'", value.getValue().toString().replace(',', ';')));

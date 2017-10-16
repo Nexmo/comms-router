@@ -16,7 +16,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
@@ -96,7 +96,7 @@ public class NexMoAnswerInResource {
     AttributeGroupDto requirements = new AttributeGroupDto();
     requirements.put("language", new StringAttributeValueDto("en"));
     requirements.put("color", new StringAttributeValueDto("red"));
-    requirements.put("price", new LongAttributeValueDto(20));
+    requirements.put("price", new DoubleAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
     CreatedTaskDto task = null;

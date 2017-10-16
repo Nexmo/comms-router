@@ -5,6 +5,7 @@
 
 package com.softavail.commsrouter.eval;
 
+import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.function.FunctionException;
 import net.sourceforge.jeval.function.FunctionHelper;
 
@@ -33,4 +34,16 @@ public class EvaluatorHelpers {
     }
     return true;
   }
+
+  public static String resolveBooleanVariable(final String variableName) {
+    if (variableName.equals("true") || variableName.equals("TRUE")) {
+      return EvaluationConstants.BOOLEAN_STRING_TRUE;
+    }
+    if (variableName.equals("false") || variableName.equals("FALSE")) {
+      return EvaluationConstants.BOOLEAN_STRING_FALSE;
+    }
+
+    return null;
+  }
+
 }

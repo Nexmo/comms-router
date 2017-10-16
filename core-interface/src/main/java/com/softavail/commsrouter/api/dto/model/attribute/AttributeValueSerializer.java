@@ -44,7 +44,7 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
       }
 
       @Override
-      public void handleLongValue(LongAttributeValueDto value) throws IOException {
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
         gen.writeNumber(value.getValue());
       }
 
@@ -64,7 +64,8 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
       }
 
       @Override
-      public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value) throws IOException {
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+          throws IOException {
         gen.writeStartArray();
         for (Object object : value.getValue()) {
           gen.writeObject(object);
