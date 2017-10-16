@@ -65,7 +65,8 @@ public class NexMoAnswerInResource {
       @QueryParam("conversation_uuid") String uuid)
       throws NotFoundException, MalformedURLException {
 
-    LOGGER.debug("/answer_inbound with conversation_uuid: {}", uuid);
+    LOGGER.debug("/answer_inbound with conversation_uuid: {}, from: {}, to: {}", 
+        uuid, from, to);
 
     NexMoCall call = conversationService.getInboundCallWithConversationId(uuid);
     if (null == call) {
@@ -117,6 +118,8 @@ public class NexMoAnswerInResource {
       builder.appendNcco(talkNccoErr);
 
       NccoResponse nccoResponse = builder.getValue();
+      LOGGER.debug("/answer_inbound response: {}", 
+          nccoResponse.toJson());
       return nccoResponse.toJson();
     }
 
@@ -140,6 +143,9 @@ public class NexMoAnswerInResource {
     builder.appendNcco(convNcco);
 
     NccoResponse nccoResponse = builder.getValue();
+
+    LOGGER.debug("/answer_inbound response: {}", 
+        nccoResponse.toJson());
     return nccoResponse.toJson();
   }
 

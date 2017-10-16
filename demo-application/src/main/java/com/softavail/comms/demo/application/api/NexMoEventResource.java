@@ -53,22 +53,25 @@ public class NexMoEventResource {
   public Response callState(CallEvent callEvent) {
 
     if (callEvent != null) {
-      LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
-          callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
+      LOGGER.debug("/event with call uuid: {} status: {} direction: {}", callEvent.getUuid(),
+          callEvent.getStatus(), callEvent.getDirection());
+      
+      if (callEvent.getUuid() != null && callEvent.getStatus() != null
+          && callEvent.getDirection() != null && callEvent.getConversationUuid() != null) {
 
-      // Update call info. Creates the call if it does not exist
-      NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-      call.setDirection(callEvent.getDirection());
-      call.setStatus(callEvent.getStatus());
+        // Update call info. Creates the call if it does not exist
+        NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
+        call.setDirection(callEvent.getDirection());
+        call.setStatus(callEvent.getStatus());
 
-      conversationService.updateCall(call);
+        conversationService.updateCall(call);
 
-      if (callEvent.getDirection() == CallDirection.INBOUND) {
-        handleInboundCallEvent(callEvent);
-      } else {
-        handleOutboundCallEvent(callEvent);
+        if (callEvent.getDirection() == CallDirection.INBOUND) {
+          handleInboundCallEvent(callEvent);
+        } else {
+          handleOutboundCallEvent(callEvent);
+        }
       }
-
     }
 
     Response response = Response.ok().build();

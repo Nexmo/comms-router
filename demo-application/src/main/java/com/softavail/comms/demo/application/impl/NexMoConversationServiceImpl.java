@@ -106,7 +106,9 @@ public class NexMoConversationServiceImpl implements ConversationService {
     synchronized (calls) {
       for (String key: calls.keySet()) {
         NexMoCall incall = calls.get(key);
-        if (incall != null && incall.getConversationUuid().equals(conversationId) 
+        if (incall != null && incall.getConversationUuid() != null 
+            && incall.getDirection() != null 
+            && incall.getConversationUuid().equals(conversationId)
             && incall.getDirection().equals(CallDirection.INBOUND)) {
           LOGGER.trace("Found outbound call with conv_uuid: {}", conversationId);
           call = incall.clone();
@@ -127,7 +129,10 @@ public class NexMoConversationServiceImpl implements ConversationService {
     synchronized (calls) {
       for (String key: calls.keySet()) {
         NexMoCall outcall = calls.get(key);
-        if (outcall != null && outcall.getConversationUuid().equals(conversationId) 
+        if (outcall != null
+            && outcall.getConversationUuid() != null
+            && outcall.getDirection() != null
+            && outcall.getConversationUuid().equals(conversationId) 
             && outcall.getDirection() == CallDirection.OUTBOUND) {
           LOGGER.trace("Found outbound call with conv_uuid: {}", conversationId);
           call = outcall.clone();
@@ -148,7 +153,8 @@ public class NexMoConversationServiceImpl implements ConversationService {
     synchronized (conversations) {
       for (String key: conversations.keySet()) {
         NexMoConversation target = conversations.get(key);
-        if (target != null && target.getCaller() != null 
+        if (target != null && target.getCaller() != null
+            && target.getCaller().getUuid() != null
             && target.getCaller().getUuid().equals(uuid)) {
           LOGGER.trace("Found conversation with inbound call uuid: {}", uuid);
           conversation = target.clone();
@@ -168,7 +174,8 @@ public class NexMoConversationServiceImpl implements ConversationService {
     synchronized (conversations) {
       for (String key: conversations.keySet()) {
         NexMoConversation target = conversations.get(key);
-        if (target != null && target.getAgent() != null 
+        if (target != null && target.getAgent() != null
+            && target.getAgent().getUuid() != null
             && target.getAgent().getUuid().equals(uuid)) {
           LOGGER.trace("Found conversation with outbound call uuid: {}", uuid);
           conversation = target.clone();
