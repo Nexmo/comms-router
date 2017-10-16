@@ -74,7 +74,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     if (updateArg.getState() != TaskState.completed) {
       throw new BadValueException("Expected state: completed");

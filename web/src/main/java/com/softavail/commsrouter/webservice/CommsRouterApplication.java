@@ -1,20 +1,13 @@
 package com.softavail.commsrouter.webservice;
 
-import com.softavail.commsrouter.app.AppContext;
-import com.softavail.commsrouter.app.TaskDispatcher;
-import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
-import com.softavail.commsrouter.jpa.JpaDbFacade;
-import com.softavail.commsrouter.providers.ClientFactory;
-import com.softavail.commsrouter.webservice.impl.TaskEventHandlerImpl;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Context;
 
 /**
  * Created by @author mapuo on 31.08.17.
@@ -24,25 +17,11 @@ public class CommsRouterApplication extends ResourceConfig {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterApplication.class);
 
-  private final JpaDbFacade dbFacade;
-  private final TaskDispatcher taskDispatcher;
-  private final CommsRouterEvaluator evaluator;
-  private final EntityMappers mappers;
+  public CommsRouterApplication(@Context ServletContext servletContext) {
+    ApplicationContext applicationContext =
+        (ApplicationContext) servletContext.getAttribute(WebServletListener.APPLICATION_CONTEXT);
 
-  public CommsRouterApplication() {
-    dbFacade = new JpaDbFacade();
-    evaluator = new CommsRouterEvaluator();
-    mappers = new EntityMappers();
-    taskDispatcher = new TaskDispatcher(dbFacade, (taskAssignment) -> {
-      ClientFactory clientFactory = new ClientFactory();
-      Client client = clientFactory.provide();
-      new TaskEventHandlerImpl(client, taskAssignment).handle();
-      clientFactory.dispose(client);
-    }, mappers);
-
-    AppContext context = new AppContext(dbFacade, evaluator, taskDispatcher, mappers);
-
-    register(new ApplicationBindings(context));
+    register(new ApplicationBindings(applicationContext.getCoreContext()));
 
     packages(CommsRouterApplication.class.getPackage().getName());
 
@@ -50,21 +29,12 @@ public class CommsRouterApplication extends ResourceConfig {
     register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
 
     BeanConfig beanConfig = new BeanConfig();
-    beanConfig.setSchemes(new String[] {"http"});
-    beanConfig.setHost("localhost:8084");
     beanConfig.setBasePath("/api");
     beanConfig.setResourcePackage("com.softavail.commsrouter.webservice.resources");
     beanConfig.setScan(true);
     beanConfig.setPrettyPrint(true);
 
     LOGGER.debug("Application started!");
-  }
-
-  @PreDestroy
-  public void destroy() {
-    LOGGER.debug("Destroying...");
-    taskDispatcher.close();
-    dbFacade.close();
   }
 
 }

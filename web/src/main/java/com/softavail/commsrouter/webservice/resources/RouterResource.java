@@ -2,11 +2,15 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.app.TaskDispatcher;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -54,6 +58,9 @@ public class RouterResource {
   @Inject
   private CoreRouterService routerService;
 
+  @Inject
+  private TaskDispatcher taskDispatcher;
+
   @GET
   @ApiOperation(value = "Get All Routers",
       notes = "Returns a list of Router. A single Router object represents "
@@ -93,10 +100,10 @@ public class RouterResource {
       tags = "routers")
   @ApiResponses(
       @ApiResponse(code = 201, message = "Created",
-      responseHeaders = @ResponseHeader(
-          name = HttpHeaders.LOCATION,
-          response = URL.class,
-          description = "The path to the newly created resource")))
+          responseHeaders = @ResponseHeader(
+              name = HttpHeaders.LOCATION,
+              response = URL.class,
+              description = "The path to the newly created resource")))
   public Response create(
       @ApiParam(value = "Router object that needs to be added to the list of routers",
           required = true) CreateRouterArg routerArg)
@@ -187,6 +194,39 @@ public class RouterResource {
     LOGGER.debug("Deleting router: {}", id);
 
     routerService.delete(id);
+  }
+
+  // Assignment Rejection Resource
+
+  @POST
+  @Path("{id}/reject_assignment")
+  @ApiOperation(
+      value = "Reject assignment of a Task",
+      notes = "Rejects the assignment and re-assigns the Task to different Agent")
+  @ApiResponses({
+      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 404, message = "Task or Agent not found",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class)})
+  public void rejectAssignment(
+      @PathParam("id") String routerId,
+      TaskAssignmentDto taskAssignmentDto)
+      throws CommsRouterException {
+
+    AgentDto agent = taskAssignmentDto.getAgent();
+    TaskDto task = taskAssignmentDto.getTask();
+
+    if (!agent.getRouterId().equals(routerId)
+        || !task.getRouterId().equals(routerId)
+        || !agent.getRouterId().equals(task.getRouterId())) {
+
+      throw new CommsRouterException("Router ID mismatch!");
+    }
+
+    taskDispatcher.redispatchAssignment(agent, task);
   }
 
   // Sub-resources

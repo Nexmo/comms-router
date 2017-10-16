@@ -11,6 +11,7 @@ import com.softavail.commsrouter.api.service.CoreQueueService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
+import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.providers.ClientFactory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
@@ -54,6 +55,9 @@ public class ApplicationBindings extends AbstractBinder {
     bind(new CoreRouterService(context))
         .to(RouterService.class)
         .to(CoreRouterService.class);
+
+    bind(context.taskDispatcher)
+        .to(TaskDispatcher.class);
 
   }
 

@@ -6,6 +6,7 @@
 package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
+import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 
 /**
  *
@@ -13,6 +14,7 @@ import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
  */
 public interface TaskEventHandler {
 
-  void onTaskAssigned(TaskAssignmentDto taskAssignment);
+  void onTaskAssigned(TaskAssignmentDto taskAssignment)
+      throws AssignmentRejectedException;
 
 }
