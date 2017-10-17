@@ -6,13 +6,12 @@
 package com.softavail.commsrouter.jpa.test;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -21,38 +20,22 @@ import org.junit.Test;
  */
 public class CorePlanServiceJpaTest extends TestBase {
 
-    private static final Logger LOGGER = LogManager.getLogger(CorePlanServiceJpaTest.class);
-
     //Testing the create method of the CorePlanService class
     @Test
     public void createTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("thisIsAnId_one","routerId_one");
-        planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
+        planService.create(newCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
         PlanDto createdPlan = planService.get(id);
         
         assertEquals(createdPlan.getDescription(), "desctiption_one");
-    }
-
-    //Testing the put method of the CorePlanService class
-    @Test
-    public void putTest() throws CommsRouterException {
-        RouterObjectId id = new RouterObjectId("thisIsAnId_one","routerId_one");
-        planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
-        planService.put(returnNewCreatePlanArg("desctiption_two","1=1","queueId_two"), id);
-        PlanDto createdPlan = planService.get(id);
-        List<RuleDto> rules = createdPlan.getRules();
-        
-        assertEquals(createdPlan.getDescription(), "desctiption_two");
-        //assertEquals(rules.get(0).getPredicate(), "predicate_two");
-        assertEquals(rules.get(0).getQueueId(), "queueId_two");
     }
 
     //Testing the update method of the CorePlanService class
     @Test
     public void updateTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("thisIsAnId_one","routerId_one");
-        planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
-        planService.update(returnNewUpdatePlanArg("desctiption_two","1=1","queueId_two"), id);
+        planService.create(newCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
+        planService.update(newUpdatePlanArg("desctiption_two","1=1","queueId_two"), id);
         PlanDto updatedPlan = planService.get(id);
         List<RuleDto> rules = updatedPlan.getRules();
         
@@ -64,11 +47,11 @@ public class CorePlanServiceJpaTest extends TestBase {
     //Testing method list from CoreRouterObjectSercie
     @Test
     public void listTest() throws CommsRouterException {
-        RouterObjectId id = new RouterObjectId("","routerId_one");
-        planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
-        id.setId("");
-        planService.create(returnNewCreatePlanArg("desctiption_two","1=1","queueId_two"), id);
-        List<PlanDto> plans = planService.list("routerId_one");
+        //RouterObjectId id = new RouterObjectId("sdfsdf","01");
+        planService.create(newCreatePlanArg("desctiption_one","1=1","queueId_one"), "01");
+        //RouterObjectId idd = new RouterObjectId("gsdgsdg","01");
+        planService.create(newCreatePlanArg("desctiption_two","1=1","queueId_one"), "01");
+        List<PlanDto> plans = planService.list("01");
         assertEquals(plans.size(),2);
     }
 
@@ -76,7 +59,7 @@ public class CorePlanServiceJpaTest extends TestBase {
     @Test
     public void deleteTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("","routerId_one");
-        planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
+        planService.create(newCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
         List<PlanDto> plans = planService.list("routerId_one");
         assertEquals(plans.size(),1);
         planService.delete(id);
@@ -89,11 +72,12 @@ public class CorePlanServiceJpaTest extends TestBase {
         Class<PlanDto> newPlan = planService.getDtoEntityClass();
     }
 
+    //Testing PaginatedList (list method from CoreRouterService)
     @Test
     public void listPagesTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("","01");
-        PlanDto plan = planService.create(returnNewCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
-        PaginatedList<PlanDto> list = planService.listPage("01", 0, 0);
+        ApiObjectId plan = planService.create(newCreatePlanArg("desctiption_one","1=1","queueId_one"), id);
+        PaginatedList<PlanDto> list = planService.list("01", 0, 0);
     }
 
 }

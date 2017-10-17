@@ -100,15 +100,16 @@ public class TestBase {
         em.getTransaction().commit();
     }
 
-    public CreateAgentArg returnNewCreateAgentArg(String address) {
+    public CreateAgentArg newCreateAgentArg(String address) {
         AttributeGroupDto aGroupDto = new AttributeGroupDto();
+        aGroupDto.put("address_one", null);
         CreateAgentArg args = new CreateAgentArg();
         args.setAddress(address);
         args.setCapabilities(aGroupDto);
         return args;
     }
 
-    public UpdateAgentArg returnNewUpdateAgentArg(String address, AgentState status) {
+    public UpdateAgentArg newUpdateAgentArg(String address, AgentState status) {
         AttributeGroupDto aGroupDto = new AttributeGroupDto();
         UpdateAgentArg args = new UpdateAgentArg();
         args.setAddress(address);
@@ -126,7 +127,7 @@ public class TestBase {
 
     }
 
-    public CreatePlanArg returnNewCreatePlanArg(String description, String predicate, String queueId) {
+    public CreatePlanArg newCreatePlanArg(String description, String predicate, String queueId) {
         CreatePlanArg args = new CreatePlanArg();
         RuleDto rule = new RuleDto();
         rule.setPredicate(predicate);
@@ -139,7 +140,7 @@ public class TestBase {
         return args;
     }
 
-    public UpdatePlanArg returnNewUpdatePlanArg(String description, String predicate, String queueId) {
+    public UpdatePlanArg newUpdatePlanArg(String description, String predicate, String queueId) {
         UpdatePlanArg args = new UpdatePlanArg();
         RuleDto rule = new RuleDto();
         rule.setPredicate(predicate);
@@ -159,14 +160,14 @@ public class TestBase {
         return args;
     }
 
-    public CreateRouterArg returnNewCreateRouterArg(String name, String description) {
+    public CreateRouterArg newCreateRouterArg(String name, String description) {
         CreateRouterArg args = new CreateRouterArg();
         args.setDescription(description);
         args.setName(name);
         return args;
     }
 
-    public UpdateRouterArg returnNewUpdateRouterArg(String name, String description) {
+    public UpdateRouterArg newUpdateRouterArg(String name, String description) {
         UpdateRouterArg args = new UpdateRouterArg();
         args.setDescription(description);
         args.setName(name);

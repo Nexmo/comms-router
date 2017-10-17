@@ -6,7 +6,6 @@
 package com.softavail.commsrouter.jpa.test;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -46,42 +45,33 @@ public class CoreRouterServiceJpaTest extends TestBase {
 
     //Testing the create method
     @Test
-    public void createTest() throws CommsRouterException {
-        CreateRouterArg createArg = returnNewCreateRouterArg("name_three","description_three");
-        RouterDto newRouter = routerService.create(createArg);
-        //Assert that the router was created
-        assertEquals("name_three", newRouter.getName());
-        assertEquals("description_three", newRouter.getDescription());
+    public void createTestOne() throws CommsRouterException {
+        CreateRouterArg createArg = newCreateRouterArg("name_three", "description_three");
+        ApiObjectId newRouter = routerService.create(createArg);
         //Get the new router by ID
         RouterDto router = routerService.get(newRouter.getId());
-        assertEquals("name_three",router.getName());
-        assertEquals("description_three",router.getDescription());
+        assertEquals("name_three", router.getName());
+        assertEquals("description_three", router.getDescription());
+    }
+
+    //Testing the create method that also takes Id
+    @Test
+    public void createTestTwo() throws CommsRouterException {
+        ApiObjectId newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "01");
+        //Get the new router by ID
+        RouterDto router = routerService.get(newRouter.getId());
+        assertEquals("name_three", router.getName());
+        assertEquals("description_three", router.getDescription());
     }
 
     //Testing the update method
     @Test
     public void updateTest() throws CommsRouterException {
-        UpdateRouterArg updateArg = returnNewUpdateRouterArg("name_nine","description_nine");
-        ApiObjectId id = new ApiObjectId("02");
-        routerService.update(updateArg, id);
+        routerService.update(newUpdateRouterArg("name_nine", "description_nine"), "02");
         //Get updated router by ID
         RouterDto router = routerService.get("02");
-        assertEquals("name_nine",router.getName());
-        assertEquals("description_nine",router.getDescription());
-    }
-
-    //Testing the put method
-    @Test
-    public void putTest() throws CommsRouterException {
-        CreateRouterArg createArg = returnNewCreateRouterArg("name_ten","description_ten");
-        ApiObjectId id = new ApiObjectId("01");
-        RouterDto newRouter = routerService.put(createArg, id);
-        assertEquals("description_ten", newRouter.getDescription());
-        assertEquals("name_ten", newRouter.getName());
-        //Get new router by ID
-        RouterDto router = routerService.get("01");
-        assertEquals("name_ten",router.getName());
-        assertEquals("description_ten",router.getDescription());
+        assertEquals("name_nine", router.getName());
+        assertEquals("description_nine", router.getDescription());
     }
 
     @Test
