@@ -5,13 +5,9 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +25,7 @@ public class CoreAgentServiceJpaTest extends TestBase {
     @Test
     public void createTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         agentService.create(returnNewCreateAgentArg("address_one"), id);
         AgentDto agent = agentService.get(id);
 

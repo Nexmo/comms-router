@@ -11,8 +11,6 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -20,8 +18,6 @@ import org.junit.Test;
  * @author G.Ivanov
  */
 public class CoreRouterServiceJpaTest extends TestBase {
-
-    private static final Logger LOGGER = LogManager.getLogger(CoreRouterServiceJpaTest.class);
 
     //Testing the get method inherited from CoreApiObjectService
     @Test

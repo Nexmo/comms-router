@@ -11,6 +11,7 @@ import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.net.MalformedURLException;
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
     @Test
     public void createTest() throws MalformedURLException, CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "desctiption_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test.com", null), id);
         TaskDto task = taskService.get(id);
         assertEquals(task.getCallbackUrl(),"https://test.com");
@@ -33,7 +34,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
     @Test
     public void putTest() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "desctiption_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
         taskService.put(newCreateTaskArg(queue.getId(), "https://test_two.com", null), id);
 
@@ -44,7 +45,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
     @Test
     public void updateTest() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "desctiption_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
         taskService.update(newUpdateTaskArg(2, TaskState.completed), id);
 
@@ -55,7 +56,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
     @Test
     public void updateContextTest() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "desctiption_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
 
         UpdateTaskContext ctx = new UpdateTaskContext(id);
@@ -68,11 +69,18 @@ public class CoreTaskServiceJpaTest extends TestBase {
     @Test(expected = IllegalArgumentException.class)
     public void createTest_() throws MalformedURLException, CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "desctiption_one"), id);
-        PlanDto plan = planService.create(returnNewCreatePlanArg("desctiption_one", "predicate_one", queue.getId()), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+        PlanDto plan = planService.create(returnNewCreatePlanArg("desctiption_one", "1=1", queue.getId()), id);
         taskService.create(newCreateTaskArg(null, "https://test.com", plan.getId()), id);
-        TaskDto task = taskService.get(id);
-        assertEquals(task.getCallbackUrl(), "https://test.com");
+    }
+
+    //Passing a state != to completed should throw a BadValueException
+    @Test(expected = BadValueException.class)
+    public void exceptionTest() throws MalformedURLException, CommsRouterException {
+        RouterObjectId id = new RouterObjectId("", "01");
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+        taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
+        taskService.update(newUpdateTaskArg(2, TaskState.waiting), id);
     }
 
 }

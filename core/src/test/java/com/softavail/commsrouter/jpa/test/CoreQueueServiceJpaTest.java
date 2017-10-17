@@ -5,9 +5,7 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
-import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -27,7 +25,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
     @Test
     public void createTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         QueueDto queue = queueService.get(id);
         assertEquals(queue.getDescription(),"description_one");
     }
@@ -35,9 +33,9 @@ public class CoreQueueServiceJpaTest extends TestBase {
     @Test
     public void putTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         QueueDto queueBefore = queueService.get(id);
-        queueService.put(newCreateQueueArg("predicate_two", "description_two"), id);
+        queueService.put(newCreateQueueArg("1=1", "description_two"), id);
         QueueDto queueAfter = queueService.get(id);
         assertNotEquals(queueAfter, queueBefore);
     }
@@ -45,9 +43,9 @@ public class CoreQueueServiceJpaTest extends TestBase {
     @Test
     public void updateTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
-        queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         QueueDto queueBefore = queueService.get(id);
-        queueService.update(newUpdateQueueArg("predicate_two", "description_two"), id);
+        queueService.update(newUpdateQueueArg("1=1", "description_two"), id);
         QueueDto queueAfter = queueService.get(id);
         assertNotEquals(queueAfter, queueBefore);
     }
@@ -55,7 +53,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
     @Test
     public void getQueueSizeTest() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         CreateTaskArg args = new CreateTaskArg();
         args.setQueueId(id.getId());
         args.setPriority(1L);
@@ -70,7 +68,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
     @Test
     public void getTasksTest() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
-        QueueDto queue = queueService.create(newCreateQueueArg("predicate_one", "description_one"), id);
+        QueueDto queue = queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         CreateTaskArg args = new CreateTaskArg();
         args.setQueueId(id.getId());
         args.setPriority(1L);
