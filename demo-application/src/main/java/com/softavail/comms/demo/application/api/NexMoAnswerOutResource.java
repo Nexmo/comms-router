@@ -48,11 +48,20 @@ public class NexMoAnswerOutResource {
 
     LOGGER.debug("/answer_outbound/{}", conversationId);
     
-    NexMoCall call =  conversationService.getInboundCallWithConversationId(uuid);
-
-    NexMoConversation conversation = conversationService.getConversation(conversationId);
+    boolean customerIsWaiting = false;
     
-    if (null == conversation || null == call) {
+    NexMoConversation conversation = conversationService.getConversation(conversationId);
+    if (null != conversation) {
+      NexMoCall caller = conversation.getCaller();
+      if (null != caller && caller.getUuid() != null) {
+        NexMoCall call = conversationService.getCallWithUuid(caller.getUuid());
+        if (null != call) {
+          customerIsWaiting = true;
+        }
+      }
+    }
+    
+    if (!customerIsWaiting) {
       TalkNcco talkNcco = new TalkNcco("Customer has left the conversation.");
       talkNcco.setLoop(1);
       NccoResponseBuilder builder = new NccoResponseBuilder();
