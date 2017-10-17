@@ -51,7 +51,6 @@ public class CommsRouterApplication extends ResourceConfig {
 
     BeanConfig beanConfig = new BeanConfig();
     beanConfig.setSchemes(new String[] {"http"});
-    beanConfig.setHost("localhost:8084");
     beanConfig.setBasePath("/api");
     beanConfig.setResourcePackage("com.softavail.commsrouter.webservice.resources");
     beanConfig.setScan(true);
