@@ -102,7 +102,6 @@ public class TestBase {
 
     public CreateAgentArg newCreateAgentArg(String address) {
         AttributeGroupDto aGroupDto = new AttributeGroupDto();
-        aGroupDto.put("address_one", null);
         CreateAgentArg args = new CreateAgentArg();
         args.setAddress(address);
         args.setCapabilities(aGroupDto);
