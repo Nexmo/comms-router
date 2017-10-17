@@ -578,11 +578,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   }
   
   private String getEventUrl() {
-    return configuration.getCallbackBaseUrl() + "/event_callback";
+    return configuration.getNexmoCallbackBaseUrl() + "event_callback";
   }
   
   private String getTaskCallbackUrl() {  
-    return configuration.getCallbackBaseUrl() + "/comms_callback";
+    return configuration.getCallbackBaseUrl() + "comms_callback";
   }
   
   private String getRouterId() {  

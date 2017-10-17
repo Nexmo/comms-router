@@ -96,7 +96,7 @@ public class CommsCallbackResource {
       Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
       Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
       
-      URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+      URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "regular_agent")
           .queryParam("taskId", task.getId())
@@ -108,7 +108,7 @@ public class CommsCallbackResource {
       Call callRequest = new Call(epAgent, epFrom, answerUrl);
 
       // set event url
-      URI evturi = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+      URI evturi = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "regular_agent")
           .queryParam("taskId", task.getId())
@@ -173,7 +173,7 @@ public class CommsCallbackResource {
       Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
 
       NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
-      URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+      URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_agent")
           .queryParam("taskId", task.getId())
@@ -186,7 +186,7 @@ public class CommsCallbackResource {
 
       // set event url
       URI evturi = 
-          UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+          UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "callback_agent")
           .queryParam("taskId", task.getId())
@@ -248,7 +248,7 @@ public class CommsCallbackResource {
       @QueryParam("callId") final String conversationId,
       final TaskAssignmentDto taskAssignment) {
 
-    AgentDto agent = taskAssignment.getAgent();
+    final AgentDto agent = taskAssignment.getAgent();
 
     LOGGER.debug("/comms_callback/{}", taskId);
     LOGGER.debug("agent: {}", agent);
@@ -270,22 +270,32 @@ public class CommsCallbackResource {
       Endpoint epFrom =
           NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
       String answerUrl =
-          configuration.getCallbackBaseUrl() + "answer_outbound/" + conversation.getId();
+          configuration.getNexmoCallbackBaseUrl() + "answer_outbound/" + conversation.getId();
       // prepare to start a call to the agent
       Call callRequest = new Call(epAgent, epFrom, answerUrl);
       try {
 
         // start a call to the agent
         CallEvent callEvent = nexMoService.getVoiceClient().createCall(callRequest);
+        if (callEvent != null && callEvent.getUuid() != null
+            && callEvent.getConversationUuid() != null && callEvent.getStatus() != null) {
+          LOGGER.debug("calling agent with uuid:{}, conv_uuid: {}, status:{}", 
+              callEvent.getUuid(),
+              callEvent.getConversationUuid(),
+              callEvent.getStatus());
 
-        NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-        callee.setDirection(callEvent.getDirection());
-        callee.setStatus(callEvent.getStatus());
+          NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
+          callee.setDirection(NexMoCallDirection.OUTBOUND);
+          callee.setStatus(NexMoCallStatus.STARTED);
 
-        UpdateNexMoConversationArg updateArg =
-            new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
-        updateArg.setAgent(callee);
-        conversationService.updateConversation(conversationId, updateArg);
+          UpdateNexMoConversationArg updateArg =
+              new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
+          updateArg.setAgent(callee);
+          conversationService.updateConversation(conversationId, updateArg);
+        } else {
+          LOGGER.warn("Could not call agent. NexMo voice client returned invalid callEvent");
+          wouldConnectAgent = false;
+        }
       } catch (IOException | NexmoClientException e) {
         // Would not call agent. Mark the task as complete with error.
         LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
@@ -298,7 +308,7 @@ public class CommsCallbackResource {
         ex.printStackTrace();
       }
 
-    }
+    } 
     while (false);
 
     if (!wouldConnectAgent) {

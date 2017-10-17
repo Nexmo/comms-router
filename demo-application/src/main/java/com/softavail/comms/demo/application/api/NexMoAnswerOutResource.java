@@ -142,8 +142,9 @@ public class NexMoAnswerOutResource {
       }      
     }
     
-    if (null != answer)
+    if (null != answer) {
       return answer;
+    }
      
     return respondWithError();
   }
@@ -298,7 +299,7 @@ public class NexMoAnswerOutResource {
       String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
       Endpoint epTo = NexMoModelFactory.createEndpoint(toNumber);
       Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
-      URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+      URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_customer")
           .queryParam("taskId", taskId)
@@ -311,7 +312,7 @@ public class NexMoAnswerOutResource {
 
       // set event url
       URI evturi = 
-          UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+          UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "callback_customer")
           .queryParam("taskId", taskId)
@@ -362,6 +363,7 @@ public class NexMoAnswerOutResource {
 
     // respond
     NccoResponse nccoResponse = builder.getValue();
+    LOGGER.debug("/answer_outbound response:{}", nccoResponse.toJson());
     return nccoResponse.toJson();
   }
 }

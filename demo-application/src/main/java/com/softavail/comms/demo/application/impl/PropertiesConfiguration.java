@@ -22,6 +22,7 @@ public class PropertiesConfiguration implements ConfigurationProperties {
 
   private static final String APPLICATION_PROPERTIES = "application.properties";
   private static final String CALLBACK_BASE_URL = "app.callbackBaseUrl";
+  private static final String NEXMO_CALLBACK_BASE_URL = "app.nexmoCallbackBaseUrl";
   private static final String APP_PHONE = "app.phone";
   private static final String APP_MUSIC_ON_HOLD_URL = "app.musicOnHoldUrl";
   private static final String NEXMO_APP_ID = "nexmo.appId";
@@ -53,6 +54,11 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   @Override
   public String callbackBaseUrl() {
     return properties.getProperty(CALLBACK_BASE_URL);
+  }
+
+  @Override
+  public String nexmoCallbackBaseUrl() {
+    return properties.getProperty(NEXMO_CALLBACK_BASE_URL);
   }
 
   @Override
@@ -90,8 +96,7 @@ public class PropertiesConfiguration implements ConfigurationProperties {
     return properties.getProperty(COMMS_QUEUE_ID);
   }
 
-  private URL getFile(String path, String filename)
-      throws MalformedURLException {
+  private URL getFile(String path, String filename) throws MalformedURLException {
 
     File file = new File(path, filename);
 

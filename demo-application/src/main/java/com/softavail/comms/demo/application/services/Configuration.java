@@ -14,6 +14,8 @@ public interface Configuration {
 
   String getCallbackBaseUrl();
 
+  String getNexmoCallbackBaseUrl();
+
   String getCommsApiEndpoint();
 
   String getCommsRouterId();

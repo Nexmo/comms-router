@@ -93,8 +93,8 @@ public class NexMoAnswerInResource {
       // create a call with uuid set as conv_uuid and later (on event started) we will update to the
       // real uuid
       NexMoCall newObj = new NexMoCall(uuid, uuid);
-      newObj.setStatus(CallStatus.STARTED);
-      newObj.setDirection(CallDirection.INBOUND);
+      newObj.setStatus(NexMoCallStatus.STARTED);
+      newObj.setDirection(NexMoCallDirection.INBOUND);
       LOGGER.debug("[TEMP_CALL] ****** would create temp call: {}", newObj.getUuid());
       conversationService.updateCall(newObj);
 
