@@ -2,6 +2,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -14,7 +15,6 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,17 +36,21 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public QueueDto create(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateQueueArg createArg, String routerId)
       throws CommsRouterException {
 
-    objectId.setId(Uuid.get());
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
+
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, objectId);
+      return doCreate(em, createArg, routerObjectId);
     });
   }
 
   @Override
-  public QueueDto put(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -90,22 +94,20 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public long getQueueSize(RouterObjectId routerObjectId) throws CommsRouterException {
+  public long getQueueSize(RouterObjectId routerObjectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectId); // Check that queue exists
 
-      String qlString = "SELECT COUNT(t.id) FROM Task t "
-          + "JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
-
-      return (long) em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
-          .setParameter("state", TaskState.waiting).getSingleResult();
+      return app.db.queue.getQueueSize(em, routerObjectId.getId());
     });
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId) throws CommsRouterException {
+  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectId); // Check that queue exists
@@ -113,14 +115,16 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       String qlString = "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId "
           + "AND t.state = :state ORDER BY t.priority DESC";
 
-      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
-          .setParameter("state", TaskState.waiting).getResultList();
+      List<Task> list = em.createQuery(qlString)
+          .setParameter("queueId", routerObjectId.getId())
+          .setParameter("state", TaskState.waiting)
+          .getResultList();
 
       return app.entityMapper.task.toDto(list);
     });
   }
 
-  private QueueDto doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
+  private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     Queue queue = new Queue(createArg, objectId);
@@ -145,7 +149,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
 
     em.persist(queue);
-    return entityMapper.toDto(queue);
+    QueueDto queueDto = entityMapper.toDto(queue);
+    return new ApiObjectId(queueDto);
   }
 
 }

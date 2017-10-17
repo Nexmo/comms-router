@@ -4,6 +4,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
@@ -38,17 +39,21 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public AgentDto create(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateAgentArg createArg, String routerId)
       throws CommsRouterException {
 
-    objectId.setId(Uuid.get());
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
+
     return app.db.transactionManager.execute((EntityManager em) -> {
-      return doCreate(em, createArg, objectId);
+      return doCreate(em, createArg, routerObjectId);
     });
   }
 
   @Override
-  public AgentDto put(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -107,7 +112,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       } else {
         switch (oldState) {
           case busy:
-            throw new InvalidStateException("Changing state of a busy agent is not implemented");
+            throw new InvalidStateException(
+                "Changing state of a busy agent is not implemented");
           case offline:
             // check once again just in case
             agentBecameAvailabe = updateArg.getState() == AgentState.ready;
@@ -126,8 +132,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     });
   }
 
-  private void updateCapabilitiesAndQueues(EntityManager em, Agent agent,
-      UpdateAgentArg updateArg) {
+  private void updateCapabilitiesAndQueues(
+      EntityManager em, Agent agent, UpdateAgentArg updateArg) {
 
     final AttributeGroupDto newCapabilities = updateArg.getCapabilities();
 
@@ -165,7 +171,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     agent.setCapabilities(app.entityMapper.attributes.toJpa(newCapabilities));
   }
 
-  private AgentDto doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
+  private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
     Agent agent = new Agent(objectId);
@@ -192,7 +198,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     }
 
     em.persist(agent);
-    return app.entityMapper.agent.toDto(agent);
+
+    return new ApiObjectId(app.entityMapper.agent.toDto(agent));
   }
 
 }

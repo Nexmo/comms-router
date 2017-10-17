@@ -1,0 +1,34 @@
+{
+  "configuration": {
+    "appenders": {
+      "appender": [
+        {
+          "name": "CONSOLE",
+          "type": "Console",
+          "PatternLayout": {
+            "pattern": "%d [%thread] %level %logger{1.} %msg %n"
+          }
+        }
+      ]
+    },
+    "loggers": {
+      "logger": [
+        {
+          "name": "org.eclipse.jetty",
+          "level": "info",
+          "additivity": "false",
+          "AppenderRef": {
+            "ref": "CONSOLE"
+          }
+        }
+      ],
+      "root": {
+        "level": "debug",
+        "additivity": "false",
+        "AppenderRef": {
+          "ref": "CONSOLE"
+        }
+      }
+    }
+  }
+}

@@ -1,26 +1,33 @@
 package com.softavail.comms.demo.application;
 
-import com.softavail.comms.demo.application.client.AgentServiceClient;
-import com.softavail.comms.demo.application.client.PlanServiceClient;
-import com.softavail.comms.demo.application.client.RouterServiceClient;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
+import com.softavail.comms.demo.application.factory.AgentServiceClientFactory;
+import com.softavail.comms.demo.application.factory.ClientFactory;
+import com.softavail.comms.demo.application.factory.ExecutionFactory;
+import com.softavail.comms.demo.application.factory.PlanServiceClientFactory;
+import com.softavail.comms.demo.application.factory.QueueServiceClientFactory;
+import com.softavail.comms.demo.application.factory.RouterServiceClientFactory;
+import com.softavail.comms.demo.application.factory.TaskServiceClientFactory;
 import com.softavail.comms.demo.application.impl.Cfg4jConfiguration;
-import com.softavail.comms.demo.application.impl.ClientFactory;
 import com.softavail.comms.demo.application.impl.ConfigurationImpl;
 import com.softavail.comms.demo.application.impl.ConfigurationProperties;
-import com.softavail.comms.demo.application.impl.ExecutionFactory;
 import com.softavail.comms.demo.application.impl.NexMoServiceImpl;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.commsrouter.api.interfaces.AgentService;
+import com.softavail.commsrouter.api.interfaces.PlanService;
+import com.softavail.commsrouter.api.interfaces.QueueService;
+import com.softavail.commsrouter.api.interfaces.RouterService;
+import com.softavail.commsrouter.api.interfaces.TaskService;
+import com.softavail.commsrouter.client.AgentServiceClient;
+import com.softavail.commsrouter.client.PlanServiceClient;
+import com.softavail.commsrouter.client.QueueServiceClient;
+import com.softavail.commsrouter.client.RouterServiceClient;
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
-import com.softavail.commsrouter.api.interfaces.RouterService;
-import com.softavail.commsrouter.api.interfaces.AgentService;
-import com.softavail.commsrouter.api.interfaces.PlanService;
-import com.softavail.commsrouter.api.interfaces.TaskService;
 
 /**
  * Created by @author mapuo on 29.08.17.
@@ -51,21 +58,25 @@ public class ApplicationBinder extends AbstractBinder {
         .to(NexMoService.class)
         .in(Singleton.class);
 
-    bind(RouterServiceClient.class)
+    bindFactory(RouterServiceClientFactory.class)
         .to(RouterService.class)
         .to(RouterServiceClient.class);
 
-    bind(TaskServiceClient.class)
+    bindFactory(TaskServiceClientFactory.class)
         .to(TaskService.class)
         .to(TaskServiceClient.class);
 
-    bind(PlanServiceClient.class)
+    bindFactory(PlanServiceClientFactory.class)
         .to(PlanService.class)
         .to(PlanServiceClient.class);
 
-    bind(AgentServiceClient.class)
+    bindFactory(AgentServiceClientFactory.class)
         .to(AgentService.class)
         .to(AgentServiceClient.class);
+
+    bindFactory(QueueServiceClientFactory.class)
+        .to(QueueService.class)
+        .to(QueueServiceClient.class);
 
   }
 

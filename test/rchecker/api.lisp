@@ -76,36 +76,43 @@
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :agent) (jsown:val js "id")))))
 
+
+
+(defun agent-del(&key (router-id (get-event :router))
+                   (id (get-event :agent)))
+  (tr-step (http-del  "/routers" router-id "agents" id)
+           #'(lambda(js) (equal js ""))
+           #'(lambda(js) (clear-event :agent))))
+
+(defun agent-new(&key (router-id (get-event :router))
+                   (address "address")
+                   (capabilities (jsown:new-js ("language" "en"))))
+  (tr-step (http-post (list "/routers" router-id "agents") (jsown:new-js
+                                                             ("address" address)
+                                                             ("capabilities" capabilities)))
+           #'(lambda(js)(and (listp js) (funcall (contains "id") js)) )
+           #'(lambda(js)(funcall (fire-event :agent) (jsown:val js "id")))))
+
 (defun agent-put(&key (router-id (get-event :router))
+                   (id (get-event :agent))
+                   (address "address")
+                   (capabilities (jsown:new-js ("language" "en"))))
+  (tr-step (http-put (list "/routers" router-id "agents" id) (jsown:new-js
+                                                               ("address" address)
+                                                               ("capabilities" capabilities)))
+           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
+           #'(lambda(js) (funcall (fire-event :agent) (jsown:val js "id")))))
+(defun agent-set(&key (router-id (get-event :router))
                    (id (get-event :agent))
                    (address "address")
                    (state "ready") ;; offline busy
                    (capabilities (jsown:new-js ("language" "en"))))
-  (tr-step (http-put (list "/routers" router-id "agents" id) (jsown:new-js
+  (tr-step (http-post (list "/routers" router-id "agents" id) (jsown:new-js
                                                                ("address" address)
                                                                ("state" state)
                                                                ("capabilities" capabilities)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :agent) (jsown:val js "id")))))
-
-(defun agent-del(&key (router-id (get-event :router))
-                   (id (get-event :agent)))
-  (tr-step (http-del (list "/routers" router-id "agents" id))
-           #'(lambda(js) (equal js ""))
-           #'(lambda(js) (clear-event :agent))))
-
-(defun agent-new(&key (router-id (get-event :router))
-                   (id (get-id "agent"))
-                   (address "address")
-                   (state "ready") ;; offline busy
-                   (capabilities (jsown:new-js ("language" "en"))))
-  (tr-step (http-post (list "/routers" router-id "agents") (jsown:new-js ("id" id)
-                                                                         ("address" address)
-                                                                         ("state" state)
-                                                                         ("capabilities" capabilities)))
-           #'(lambda(js)(and (listp js) (funcall (contains "id") js)) )
-           #'(lambda(js)(funcall (fire-event :agent) (jsown:val js "id")))))
-
 
 (defun insert-into(table values)
   (let ((cmd (format nil "mysql --database=comms_router_core -u root --password=comms-router -N -e 'insert into ~A VALUES (~{~A~^,~})'"
@@ -131,10 +138,23 @@
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
                         ("rules" rules)
-                        ("description" description)                                    ))
+                        ("description" description)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :plan) (jsown:val js "id")))))
 
+(defun plan-set(&key (router-id (get-event :router))
+                  (id (get-event :plan))
+                  (tag (get-id "test-rule"))
+                  (predicate "1 == 1")
+                  (description "plan description")
+                  (queue (get-event :queue))
+                  (rules (list (jsown:new-js ("tag" tag) ("predicate" predicate) ("queueId" queue)))) )
+  (tr-step (http-post (list "/routers" router-id "plans" id)
+                      (jsown:new-js
+                                   ("rules" rules)
+                                   ("description" description)                                    ))
+           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
+           #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "id")))))
 (defun plan(&key (router-id (get-event :router))
               (id (get-event :plan)))
   (tr-step (http-get "/routers" router-id "plans" id )
@@ -149,11 +169,10 @@
                   (queue (get-event :queue))
                   (rules (list (jsown:new-js ("tag" tag) ("predicate" predicate) ("queueId" queue)))) )
   (tr-step (http-put (list "/routers" router-id "plans" id)
-                     (jsown:new-js ("id" id)
-                                   ("rules" rules)
+                     (jsown:new-js ("rules" rules)
                                    ("description" description)                                    ))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
-           #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "id")))))
+           #'(lambda(js) (funcall (fire-event :plan) (jsown:val js "id")))))
 
 (defun plan-del(&key (router-id (get-event :router))
                   (id (get-event :plan)))
@@ -188,8 +207,18 @@
 (defun queue-put(&key (router-id (get-event :router))
                    (id (get-event :queue))
                    (description "description")
-                   (predicate :null) )
+                   (predicate "1==1") )
   (tr-step (http-put (list "/routers" router-id "queues" id) (jsown:new-js
+                                                               ("description" description)
+                                                               ("predicate" predicate)))
+           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
+           #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "id")))))
+
+(defun queue-set(&key (router-id (get-event :router))
+                   (id (get-event :queue))
+                   (description "description")
+                   (predicate :null) )
+  (tr-step (http-post (list "/routers" router-id "queues" id) (jsown:new-js
                                                                ("description" description)
                                                                ("predicate" predicate)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
@@ -197,18 +226,15 @@
 
 (defun queue-del(&key (router-id (get-event :router))
                    (id (get-event :queue)))
-  (tr-step (http-del (list "/routers" router-id "queues" id))
+  (tr-step (http-del "/routers" router-id "queues" id)
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :queue))))
 
 (defun queue-new(&key (router-id (get-event :router))
-                   (id (get-id "queue"))
                    (description "description")
-                   (predicate :null))
+                   (predicate "1==1"))
   (tr-step (http-post (list "/routers" router-id "queues")
-                      (jsown:new-js ("id" id)
-                                    ("routerId" router-id)
-                                    ("description" description)
+                      (jsown:new-js ("description" description)
                                     ("predicate" predicate)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "id")))))
@@ -226,18 +252,33 @@
 
 (defun task-context(&key (router-id (get-event :router))
               (id (get-event :task)))
-  (tr-step (http-get "/routers" router-id "tasks" id "userContext")
-           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
-           #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
+  (tr-step (http-get "/routers" router-id "tasks" id "user_context")
+           #'(lambda(js) (and (listp js) ))
+           #'(lambda(js) )))
 
 (defun task-put(&key (router-id (get-event :router))
                   (id (get-event :task))
-                  (state "completed"))
+                  (requirements (jsown:new-js ("key" t)))
+                  (callback-url (format nil "http://192.168.1.171:8787/?task"))
+                  (queue-id (get-event :queue))
+                  (plan-id :null))
   (tr-step (http-put (list "/routers" router-id "tasks" id)
-                     (jsown:new-js ("state" state)))
+                     (jsown:new-js
+                       ("callbackUrl" callback-url)
+
+                       ("requirements" requirements)
+                       ("queueId" queue-id)
+                       ("planId" plan-id)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
 
+(defun task-set(&key (router-id (get-event :router))
+                  (id (get-event :task))
+                  (state "completed"))
+  (tr-step (http-post (list "/routers" router-id "tasks" id)
+                     (jsown:new-js ("state" state)))
+           #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
+           #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
 (defun task-del(&key (router-id (get-event :router))
                    (id (get-event :task)))
   (tr-step (http-del  "/routers" router-id "tasks" id)
@@ -245,28 +286,27 @@
            #'(lambda(js) (clear-event :task))))
 
 (defun task-new(&key (router-id (get-event :router))
-                  (id (get-id "task"))
+
                   (requirements (jsown:new-js ("key" t)))
-                  (callback-url (format nil "http://192.168.1.171:8787/?task=~A"id))
+                  (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
+                  (context (jsown:new-js ("key" "value")))
                   (queue-id (get-event :queue))
                   (plan-id :null))
   (tr-step (http-post (list "/routers" router-id "tasks")
-                      (jsown:new-js ("id" id) ("routerId" router-id)
-                                    ("callbackUrl" callback-url)
-                                    ("id" id)
-                                    ("requirements" requirements)
-                                    ("queueId" queue-id)
-                                    ("planId" plan-id)))
+                      (jsown:new-js
+                        ("callbackUrl" callback-url)
+                        ("userContext" context)
+                        ("requirements" requirements)
+                        ("queueId" queue-id)
+                        ("planId" plan-id)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
 
 (defun ptask-new(&key (router-id (get-event :router))
-                   (id (get-id "task"))
                    (requirements (jsown:new-js))
-                   (callback-url (format nil "http://192.168.1.171:8787/?task=~A"id))
+                   (callback-url (format nil "http://192.168.1.171:8787/?task="))
                    (plan-id (get-event :plan)))
   (task-new :router-id router-id
-            :id id
             :requirements requirements
             :callback-url callback-url
             :queue-id :null

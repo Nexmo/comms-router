@@ -192,7 +192,7 @@ Here the task requires agent speaking Spanish and we assign to it our plan that 
 
 The "callbackUrl" parameter specifies the user application entry point to be called by the router for activity related with this task. An easy way to test the router is to use a requestb.in to accept the callback, as we are doing in this example.
 
-In addition to using a plan to route tasks, the user accepts direct queue assignment by the user application:
+In addition to using a plan to route tasks, the router accepts direct queue assignment by the user application:
 
 `curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueId":"queue-en","callbackUrl":"https://requestb.in/1koh4zk1?inspect"}'`
 

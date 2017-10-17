@@ -5,7 +5,6 @@ import com.nexmo.client.voice.CallStatus;
 import com.nexmo.client.voice.ncco.TalkNcco;
 import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.client.TaskServiceClient;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.ConversationNccoEx;
 import com.softavail.comms.demo.application.model.NexMoCall;
@@ -13,13 +12,14 @@ import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.ConversationService;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
+import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -85,8 +85,11 @@ public class NexMoAnswerInResource {
     CreateTaskArg taskReq = new CreateTaskArg();
     RouterObjectId taskId =
         new RouterObjectId(UUID.randomUUID().toString(), configuration.getCommsRouterId());
-    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl()).path("comms_callback")
-        .path(taskId.getId()).queryParam("callId", conversationId).build();
+    URI uri = UriBuilder.fromPath(configuration.getCallbackBaseUrl())
+        .path("comms_callback")
+        .path(taskId.getId())
+        .queryParam("callId", conversationId)
+        .build();
     taskReq.setCallbackUrl(uri.toURL());
     taskReq.setQueueId(queueId);
 
@@ -96,10 +99,10 @@ public class NexMoAnswerInResource {
     requirements.put("price", new LongAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
-    TaskDto task = null;
+    CreatedTaskDto task = null;
 
     try {
-      task = taskServiceClient.put(taskReq, taskId);
+      task = taskServiceClient.create(taskReq, taskId);
     } catch (NotFoundException e) {
       e.printStackTrace();
     } catch (Exception ex) {

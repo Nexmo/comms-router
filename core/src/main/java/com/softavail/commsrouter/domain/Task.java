@@ -2,9 +2,9 @@
  * To change this license header, choose License Headers in Project Attributes. To change this
  * template file, choose Tools | Templates and open the template in the editor.
  */
+
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.RouterObject;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 

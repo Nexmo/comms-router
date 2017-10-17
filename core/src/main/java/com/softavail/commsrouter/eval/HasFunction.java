@@ -72,15 +72,25 @@ public class HasFunction implements Function {
 
     String argumentOne = null;
     try {
-      argumentOne = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(0),
+      argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(0),
           evaluator.getQuoteCharacter());
-      String argumentTwo = FunctionHelper.trimAndRemoveQuoteChars((String) strings.get(1),
+      String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(1),
           evaluator.getQuoteCharacter());
+      boolean isDouble = EvaluatorHelpers.isDouble(argumentTwo);
       JSONArray jsonArray = new JSONArray(argumentOne);
       ArrayList<String> list = new ArrayList<>();
       int len = jsonArray.length();
       for (int i = 0; i < len; i++) {
-        list.add(jsonArray.get(i).toString());
+        String item = jsonArray.get(i).toString();
+        if (isDouble) {
+          String boolVariable = EvaluatorHelpers.resolveBooleanVariable(item);
+          if (boolVariable != null) {
+            item = boolVariable;
+          } else {
+            item = Double.valueOf(item).toString();
+          }
+        }
+        list.add(item);
       }
       result = (list.contains(argumentTwo) ? 1 : 0);
     } catch (FunctionException fe) {
@@ -88,6 +98,8 @@ public class HasFunction implements Function {
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() first argument is \"%s\": %s",
           getName(), argumentOne, e.getLocalizedMessage()));
+    } catch (NumberFormatException e) {
+      throw new FunctionException(exceptionMessage, e);
     } catch (Exception e) {
       throw new FunctionException(exceptionMessage, e);
     }
