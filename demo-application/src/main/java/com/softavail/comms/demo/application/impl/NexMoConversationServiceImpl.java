@@ -1,7 +1,7 @@
 package com.softavail.comms.demo.application.impl;
 
-import com.nexmo.client.voice.CallDirection;
 import com.softavail.comms.demo.application.model.NexMoCall;
+import com.softavail.comms.demo.application.model.NexMoCallDirection;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.ConversationService;
@@ -109,7 +109,7 @@ public class NexMoConversationServiceImpl implements ConversationService {
         if (incall != null && incall.getConversationUuid() != null 
             && incall.getDirection() != null 
             && incall.getConversationUuid().equals(conversationId)
-            && incall.getDirection().equals(CallDirection.INBOUND)) {
+            && incall.getDirection().equals(NexMoCallDirection.INBOUND)) {
           LOGGER.trace("Found outbound call with conv_uuid: {}", conversationId);
           call = incall.clone();
           break;
@@ -133,7 +133,7 @@ public class NexMoConversationServiceImpl implements ConversationService {
             && outcall.getConversationUuid() != null
             && outcall.getDirection() != null
             && outcall.getConversationUuid().equals(conversationId) 
-            && outcall.getDirection() == CallDirection.OUTBOUND) {
+            && outcall.getDirection() == NexMoCallDirection.OUTBOUND) {
           LOGGER.trace("Found outbound call with conv_uuid: {}", conversationId);
           call = outcall.clone();
           break;

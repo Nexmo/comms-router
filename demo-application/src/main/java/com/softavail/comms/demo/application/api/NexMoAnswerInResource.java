@@ -1,13 +1,13 @@
 package com.softavail.comms.demo.application.api;
 
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallStatus;
 import com.nexmo.client.voice.ncco.TalkNcco;
 import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.ConversationNccoEx;
 import com.softavail.comms.demo.application.model.NexMoCall;
+import com.softavail.comms.demo.application.model.NexMoCallDirection;
+import com.softavail.comms.demo.application.model.NexMoCallStatus;
 import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
@@ -73,8 +73,8 @@ public class NexMoAnswerInResource {
       // create a call with uuid set as conv_uuid and later (on event started) we will update to the
       // real uuid
       NexMoCall newObj = new NexMoCall(uuid, uuid);
-      newObj.setStatus(CallStatus.STARTED);
-      newObj.setDirection(CallDirection.INBOUND);
+      newObj.setStatus(NexMoCallStatus.STARTED);
+      newObj.setDirection(NexMoCallDirection.INBOUND);
       LOGGER.debug("[TEMP_CALL] ****** would create temp call: {}", newObj.getUuid());
       conversationService.updateCall(newObj);
 

@@ -7,6 +7,8 @@ import com.nexmo.client.voice.Endpoint;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.NexMoCall;
+import com.softavail.comms.demo.application.model.NexMoCallDirection;
+import com.softavail.comms.demo.application.model.NexMoCallStatus;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
@@ -61,13 +63,24 @@ public class CommsCallbackResource {
 
   @POST
   @Path("/{taskId}")
-  public void taskAnswer(@PathParam("taskId") String taskId,
+  public void taskAnswer(@PathParam("taskId") final String taskId,
       @QueryParam("callId") final String conversationId, final TaskAssignmentDto taskAssignment) {
 
-    AgentDto agent = taskAssignment.getAgent();
+    final AgentDto agent = taskAssignment.getAgent();
 
     LOGGER.debug("/comms_callback/{}", taskId);
-    LOGGER.debug("task: {}", agent);
+    LOGGER.debug("agent: {}", agent);
+    
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        doTaskAnswer(agent, taskId, conversationId);
+      }
+    }).start();
+  }
+
+  private void doTaskAnswer(final AgentDto agent, final String taskId,
+      final String conversationId) {
 
     boolean wouldConnectAgent = true;
     NexMoConversation conversation = null;
@@ -93,10 +106,10 @@ public class CommsCallbackResource {
 
         // start a call to the agent
         CallEvent callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-
         NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-        callee.setDirection(callEvent.getDirection());
-        callee.setStatus(callEvent.getStatus());
+        
+        callee.setDirection(NexMoCallDirection.OUTBOUND);
+        callee.setStatus(NexMoCallStatus.STARTED);
 
         UpdateNexMoConversationArg updateArg =
             new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
@@ -114,7 +127,8 @@ public class CommsCallbackResource {
         ex.printStackTrace();
       }
 
-    } while (false);
+    } 
+    while (false);
 
     if (!wouldConnectAgent) {
 

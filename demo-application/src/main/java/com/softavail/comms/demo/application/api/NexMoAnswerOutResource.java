@@ -48,7 +48,7 @@ public class NexMoAnswerOutResource {
 
     LOGGER.debug("/answer_outbound/{}", conversationId);
     
-    NexMoCall call =  conversationService.getOutboundCallWithConversationId(uuid);
+    NexMoCall call =  conversationService.getInboundCallWithConversationId(uuid);
 
     NexMoConversation conversation = conversationService.getConversation(conversationId);
     
@@ -59,12 +59,12 @@ public class NexMoAnswerOutResource {
       builder.appendNcco(talkNcco);
 
       NccoResponse nccoResponse = builder.getValue();
+      LOGGER.debug("/answer_outbound response:{}", nccoResponse.toJson());
       return nccoResponse.toJson();
     }
     
     UpdateNexMoConversationArg updateArg =
         new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTED);
-    updateArg.setAgent(call);
     conversationService.updateConversation(conversationId, updateArg);
 
     TalkNcco talkNcco = new TalkNcco("Please wait while we connect you");
@@ -77,6 +77,7 @@ public class NexMoAnswerOutResource {
     builder.appendNcco(convNcco);
     
     NccoResponse nccoResponse = builder.getValue();
+    LOGGER.debug("/answer_outbound response:{}", nccoResponse.toJson());
     return nccoResponse.toJson();
   }
 
