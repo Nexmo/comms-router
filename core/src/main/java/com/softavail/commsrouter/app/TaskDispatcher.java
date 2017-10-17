@@ -154,7 +154,7 @@ public class TaskDispatcher {
         });
 
     if (taskAssignment != null) {
-      LOGGER.info("Dispatch task {}: task {} assgined to agent {}", taskId,
+      LOGGER.info("Dispatch task {}: task {} assigned to agent {}", taskId,
           taskAssignment.getTask(), taskAssignment.getAgent());
       try {
         taskEventHandler.onTaskAssigned(taskAssignment);
@@ -197,10 +197,13 @@ public class TaskDispatcher {
     });
 
     if (taskAssignment != null) {
-      LOGGER.info("Dispatch agent {}: task {} assgined to agent {}",
+      LOGGER.info("Dispatch agent {}: task {} assigned to agent {}",
           agentId, taskAssignment.getTask(), taskAssignment.getAgent());
-      taskEventHandler.onTaskAssigned(taskAssignment);
-      // TODO Redispatch on AssignmentRejectedException?
+      try {
+        taskEventHandler.onTaskAssigned(taskAssignment);
+      } catch (AssignmentRejectedException e) {
+        redispatchAssignment(taskAssignment.getTask().getId());
+      }
     } else {
       LOGGER.info("Dispatch agent {}: no suitable task or agent already busy", agentId);
     }
