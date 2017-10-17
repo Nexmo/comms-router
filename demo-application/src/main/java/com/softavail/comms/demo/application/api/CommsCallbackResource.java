@@ -53,19 +53,16 @@ public class CommsCallbackResource {
   TaskServiceClient taskServiceClient;
 
   @POST
-  public void taskAssignmentAnswer(
-      @QueryParam("callId") final String conversationId,
+  public void taskAssignmentAnswer(@QueryParam("callId") final String conversationId,
       final TaskAssignmentDto taskAssignment) {
 
-    // TODO 
+    // TODO
   }
 
   @POST
   @Path("/{taskId}")
-  public void taskAnswer(
-      @PathParam("taskId") String taskId,
-      @QueryParam("callId") final String conversationId,
-      final TaskAssignmentDto taskAssignment) {
+  public void taskAnswer(@PathParam("taskId") String taskId,
+      @QueryParam("callId") final String conversationId, final TaskAssignmentDto taskAssignment) {
 
     AgentDto agent = taskAssignment.getAgent();
 
@@ -89,7 +86,7 @@ public class CommsCallbackResource {
       Endpoint epFrom =
           NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
       String answerUrl =
-          configuration.getCallbackBaseUrl() + "answer_outbound/" + conversation.getId();
+          configuration.getNexmoCallbackBaseUrl() + "answer_outbound/" + conversation.getId();
       // prepare to start a call to the agent
       Call callRequest = new Call(epAgent, epFrom, answerUrl);
       try {
@@ -117,8 +114,7 @@ public class CommsCallbackResource {
         ex.printStackTrace();
       }
 
-    }
-    while (false);
+    } while (false);
 
     if (!wouldConnectAgent) {
 

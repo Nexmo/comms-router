@@ -27,6 +27,7 @@ public class ConfigurationImpl implements Configuration {
   private final String commsApiEndpoint;
   private final String commsRouterId;
   private final String callbackBaseUrl;
+  private final String nexmoCallbackBaseUrl;
   private final String musicOnHoldUrl;
 
   @Inject
@@ -35,6 +36,9 @@ public class ConfigurationImpl implements Configuration {
 
     callbackBaseUrl = addTrailingSlash(properties.callbackBaseUrl());
     LOGGER.debug("Callback Url: {}", callbackBaseUrl);
+
+    nexmoCallbackBaseUrl = addTrailingSlash(properties.nexmoCallbackBaseUrl());
+    LOGGER.debug("Nexmo callback Url: {}", nexmoCallbackBaseUrl);
 
     commsApiEndpoint = addTrailingSlash(properties.commsRouterUrl());
     LOGGER.debug("Comms Api Endpoint: {}", commsApiEndpoint);
@@ -74,6 +78,11 @@ public class ConfigurationImpl implements Configuration {
   }
 
   @Override
+  public String getNexmoCallbackBaseUrl() {
+    return nexmoCallbackBaseUrl;
+  }
+
+  @Override
   public String getCommsApiEndpoint() {
     return commsApiEndpoint;
   }
@@ -88,8 +97,7 @@ public class ConfigurationImpl implements Configuration {
     return musicOnHoldUrl;
   }
 
-  private URL getFile(String path, String filename)
-      throws MalformedURLException {
+  private URL getFile(String path, String filename) throws MalformedURLException {
 
     File file = new File(path, filename);
 
