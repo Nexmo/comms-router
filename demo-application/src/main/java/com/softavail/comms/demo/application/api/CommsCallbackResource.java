@@ -106,15 +106,25 @@ public class CommsCallbackResource {
 
         // start a call to the agent
         CallEvent callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-        NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-        
-        callee.setDirection(NexMoCallDirection.OUTBOUND);
-        callee.setStatus(NexMoCallStatus.STARTED);
+        if (callEvent != null && callEvent.getUuid() != null
+            && callEvent.getConversationUuid() != null && callEvent.getStatus() != null) {
+          LOGGER.debug("calling agent with uuid:{}, conv_uuid: {}, status:{}", 
+              callEvent.getUuid(),
+              callEvent.getConversationUuid(),
+              callEvent.getStatus());
 
-        UpdateNexMoConversationArg updateArg =
-            new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
-        updateArg.setAgent(callee);
-        conversationService.updateConversation(conversationId, updateArg);
+          NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
+          callee.setDirection(NexMoCallDirection.OUTBOUND);
+          callee.setStatus(NexMoCallStatus.STARTED);
+
+          UpdateNexMoConversationArg updateArg =
+              new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
+          updateArg.setAgent(callee);
+          conversationService.updateConversation(conversationId, updateArg);
+        } else {
+          LOGGER.warn("Could not call agent. NexMo voice client returned invalid callEvent");
+          wouldConnectAgent = false;
+        }
       } catch (IOException | NexmoClientException e) {
         // Would not call agent. Mark the task as complete with error.
         LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
