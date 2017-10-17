@@ -13,8 +13,10 @@ import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Context;
 
 /**
  * Created by @author mapuo on 31.08.17.
@@ -29,7 +31,7 @@ public class CommsRouterApplication extends ResourceConfig {
   private final CommsRouterEvaluator evaluator;
   private final EntityMappers mappers;
 
-  public CommsRouterApplication() {
+  public CommsRouterApplication(@Context ServletContext servletContext) {
     dbFacade = new JpaDbFacade();
     evaluator = new CommsRouterEvaluator();
     mappers = new EntityMappers();
@@ -50,8 +52,7 @@ public class CommsRouterApplication extends ResourceConfig {
     register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
 
     BeanConfig beanConfig = new BeanConfig();
-    beanConfig.setSchemes(new String[] {"http"});
-    beanConfig.setBasePath("/api");
+    beanConfig.setBasePath(servletContext.getContextPath() + "/api");
     beanConfig.setResourcePackage("com.softavail.commsrouter.webservice.resources");
     beanConfig.setScan(true);
     beanConfig.setPrettyPrint(true);
