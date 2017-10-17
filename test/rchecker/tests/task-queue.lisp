@@ -257,3 +257,5 @@
 (defun test-all()
   (mapcar #'print-log (remove-if #'second (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))))
 )
+(defun delete-completed-tasks()
+  (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
