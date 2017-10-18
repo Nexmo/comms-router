@@ -43,8 +43,7 @@ public class NexMoEventCallbackResource {
     LOGGER.debug("payload: {}", payload);
     
     Response response = null;
-    
-    
+
     try {
       String answerNcco = strategy.continueAnswerInboundCall(payload, taskId, callbackState);
       LOGGER.debug("/event_callback ncco: {}", answerNcco);
@@ -62,5 +61,35 @@ public class NexMoEventCallbackResource {
     LOGGER.debug("/event_callback response: {}", response.toString());
     return response;
   }
+
+  @POST
+  @Path("connect_callback")
+  public Response handleConnectCallbackEvent(
+      @QueryParam("taskId") String taskId,
+      @QueryParam("action") String action,
+      JsonNode payload) {
+
+    LOGGER.debug("/event_callback/connect_callback task:{}, action:{}", taskId, action);
+    LOGGER.debug("payload: {}", payload);
+    
+    Response response = null;
+    try {
+      String answerNcco = strategy.continueAnswerOutboundCall(payload, taskId, action);
+      LOGGER.debug("/event_callback/connect_callback ncco: {}", answerNcco);
+      response = Response.ok(answerNcco, MediaType.APPLICATION_JSON).build();
+    } catch (AnswerStrategyException e) {
+      LOGGER.error("failed to handle connect_callback event {}", e.getMessage());
+      response =  Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity(e.getMessage()).build();
+    } catch (Exception ex) {
+      LOGGER.error("failed to handle connect_callback event {}", ex.getMessage());
+      response =  Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity(ex.getMessage()).build();
+    }
+
+    LOGGER.debug("/event_callback/connect_callback response: {}", response.toString());
+    return response;
+  }
   
+
 }

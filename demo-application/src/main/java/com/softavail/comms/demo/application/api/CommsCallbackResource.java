@@ -76,7 +76,6 @@ public class CommsCallbackResource {
           doTaskAssignmentAnswer(taskAssignment);
         }
       }).start();
-      
     }
     
     Response response = Response.ok().build();
@@ -120,8 +119,10 @@ public class CommsCallbackResource {
       // start a call to the agent
       LOGGER.debug("calling agent at: {}", epAgent.toLog());
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-      LOGGER.debug("uuid: {}", callEvent.getUuid());
-      flagOk = true;
+      if (callEvent != null && callEvent.getUuid() != null) {
+        LOGGER.debug("uuid: {}", callEvent.getUuid());
+        flagOk = true;
+      }
       
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
@@ -200,10 +201,11 @@ public class CommsCallbackResource {
           epAgent.toLog(), answerUrl, eventUrl);
       
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-      flagOk = true;
+      if (callEvent != null && callEvent.getUuid() != null) {
+        LOGGER.debug("uuid: {}", callEvent.getUuid());
+        flagOk = true;
+      }
     
-      LOGGER.debug("uuid: {}",
-          callEvent.getUuid());
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
       LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
@@ -414,19 +416,34 @@ public class CommsCallbackResource {
     LOGGER.debug("task: {}", taskAssignment.getTask());
     
     try {
-      TaskDto task = taskAssignment.getTask();
-      AttributeGroupDto context = task.getUserContext(); 
-      if (null != context) {
-        String kind = attributeGroupDtogetString("kind", context);
-        if (null != kind && kind.equals("callback")) {
-          handleCallbackTask(task, taskAssignment.getAgent());
-          return;
+      final TaskDto task = taskAssignment.getTask();
+      if (null != task) {
+        LOGGER.trace("Able to get task from taskAssignment");
+        boolean isCallback = false;
+        AttributeGroupDto context = task.getUserContext(); 
+        
+        if (null != context) {
+          LOGGER.trace("Able to get task's userContext");
+          String kind = attributeGroupDtogetString("kind", context);
+          LOGGER.trace("Task's kind:{}", kind);
+          if (null != kind && kind.equals("callback")) {
+            LOGGER.trace("mark task as callback");
+            isCallback = true;
+          }
         }
-      }
 
-      handleRegularTask(taskAssignment.getTask(), taskAssignment.getAgent());
+        if (isCallback) {
+          LOGGER.debug("About to handle callback task:{}", task.getId());
+          handleCallbackTask(task, taskAssignment.getAgent());
+        } else {
+          LOGGER.debug("About to handle regular task:{}", task.getId());
+          handleRegularTask(task, taskAssignment.getAgent());
+        }
+      } else {
+        LOGGER.warn("Could not get task from taskAssignment");
+      }
     } catch (Exception e) {
-      LOGGER.error("taskAssignmentAnswer: {}", e.getMessage());
+      LOGGER.error("Error in taskAssignmentAnswer: {}", e.getMessage());
     }
   }
 

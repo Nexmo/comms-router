@@ -1,7 +1,5 @@
 package com.softavail.comms.nexmo.answer;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 public interface AnswerStrategy {
@@ -10,5 +8,11 @@ public interface AnswerStrategy {
       throws AnswerStrategyException;
   
   public String continueAnswerInboundCall(JsonNode userInfo, String taskId, String state)
+      throws AnswerStrategyException;
+  
+  public String answerOutboundCall(String kind, String taskId) 
+      throws AnswerStrategyException;
+
+  public String continueAnswerOutboundCall(JsonNode userInfo, String taskId, String action)
       throws AnswerStrategyException;
 }
