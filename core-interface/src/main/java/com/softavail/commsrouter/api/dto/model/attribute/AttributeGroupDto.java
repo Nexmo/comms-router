@@ -24,7 +24,7 @@ public class AttributeGroupDto extends HashMap<String, AttributeValueDto> {
     return sb.toString();
   }
 
-  public AttributeGroupDto withKeyValue(String key, AttributeValueGroupDto value) {
+  public AttributeGroupDto withKeyValue(String key, AttributeValueDto value) {
     this.put(key,value);
     return this;
   }
