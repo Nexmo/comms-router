@@ -233,13 +233,13 @@ public class QueueTest {
     assertThat(q.tasks(), hasSize(1));
     assertThat(q.size(), is(1));
 
-    queueArg.setDescription(null);
-    queueArg.setPredicate(null);
+    queueArg.setDescription("qdescription");
+    queueArg.setPredicate("1==1");
 
     id = q.replace(queueArg);
     QueueDto queue = q.get();
-    assertThat(queue.getPredicate(), is(nullValue()));
-    assertThat(queue.getDescription(), is(nullValue()));
+    assertThat(queue.getPredicate(), is("qdescription"));
+    assertThat(queue.getDescription(), is("2==2"));
 
     assertThat(q.tasks(), hasSize(1));
     assertThat(q.size(), is(1));

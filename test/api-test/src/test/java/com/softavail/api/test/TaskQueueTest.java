@@ -65,15 +65,11 @@ public class TaskQueueTest {
   }
 
   @AfterEach
-  public void deleteRouter() {
-    r.delete();
-    q.delete();
-  }
-
-  @AfterEach
-  public void deletePlanAndTask() {
-    p.delete();
-    q.delete();
+  public void cleanup() {
+      t.delete();
+      p.delete();
+      q.delete();
+      r.delete();
   }
 
   private void createPlan(String predicate){

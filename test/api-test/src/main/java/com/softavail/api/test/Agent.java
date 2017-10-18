@@ -27,8 +27,6 @@ public class Agent extends Resource {
 
   public Agent(HashMap<CommsRouterResource, String> state) {
     super(state);
-    RestAssured.baseURI = System.getProperty("autHost");
-    RestAssured.basePath = "/comms-router-web/api";
   }
 
   public List<AgentDto> list() {
@@ -90,13 +88,13 @@ public class Agent extends Resource {
 
   public void update(CreateAgentArg args) {
     String id = state().get(CommsRouterResource.AGENT);
-    given().log().all()
+    given()
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("queueId", id)
         .body(args)
         .when().post("/routers/{routerId}/agents/{queueId}")
-        .then().log().all().statusCode(204);
+        .then().statusCode(204);
   }
 
 }
