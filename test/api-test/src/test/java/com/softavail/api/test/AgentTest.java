@@ -97,7 +97,8 @@ public class AgentTest {
     arg.setCapabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")));
     ApiObjectId id = a.create(arg);
     AgentDto resource = a.get();
-    assertThat(String.format("Check attribute language (%s) is 'en'.", ((StringAttributeValueDto)resource.getCapabilities().get("language")).getValue()),
+    assertThat(String.format("Check attribute language (%s) is 'en'.",
+                             ((StringAttributeValueDto)resource.getCapabilities().get("language")).getValue()),
                ((StringAttributeValueDto)resource.getCapabilities().get("language")).getValue(), is("en"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
                resource.getState(), is(AgentState.offline));

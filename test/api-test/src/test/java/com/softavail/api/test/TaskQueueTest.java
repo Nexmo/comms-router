@@ -124,6 +124,16 @@ public class TaskQueueTest {
   }
 
   @Test
+  @DisplayName("Add task with float attribute and predicate to check it - ==.")
+  public void addTaskFloatAttributeEquals() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("float", new DoubleAttributeValueDto(0.05));
+    addPlanTask(taskAttribs, "#{float}==0.05");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   @DisplayName("Add task with one attribute and predicate to check it - !=.")
   public void addTaskOneAttributeNotEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
