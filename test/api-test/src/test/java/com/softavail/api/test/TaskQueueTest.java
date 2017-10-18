@@ -38,7 +38,6 @@ import java.util.Collections;
 /**
  * Unit test for Task to queue mapping.
  */
-//@TestInstance(Lifecycle.PER_CLASS)
 
 @DisplayName("Task to Queue mapping Tests")
 public class TaskQueueTest {
