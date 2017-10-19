@@ -23,7 +23,7 @@
     <module>client</module>
     <module>core</module>
     <module>web</module>
-    <module>nexmo-apps-temp</module>
+    <module>nexmo-apps</module>
   </modules>
 
   <build>
