@@ -127,11 +127,12 @@ public class TaskDispatcher {
   public void dispatchAgent(String agentId) {
     try {
       // Get the queueId from the agent
-      db.transactionManager.execute(em -> db.agent.get(em, agentId).getQueues())
-          .parallelStream()
-          .map(ApiObject::getId)
-          .map(this::createQueueProcessor)
-          .forEach(QueueProcessor::process);
+      db.transactionManager.executeVoid(em ->
+          db.agent.get(em, agentId).getQueues()
+              .parallelStream()
+              .map(ApiObject::getId)
+              .map(this::createQueueProcessor)
+              .forEach(QueueProcessor::process));
     } catch (CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
