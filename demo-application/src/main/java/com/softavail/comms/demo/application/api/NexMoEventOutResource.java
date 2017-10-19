@@ -201,19 +201,22 @@ public class NexMoEventOutResource {
       
       TaskDto task = getTask(taskId);
       
-      if (null != task && null != task.getUserContext()) {
+      if (null != task) {
         updateTaskServiceState(taskId, TaskState.completed);
-
-        AttributeValueDto customerUuidDto = task.getUserContext().get("customer_uuid");
-        if (null != customerUuidDto) {
-          String customerUuid = getStringFromAttributeValueDto(customerUuidDto);
-          if (null != customerUuid) {
-            hangupCall(customerUuid);
+        
+        // hangup customer's call if present
+        if (null != task.getUserContext()) {
+          AttributeValueDto customerUuidDto = task.getUserContext().get("customer_uuid");
+          if (null != customerUuidDto) {
+            String customerUuid = getStringFromAttributeValueDto(customerUuidDto);
+            if (null != customerUuid) {
+              hangupCall(customerUuid);
+            } else {
+              LOGGER.error("Cannot extract string from Dto");
+            }
           } else {
-            LOGGER.error("Cannot extract string from Dto");
+            LOGGER.warn("Cannot hangup customer's leg because \"customer_uuid\" is not available");
           }
-        } else {
-          LOGGER.warn("Cannot hangup customer's leg because \"customer_uuid\" is not available");
         }
       } else {
         LOGGER.warn("No task or taskContext, cannot handle agent completed call event, ");
@@ -227,6 +230,22 @@ public class NexMoEventOutResource {
     if (null != taskId ) {
       // TODO: decide how to report this state. may be it is better to report it as timed out?
       updateTaskServiceState(taskId, TaskState.completed);
+      
+      TaskDto task = getTask(taskId);
+      // hang up customer's call if present
+      if (null != task && null != task.getUserContext()) {
+        AttributeValueDto customerUuidDto = task.getUserContext().get("customer_uuid");
+        if (null != customerUuidDto) {
+          String customerUuid = getStringFromAttributeValueDto(customerUuidDto);
+          if (null != customerUuid) {
+            hangupCall(customerUuid);
+          } else {
+            LOGGER.debug("Cannot extract string from Dto");
+          }
+        } else {
+          LOGGER.debug("Cannot hangup customer's leg because \"customer_uuid\" is not available");
+        }
+      }
     }
   }
 

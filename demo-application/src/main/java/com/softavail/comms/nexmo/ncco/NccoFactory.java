@@ -115,8 +115,7 @@ public class NccoFactory {
 
   public List<Ncco> nccoListWithAnswerFromCustomerForCallbackTask(
       String text, 
-      String conversationId,
-      String musicOnHoldUrl) {
+      String conversationId) {
 
     TalkNcco talk = new TalkNcco(text);
 
