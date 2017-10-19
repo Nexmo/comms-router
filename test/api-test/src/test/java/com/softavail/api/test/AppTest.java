@@ -12,6 +12,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -89,7 +90,7 @@ public class AppTest {
     assertThat(resource.getCapabilities(), nullValue());
     assertThat(a.list(), hasItems(hasProperty("id", is(id.getId()))));
     a.createWithId(new CreateAgentArg());
-    a.update(new CreateAgentArg());
+    a.update(new UpdateAgentArg());
     a.delete();
     r.delete();
   }

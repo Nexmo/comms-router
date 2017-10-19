@@ -14,8 +14,10 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.AgentState;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,7 +88,7 @@ public class Agent extends Resource {
         .extract().as(AgentDto.class);
   }
 
-  public void update(CreateAgentArg args) {
+  public void update(UpdateAgentArg args) {
     String id = state().get(CommsRouterResource.AGENT);
     given()
         .contentType("application/json")
@@ -95,6 +97,12 @@ public class Agent extends Resource {
         .body(args)
         .when().post("/routers/{routerId}/agents/{queueId}")
         .then().statusCode(204);
+  }
+
+  public void setState(AgentState state) {
+    UpdateAgentArg agentArg = new UpdateAgentArg();
+    agentArg.setState(state);
+    update(agentArg);
   }
 
 }
