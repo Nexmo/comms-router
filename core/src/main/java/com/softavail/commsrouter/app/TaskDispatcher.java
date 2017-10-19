@@ -8,7 +8,9 @@ package com.softavail.commsrouter.app;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Task;
@@ -18,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
@@ -35,14 +38,17 @@ public class TaskDispatcher {
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
 
-  public TaskDispatcher(JpaDbFacade dbFacade, TaskEventHandler taskEventHandler,
-      EntityMappers dtoMappers) {
-    this.db = dbFacade;
+  public TaskDispatcher(
+      JpaDbFacade db,
+      TaskEventHandler taskEventHandler,
+      EntityMappers dtoMappers,
+      int threadPoolSize) {
+
+    this.db = db;
     this.mappers = dtoMappers;
     this.taskEventHandler = taskEventHandler;
-    // @todo: config threads count
-    this.threadPool = new ScheduledThreadPoolExecutor(10);
-    threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    this.threadPool = new ScheduledThreadPoolExecutor(threadPoolSize);
+    this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
   }
 
   public void close() {
@@ -85,6 +91,30 @@ public class TaskDispatcher {
     });
   }
 
+  private void redispatchAssignment(String taskId)
+      throws CommsRouterException {
+
+    db.transactionManager.execute(em -> rejectAssignment(em, taskId))
+        .ifPresent(this::dispatchTask);
+  }
+
+  public Optional<String> rejectAssignment(EntityManager em, String taskId)
+      throws NotFoundException {
+
+    Task task = db.task.get(em, taskId);
+    Agent agent = task.getAgent();
+
+    if (task.getState().isAssigned() && agent != null) {
+      agent.setState(AgentState.unavailable);
+      task.setState(TaskState.waiting);
+      task.setAgent(null);
+
+      return Optional.of(task.getId());
+    }
+
+    return Optional.empty();
+  }
+
   @SuppressWarnings("unchecked")
   private void doDispatchTask(String taskId) throws CommsRouterException {
 
@@ -95,8 +125,11 @@ public class TaskDispatcher {
               + "JOIN t.queue q JOIN q.agents a WHERE t.id = :taskId and a.state = :agentState"
               + " ORDER BY t.priority DESC";
 
-          List<Object[]> result = em.createQuery(qlString).setParameter("taskId", taskId)
-              .setParameter("agentState", AgentState.ready).setMaxResults(1).getResultList();
+          List<Object[]> result = em.createQuery(qlString)
+              .setParameter("taskId", taskId)
+              .setParameter("agentState", AgentState.ready)
+              .setMaxResults(1)
+              .getResultList();
 
           if (result.isEmpty()) {
             LOGGER.info("Dispatch task {}: no suitable agent", taskId);
@@ -121,9 +154,13 @@ public class TaskDispatcher {
         });
 
     if (taskAssignment != null) {
-      LOGGER.info("Dispatch task {}: task {} assgined to agent {}", taskId,
+      LOGGER.info("Dispatch task {}: task {} assigned to agent {}", taskId,
           taskAssignment.getTask(), taskAssignment.getAgent());
-      taskEventHandler.onTaskAssigned(taskAssignment);
+      try {
+        taskEventHandler.onTaskAssigned(taskAssignment);
+      } catch (AssignmentRejectedException e) {
+        redispatchAssignment(taskAssignment.getTask().getId());
+      }
     } else {
       LOGGER.info("Dispatch task {}: miss", taskId);
     }
@@ -134,13 +171,16 @@ public class TaskDispatcher {
 
     TaskAssignmentDto taskAssignment = db.transactionManager.executeWithLockRetry((em) -> {
 
-      String qlString = "SELECT t, a FROM Task t " + "JOIN t.queue q JOIN q.agents a "
+      String qlString = "SELECT t, a FROM Task t JOIN t.queue q JOIN q.agents a "
           + "WHERE a.id = :agentId and a.state = :agentState and t.state = :taskState "
           + "ORDER BY t.priority DESC";
 
-      List<Object[]> result = em.createQuery(qlString).setParameter("agentId", agentId)
-          .setParameter("agentState", AgentState.ready).setParameter("taskState", TaskState.waiting)
-          .setMaxResults(1).getResultList();
+      List<Object[]> result = em.createQuery(qlString)
+          .setParameter("agentId", agentId)
+          .setParameter("agentState", AgentState.ready)
+          .setParameter("taskState", TaskState.waiting)
+          .setMaxResults(1)
+          .getResultList();
 
       if (result.isEmpty()) {
         return null;
@@ -157,9 +197,13 @@ public class TaskDispatcher {
     });
 
     if (taskAssignment != null) {
-      LOGGER.info("Dispatch agent {}: task {} assgined to agent {}", agentId,
-          taskAssignment.getTask(), taskAssignment.getAgent());
-      taskEventHandler.onTaskAssigned(taskAssignment);
+      LOGGER.info("Dispatch agent {}: task {} assigned to agent {}",
+          agentId, taskAssignment.getTask(), taskAssignment.getAgent());
+      try {
+        taskEventHandler.onTaskAssigned(taskAssignment);
+      } catch (AssignmentRejectedException e) {
+        redispatchAssignment(taskAssignment.getTask().getId());
+      }
     } else {
       LOGGER.info("Dispatch agent {}: no suitable task or agent already busy", agentId);
     }

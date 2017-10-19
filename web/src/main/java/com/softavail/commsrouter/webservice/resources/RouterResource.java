@@ -93,10 +93,10 @@ public class RouterResource {
       tags = "routers")
   @ApiResponses(
       @ApiResponse(code = 201, message = "Created",
-      responseHeaders = @ResponseHeader(
-          name = HttpHeaders.LOCATION,
-          response = URL.class,
-          description = "The path to the newly created resource")))
+          responseHeaders = @ResponseHeader(
+              name = HttpHeaders.LOCATION,
+              response = URL.class,
+              description = "The path to the newly created resource")))
   public Response create(
       @ApiParam(value = "Router object that needs to be added to the list of routers",
           required = true) CreateRouterArg routerArg)
