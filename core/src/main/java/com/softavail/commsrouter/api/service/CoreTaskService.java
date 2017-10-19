@@ -126,6 +126,27 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task>
     });
   }
 
+  @Override
+  public void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    app.db.transactionManager.executeVoid((em) -> {
+      Task task = app.db.task.get(em, objectId.getId());
+      AttributeGroupDto existingContext = app.entityMapper.attributes.toDto(task.getUserContext());
+      AttributeGroupDto newContext = taskContext.getUserContext();
+
+      if (null == existingContext) {
+        existingContext = newContext;
+      } else {
+        for (String key : newContext.keySet()) {
+          existingContext.put(key, newContext.get(key));
+        }
+      }
+
+      task.setUserContext(app.entityMapper.attributes.toJpa(existingContext));
+    });
+  }
+
   private Route gethMatchedRoute(AttributeGroupDto attributesGroup, List<Rule> rules, Long inRuleId,
       Long prevRouteId) {
     for (Rule rule : rules) {

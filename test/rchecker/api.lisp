@@ -23,7 +23,7 @@
 (defun get-id(&optional (prefix "tr")) (format nil "~A-~{~A~}~A~A" prefix (subseq (multiple-value-list (decode-universal-time (get-universal-time))) 0 4) (subseq (string (gensym))1) (random 1000)))
 
 (defun tr-step(request check events)
-  (let ((js (apply *transport* (funcall request))))
+  (let ((js (apply (funcall *endpoint* #'transport) (funcall request))))
     (when (funcall check js)
       (funcall events js))
     js))

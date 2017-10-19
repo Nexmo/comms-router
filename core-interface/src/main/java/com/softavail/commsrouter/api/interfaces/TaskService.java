@@ -28,4 +28,6 @@ public interface TaskService
   void update(UpdateTaskContext taskContext, RouterObjectId objectId)
       throws CommsRouterException;
 
+  void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException;
 }

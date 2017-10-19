@@ -27,8 +27,6 @@ public class Router extends Resource {
 
   public Router(HashMap<CommsRouterResource, String> state) {
     super(state);
-    RestAssured.baseURI = System.getProperty("autHost");
-    RestAssured.basePath = "/comms-router-web/api/";
   }
 
   public List<RouterDto> list() {
