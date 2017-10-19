@@ -226,11 +226,11 @@
     (etask-set-context :router-id router-id :task-id task-id :key "key" :value "value")))
 
 (defun push-a-task(&key (host "localhost") (timeout 30))
-  #'(lambda(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
+  #'(lambda(&key (router-id (get-event :router)) (queue-id (get-event :queue)))
       (tlet ((task-id (js-val "id")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
-                                            (jsown:new-js ("callbackUrl" (funcall )(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id (random 2)))
+                                            (jsown:new-js ("callbackUrl"(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id (random 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
                                                           ("queueId" queue-id)
                                                           ("userContext" (jsown:new-js ))
@@ -261,3 +261,8 @@
 )
 (defun delete-completed-tasks()
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
+(defun setup-demo()
+  (router-put :id "router-1")
+  (queue-put :id "demo-queue")
+  (agent-put :id "r8AzfepLFqVfUGU7wgQOo6")
+)
