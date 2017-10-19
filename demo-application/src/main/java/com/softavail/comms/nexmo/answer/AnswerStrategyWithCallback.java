@@ -70,6 +70,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   private static final String STATE_CONFIRM_NUMBER = "confirm_number";
   private static final String STATE_RECORD_NAME = "record_name";
   private static final String STATE_END = "completed";
+  private static final String STATE_ASSIGNED = "assigned";
 
   private static final String INFORM_CALLBACK_MESSAGE =
       "We are experiencing a high call volume. "
@@ -99,6 +100,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   private static final String ERROR_MESSAGE_CRATE_TASK = "Sorry we can't serve your request";
   
   private static final String MESSAGE_REGULAR_TASK_GREETING = "Please wait while we connect you";
+  
+  private static final String MESSAGE_ASSIGNED_CALLBACK_TASK = "An agent become ready to handle your request. Please wait while we connect you";
   
   private NccoFactory nccoFactory = new NccoFactory(); 
   
@@ -146,7 +149,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null == task) {
       return respondWithErrorTalkNcco();
     }
-   
+    
     // Check answer time prediction
     if (task.getQueueTasks() < 1) {
       // create regular task
@@ -178,6 +181,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null == taskContext) {
       LOGGER.warn("Task does not have a context: {}", taskId);
       return respondWithErrorTalkNcco();
+    }
+    
+    // check if the task has been assigned during callback ivr
+    if (task.getState() == TaskState.assigned) {
+      return handleAssignedTask(task);
     }
     
     String callbackState = stringAttributeValueDto(taskContext.get(KEY_STATE));
@@ -277,6 +285,55 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return response;
   }
 
+  private String handleAssignedTask(TaskDto task) {
+
+    LOGGER.debug("handleAssignedTask");
+
+    try {
+    
+      if (task == null) {
+        return respondWithErrorTalkNcco();
+      }
+
+      AttributeGroupDto taskContext = task.getUserContext();
+      if (null == taskContext) {
+        return respondWithErrorTalkNcco();
+      }
+
+      String convName = attributeGroupDtogetString(KEY_CONV_NAME, taskContext);
+      if (null == convName || convName.length() == 0) {
+        return respondWithErrorTalkNcco();
+      }
+      
+      // update task 
+      AttributeGroupDto updContext = new AttributeGroupDto();
+      updContext.put(KEY_STATE, new StringAttributeValueDto(STATE_ASSIGNED));
+      updContext.put(KEY_KIND, new StringAttributeValueDto("callback"));
+      boolean taskUpdated = updateTaskContext(task.getId(), updContext);
+      if (false == taskUpdated) {
+        return respondWithErrorTalkNcco();
+      }
+      
+      // connect customer to the conversation
+      List<Ncco> list = nccoFactory
+          .nccoListWithAnswerFromCustomerForCallbackTask(MESSAGE_ASSIGNED_CALLBACK_TASK, convName);
+
+      // preparing a response    
+      NccoResponseBuilder builder = new NccoResponseBuilder();
+      list.forEach(ncco -> {
+        builder.appendNcco(ncco);
+      });
+      
+      // respond
+      NccoResponse nccoResponse = builder.getValue();
+      return nccoResponse.toJson();
+    } catch (Exception e) {
+      LOGGER.error("respondByTransitionToRegularTask: {}", e.getMessage());
+    }
+
+    return respondWithErrorTalkNcco();
+  }
+  
   private String handlePromptCallerIdResponse(JsonNode userInfo, TaskDto task) {
     LOGGER.debug("handlePromptCallerIdResponse");
     String response = "[]";// empty NCCO
@@ -656,12 +713,18 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
           NccoResponse nccoResponse = builder.getValue();
           answer = nccoResponse.toJson();
           
-          new Thread(new Runnable() {
-            @Override
-            public void run() {
-              callCustomer(callbackNumber, taskId);
-            }
-          }).start();
+          String callbackState =  attributeGroupDtogetString(KEY_STATE, task.getUserContext());
+          
+          // check the callback state and call customer only if it has completed its callback ivr
+          if (null != callbackState && callbackState.equals(STATE_END)) {
+            LOGGER.trace("");
+            new Thread(new Runnable() {
+              @Override
+              public void run() {
+                callCustomer(callbackNumber, taskId);
+              }
+            }).start();
+          }
         }
       }      
     }
@@ -740,10 +803,9 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
         String text = "Please wait while we connect you";
-        String musicOnHoldUrl = configuration.getMusicOnHoldUrl();
         
         List<Ncco> list = nccoFactory.nccoListWithAnswerFromCustomerForCallbackTask(text,
-            conversationName, musicOnHoldUrl);
+            conversationName);
         
         // preparing a response    
         NccoResponseBuilder builder = new NccoResponseBuilder();
