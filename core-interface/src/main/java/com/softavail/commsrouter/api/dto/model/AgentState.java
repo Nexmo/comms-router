@@ -10,5 +10,5 @@ package com.softavail.commsrouter.api.dto.model;
  * @author ikrustev
  */
 public enum AgentState {
-  offline, ready, busy
+  offline, ready, busy, unavailable
 }

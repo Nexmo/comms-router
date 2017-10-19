@@ -44,15 +44,15 @@ public class TaskDispatcher {
   public TaskDispatcher(
       JpaDbFacade db,
       TaskEventHandler taskEventHandler,
-      EntityMappers dtoMappers)
+      EntityMappers dtoMappers,
+      int threadPoolSize)
       throws CommsRouterException {
 
     this.db = db;
     this.mappers = dtoMappers;
     this.taskEventHandler = taskEventHandler;
-    // @todo: config threads count
-    this.threadPool = new ScheduledThreadPoolExecutor(10);
-    threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    this.threadPool = new ScheduledThreadPoolExecutor(threadPoolSize);
+    this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     startQueueProcessors();
   }
 
