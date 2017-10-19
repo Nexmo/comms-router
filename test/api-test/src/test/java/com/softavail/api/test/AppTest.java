@@ -111,6 +111,7 @@ public class AppTest {
     assertThat(t.list(), hasItems(hasProperty("id", is(id.getId()))));
     //t.replace(new CreateTaskArg());
     //t.update(new CreateTaskArg());
+    t.delete();
     q.delete();
     t.delete();
     r.delete();

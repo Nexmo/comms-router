@@ -62,6 +62,10 @@
       <artifactId>jersey-container-servlet</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.cfg4j</groupId>
+      <artifactId>cfg4j-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
     </dependency>

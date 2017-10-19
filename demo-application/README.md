@@ -64,10 +64,16 @@ Then add a system property of the JVM with key _comms.demo.app.config.path_ that
 will tell the app where to find the _application.properties_ file.
 
 Ex. `java -Dcomms.demo.app.config.path=/configDir`.
-Ex. Tomcat has `bin/setenv.sh` where you can say
-```bash
-export CATALINA_OPTS="$CATALINA_OPTS -Dcomms.demo.app.config.path=/configDir"
-```
+
+Ex. With Tomcat JVM properties are set like this:
+* UNIX: `$CATALINA_BASE/bin/setenv.sh`
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Dcomms.demo.app.config.path=/configDir"
+  ```
+* Windows: `%CATALINA_BASE%\bin\setenv.bat`
+  ```bat
+  set CATALINA_OPTS=%CATALINA_OPTS% -Dcomms.demo.app.config.path=c:\configDir
+  ```
 
 ## Initialize CommsRouter
 

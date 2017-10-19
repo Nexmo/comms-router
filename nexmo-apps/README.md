@@ -59,10 +59,16 @@ The application requires settings file to be provided with the following keys:
 Add a system property of the JVM with key `nexmo.apps.config.file` and value - the full path to the file.
 
 Ex. `java -Dnexmo.apps.config.file=/configDir/application.properties`.
-Ex. Tomcat has `bin/setenv.sh` where you can say
-```bash
-export CATALINA_OPTS="$CATALINA_OPTS -Dnexmo.apps.config.file=/configDir/application.properties"
-```
+
+Ex. With Tomcat JVM properties are set like this:
+* UNIX: `$CATALINA_BASE/bin/setenv.sh`
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Dnexmo.apps.config.file=/configDir/application.properties"
+  ```
+* Windows: `%CATALINA_BASE%\bin\setenv.bat`
+  ```bat
+  set CATALINA_OPTS=%CATALINA_OPTS% -Dnexmo.apps.config.file=c:\configDir\application.properties
+  ```
 
 #### Servlet Context
 

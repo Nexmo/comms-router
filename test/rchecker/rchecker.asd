@@ -7,10 +7,15 @@
   :depends-on (#:alexandria
                #:jsown
                #:drakma
+               #:hunchentoot
                #:lparallel
                #:check-it)
   :serial t
   :components ((:file "package")
                (:file "transport")
                (:file "api")
-               (:file "rchecker")))
+               (:file "rchecker")
+               (:file "eapi")
+               (:file "etest")
+               (:file "auto-complete")
+               (:file "tests/task-queue")))

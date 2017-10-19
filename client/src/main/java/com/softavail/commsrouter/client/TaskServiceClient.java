@@ -11,9 +11,12 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 
+import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -71,7 +74,14 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   public void update(UpdateTaskContext taskContext, RouterObjectId routerObjectId)
       throws CommsRouterException {
 
-    post(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
+    putContext(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
+  }
+
+  @Override
+  public void updateContext(UpdateTaskContext taskContext, RouterObjectId routerObjectId)
+      throws CommsRouterException {
+
+    postContext(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
   }
 
   @Override
@@ -96,6 +106,31 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   public void delete(RouterObjectId routerObject) {
     routerObject.setRouterId(routerId);
     deleteRequest(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+  }
+
+  // POST over resource updates. Returns void
+  private void postContext(Object obj, RouterObjectId id) {
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .path("user_context")
+        .build(id.getRouterId(), id.getId());
+
+    getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
+  }
+
+  protected CreatedTaskDto putContext(Object obj, RouterObjectId id) {
+    URI uri = getApiUrl().clone()
+        .path("{resourceId}")
+        .path("user_context")
+        .build(id.getRouterId(), id.getId());
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), CreatedTaskDto.class);
   }
 
 }

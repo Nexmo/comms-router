@@ -5,10 +5,14 @@
 
 package com.softavail.commsrouter.jpa;
 
+import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.result.MatchResult;
 
+import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -30,6 +34,25 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
         .setParameter("queueId", queueId)
         .setParameter("state", TaskState.waiting)
         .getSingleResult();
+  }
+
+  @SuppressWarnings("unchecked")
+  public Optional<MatchResult> findAssignment(EntityManager em, String queueId)
+      throws CommsRouterException {
+
+    String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, ag) "
+        + "FROM Task t JOIN t.queue q JOIN q.agents a JOIN Agent ag ON ag.id = a.id "
+        + "WHERE t.state = :taskState AND a.state = :agentState AND q.id = :queueId "
+        + "ORDER BY t.priority DESC";
+
+    List<MatchResult> result = em.createQuery(query)
+        .setParameter("taskState", TaskState.waiting)
+        .setParameter("agentState", AgentState.ready)
+        .setParameter("queueId", queueId)
+        .setMaxResults(1)
+        .getResultList();
+
+    return result.stream().findFirst();
   }
 
 }
