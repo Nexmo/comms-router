@@ -11,7 +11,7 @@
             method '(("Content-type" "application/json"))
             (when body  (jsown:to-json body))) ) )
 
-(defun http-get (url &rest urls)  (tr-request :get (list* url (append (butlast urls) (list (format nil "~A?perPage=25"(first (last urls))))))))
+(defun http-get (url &rest urls)  (tr-request :get (list* url urls)))
 (defun http-del (url &rest urls)  (tr-request :delete (list* url urls)) )
 (defun http-put(url body) (tr-request :put url body))
 (defun http-post(url body) (tr-request :post url body))
