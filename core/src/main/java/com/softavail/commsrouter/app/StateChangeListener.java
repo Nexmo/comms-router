@@ -8,6 +8,6 @@ import java.util.EventListener;
 @FunctionalInterface
 public interface StateChangeListener extends EventListener {
 
-  void stateChanged(String queueId, QueueProcessorState oldState, QueueProcessorState newState);
+  void stateChanged(StateChangeEvent changeEvent);
 
 }

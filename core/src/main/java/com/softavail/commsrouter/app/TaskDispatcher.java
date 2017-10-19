@@ -30,9 +30,9 @@ public class TaskDispatcher {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskDispatcher.class);
 
-  private static final Map<String, QueueProcessor> QUEUE_PROCESSORS = Maps.newConcurrentMap();
+  private static final Map<String, QueueProcessor> QUEUE_PROCESSORS = Maps.newHashMap();
 
-  private static final Map<String, ScheduledFuture> SCHEDULED_FUTURES = Maps.newConcurrentMap();
+  private static final Map<String, ScheduledFuture> SCHEDULED_FUTURES = Maps.newHashMap();
   private static final long EVICTION_DELAY_MINUTES = 10;
   private static final boolean DO_NOT_INTERRUPT_IF_RUNNING = false;
 
@@ -40,7 +40,6 @@ public class TaskDispatcher {
   private final EntityMappers mappers;
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
-
 
   public TaskDispatcher(
       JpaDbFacade db,
@@ -70,25 +69,28 @@ public class TaskDispatcher {
             .forEach(QueueProcessor::process));
   }
 
-  private QueueProcessor createQueueProcessor(String queueId) {
+  private synchronized QueueProcessor createQueueProcessor(String queueId) {
     Optional.ofNullable(SCHEDULED_FUTURES.get(queueId))
         .ifPresent(schedule -> schedule.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
     QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
     if (queueProcessor == null) {
       queueProcessor = new QueueProcessor(queueId, db, mappers, taskEventHandler, threadPool,
-          (StateWaitingListener) this::handleStateChange);
+          (StateIdleListener) this::handleStateChange);
       QUEUE_PROCESSORS.put(queueId, queueProcessor);
     }
     return queueProcessor;
   }
 
+  private synchronized void removeQueueProcessor(String queueId) {
+    QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
+    if (!queueProcessor.isWorking()) {
+      QUEUE_PROCESSORS.remove(queueId);
+    }
+  }
+
   private void handleStateChange(String queueId) {
-    ScheduledFuture<?> schedule = threadPool.schedule(() -> {
-      QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
-      if (!queueProcessor.isWorking()) {
-        QUEUE_PROCESSORS.remove(queueId);
-      }
-    }, EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
+    ScheduledFuture<?> schedule = threadPool.schedule(
+        () -> removeQueueProcessor(queueId), EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
     SCHEDULED_FUTURES.put(queueId, schedule);
   }
 
@@ -112,16 +114,8 @@ public class TaskDispatcher {
     }
   }
 
-  public void dispatchTask(String taskId) {
-    try {
-      // Get the queueId from the Task
-      String queueId = db.transactionManager.execute(em ->
-          db.task.get(em, taskId).getQueue().getId());
-      // Get processor for the Queue and start process
-      createQueueProcessor(queueId).process();
-    } catch (CommsRouterException e) {
-      LOGGER.error("Dispatch task {}: failure: {}", taskId, e, e);
-    }
+  public void dispatchQueue(String queueId) {
+    createQueueProcessor(queueId).process();
   }
 
   public void dispatchAgent(String agentId) {

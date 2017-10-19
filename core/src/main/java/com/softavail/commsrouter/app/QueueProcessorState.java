@@ -5,6 +5,6 @@ package com.softavail.commsrouter.app;
  */
 enum QueueProcessorState {
 
-  CONSUME, MUST_CONSUME, WAIT
+  CONSUME, MUST_CONSUME, IDLE
 
 }

@@ -55,7 +55,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       return doCreate(em, createArg, routerObjectId);
     });
 
-    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    app.taskDispatcher.dispatchQueue(createdTaskDto.getQueueId());
     return createdTaskDto;
   }
 
@@ -70,12 +70,13 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       return doCreate(em, createArg, objectId);
     });
 
-    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
+    app.taskDispatcher.dispatchQueue(createdTaskDto.getQueueId());
     return createdTaskDto;
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     if (updateArg.getState() != TaskState.completed) {
       throw new BadValueException("Expected state: completed");
@@ -147,11 +148,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     em.persist(task);
 
-    long queueTasks = app.db.queue.getQueueSize(em, task.getQueue().getId()) - 1;
+    String queueId = task.getQueue().getId();
+    long queueTasks = app.db.queue.getQueueSize(em, queueId) - 1;
 
     TaskDto taskDto = entityMapper.toDto(task);
 
-    return new CreatedTaskDto(taskDto, queueTasks);
+    return new CreatedTaskDto(taskDto, queueId, queueTasks);
   }
 
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)

@@ -48,7 +48,7 @@ public class QueueProcessor {
     this.taskEventHandler = taskEventHandler;
     this.threadPool = threadPool;
     this.stateChangeListener = stateChangeListener;
-    this.state = QueueProcessorState.WAIT;
+    this.state = QueueProcessorState.IDLE;
   }
 
   public QueueProcessor(
@@ -67,7 +67,7 @@ public class QueueProcessor {
 
   public synchronized void process() {
     switch (state) {
-      case WAIT:
+      case IDLE:
         changeState(QueueProcessorState.CONSUME);
         threadPool.submit(this::processQueue);
         break;
@@ -86,9 +86,9 @@ public class QueueProcessor {
         changeState(QueueProcessorState.CONSUME);
         break;
       case CONSUME:
-        changeState(QueueProcessorState.WAIT);
+        changeState(QueueProcessorState.IDLE);
         break;
-      case WAIT:
+      case IDLE:
       default:
         break;
     }
@@ -98,7 +98,8 @@ public class QueueProcessor {
     QueueProcessorState oldState = state;
     state = newState;
     if (stateChangeListener != null) {
-      stateChangeListener.stateChanged(queueId, oldState, newState);
+      StateChangeEvent changeEvent = new StateChangeEvent(queueId, oldState, newState);
+      stateChangeListener.stateChanged(changeEvent);
     }
   }
 
@@ -124,7 +125,7 @@ public class QueueProcessor {
 
     } catch (Exception e) {
       LOGGER.error("Dispatch in Queue: {} failure: {}", queueId, e, e);
-      // TODO Reset state?
+      // TODO Implement some backoff retry with exponential time
     }
   }
 
