@@ -1,16 +1,7 @@
 package com.softavail.comms.demo.application.api;
 
-import com.nexmo.client.voice.ncco.TalkNcco;
-import com.nexmo.client.voice.servlet.NccoResponse;
-import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.ConversationNccoEx;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversation;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
-import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
+import com.softavail.comms.nexmo.answer.AnswerStrategyException;
+import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,10 +9,10 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -30,54 +21,41 @@ public class NexMoAnswerOutResource {
 
   private static final Logger LOGGER = LogManager.getLogger(NexMoAnswerOutResource.class);
 
-  private ConversationService conversationService = new NexMoConversationServiceImpl();
-
   @Inject
-  Configuration configuration;
+  AnswerStrategyWithCallback strategy;
 
   /**
    * .
-   * @param uuid UUID
+   * @param kind String
+   * @param taskId String
    * @return JSON
    */
   @GET
-  @Path("/{conversationId}")
-  public String getNccoResponse(
-      @PathParam("conversationId") final String conversationId,
-      @QueryParam("conversation_uuid") String uuid) {
+  public Response getNccoResponse(
+      @QueryParam("kind") String kind,
+      @QueryParam("taskId") String taskId) {
 
-    LOGGER.debug("/answer_outbound/{}", conversationId);
+    LOGGER.debug("/answer_outbound kind:{}, taskId: {}",
+        kind, taskId);
+
+    Response response;
     
-    NexMoCall call =  conversationService.getOutboundCallWithConversationId(uuid);
-
-    NexMoConversation conversation = conversationService.getConversation(conversationId);
-    
-    if (null == conversation || null == call) {
-      TalkNcco talkNcco = new TalkNcco("Customer has left the conversation.");
-      talkNcco.setLoop(1);
-      NccoResponseBuilder builder = new NccoResponseBuilder();
-      builder.appendNcco(talkNcco);
-
-      NccoResponse nccoResponse = builder.getValue();
-      return nccoResponse.toJson();
+    try {
+      String answerNcco = strategy.answerOutboundCall(kind, taskId);
+      LOGGER.debug("/answer_outbound ncco: {}", answerNcco);
+      response = Response.ok(answerNcco, MediaType.APPLICATION_JSON).build();
+    } catch (AnswerStrategyException e) {
+      LOGGER.error("/answer_outbound failed: {}", e.getMessage());
+      response =  Response.status(Response.Status.BAD_REQUEST)
+          .entity(e.getMessage()).build();
+    } catch (Exception ex) {
+      LOGGER.error("/answer_outbound failed: {}", ex.getMessage());
+      response =  Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity(ex.getMessage()).build();
     }
     
-    UpdateNexMoConversationArg updateArg =
-        new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTED);
-    updateArg.setAgent(call);
-    conversationService.updateConversation(conversationId, updateArg);
-
-    TalkNcco talkNcco = new TalkNcco("Please wait while we connect you");
-    talkNcco.setLoop(1);
-
-    ConversationNccoEx convNcco = new ConversationNccoEx(conversationId);
-
-    NccoResponseBuilder builder = new NccoResponseBuilder();
-    builder.appendNcco(talkNcco);
-    builder.appendNcco(convNcco);
-    
-    NccoResponse nccoResponse = builder.getValue();
-    return nccoResponse.toJson();
+    LOGGER.debug("/answer_outbound response: {}", response.toString());
+    return response;
   }
-
+  
 }

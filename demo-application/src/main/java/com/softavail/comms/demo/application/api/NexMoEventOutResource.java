@@ -44,10 +44,10 @@ import javax.ws.rs.core.UriBuilder;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
-@Path("/event")
-public class NexMoEventResource {
+@Path("/event_outbound")
+public class NexMoEventOutResource {
 
-  private static final Logger LOGGER = LogManager.getLogger(NexMoEventResource.class);
+  private static final Logger LOGGER = LogManager.getLogger(NexMoEventOutResource.class);
 
   @Inject
   Configuration configuration;
@@ -59,20 +59,30 @@ public class NexMoEventResource {
   NexMoService nexMoService;
 
   @POST
-  public Response callState(NexmoCallEvent callEvent) {
+  public Response callState(
+      @QueryParam("kind") String kind,
+      @QueryParam("taskId") String taskId,
+      NexmoCallEvent callEvent) {
     
     if (callEvent != null) {
-      LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
+      LOGGER.debug("/event_outbound with call uuid: {} status: {} direction: {}",
           callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
 
-      handleCustomerCallEvent(callEvent);
+      if (kind != null && kind.equals("callback_agent")) {
+        handleAgentCallEvent(callEvent, taskId);
+      } else if (kind != null && kind.equals("callback_customer")) {
+        handleCustomerCallEvent(callEvent, taskId);
+      } else if (kind != null && kind.equals("regular_agent")) {
+        handleAgentCallEvent(callEvent, taskId);
+      }
     }
 
     Response response = Response.ok().build();
+    LOGGER.debug("/event_outbound response: {}", response);
     return response;
   }
 
-  private void handleCustomerCallEvent(NexmoCallEvent callEvent) {
+  private void handleCustomerCallEvent(NexmoCallEvent callEvent, String taskId) {
     LOGGER.trace("handleCustomerCallEvent");
     
     switch (callEvent.getStatus()) {
@@ -81,34 +91,145 @@ public class NexMoEventResource {
       case RINGING:
         break;
       case ANSWERED:
-        handleCustomerAnsweredCallEvent(callEvent);
+        handleCustomerAnsweredCallEvent(callEvent, taskId);
         break;
       case MACHINE:
         break;
       case COMPLETED:
-        handleCustomerCompletedCallEvent(callEvent);
+        handleCustomerCompletedCallEvent(callEvent, taskId);
         break;
       case TIMEOUT:
       case FAILED:
       case REJECTED:
       case CANCELLED:
       case BUSY:
-        handleCustomerFailedCallEvent(callEvent);
+        handleCustomerFailedCallEvent(callEvent, taskId);
         break;
       default:
         break;
     }
   }
   
-  private void handleCustomerAnsweredCallEvent(NexmoCallEvent callEvent) {
-  }
-
-  private void handleCustomerCompletedCallEvent(NexmoCallEvent callEvent) {
-  }
-
-  private void handleCustomerFailedCallEvent(NexmoCallEvent callEvent) {
+  private void handleAgentCallEvent(NexmoCallEvent callEvent, String taskId) {
+    LOGGER.trace("handleAgentCallEvent");
+    switch (callEvent.getStatus()) {
+      case STARTED:
+        break;
+      case RINGING:
+        break;
+      case ANSWERED:
+        handleAgentAnsweredCallEvent(callEvent, taskId);
+        break;
+      case MACHINE:
+        break;
+      case COMPLETED:
+        handleAgentCompletedCallEvent(callEvent, taskId);
+        break;
+      case TIMEOUT:
+      case FAILED:
+      case REJECTED:
+      case CANCELLED:
+      case BUSY:
+        handleAgentFailedCallEvent(callEvent, taskId);
+        break;
+      default:
+        break;
+    }
   }
   
+  private void handleCustomerAnsweredCallEvent(NexmoCallEvent callEvent, String taskId) {
+    if (null != taskId ) {
+      
+    }
+  }
+
+  private void handleCustomerCompletedCallEvent(NexmoCallEvent callEvent, String taskId) {
+    if (null != taskId ) {
+      TaskDto task = getTask(taskId);
+      
+      if (null != task && null != task.getUserContext()) {
+        AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
+
+        if (null != uuidDto) {
+          String uuid = getStringFromAttributeValueDto(uuidDto);
+          if (null != uuid) {
+            hangupCall(uuid);
+          } else {
+            LOGGER.error("Cannot extract string from Dto");
+          }
+        } else {
+          LOGGER.warn("Cannot hangup agent's leg because \"agent_uuid\" is not available");
+        }
+      } else {
+        LOGGER.warn("No task or taskContext, cannot handle customer completed call event, ");
+      }
+    }
+  }
+
+  private void handleCustomerFailedCallEvent(NexmoCallEvent callEvent, String taskId) {
+    if (null != taskId ) {
+      TaskDto task = getTask(taskId);
+      
+      if (null != task && null != task.getUserContext()) {
+        AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
+
+        if (null != uuidDto) {
+          String uuid = getStringFromAttributeValueDto(uuidDto);
+          if (null != uuid) {
+            hangupCall(uuid);
+          } else {
+            LOGGER.error("Cannot extract string from Dto");
+          }
+        } else {
+          LOGGER.warn("Cannot hangup agent's leg because \"agent_uuid\" is not available");
+        }
+      } else {
+        LOGGER.warn("No task or taskContext, cannot handle customer completed call event, ");
+      }
+    }
+  }
+
+  private void handleAgentAnsweredCallEvent(NexmoCallEvent callEvent, String taskId) {
+    if (null != taskId ) {
+      
+    }
+  }
+  
+  private void handleAgentCompletedCallEvent(NexmoCallEvent callEvent, String taskId) {
+
+    if (null != taskId ) {
+      
+      TaskDto task = getTask(taskId);
+      
+      if (null != task && null != task.getUserContext()) {
+        updateTaskServiceState(taskId, TaskState.completed);
+
+        AttributeValueDto customerUuidDto = task.getUserContext().get("customer_uuid");
+        if (null != customerUuidDto) {
+          String customerUuid = getStringFromAttributeValueDto(customerUuidDto);
+          if (null != customerUuid) {
+            hangupCall(customerUuid);
+          } else {
+            LOGGER.error("Cannot extract string from Dto");
+          }
+        } else {
+          LOGGER.warn("Cannot hangup customer's leg because \"customer_uuid\" is not available");
+        }
+      } else {
+        LOGGER.warn("No task or taskContext, cannot handle agent completed call event, ");
+      }
+    }
+  }
+  
+  private void handleAgentFailedCallEvent(NexmoCallEvent callEvent, String taskId) {
+    LOGGER.trace("handleAgentTimedoutCallEvent");
+
+    if (null != taskId ) {
+      // TODO: decide how to report this state. may be it is better to report it as timed out?
+      updateTaskServiceState(taskId, TaskState.completed);
+    }
+  }
+
   private void updateTaskServiceState(String taskId, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
     updTaskReq.setState(state);
@@ -166,6 +287,7 @@ public class NexMoEventResource {
     
     return normalized;
   }
+  
   
   private String getStringFromAttributeValueDto(AttributeValueDto valueDto) {
 

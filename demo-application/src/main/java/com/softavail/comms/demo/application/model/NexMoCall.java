@@ -1,13 +1,10 @@
 package com.softavail.comms.demo.application.model;
 
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallStatus;
-
 public class NexMoCall {
   private String uuid;
   private String conversationUuid;
-  private CallStatus status;
-  private CallDirection direction;
+  private NexMoCallStatus status;
+  private NexMoCallDirection direction;
 
   /** .
    * Constructor
@@ -25,19 +22,19 @@ public class NexMoCall {
     return conversationUuid;
   }
 
-  public CallStatus getStatus() {
+  public NexMoCallStatus getStatus() {
     return status;
   }
 
-  public void setStatus(CallStatus status) {
+  public void setStatus(NexMoCallStatus status) {
     this.status = status;
   }
 
-  public CallDirection getDirection() {
+  public NexMoCallDirection getDirection() {
     return direction;
   }
 
-  public void setDirection(CallDirection direction) {
+  public void setDirection(NexMoCallDirection direction) {
     this.direction = direction;
   }
   

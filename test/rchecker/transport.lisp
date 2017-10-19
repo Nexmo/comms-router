@@ -24,13 +24,15 @@
               (format-json str)))
     (if (member json '(t nil) ) str   json) ))
 
-(defun api-endpoint(path transport)
-  #'(lambda(url method headers &optional body)
-      (funcall transport (format nil "~A~A" path url) method headers body)))
+(defun api-endpoint(path)
+  #'(lambda(transport)
+      #'(lambda(url method headers &optional body)
+          (funcall transport (format nil "~A~A" path url) method headers body))) )
 
-(defparameter *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))
+(defun set-endpoint(&key(protocol "http") (host "localhost")(port 8080))
+  (api-endpoint (format nil "'~A://~A:~A/comms-router-web/api'"protocol host port)))
 
-(defun set-server(&key(protocol "http") (host "localhost")(port 8080))
-  (setf *transport* (api-endpoint (format nil "'~A://~A:~A/comms-router-web/api'"protocol host port) #'transport)))
+(defvar *endpoint* (set-endpoint))
 
-(defvar *transport* (api-endpoint "http://localhost:8080/comms-router-web/api" #'transport))
+(defun set-server (&key(protocol "http") (host "localhost")(port 8080))
+  (setf *endpoint* (set-endpoint :protocol protocol :host host :port port)))

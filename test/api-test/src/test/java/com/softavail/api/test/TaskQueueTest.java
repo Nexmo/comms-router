@@ -32,13 +32,12 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import java.util.Collections;
 
 /**
  * Unit test for Task to queue mapping.
  */
-//@TestInstance(Lifecycle.PER_CLASS)
 
 @DisplayName("Task to Queue mapping Tests")
 public class TaskQueueTest {
@@ -65,15 +64,11 @@ public class TaskQueueTest {
   }
 
   @AfterEach
-  public void deleteRouter() {
-    r.delete();
-    q.delete();
-  }
-
-  @AfterEach
-  public void deletePlanAndTask() {
-    p.delete();
-    q.delete();
+  public void cleanup() {
+      t.delete();
+      p.delete();
+      q.delete();
+      r.delete();
   }
 
   private void createPlan(String predicate){
@@ -129,6 +124,16 @@ public class TaskQueueTest {
   }
 
   @Test
+  @DisplayName("Add task with float attribute and predicate to check it - ==.")
+  public void addTaskFloatAttributeEquals() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("float", new DoubleAttributeValueDto(0.05));
+    addPlanTask(taskAttribs, "#{float}==0.05");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   @DisplayName("Add task with one attribute and predicate to check it - !=.")
   public void addTaskOneAttributeNotEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -143,7 +148,7 @@ public class TaskQueueTest {
   public void addTaskOneAttributeCompare() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "#{age}>18 && #{age}<33");
     assertThat(q.size(), is(1));
   }
@@ -153,7 +158,7 @@ public class TaskQueueTest {
   public void addTaskOneAttributeParents() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "(#{age}>18 && #{age}<33)");
     assertThat(q.size(), is(1));
   }
@@ -163,7 +168,7 @@ public class TaskQueueTest {
   public void addTaskOneAttributeOr() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "1 || 0");
     assertThat(q.size(), is(1));
   }
@@ -173,7 +178,7 @@ public class TaskQueueTest {
   public void addTaskOneAttributeAndOnly() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "1 && 1");
     assertThat(q.size(), is(1));
   }
@@ -183,8 +188,28 @@ public class TaskQueueTest {
   public void addTaskTrue() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "true && true");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate HAS")
+  public void addTaskHasExpression() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "HAS([10,20,30],#{age})");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate IN")
+  public void addTaskExpressionIn() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "IN(#{age},[10,20,30])");
     assertThat(q.size(), is(1));
   }
 
@@ -193,7 +218,7 @@ public class TaskQueueTest {
   public void addTaskTrueFalseExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new LongAttributeValueDto(20));
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "false || true || false");
     assertThat(q.size(), is(1));
   }

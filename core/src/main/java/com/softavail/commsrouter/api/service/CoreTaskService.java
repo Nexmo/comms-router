@@ -13,6 +13,7 @@ import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -111,6 +112,27 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
+  @Override
+  public void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    app.db.transactionManager.executeVoid((em) -> {
+      Task task = app.db.task.get(em, objectId.getId());
+      AttributeGroupDto existingContext = app.entityMapper.attributes.toDto(task.getUserContext());
+      AttributeGroupDto newContext = taskContext.getUserContext();
+      
+      if (null == existingContext) {
+        existingContext = newContext; 
+      } else {
+        for (String key : newContext.keySet()) {
+          existingContext.put(key, newContext.get(key));
+        }
+      }
+      
+      task.setUserContext(app.entityMapper.attributes.toJpa(existingContext));
+    });
+  }
+  
   private CreatedTaskDto doCreate(EntityManager em, CreateTaskArg createArg,
       RouterObjectId objectId) throws CommsRouterException {
 

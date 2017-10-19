@@ -22,9 +22,6 @@ public class Queue extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Queue.class);
     public Queue(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.QUEUE,"id");
-        RestAssured.baseURI = System.getProperty("autHost");
-        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<QueueDto> list(){
         QueueDto[] routers =given()
@@ -92,7 +89,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
             .when().get("/routers/{routerId}/queues/{queueId}/size")
-            .then().log().ifError().statusCode(200)
+            .then().statusCode(200)
             .extract().path("size");
     }
     public List<TaskDto> tasks(){
@@ -101,7 +98,7 @@ public class Queue extends Resource{
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .pathParam("queueId",id)
             .when().get("/routers/{routerId}/queues/{queueId}/tasks")
-            .then().log().ifError().statusCode(200)
+            .then().statusCode(200)
             .extract().as(TaskDto[].class);
         return Arrays.asList(qtasks);
     }
@@ -114,6 +111,6 @@ public class Queue extends Resource{
             .pathParam("queueId", id)
             .body(args)
             .when().post("/routers/{routerId}/queues/{queueId}")
-            .then().log().ifError().statusCode(204);
+            .then().statusCode(204);
     }
 }
