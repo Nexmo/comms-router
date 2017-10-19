@@ -123,8 +123,8 @@ public class QueueProcessor {
             taskEventHandler.onTaskAssigned(taskAssignmentDto.get());
           } catch (AssignmentRejectedException e) {
             // If the handler issues AssignmentRejectedException we should cancel the assignment
-            db.transactionManager.execute(em -> taskDispatcher.rejectAssignment(em,
-                taskAssignmentDto.get().getTask().getId()))
+            db.transactionManager.execute(em ->
+                taskDispatcher.rejectAssignment(em, taskAssignmentDto.get().getTask().getId()))
                 .ifPresent(taskDispatcher::dispatchQueue);
           }
         } else {
