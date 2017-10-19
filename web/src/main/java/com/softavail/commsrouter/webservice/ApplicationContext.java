@@ -18,6 +18,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status.Family;
 
 /**
  * Created by @author mapuo on 16.10.17.
@@ -63,9 +65,15 @@ public class ApplicationContext {
 
     String callbackUrl = taskAssignment.getTask().getCallbackUrl();
 
-    client.target(callbackUrl)
+    Response response = client.target(callbackUrl)
         .request(MediaType.APPLICATION_JSON_TYPE)
         .post(Entity.entity(taskAssignment, MediaType.APPLICATION_JSON_TYPE));
+
+    if (response.getStatusInfo().getFamily().equals(Family.CLIENT_ERROR)) {
+      String rejectionMessage = response.getStatusInfo().getReasonPhrase();
+      throw new AssignmentRejectedException("Rejected with: " + rejectionMessage);
+    }
+
   }
 
   public void close() {
