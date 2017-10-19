@@ -12,9 +12,35 @@
       ]
     },
     "loggers": {
-      "logger": [],
+      "logger": [
+        {
+          "name": "org.hibernate",
+          "level": "info",
+          "additivity": "false",
+          "AppenderRef": {
+            "ref": "CONSOLE"
+          }
+        },
+        {
+          "name": "org.reflections",
+          "level": "info",
+          "additivity": "false",
+          "AppenderRef": {
+            "ref": "CONSOLE"
+          }
+        },
+        {
+          "name": "io.swagger",
+          "level": "info",
+          "additivity": "false",
+          "AppenderRef": {
+            "ref": "CONSOLE"
+          }
+        }
+      ],
       "root": {
         "level": "all",
+        "additivity": "false",
         "AppenderRef": {
           "ref": "CONSOLE"
         }
