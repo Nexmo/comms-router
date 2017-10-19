@@ -107,7 +107,7 @@
                         (check-and (has-json) (has-kv "state" "assigned")
                                    (has-kv "queueId" queue-id)
                                    (has-kv "agentId" agent-id)
-                                   (has-kv "planId" plan-id))))
+                                   )))
           (tstep "Agent has task.Check that it gets busy."
                  (tapply (http-get "/routers" router-id "agents" agent-id))
                  (check-and (has-json) (has-kv "state" "busy")))
@@ -161,7 +161,7 @@
                    (check-and (has-json) (has-kv "state" "assigned")
                               (has-kv "queueId" queue-id)
                               (has-kv "agentId" agent-id)
-                              (has-kv "planId" ())))
+                              ))
             (tstep "Agent has task.Check that it gets busy."
                    (tapply (http-get "/routers" router-id "agents" agent-id))
                    (check-and (has-json) (has-kv "state" "busy")))
@@ -199,7 +199,7 @@
    (setup-rqpt :qpredicate qpredicate :tpredicate tpredicate :task-req task-req
                :fn (process-one-task))
    (setup-rqt :qpredicate qpredicate
-              :fn (process-one-task))) )
+              :fn (process-one-task)) ) )
 
 (defun test-delete-agent()
   (setup-rqpt
@@ -225,11 +225,12 @@
                          (check-and (has-json) (has-key "id")))))
     (etask-set-context :router-id router-id :task-id task-id :key "key" :value "value")))
 
-(defun push-a-task(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
-  (tlet ((task-id (js-val "id")
+(defun push-a-task(&key (host "localhost") (timeout 30))
+  #'(lambda(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
+      (tlet ((task-id (js-val "id")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
-                                            (jsown:new-js ("callbackUrl" (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
+                                            (jsown:new-js ("callbackUrl" (funcall )(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id (random 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
                                                           ("queueId" queue-id)
                                                           ("userContext" (jsown:new-js ))
@@ -238,23 +239,25 @@
     (tand
      (twait (tstep "Wait task to be completed" (tapply (http-get "/routers" router-id "tasks" task-id ))
                    (check-and (has-json) (has-kv "state" "completed")))
-            :delay 3 :timeout 30)
+            :delay 3 :timeout timeout)
      (tstep "Ensure that there where no errors on handling task by checking userContext.result."
             (tapply (http-get "/routers" router-id "tasks" task-id "user_context" "result"))
-            (is-equal "true")))))
+            (is-equal "true")))) ) )
 
-(defun test-push-tasks (count)
+(defun test-push-tasks (&key (count 10)
+                          (push (push-a-task :host "localhost")))
   #'(lambda()
       (router-new)
       (queue-new)
       (agent-new)
       (agent-set)
-      (let ((result (remove-if #'second (lparallel:pmapcar #'(lambda(n)(funcall (push-a-task))) (loop :repeat count :collect 1) ))))
+      (let ((result (remove-if #'second (lparallel:pmapcar #'(lambda(n)(funcall (funcall push))) (loop :repeat count :collect 1) ))))
         (mapcar #'print-log result) )
       )
   )
 
 (defun test-all()
-  (mapcar #'print-log
-          (remove-if #'second
-                     (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))) ) )
+  (mapcar #'print-log (remove-if #'second (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))))
+)
+(defun delete-completed-tasks()
+  (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))

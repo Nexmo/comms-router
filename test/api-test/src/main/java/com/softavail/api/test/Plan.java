@@ -22,9 +22,6 @@ public class Plan extends Resource{
     private static final Logger LOGGER = LogManager.getLogger(Plan.class);
     public Plan(HashMap<CommsRouterResource,String> state){
         super(state);
-        state.put(CommsRouterResource.PLAN,"id");
-        RestAssured.baseURI = System.getProperty("autHost");
-        RestAssured.basePath= "/comms-router-web/api";
     }
     public List<PlanDto> list(){
         PlanDto[] routers =given()
@@ -51,12 +48,6 @@ public class Plan extends Resource{
     }
 
     public ApiObjectId create(CreatePlanArg args){
-        LOGGER.info(given()
-                    .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
-                    .contentType("application/json")
-                    .body(args)
-                    .when().post("/routers/{routerId}/plans")
-                    .then() .extract().asString());
         ApiObjectId oid = given()
             .pathParam("routerId",state().get(CommsRouterResource.ROUTER))
             .contentType("application/json")

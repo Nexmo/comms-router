@@ -38,7 +38,6 @@ import java.util.Collections;
 /**
  * Unit test for Task to queue mapping.
  */
-//@TestInstance(Lifecycle.PER_CLASS)
 
 @DisplayName("Task to Queue mapping Tests")
 public class TaskQueueTest {
@@ -65,15 +64,11 @@ public class TaskQueueTest {
   }
 
   @AfterEach
-  public void deleteRouter() {
-    r.delete();
-    q.delete();
-  }
-
-  @AfterEach
-  public void deletePlanAndTask() {
-    p.delete();
-    q.delete();
+  public void cleanup() {
+      t.delete();
+      p.delete();
+      q.delete();
+      r.delete();
   }
 
   private void createPlan(String predicate){
@@ -126,6 +121,16 @@ public class TaskQueueTest {
      taskAttribs.put("lang", new StringAttributeValueDto("en"));
      addPlanTask(taskAttribs, "#{lang}=='en'");
      assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with float attribute and predicate to check it - ==.")
+  public void addTaskFloatAttributeEquals() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("float", new DoubleAttributeValueDto(0.05));
+    addPlanTask(taskAttribs, "#{float}==0.05");
+    assertThat(q.size(), is(1));
   }
 
   @Test
