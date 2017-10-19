@@ -1,49 +1,21 @@
 {
-  "configuration": {
-    "appenders": {
-      "appender": [
-        {
-          "name": "CONSOLE",
-          "type": "Console",
-          "PatternLayout": {
-            "pattern": "%d [%thread] %level %logger{1.} %msg %n"
-          }
-        }
-      ]
-    },
-    "loggers": {
-      "logger": [
-        {
-          "name": "org.hibernate",
-          "level": "info",
-          "additivity": "false",
-          "AppenderRef": {
-            "ref": "CONSOLE"
-          }
+    "configuration": {
+        "appenders": {
+            "appender": [
+                {
+                    "name": "CONSOLE",
+                    "type": "Console"
+                }
+            ]
         },
-        {
-          "name": "org.reflections",
-          "level": "info",
-          "additivity": "false",
-          "AppenderRef": {
-            "ref": "CONSOLE"
-          }
-        },
-        {
-          "name": "io.swagger",
-          "level": "info",
-          "additivity": "false",
-          "AppenderRef": {
-            "ref": "CONSOLE"
-          }
+        "loggers": {
+            "logger": [],
+            "root": {
+                "level": "debug",
+                "AppenderRef": {
+                    "ref": "CONSOLE"
+                }
+            }
         }
-      ],
-      "root": {
-        "level": "debug",
-        "AppenderRef": {
-          "ref": "CONSOLE"
-        }
-      }
     }
-  }
 }

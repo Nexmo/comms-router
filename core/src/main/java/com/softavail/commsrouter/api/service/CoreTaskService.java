@@ -56,7 +56,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       return doCreate(em, createArg, routerObjectId);
     });
 
-    app.taskDispatcher.dispatchQueue(createdTaskDto.getQueueId());
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
     return createdTaskDto;
   }
 
@@ -71,7 +71,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       return doCreate(em, createArg, objectId);
     });
 
-    app.taskDispatcher.dispatchQueue(createdTaskDto.getQueueId());
+    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
     return createdTaskDto;
   }
 
@@ -83,7 +83,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       case waiting:
         app.db.transactionManager
             .execute(em -> app.taskDispatcher.rejectAssignment(em, objectId.getId()))
-            .ifPresent(app.taskDispatcher::dispatchQueue);
+            .ifPresent(app.taskDispatcher::dispatchTask);
         break;
       case completed:
         app.db.transactionManager
@@ -159,12 +159,11 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     em.persist(task);
 
-    String queueId = task.getQueue().getId();
-    long queueTasks = app.db.queue.getQueueSize(em, queueId) - 1;
+    long queueTasks = app.db.queue.getQueueSize(em, task.getQueue().getId()) - 1;
 
     TaskDto taskDto = entityMapper.toDto(task);
 
-    return new CreatedTaskDto(taskDto, queueId, queueTasks);
+    return new CreatedTaskDto(taskDto, queueTasks);
   }
 
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)

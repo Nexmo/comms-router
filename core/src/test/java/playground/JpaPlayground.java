@@ -61,9 +61,6 @@ public class JpaPlayground implements AutoCloseable {
   private final CorePlanService planService = new CorePlanService(app);
   private final CoreAgentService agentService = new CoreAgentService(app);
 
-  public JpaPlayground() throws CommsRouterException {
-  }
-
   @Override
   public void close() throws Exception {
     taskDispatcher.close();
@@ -82,7 +79,7 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
 
     CreateRouterArg createRouterArg = new CreateRouterArg();
-    service.create(createRouterArg, id);
+    service.create(createRouterArg);
 
     printList(service.list());
   }

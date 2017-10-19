@@ -1,6 +1,5 @@
 package com.softavail.commsrouter.webservice;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,8 +17,7 @@ public class CommsRouterApplication extends ResourceConfig {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterApplication.class);
 
-  public CommsRouterApplication(@Context ServletContext servletContext)
-      throws CommsRouterException {
+  public CommsRouterApplication(@Context ServletContext servletContext) {
     ApplicationContext applicationContext =
         (ApplicationContext) servletContext.getAttribute(WebServletListener.APPLICATION_CONTEXT);
 
