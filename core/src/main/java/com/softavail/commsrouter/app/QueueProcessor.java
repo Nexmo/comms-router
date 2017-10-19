@@ -5,6 +5,7 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
@@ -28,6 +29,7 @@ public class QueueProcessor {
   private final String queueId;
   private final JpaDbFacade db;
   private final EntityMappers mappers;
+  private final TaskDispatcher taskDispatcher;
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
   private final StateChangeListener stateChangeListener;
@@ -38,6 +40,7 @@ public class QueueProcessor {
       String queueId,
       JpaDbFacade db,
       EntityMappers mappers,
+      TaskDispatcher taskDispatcher,
       TaskEventHandler taskEventHandler,
       ScheduledThreadPoolExecutor threadPool,
       StateChangeListener stateChangeListener) {
@@ -45,6 +48,7 @@ public class QueueProcessor {
     this.queueId = queueId;
     this.db = db;
     this.mappers = mappers;
+    this.taskDispatcher = taskDispatcher;
     this.taskEventHandler = taskEventHandler;
     this.threadPool = threadPool;
     this.stateChangeListener = stateChangeListener;
@@ -56,9 +60,10 @@ public class QueueProcessor {
       JpaDbFacade db,
       EntityMappers mappers,
       TaskEventHandler taskEventHandler,
-      ScheduledThreadPoolExecutor threadPool) {
+      ScheduledThreadPoolExecutor threadPool,
+      TaskDispatcher taskDispatcher) {
 
-    this(queueId, db, mappers, taskEventHandler, threadPool, null);
+    this(queueId, db, mappers, taskDispatcher, taskEventHandler, threadPool, null);
   }
 
   public String getQueueId() {
@@ -109,20 +114,23 @@ public class QueueProcessor {
 
   private void processQueue() {
     try {
-
       do {
-
         Optional<TaskAssignmentDto> taskAssignmentDto =
             db.transactionManager.executeWithLockRetry(this::getAssignment);
 
         if (taskAssignmentDto.isPresent()) {
-          taskEventHandler.onTaskAssigned(taskAssignmentDto.get());
+          try {
+            taskEventHandler.onTaskAssigned(taskAssignmentDto.get());
+          } catch (AssignmentRejectedException e) {
+            // If the handler issues AssignmentRejectedException we should cancel the assignment
+            db.transactionManager.execute(em -> taskDispatcher.rejectAssignment(em,
+                taskAssignmentDto.get().getTask().getId()))
+                .ifPresent(taskDispatcher::dispatchQueue);
+          }
         } else {
           nextState();
         }
-
       } while (isWorking());
-
     } catch (Exception e) {
       LOGGER.error("Dispatch in Queue: {} failure: {}", queueId, e, e);
       // TODO Implement some backoff retry with exponential time

@@ -7,12 +7,18 @@ package com.softavail.commsrouter.app;
 
 import com.google.common.collect.Maps;
 
+import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
+import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import javax.persistence.EntityManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,29 +50,30 @@ public class TaskDispatcher {
   public TaskDispatcher(
       JpaDbFacade db,
       TaskEventHandler taskEventHandler,
-      EntityMappers dtoMappers)
-      throws CommsRouterException {
+      EntityMappers dtoMappers,
+      int threadPoolSize) {
 
     this.db = db;
     this.mappers = dtoMappers;
     this.taskEventHandler = taskEventHandler;
-    // @todo: config threads count
-    this.threadPool = new ScheduledThreadPoolExecutor(10);
-    threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    this.threadPool = new ScheduledThreadPoolExecutor(threadPoolSize);
+    this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     startQueueProcessors();
   }
 
   @SuppressWarnings("unchecked")
-  private void startQueueProcessors()
-      throws CommsRouterException {
-
-    db.transactionManager.executeVoid(em ->
-        db.router.list(em).stream()
-            .map(router -> db.queue.list(em, router.getId()))
-            .flatMap(Collection::stream)
-            .map(Queue::getId)
-            .map(this::createQueueProcessor)
-            .forEach(QueueProcessor::process));
+  private void startQueueProcessors() {
+    try {
+      db.transactionManager.executeVoid(em ->
+          db.router.list(em).stream()
+              .map(router -> db.queue.list(em, router.getId()))
+              .flatMap(Collection::stream)
+              .map(Queue::getId)
+              .map(this::createQueueProcessor)
+              .forEach(QueueProcessor::process));
+    } catch (CommsRouterException e) {
+      throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
+    }
   }
 
   private synchronized QueueProcessor createQueueProcessor(String queueId) {
@@ -74,8 +81,15 @@ public class TaskDispatcher {
         .ifPresent(schedule -> schedule.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
     QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
     if (queueProcessor == null) {
-      queueProcessor = new QueueProcessor(queueId, db, mappers, taskEventHandler, threadPool,
-          (StateIdleListener) this::handleStateChange);
+      queueProcessor =
+          new QueueProcessor(
+              queueId,
+              db,
+              mappers,
+              this,
+              taskEventHandler,
+              threadPool,
+              (StateIdleListener) this::handleStateChange);
       QUEUE_PROCESSORS.put(queueId, queueProcessor);
     }
     return queueProcessor;
@@ -130,6 +144,23 @@ public class TaskDispatcher {
     } catch (CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
+  }
+
+  public Optional<String> rejectAssignment(EntityManager em, String taskId)
+      throws NotFoundException {
+
+    Task task = db.task.get(em, taskId);
+    Agent agent = task.getAgent();
+
+    if (task.getState().isAssigned() && agent != null) {
+      agent.setState(AgentState.unavailable);
+      task.setState(TaskState.waiting);
+      task.setAgent(null);
+
+      return Optional.of(task.getQueue().getId());
+    }
+
+    return Optional.empty();
   }
 
 }
