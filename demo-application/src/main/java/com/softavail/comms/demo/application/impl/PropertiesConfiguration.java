@@ -29,6 +29,7 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   private static final String NEXMO_APP_PRIVATE_KEY = "nexmo.appPrivateKey";
   private static final String COMMS_ROUTER_URL = "comms.routerUrl";
   private static final String COMMS_ROUTER_ID = "comms.routerId";
+  private static final String COMMS_QUEUE_ID = "comms.queueId";
 
   private final Properties properties;
 
@@ -88,6 +89,11 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   @Override
   public String musicOnHoldUrl() {
     return properties.getProperty(APP_MUSIC_ON_HOLD_URL);
+  }
+
+  @Override
+  public String commsQueueID() {
+    return properties.getProperty(COMMS_QUEUE_ID);
   }
 
   private URL getFile(String path, String filename) throws MalformedURLException {
