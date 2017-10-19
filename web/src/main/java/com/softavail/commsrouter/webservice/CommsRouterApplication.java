@@ -1,5 +1,6 @@
 package com.softavail.commsrouter.webservice;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
@@ -31,7 +32,9 @@ public class CommsRouterApplication extends ResourceConfig {
   private final CommsRouterEvaluator evaluator;
   private final EntityMappers mappers;
 
-  public CommsRouterApplication(@Context ServletContext servletContext) {
+  public CommsRouterApplication(@Context ServletContext servletContext)
+      throws CommsRouterException {
+
     dbFacade = new JpaDbFacade();
     evaluator = new CommsRouterEvaluator();
     mappers = new EntityMappers();
