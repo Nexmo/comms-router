@@ -225,12 +225,13 @@
                          (check-and (has-json) (has-key "id")))))
     (etask-set-context :router-id router-id :task-id task-id :key "key" :value "value")))
 
-(defun push-a-task(&key (host "localhost") (timeout 30))
+(defun push-a-task(&key (host "localhost") (timeout 30) (handle-time 2) (shuffle-time #'identity))
   #'(lambda(&key (router-id (get-event :router)) (queue-id (get-event :queue)))
       (tlet ((task-id (js-val "id")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
-                                            (jsown:new-js ("callbackUrl"(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id (random 2)))
+                                            (jsown:new-js ("callbackUrl"(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id
+                                                                                (funcall shuffle-time 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
                                                           ("queueId" queue-id)
                                                           ("userContext" (jsown:new-js ))
@@ -244,14 +245,20 @@
             (tapply (http-get "/routers" router-id "tasks" task-id "user_context" "result"))
             (is-equal "true")))) ) )
 
-(defun test-push-tasks (&key (count 10)
+(defun test-push-tasks (&key (tasks 10) (agents 1)
                           (push (push-a-task :host "localhost")))
   #'(lambda()
       (router-new)
       (queue-new)
-      (agent-new)
-      (agent-set)
-      (let ((result (remove-if #'second (lparallel:pmapcar #'(lambda(n)(funcall (funcall push))) (loop :repeat count :collect 1) ))))
+      (loop :repeat agents do
+         (agent-new)
+         (agent-set) )
+
+      (let ((result (remove-if
+                     #'second
+                     (lparallel:pmapcar
+                      #'(lambda(n)(funcall (funcall push)))
+                      (loop :repeat tasks :collect 1) ))))
         (mapcar #'print-log result) )
       )
   )
