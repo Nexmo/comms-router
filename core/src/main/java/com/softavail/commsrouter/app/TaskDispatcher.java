@@ -8,13 +8,14 @@ package com.softavail.commsrouter.app;
 import com.google.common.collect.Maps;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
@@ -22,12 +23,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 
 /**
  * @author ikrustev
@@ -133,17 +136,59 @@ public class TaskDispatcher {
   }
 
   public void dispatchAgent(String agentId) {
-    try {
-      // Get the queueId from the agent
-      db.transactionManager.executeVoid(em ->
-          db.agent.get(em, agentId).getQueues()
-              .parallelStream()
-              .map(ApiObject::getId)
-              .map(this::createQueueProcessor)
-              .forEach(QueueProcessor::process));
-    } catch (CommsRouterException e) {
-      LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
+    threadPool.submit(() -> {
+      try {
+        doDispatchAgent(agentId);
+      } catch (Exception ex) {
+        LOGGER.error("Dispatch agent: {}: failure: {}", agentId, ex, ex);
+      }
+    });
+  }
+
+  @SuppressWarnings("unchecked")
+  private void doDispatchAgent(String agentId)
+      throws CommsRouterException {
+
+    TaskAssignmentDto taskAssignment = db.transactionManager.executeWithLockRetry((em) -> {
+
+      String routerId = db.agent.get(em, agentId).getRouterId();
+      em.find(Router.class, routerId, LockModeType.PESSIMISTIC_WRITE);
+
+      String qlString = "SELECT t, a FROM Task t " + "JOIN t.queue q JOIN q.agents a "
+          + "WHERE a.id = :agentId and a.state = :agentState and t.state = :taskState "
+          + "ORDER BY t.priority DESC";
+
+      List<Object[]> result = em.createQuery(qlString)
+          .setParameter("agentId", agentId)
+          .setParameter("agentState", AgentState.ready)
+          .setParameter("taskState", TaskState.waiting)
+          .setMaxResults(1)
+          .getResultList();
+
+      if (result.isEmpty()) {
+        return null;
+      }
+
+      Task task = (Task) result.get(0)[0];
+      Agent agent = (Agent) result.get(0)[1];
+
+      assignTask(task, agent);
+      return new TaskAssignmentDto(mappers.task.toDto(task), mappers.agent.toDto(agent));
+    });
+
+    if (taskAssignment != null) {
+      LOGGER.info("Dispatch agent {}: task {} assgined to agent {}", agentId,
+          taskAssignment.getTask(), taskAssignment.getAgent());
+      taskEventHandler.onTaskAssigned(taskAssignment);
+    } else {
+      LOGGER.info("Dispatch agent {}: no suitable task or agent already busy", agentId);
     }
+  }
+
+  private void assignTask(Task task, Agent agent) {
+    agent.setState(AgentState.busy);
+    task.setState(TaskState.assigned);
+    task.setAgent(agent);
   }
 
   public Optional<String> rejectAssignment(EntityManager em, String taskId)

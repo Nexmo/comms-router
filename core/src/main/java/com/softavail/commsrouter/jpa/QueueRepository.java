@@ -9,11 +9,13 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.result.MatchResult;
 
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 
 /**
  * @author ikrustev
@@ -39,6 +41,9 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
   @SuppressWarnings("unchecked")
   public Optional<MatchResult> findAssignment(EntityManager em, String queueId)
       throws CommsRouterException {
+
+    String routerId = get(em, queueId).getRouterId();
+    em.find(Router.class, routerId, LockModeType.PESSIMISTIC_WRITE);
 
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, ag) "
         + "FROM Task t JOIN t.queue q JOIN q.agents a JOIN Agent ag ON ag.id = a.id "
