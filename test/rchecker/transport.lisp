@@ -34,5 +34,5 @@
 
 (defvar *endpoint* (set-endpoint))
 
-(defun set-server (&rest params)
-  (setf *endpoint* (apply #'set-endpoint params)))
+(defun set-server (&key(protocol "http") (host "localhost")(port 8080))
+  (setf *endpoint* (set-endpoint :protocol protocol :host host :port port)))

@@ -1,11 +1,11 @@
 package com.softavail.comms.demo.application.api;
 
 import com.nexmo.client.NexmoClientException;
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallEvent;
-import com.nexmo.client.voice.CallStatus;
 import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
 import com.softavail.comms.demo.application.model.NexMoCall;
+import com.softavail.comms.demo.application.model.NexMoCallDirection;
+import com.softavail.comms.demo.application.model.NexMoCallEvent;
+import com.softavail.comms.demo.application.model.NexMoCallStatus;
 import com.softavail.comms.demo.application.model.NexMoConversation;
 import com.softavail.comms.demo.application.model.NexMoConversationStatus;
 import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
@@ -50,25 +50,28 @@ public class NexMoEventResource {
   NexMoService nexMoService;
 
   @POST
-  public Response callState(CallEvent callEvent) {
+  public Response callState(NexMoCallEvent callEvent) {
 
     if (callEvent != null) {
-      LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
-          callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
+      LOGGER.debug("/event with call uuid: {} status: {} direction: {}", callEvent.getUuid(),
+          callEvent.getStatus(), callEvent.getDirection());
+      
+      if (callEvent.getUuid() != null && callEvent.getStatus() != null
+          && callEvent.getDirection() != null && callEvent.getConversationUuid() != null) {
 
-      // Update call info. Creates the call if it does not exist
-      NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-      call.setDirection(callEvent.getDirection());
-      call.setStatus(callEvent.getStatus());
+        // Update call info. Creates the call if it does not exist
+        NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
+        call.setDirection(callEvent.getDirection());
+        call.setStatus(callEvent.getStatus());
 
-      conversationService.updateCall(call);
+        conversationService.updateCall(call);
 
-      if (callEvent.getDirection() == CallDirection.INBOUND) {
-        handleInboundCallEvent(callEvent);
-      } else {
-        handleOutboundCallEvent(callEvent);
+        if (callEvent.getDirection() == NexMoCallDirection.INBOUND) {
+          handleInboundCallEvent(callEvent);
+        } else {
+          handleOutboundCallEvent(callEvent);
+        }
       }
-
     }
 
     Response response = Response.ok().build();
@@ -81,7 +84,7 @@ public class NexMoEventResource {
     LOGGER.debug("uuid: {}", uuid);
   }
 
-  private void handleInboundCallEvent(CallEvent callEvent) {
+  private void handleInboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleInboundCallEvent");
 
     NexMoCall call =
@@ -113,7 +116,7 @@ public class NexMoEventResource {
     }
   }
 
-  private void handleOutboundCallEvent(CallEvent callEvent) {
+  private void handleOutboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleOutboundCallEvent");
     NexMoCall call =
         conversationService.getCallWithUuid(callEvent.getUuid());
@@ -134,6 +137,12 @@ public class NexMoEventResource {
         case COMPLETED:
           handleCompletedOutboundCallEvent(callEvent);
           break;
+        case FAILED:
+        case REJECTED:
+        case CANCELLED:
+        case BUSY:
+          handleTimedoutOutboundCallEvent(callEvent);
+          break;
         default:
           break;
       }
@@ -142,12 +151,12 @@ public class NexMoEventResource {
     }
   }
 
-  private void handleStartedInboundCallEvent(CallEvent callEvent) {
+  private void handleStartedInboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleStartedInboundCallEvent");
 
   }
 
-  private void handleAnsweredInboundCallEvent(CallEvent callEvent) {
+  private void handleAnsweredInboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleAnsweredInboundCallEvent");
     // check if we have a call set by its conversation uuid
     // this can happen if answer_inbound callback is called before this event
@@ -173,7 +182,7 @@ public class NexMoEventResource {
 
   }
 
-  private void handleCompletedInboundCallEvent(CallEvent callEvent) {
+  private void handleCompletedInboundCallEvent(NexMoCallEvent callEvent) {
     NexMoConversation conversation =
         conversationService.getConversationWithInboundCall(callEvent.getUuid());
 
@@ -182,7 +191,7 @@ public class NexMoEventResource {
       NexMoCall agent = conversation.getAgent();
       if (agent != null) {
         NexMoCall outboundCall = conversationService.getCallWithUuid(agent.getUuid());
-        if (null != outboundCall && outboundCall.getStatus() == CallStatus.ANSWERED) {
+        if (null != outboundCall && outboundCall.getStatus() == NexMoCallStatus.ANSWERED) {
 
           try {
             LOGGER.debug("Request to hangup call uuid: {}", outboundCall.getUuid());
@@ -206,7 +215,7 @@ public class NexMoEventResource {
     conversationService.removeCallWithUuid(callEvent.getUuid());
   }
 
-  private void handleCompletedOutboundCallEvent(CallEvent callEvent) {
+  private void handleCompletedOutboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleCompletedOutboundCallEvent");
     NexMoConversation conversation =
         conversationService.getConversationWithOutboundCall(callEvent.getUuid());
@@ -223,7 +232,7 @@ public class NexMoEventResource {
       NexMoCall caller = conversation.getCaller();
       if (caller != null) {
         NexMoCall inboundCall = conversationService.getCallWithUuid(caller.getUuid());
-        if (null != inboundCall && inboundCall.getStatus() == CallStatus.ANSWERED) {
+        if (null != inboundCall && inboundCall.getStatus() == NexMoCallStatus.ANSWERED) {
 
           try {
             LOGGER.debug("Request to hangup call uuid: {}", inboundCall.getUuid());
@@ -241,7 +250,7 @@ public class NexMoEventResource {
 
   }
 
-  private void handleTimedoutOutboundCallEvent(CallEvent callEvent) {
+  private void handleTimedoutOutboundCallEvent(NexMoCallEvent callEvent) {
     LOGGER.trace("handleTimedoutOutboundCallEvent");
     NexMoConversation conversation =
         conversationService.getConversationWithOutboundCall(callEvent.getUuid());
@@ -276,6 +285,5 @@ public class NexMoEventResource {
       LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
-
   }
 }

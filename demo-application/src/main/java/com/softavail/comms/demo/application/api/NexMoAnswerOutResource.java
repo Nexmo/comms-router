@@ -48,23 +48,32 @@ public class NexMoAnswerOutResource {
 
     LOGGER.debug("/answer_outbound/{}", conversationId);
     
-    NexMoCall call =  conversationService.getOutboundCallWithConversationId(uuid);
-
-    NexMoConversation conversation = conversationService.getConversation(conversationId);
+    boolean customerIsWaiting = false;
     
-    if (null == conversation || null == call) {
+    NexMoConversation conversation = conversationService.getConversation(conversationId);
+    if (null != conversation) {
+      NexMoCall caller = conversation.getCaller();
+      if (null != caller && caller.getUuid() != null) {
+        NexMoCall call = conversationService.getCallWithUuid(caller.getUuid());
+        if (null != call) {
+          customerIsWaiting = true;
+        }
+      }
+    }
+    
+    if (!customerIsWaiting) {
       TalkNcco talkNcco = new TalkNcco("Customer has left the conversation.");
       talkNcco.setLoop(1);
       NccoResponseBuilder builder = new NccoResponseBuilder();
       builder.appendNcco(talkNcco);
 
       NccoResponse nccoResponse = builder.getValue();
+      LOGGER.debug("/answer_outbound response:{}", nccoResponse.toJson());
       return nccoResponse.toJson();
     }
     
     UpdateNexMoConversationArg updateArg =
         new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTED);
-    updateArg.setAgent(call);
     conversationService.updateConversation(conversationId, updateArg);
 
     TalkNcco talkNcco = new TalkNcco("Please wait while we connect you");
@@ -77,6 +86,7 @@ public class NexMoAnswerOutResource {
     builder.appendNcco(convNcco);
     
     NccoResponse nccoResponse = builder.getValue();
+    LOGGER.debug("/answer_outbound response:{}", nccoResponse.toJson());
     return nccoResponse.toJson();
   }
 

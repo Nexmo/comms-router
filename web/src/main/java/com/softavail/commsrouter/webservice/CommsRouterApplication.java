@@ -29,7 +29,8 @@ public class CommsRouterApplication extends ResourceConfig {
     register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
 
     BeanConfig beanConfig = new BeanConfig();
-    beanConfig.setBasePath("/api");
+    beanConfig.setSchemes(new String[] {"https","http"});
+    beanConfig.setBasePath(servletContext.getContextPath() + "/api");
     beanConfig.setResourcePackage("com.softavail.commsrouter.webservice.resources");
     beanConfig.setScan(true);
     beanConfig.setPrettyPrint(true);

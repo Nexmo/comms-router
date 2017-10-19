@@ -9,6 +9,8 @@ public interface ConfigurationProperties {
 
   String callbackBaseUrl();
 
+  String nexmoCallbackBaseUrl();
+
   String phone();
 
   String commsRouterUrl();

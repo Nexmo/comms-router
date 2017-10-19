@@ -14,7 +14,7 @@
           (if (equal (jsown:val json key) value)
               (list t (list(format nil "ok - result contains key ~S=~S" key value)))
               (list nil (list(format nil "FAIL- key ~S should be ~S but it is ~S" key value (jsown:val json key)))) )
-          (list nil (list(format nil "FAIL- ~A should have key ~S" (jsown:to-json json) key))))))
+          (list nil (list(format nil "FAIL- should have key ~A in ~S" key (jsown:to-json json)))))))
 
 (defun has-key(key)
   #'(lambda(json)
