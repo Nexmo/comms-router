@@ -1,35 +1,22 @@
 package com.softavail.api.test;
 
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.DisplayName;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
-import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
-import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -42,7 +29,7 @@ import java.util.Collections;
 @DisplayName("Task to Queue mapping Tests")
 public class TaskQueueTest {
 
-  private HashMap<CommsRouterResource,String> state = new HashMap<CommsRouterResource,String>();
+  private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
   private Queue q = new Queue(state);
   private Plan p = new Plan(state);
@@ -65,19 +52,22 @@ public class TaskQueueTest {
 
   @AfterEach
   public void cleanup() {
-      t.delete();
-      p.delete();
-      q.delete();
-      r.delete();
+    t.delete();
+    p.delete();
+    q.delete();
+    r.delete();
   }
 
-  private void createPlan(String predicate){
+  private void createPlan(String predicate) {
     CreatePlanArg arg = new CreatePlanArg();
-    arg.setDescription("Rule with predicate "+predicate);
+    arg.setDescription("Rule with predicate " + predicate);
     RuleDto rule = new RuleDto();
     rule.setPredicate(predicate);
-    rule.setQueueId(state.get(CommsRouterResource.QUEUE));
+    RouteDto route = new RouteDto();
+    route.setQueueId(state.get(CommsRouterResource.QUEUE));
+    rule.getRoutes().add(route);
     arg.setRules(Collections.singletonList(rule));
+    arg.setDefaultRoute(route);
     ApiObjectId id = p.create(arg);
   }
 
@@ -117,10 +107,10 @@ public class TaskQueueTest {
   @DisplayName("Add task with one attribute and predicate to check it - ==.")
   public void addTaskOneAttributeEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
-     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-     taskAttribs.put("lang", new StringAttributeValueDto("en"));
-     addPlanTask(taskAttribs, "#{lang}=='en'");
-     assertThat(q.size(), is(1));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "#{lang}=='en'");
+    assertThat(q.size(), is(1));
   }
 
   @Test
