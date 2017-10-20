@@ -31,7 +31,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
@@ -150,36 +149,22 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Route gethMatchedRoute(AttributeGroupDto attributesGroup, List<Rule> rules, Long inRuleId,
-      Long prevRouteId) {
-    for (Rule rule : rules) {
-      if (inRuleId != null && rule.getId() < inRuleId) {
-        // nothing here - skip rules until find the required one
-      } else if (inRuleId != null && Objects.equals(rule.getId(), inRuleId)) {
-        List<Route> routes = rule.getRoutes();
-        boolean stopOnNextIteration = false;
-        for (Route route : routes) {
-          if (stopOnNextIteration) {
-            return route;
-          }
-          if (Objects.equals(route.getId(), prevRouteId)) {
-            stopOnNextIteration = true;
-          }
-        }
-        // current logic: stop try to find the next expresion matched rule in the plan
+  private Route getMatchedRoute(AttributeGroupDto attributesGroup, Rule rule) {
+    if (rule != null) {
+      if (rule.getRoutes().isEmpty()) {
         return null;
-      } else if (!rule.getRoutes().isEmpty()) {
-        try {
-          if (app.evaluator.evaluatePredicateByAttributes(attributesGroup, rule.getPredicate())) {
-            return rule.getRoutes().get(0);
-          }
-        } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Queue with ID={} failed : {}",
-              rule.getRoutes().get(0).getQueueId(), ex.getLocalizedMessage());
-        }
-      } else {
-        LOGGER.debug("Did not found any route info in the current rule: {}", rule);
       }
+
+      try {
+        if (app.evaluator.evaluatePredicateByAttributes(attributesGroup, rule.getPredicate())) {
+          return rule.getRoutes().get(0);
+        }
+      } catch (CommsRouterException ex) {
+        LOGGER.error("Evaluation for Queue with ID={} failed : {}",
+            rule.getRoutes().get(0).getQueueId(), ex, ex);
+      }
+
+      LOGGER.debug("Did not found any route info in the current rule: {}", rule);
     }
 
     return null;
@@ -236,8 +221,16 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
-      Route matchedRoute =
-          gethMatchedRoute(createArg.getRequirements(), plan.getRules(), null, null);
+      Route matchedRoute = null;
+      List<Rule> rules = plan.getRules();
+      for (Rule rule : rules) {
+        matchedRoute = getMatchedRoute(createArg.getRequirements(), rule);
+        if (matchedRoute != null) {
+          task.setRule(rule);
+          break;
+        }
+      }
+
       if (matchedRoute == null) {
         matchedRoute = plan.getDefaultRoute();
       }
@@ -254,8 +247,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       queueId = matchedRoute.getQueueId();
       task.setPriority(matchedRoute.getPriority());
       task.setQueuedTimeout(matchedRoute.getTimeout());
-      task.setPlan(plan);
-      task.setRoute(matchedRoute);
+      task.setCurrentRoute(matchedRoute);
     }
 
     Queue queue = app.db.queue.get(em,

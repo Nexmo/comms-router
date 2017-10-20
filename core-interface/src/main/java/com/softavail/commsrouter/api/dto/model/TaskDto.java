@@ -19,7 +19,6 @@ public class TaskDto extends RouterObjectId {
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private TaskState state;
-  private String planId;
   private String queueId;
   private String agentId;
   private String callbackUrl;
@@ -28,6 +27,7 @@ public class TaskDto extends RouterObjectId {
   private Date updateDate;
   private Long queuedTimeout;
   private Long routeId;
+  private Long ruleId;
 
   public TaskDto() {}
 
@@ -35,7 +35,7 @@ public class TaskDto extends RouterObjectId {
     super(objectId.getId(), objectId.getRouterId());
     requirements = createArg.getRequirements();
     userContext = createArg.getUserContext();
-    planId = createArg.getPlanId();
+    // ruleId = createArg.getPlanId();
     queueId = createArg.getQueueId();
     callbackUrl = createArg.getCallbackUrl().toString();
   }
@@ -44,7 +44,7 @@ public class TaskDto extends RouterObjectId {
     super(taskDto);
     requirements = taskDto.requirements;
     userContext = taskDto.userContext;
-    planId = taskDto.planId;
+    ruleId = taskDto.ruleId;
     queueId = taskDto.queueId;
     agentId = taskDto.agentId;
     callbackUrl = taskDto.callbackUrl;
@@ -75,12 +75,12 @@ public class TaskDto extends RouterObjectId {
     this.state = state;
   }
 
-  public String getPlanId() {
-    return planId;
+  public Long getRuleId() {
+    return ruleId;
   }
 
-  public void setPlanId(String planId) {
-    this.planId = planId;
+  public void setRuleId(Long ruleId) {
+    this.ruleId = ruleId;
   }
 
   public String getQueueId() {
@@ -149,12 +149,9 @@ public class TaskDto extends RouterObjectId {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder()
-        .append("Task [")
-        .append("requirements = ").append(getRequirements())
-        .append(", userContext = ").append(getUserContext())
-        .append(", callbackUrl = ").append(getCallbackUrl())
-        .append("]");
+    StringBuilder sb = new StringBuilder().append("Task [").append("requirements = ")
+        .append(getRequirements()).append(", userContext = ").append(getUserContext())
+        .append(", callbackUrl = ").append(getCallbackUrl()).append("]");
     return sb.toString();
   }
 

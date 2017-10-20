@@ -33,8 +33,6 @@ public class Route implements Serializable {
   @Column(name = "queue_id")
   private String queueId;
 
-  private String predicate;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rule_id")
   private Rule rule;
@@ -71,14 +69,6 @@ public class Route implements Serializable {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  public String getPredicate() {
-    return predicate;
-  }
-
-  public void setPredicate(String predicate) {
-    this.predicate = predicate;
   }
 
   public String getQueueId() {

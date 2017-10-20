@@ -14,17 +14,8 @@ import java.io.Serializable;
 public class RouteDto implements Serializable {
 
   private String queueId;
-  private String predicate;
   private Long priority;
   private Long timeout;
-
-  public String getPredicate() {
-    return predicate;
-  }
-
-  public void setPredicate(String predicate) {
-    this.predicate = predicate;
-  }
 
   public String getQueueId() {
     return queueId;

@@ -46,8 +46,8 @@ public class Task extends RouterObject {
   private TaskState state;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "plan_id")
-  private Plan plan;
+  @JoinColumn(name = "rule_id")
+  private Rule rule;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "queue_id")
@@ -76,8 +76,8 @@ public class Task extends RouterObject {
   private Long queuedTimeout = new Long(24 * 60 * 60); // default 24h - in seconds
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "route_id")
-  private Route route;
+  @JoinColumn(name = "currentRoute")
+  private Route currentRoute;
 
   public Task() {}
 
@@ -117,12 +117,12 @@ public class Task extends RouterObject {
     this.callbackUrl = callbackUrl;
   }
 
-  public Plan getPlan() {
-    return plan;
+  public Rule getRule() {
+    return rule;
   }
 
-  public void setPlan(Plan plan) {
-    this.plan = plan;
+  public void setRule(Rule rule) {
+    this.rule = rule;
   }
 
   public Queue getQueue() {
@@ -169,12 +169,12 @@ public class Task extends RouterObject {
     }
   }
 
-  public Route getRoute() {
-    return route;
+  public Route getCurrentRoute() {
+    return currentRoute;
   }
 
-  public void setRoute(Route route) {
-    this.route = route;
+  public void setCurrentRoute(Route currentRoute) {
+    this.currentRoute = currentRoute;
   }
 
   @Override

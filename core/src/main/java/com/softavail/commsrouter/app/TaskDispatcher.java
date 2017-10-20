@@ -11,14 +11,15 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.ApiObject;
-import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
+import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
@@ -28,8 +29,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -131,7 +134,7 @@ public class TaskDispatcher {
       // Get the queueId from the agent
       db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
           .map(ApiObject::getId).map(this::createQueueProcessor).forEach(QueueProcessor::process));
-    } catch (CommsRouterException e) {
+    } catch (RuntimeException | CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
   }
@@ -176,8 +179,8 @@ public class TaskDispatcher {
   }
 
   private void processTaskTimeout(String taskId) throws CommsRouterException {
-    TaskDto taskDto;
-    taskDto = db.transactionManager.execute((em) -> {
+
+    TaskDto taskDto = db.transactionManager.execute((em) -> {
       Task task = db.task.get(em, taskId);
       if (null == task.getState()) {
         return null;
@@ -186,43 +189,23 @@ public class TaskDispatcher {
       switch (task.getState()) {
         case completed:
           return null;
-        case assigned: {
-          if (true) {
-            // current tasks timeout logic is used for waiting tasks only!
-            return null;
-          }
-          Agent agent = task.getAgent();
-          if (agent != null) {
-            if (agent.getState() == AgentState.busy) {
-              Fields.update(agent::setState, agent.getState(), AgentState.offline);
-            }
-          }
-          task.setState(TaskState.waiting);
-          Fields.update(task::setState, task.getState(), TaskState.waiting);
-          Fields.update(task::setAgent, task.getAgent(), null);
-        }
-          break;
+        case assigned:
+          return null;
         case waiting: {
-          Plan plan = task.getPlan();
-          if (plan == null) {
-            return null;
-          }
-          if (plan.getDefaultRoute().getId().equals(task.getRoute().getId())) {
+          Route matchedRoute;
+          Rule rule = task.getRule();
+          if (rule != null) {
+            matchedRoute = getNextRoute(task.getRule(), task.getCurrentRoute().getId());
+          } else {
             // default route
             return null;
           }
 
-          Route matchedRoute = null;
-          // gethMatchedRoute(task.getRequirements(), plan.getRules(),
-          // task.getRoute().getRule().getId(), task.getRoute().getId());
           if (matchedRoute == null) {
-            // if not found any other routes in the current rule - don't
-            // switch to default plan route for current logic.
             return null;
-            // matchedRoute = plan.getDefaultRoute();
           }
 
-          Fields.update(task::setRoute, task.getRoute(), matchedRoute);
+          Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
           if (matchedRoute.getPriority() != null) {
             Fields.update(task::setPriority, task.getPriority(), matchedRoute.getPriority());
           }
@@ -245,7 +228,33 @@ public class TaskDispatcher {
       }
       return mappers.task.toDto(task);
     });
-    dispatchTask(taskDto);
+
+    if (taskDto != null) {
+      startTaskTimer(taskDto);
+    }
+
   }
+
+  public Route getNextRoute(Rule rule, Long prevRouteId) {
+    if (rule != null) {
+      List<Route> routes = rule.getRoutes();
+      boolean stopOnNextIteration = false;
+      for (Route route : routes) {
+        if (stopOnNextIteration) {
+          return route;
+        }
+        if (Objects.equals(route.getId(), prevRouteId)) {
+          stopOnNextIteration = true;
+        }
+      }
+      return null;
+    } else {
+      LOGGER.debug("Did not found any route info in the current rule: {}", rule);
+    }
+
+    return null;
+  }
+
+
 
 }

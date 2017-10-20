@@ -33,7 +33,6 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   private RouteDto toDto(Route jpa) {
     RouteDto dto = new RouteDto();
-    dto.setPredicate(jpa.getPredicate());
     dto.setQueueId(jpa.getQueueId());
     dto.setPriority(jpa.getPriority());
     dto.setTimeout(jpa.getTimeout());
@@ -42,7 +41,6 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   public Route fromDto(RouteDto dto) {
     Route route = new Route();
-    route.setPredicate(dto.getPredicate());
     route.setQueueId(dto.getQueueId());
     route.setPriority(dto.getPriority());
     route.setTimeout(dto.getTimeout());
