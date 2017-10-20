@@ -73,7 +73,7 @@ public class Task extends RouterObject {
   private Date updateDate;
 
   @Column(name = "timeout", nullable = false)
-  private Long queuedTimeout = new Long(24 * 60 * 60); // default 24h - in seconds
+  private Long queuedTimeout = new Long(60 * 60); // default 1h - in seconds
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "currentRoute")
