@@ -54,13 +54,16 @@ public class JpaPlayground implements AutoCloseable {
   private final TaskDispatcher taskDispatcher = new TaskDispatcher(db, (assignment) -> {
     System.out
         .println("Task: " + assignment.getTask() + " assigned to Agent: " + assignment.getAgent());
-  }, entityMapper);
+  }, entityMapper, 10);
   private final AppContext app = new AppContext(db, evaluator, taskDispatcher, entityMapper);
   private final CoreRouterService routerService = new CoreRouterService(app);
   private final CoreQueueService queueService = new CoreQueueService(app);
   private final CoreTaskService taskService = new CoreTaskService(app);
   private final CorePlanService planService = new CorePlanService(app);
   private final CoreAgentService agentService = new CoreAgentService(app);
+
+  public JpaPlayground() throws CommsRouterException {
+  }
 
   @Override
   public void close() throws Exception {
@@ -80,7 +83,7 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
 
     CreateRouterArg createRouterArg = new CreateRouterArg();
-    service.create(createRouterArg);
+    service.create(createRouterArg, id);
 
     printList(service.list());
   }

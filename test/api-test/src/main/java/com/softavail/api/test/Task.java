@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 
@@ -105,11 +106,12 @@ public class Task extends Resource {
         .extract().as(TaskDto.class);
   }
 
-  public void update(CreateTaskArg args) {
+  public void update(UpdateTaskArg args) {
     String id = state().get(CommsRouterResource.TASK);
     given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("queueId", id)
+        .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/tasks/{queueId}")
         .then().statusCode(204);
