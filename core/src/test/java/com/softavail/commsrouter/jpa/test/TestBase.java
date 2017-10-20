@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -27,7 +28,9 @@ import com.softavail.commsrouter.api.service.CoreRouterService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
+import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
@@ -50,7 +53,7 @@ public class TestBase {
     protected static EntityManagerFactory emf;
     protected static EntityManager em;
     protected Router testRouter;
-
+    //All services
     protected static CoreQueueService queueService;
     protected static CoreTaskService taskService;
     protected static CoreAgentService agentService;
@@ -61,9 +64,9 @@ public class TestBase {
     //Connects to the in-memory h2 database.
     @Before
     public void initDb() throws CommsRouterException {
+        //Inserting two test routers into the database
         emf = Persistence.createEntityManagerFactory("mnf-pu-test");
         em = emf.createEntityManager();
-        //Inserting two dummy routers into the database
         createRouter("name_one", "description_one", "01");
         createRouter("name_two", "description_two", "02");
     }
@@ -72,9 +75,10 @@ public class TestBase {
     public static void setTestCoreQueueService() {
         CommsRouterEvaluator ev = new CommsRouterEvaluator();
         JpaDbFacade db = new JpaDbFacade("mnf-pu-test");
-        TaskDispatcher td = new TaskDispatcher(null, null, null);
+        TaskDispatcher td = new TaskDispatcher(db, null, null, 20);
         EntityMappers enm = new EntityMappers();
         app = new AppContext(db, ev, td, enm);
+        //Instantiating all of the services
         queueService = new CoreQueueService(app);
         taskService = new CoreTaskService(app);
         agentService = new CoreAgentService(app);
@@ -101,7 +105,13 @@ public class TestBase {
     }
 
     public CreateAgentArg newCreateAgentArg(String address) {
-        AttributeGroupDto aGroupDto = new AttributeGroupDto();
+        //Creating test attributeGroup and attributes
+        AttributeGroup aGroup = new AttributeGroup();
+        aGroup.add("name", "value");
+        aGroup.setId(5L);
+        AttributesMapper mapper = new AttributesMapper();
+        AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+        //Creating test agent arguments
         CreateAgentArg args = new CreateAgentArg();
         args.setAddress(address);
         args.setCapabilities(aGroupDto);
@@ -109,7 +119,13 @@ public class TestBase {
     }
 
     public UpdateAgentArg newUpdateAgentArg(String address, AgentState status) {
-        AttributeGroupDto aGroupDto = new AttributeGroupDto();
+        //Creating test attributeGroup and attributes
+        AttributeGroup aGroup = new AttributeGroup();
+        aGroup.add("name", "value");
+        aGroup.setId(5L);
+        AttributesMapper mapper = new AttributesMapper();
+        AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+        //Creating test agent arguments
         UpdateAgentArg args = new UpdateAgentArg();
         args.setAddress(address);
         args.setCapabilities(aGroupDto);
@@ -118,48 +134,53 @@ public class TestBase {
     }
 
     public CreateQueueArg newCreateQueueArg(String predicate, String description) {
-
+        //Creating test queue arguments
         CreateQueueArg args = new CreateQueueArg();
         args.setDescription(description);
         args.setPredicate(predicate);
         return args;
-
     }
-
-    public CreatePlanArg newCreatePlanArg(String description, String predicate, String queueId) {
-        CreatePlanArg args = new CreatePlanArg();
-        RuleDto rule = new RuleDto();
-        rule.setPredicate(predicate);
-        rule.setQueueId(queueId);
-        rule.setTag("tag");
-        List<RuleDto> rules = new ArrayList();
-        rules.add(rule);
-        args.setDescription(description);
-        args.setRules(rules);
-        return args;
-    }
-
-    public UpdatePlanArg newUpdatePlanArg(String description, String predicate, String queueId) {
-        UpdatePlanArg args = new UpdatePlanArg();
-        RuleDto rule = new RuleDto();
-        rule.setPredicate(predicate);
-        rule.setQueueId(queueId);
-        rule.setTag("tag");
-        List<RuleDto> rules = new ArrayList();
-        rules.add(rule);
-        args.setDescription(description);
-        args.setRules(rules);
-        return args;
-    }
-
+    
     public UpdateQueueArg newUpdateQueueArg(String predicate, String description) {
+        //Creating test queue arguments
         UpdateQueueArg args = new UpdateQueueArg();
         args.setDescription(description);
         args.setPredicate(predicate);
         return args;
     }
 
+    public CreatePlanArg newCreatePlanArg(String description, String predicate, String queueId) {
+        //Creating test rules
+        RuleDto rule = new RuleDto();
+        rule.setPredicate(predicate);
+        rule.setQueueId(queueId);
+        rule.setTag("tag");
+        List<RuleDto> rules = new ArrayList();
+        rules.add(rule);
+        //Creating test plan arguments
+        CreatePlanArg args = new CreatePlanArg();
+        args.setDescription(description);
+        args.setRules(rules);
+        return args;
+    }
+
+    public UpdatePlanArg newUpdatePlanArg(String description, String predicate, String queueId) {
+        //Creating test rules
+        RuleDto rule = new RuleDto();
+        rule.setPredicate(predicate);
+        rule.setQueueId(queueId);
+        rule.setTag("tag");
+        List<RuleDto> rules = new ArrayList();
+        rules.add(rule);
+        //Creating test plan arguments
+        UpdatePlanArg args = new UpdatePlanArg();
+        args.setDescription(description);
+        args.setRules(rules);
+        return args;
+    }
+
     public CreateRouterArg newCreateRouterArg(String name, String description) {
+        //Creating test router arguments
         CreateRouterArg args = new CreateRouterArg();
         args.setDescription(description);
         args.setName(name);
@@ -167,6 +188,7 @@ public class TestBase {
     }
 
     public UpdateRouterArg newUpdateRouterArg(String name, String description) {
+        //Creating test router arguments
         UpdateRouterArg args = new UpdateRouterArg();
         args.setDescription(description);
         args.setName(name);
@@ -174,23 +196,36 @@ public class TestBase {
     }
 
     public CreateTaskArg newCreateTaskArg(String queueId, String URL, String planId) throws MalformedURLException {
-
+        //Creating test task arguments
         CreateTaskArg args = new CreateTaskArg();
         args.setQueueId(queueId);
         args.setPriority(1L);
         URL url = new URL(URL);
         AttributeGroupDto requirements = new AttributeGroupDto();
         args.setRequirements(requirements);
+        args.setUserContext(requirements);
         args.setCallbackUrl(url);
         args.setPlanId(planId);
         return args;
     }
 
     public UpdateTaskArg newUpdateTaskArg(long priority, TaskState state) throws MalformedURLException {
-
+        //Creating test task arguments
         UpdateTaskArg args = new UpdateTaskArg();
         args.setPriority(priority);
         args.setState(state);
         return args;
+    }
+
+    public UpdateTaskContext newUpdateTaskContext() {
+        AttributeGroup aGroup = new AttributeGroup();
+        aGroup.add("name", "value");
+        aGroup.setId(5L);
+        AttributesMapper mapper = new AttributesMapper();
+        AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+
+        UpdateTaskContext ctx = new UpdateTaskContext();
+        ctx.setUserContext(aGroupDto);
+        return ctx;
     }
 }

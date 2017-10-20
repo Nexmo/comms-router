@@ -41,15 +41,17 @@ public class CoreAgentServiceJpaTest extends TestBase {
     //Testing the update method
     @Test
     public void updateTest() throws CommsRouterException {
-        RouterObjectId id = new RouterObjectId("", "01");
+        RouterObjectId id = new RouterObjectId("aktyriskghsirol", "01");
+        queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         agentService.create(newCreateAgentArg("address_one"), id);
+        //Updating
         agentService.update(newUpdateAgentArg("address_two", AgentState.ready), id);
         AgentDto agent = agentService.get(id);
         assertEquals(agent.getAddress(), "address_two");
         assertEquals(agent.getState(),AgentState.ready);
     }
 
-    //Setting state to busy
+    //Setting state to busy. Expecting a BadValueException
     @Test(expected=BadValueException.class)
     public void updateStateBusy() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
@@ -67,5 +69,5 @@ public class CoreAgentServiceJpaTest extends TestBase {
         AgentDto agent = agentService.get(id);
         assertEquals(agent.getState(),AgentState.offline);
     }
-    
+
 }

@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.net.MalformedURLException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 
 /**
@@ -47,6 +48,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
         RouterObjectId id = new RouterObjectId("", "01");
         ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
+        //Updating
         taskService.update(newUpdateTaskArg(2, TaskState.completed), id);
         TaskDto task = taskService.get(id);
         assertEquals(task.getState(), TaskState.completed);
@@ -54,14 +56,29 @@ public class CoreTaskServiceJpaTest extends TestBase {
 
     //Testing the update method that updates the TaskContext
     @Test
-    public void updateContextTest() throws CommsRouterException, MalformedURLException {
+    public void updateContextTest_one() throws CommsRouterException, MalformedURLException {
         RouterObjectId id = new RouterObjectId("", "01");
         ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
-        UpdateTaskContext ctx = new UpdateTaskContext();
+        UpdateTaskContext ctx = newUpdateTaskContext();
+        TaskDto taskBefore = taskService.get(id);
+        //Updating
         taskService.update(ctx, id);
-        TaskDto task = taskService.get(id);
-        assertEquals(task.getState(), TaskState.waiting);
+        TaskDto taskAfter = taskService.get(id);
+        assertNotEquals(taskAfter.getUserContext(), taskBefore.getUserContext());
+    }
+    //Testing the updateContext method
+    @Test
+    public void updateContextTest_two() throws CommsRouterException, MalformedURLException {
+        RouterObjectId id = new RouterObjectId("", "01");
+        ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+        taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
+        UpdateTaskContext ctx = newUpdateTaskContext();
+        TaskDto taskBefore = taskService.get(id);
+        //Updating
+        taskService.updateContext(ctx, id);
+        TaskDto taskAfter = taskService.get(id);
+        assertNotEquals(taskAfter.getUserContext(), taskBefore.getUserContext());
     }
 
     //Passing a state != to completed should throw a BadValueException
@@ -70,7 +87,19 @@ public class CoreTaskServiceJpaTest extends TestBase {
         RouterObjectId id = new RouterObjectId("", "01");
         ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
         taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
-        taskService.update(newUpdateTaskArg(2, TaskState.waiting), id);
+        taskService.update(newUpdateTaskArg(2, TaskState.assigned), id);
+    }
+
+    //Creating from a plan
+    @Test(expected = IllegalArgumentException.class)
+    public void createFromPlan() throws MalformedURLException, CommsRouterException {
+        ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), "01");
+
+        ApiObjectId plan = planService.create(newCreatePlanArg("description_one", "1=1", queue.getId()), "01");
+
+        taskService.create(newCreateTaskArg(null, "https://test.com", plan.getId()), "01");
+        List<TaskDto> task = taskService.list("01");
+        assertEquals(task.get(0).getCallbackUrl(), "https://test.com");
     }
 
 }

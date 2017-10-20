@@ -57,11 +57,12 @@ public class CoreRouterServiceJpaTest extends TestBase {
     //Testing the create method that also takes Id
     @Test
     public void createTestTwo() throws CommsRouterException {
-        ApiObjectId newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "01");
+        ApiObjectId newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "03");
         //Get the new router by ID
         RouterDto router = routerService.get(newRouter.getId());
         assertEquals("name_three", router.getName());
         assertEquals("description_three", router.getDescription());
+        assertEquals("03", router.getId());
     }
 
     //Testing the update method

@@ -21,19 +21,24 @@ import org.junit.Test;
  */
 public class CoreQueueServiceJpaTest extends TestBase {
 
+    //Testing the create method
     @Test
     public void createTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
+        agentService.create(newCreateAgentArg("address_one"), id);
         queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         QueueDto queue = queueService.get(id);
         assertEquals(queue.getDescription(), "description_one");
     }
 
+    //Testing the update method
     @Test
     public void updateTest() throws CommsRouterException {
         RouterObjectId id = new RouterObjectId("", "01");
+        agentService.create(newCreateAgentArg("address_one"), id);
         queueService.create(newCreateQueueArg("1=1", "description_one"), id);
         QueueDto queueBefore = queueService.get(id);
+        //Updating
         queueService.update(newUpdateQueueArg("1=1", "description_two"), id);
         QueueDto queueAfter = queueService.get(id);
         assertNotEquals(queueAfter, queueBefore);
