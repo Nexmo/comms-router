@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 
@@ -31,9 +32,6 @@ public class Task extends Resource {
 
   public Task(HashMap<CommsRouterResource, String> state) {
     super(state);
-    state.put(CommsRouterResource.TASK, "id");
-    RestAssured.baseURI = System.getProperty("autHost");
-    RestAssured.basePath = "/comms-router-web/api";
   }
 
   public List<TaskDto> list() {
@@ -53,7 +51,7 @@ public class Task extends Resource {
         .pathParam("queueId", id)
         .body(args)
         .when().put("/routers/{routerId}/tasks/{queueId}")
-        .then().log().ifError().statusCode(201)
+        .then().statusCode(201)
         .extract()
         .as(CreatedTaskDto.class);
     state().put(CommsRouterResource.TASK, oid.getId());
@@ -65,7 +63,7 @@ public class Task extends Resource {
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
-        .when().post("/routers/{routerId}/tasks").then().log().ifError().statusCode(201)
+        .when().post("/routers/{routerId}/tasks").then().statusCode(201)
         .body("id", not(isEmptyString())).and().body("queueTasks", isA(Integer.class))
         .extract()
         .as(CreatedTaskDto.class);
@@ -81,7 +79,7 @@ public class Task extends Resource {
         .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/tasks")
-        .then().log().ifError().statusCode(201).body("id", not(isEmptyString()))
+        .then().statusCode(201).body("id", not(isEmptyString()))
         .extract()
         .as(CreatedTaskDto.class);
     String id = oid.getId();
@@ -108,11 +106,12 @@ public class Task extends Resource {
         .extract().as(TaskDto.class);
   }
 
-  public void update(CreateTaskArg args) {
+  public void update(UpdateTaskArg args) {
     String id = state().get(CommsRouterResource.TASK);
     given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("queueId", id)
+        .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/tasks/{queueId}")
         .then().statusCode(204);

@@ -14,10 +14,13 @@ public interface Configuration {
 
   String getCallbackBaseUrl();
 
+  String getNexmoCallbackBaseUrl();
+
   String getCommsApiEndpoint();
 
   String getCommsRouterId();
 
   String getMusicOnHoldUrl();
 
+  String getCommsQueueId();
 }

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- *
  * @author ergyunsyuleyman
  */
 public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDto> {
@@ -46,7 +45,8 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
 
       switch (currentToken) {
         case VALUE_NUMBER_INT:
-          return new LongAttributeValueDto(jp.getLongValue());
+        case VALUE_NUMBER_FLOAT:
+          return new DoubleAttributeValueDto(jp.getDoubleValue());
         case VALUE_STRING:
           return new StringAttributeValueDto(jp.getText());
         case VALUE_TRUE:
@@ -72,7 +72,7 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
                   arrayValue = new ArrayOfBooleansAttributeValueDto();
                   break;
                 case NUMBER:
-                  arrayValue = new ArrayOfLongsAttributeValueDto();
+                  arrayValue = new ArrayOfDoublesAttributeValueDto();
                   break;
                 default:
                   throw new UnsupportedOperationException(
@@ -93,7 +93,7 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
                 ((ArrayOfBooleansAttributeValueDto) arrayValue).add(node.asBoolean());
                 break;
               case NUMBER:
-                ((ArrayOfLongsAttributeValueDto) arrayValue).add(node.asLong());
+                ((ArrayOfDoublesAttributeValueDto) arrayValue).add(node.asDouble());
                 break;
               default:
                 break;

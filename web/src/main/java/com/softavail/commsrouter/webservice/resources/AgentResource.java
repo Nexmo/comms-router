@@ -9,7 +9,6 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.webservice.helpers.GenericRouterObjectResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,8 +49,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
   @POST
   @ApiOperation(
       value = "Add new Agent",
-      notes = "Add new Agent and associate it with a Router",
-      response = ApiObject.class)
+      notes = "Add new Agent and associate it with a Router")
   @ApiResponses({
       @ApiResponse(code = 201, message = "Successful operation",
           response = ApiObjectId.class)})

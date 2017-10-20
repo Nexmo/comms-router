@@ -1,5 +1,10 @@
 (in-package :rchecker)
 
+(defun tapply(request)
+  #'(lambda()
+      (list (apply (funcall *endpoint* #'cmd-curl) (funcall request))
+            (apply (funcall *endpoint* #'transport) (funcall request)))))
+
 (defun etask(&key (router-id (get-event :router)) (task-id (get-event :task)) (state "assigned"))
   (tstep (format nil "Check that task is in state ~A." state)
          (tapply (http-get "/routers" router-id "tasks" task-id ))

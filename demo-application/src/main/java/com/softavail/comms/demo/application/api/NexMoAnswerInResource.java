@@ -1,31 +1,14 @@
 package com.softavail.comms.demo.application.api;
 
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallStatus;
-import com.nexmo.client.voice.ncco.TalkNcco;
-import com.nexmo.client.voice.servlet.NccoResponse;
-import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.ConversationNccoEx;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.comms.nexmo.answer.AnswerStrategyException;
+import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -33,24 +16,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.Response;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
 @Path("/answer_inbound")
 public class NexMoAnswerInResource {
 
-  private static final String queueId = "queue-demo";
-
   private static final Logger LOGGER = LogManager.getLogger(NexMoAnswerInResource.class);
-
-  private ConversationService conversationService = new NexMoConversationServiceImpl();
 
   @Inject
   Configuration configuration;
 
   @Inject
   TaskServiceClient taskServiceClient;
+  
+  @Inject
+  AnswerStrategyWithCallback strategy;
 
   /**
    * .
@@ -61,19 +43,58 @@ public class NexMoAnswerInResource {
    * @return JSON formatted response
    */
   @GET
-  public String getAnswerNccoResponce(@QueryParam("from") String from, @QueryParam("to") String to,
+  public Response getAnswerNccoResponce(
+      @QueryParam("from") String from, 
+      @QueryParam("to") String to,
       @QueryParam("conversation_uuid") String uuid)
       throws NotFoundException, MalformedURLException {
 
-    LOGGER.debug("/answer_inbound with conversation_uuid: {}", uuid);
+    LOGGER.debug("/answer_inbound with convUuid: {}, from: {}, to: {}", uuid, from, to);
+    Response response;
+    
+    try {
+      String answerNcco = strategy.answerInboundCall(uuid, from, to);
+      LOGGER.debug("/answer_inbound ncco: {}", answerNcco);
+      response = Response.ok(answerNcco, MediaType.APPLICATION_JSON).build();
+    } catch (AnswerStrategyException e) {
+      LOGGER.error("/answer_inbound failed: {}", e.getMessage());
+      response =  Response.status(Response.Status.BAD_REQUEST)
+          .entity(e.getMessage()).build();
+    } catch (Exception ex) {
+      LOGGER.error("/answer_inbound failed: {}", ex.getMessage());
+      response =  Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity(ex.getMessage()).build();
+    }
+    
+    LOGGER.debug("/answer_inbound response: {}", response.toString());
+    return response;
 
+    /*
+    if (null == uuid) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("{\"error\":\"Missing param: <conversation_uuid>\"}").build();
+    }
+    
+    if (null == from) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("{\"error\":\"Missing param: <from>\"}").build();
+    }
+
+    if (null == to) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("{\"error\":\"Missing param: <to>\"}").build();
+    }
+    */
+    
+    /*
+    
     NexMoCall call = conversationService.getInboundCallWithConversationId(uuid);
     if (null == call) {
       // create a call with uuid set as conv_uuid and later (on event started) we will update to the
       // real uuid
       NexMoCall newObj = new NexMoCall(uuid, uuid);
-      newObj.setStatus(CallStatus.STARTED);
-      newObj.setDirection(CallDirection.INBOUND);
+      newObj.setStatus(NexMoCallStatus.STARTED);
+      newObj.setDirection(NexMoCallDirection.INBOUND);
       LOGGER.debug("[TEMP_CALL] ****** would create temp call: {}", newObj.getUuid());
       conversationService.updateCall(newObj);
 
@@ -91,12 +112,12 @@ public class NexMoAnswerInResource {
         .queryParam("callId", conversationId)
         .build();
     taskReq.setCallbackUrl(uri.toURL());
-    taskReq.setQueueId(queueId);
+    taskReq.setQueueId(configuration.getCommsQueueId());
 
     AttributeGroupDto requirements = new AttributeGroupDto();
     requirements.put("language", new StringAttributeValueDto("en"));
     requirements.put("color", new StringAttributeValueDto("red"));
-    requirements.put("price", new LongAttributeValueDto(20));
+    requirements.put("price", new DoubleAttributeValueDto(20));
     taskReq.setRequirements(requirements);
 
     CreatedTaskDto task = null;
@@ -117,7 +138,7 @@ public class NexMoAnswerInResource {
       builder.appendNcco(talkNccoErr);
 
       NccoResponse nccoResponse = builder.getValue();
-      return nccoResponse.toJson();
+      return Response.ok(nccoResponse.toJson(), MediaType.APPLICATION_JSON).build();
     }
 
     // create a conversation for tracking
@@ -140,7 +161,7 @@ public class NexMoAnswerInResource {
     builder.appendNcco(convNcco);
 
     NccoResponse nccoResponse = builder.getValue();
-    return nccoResponse.toJson();
+    return Response.ok(nccoResponse.toJson(), MediaType.APPLICATION_JSON).build();
+    */
   }
-
 }

@@ -1,21 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-  <persistence-unit name="mnf-pu-test" transaction-type="RESOURCE_LOCAL">
+<?xml version="1.0" encoding="UTF-8" ?>
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+  version="2.0" xmlns="http://java.sun.com/xml/ns/persistence">
+
+  <persistence-unit name="com.softavail.comms-router.core-pu" transaction-type="RESOURCE_LOCAL">
+
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-    <class>com.softavail.commsrouter.domain.Router</class>
-    <class>com.softavail.commsrouter.domain.Agent</class>
-    <class>com.softavail.commsrouter.domain.Attribute</class>
-    <class>com.softavail.commsrouter.domain.AttributeGroup</class>
-    <class>com.softavail.commsrouter.domain.Plan</class>
-    <class>com.softavail.commsrouter.domain.Queue</class>
-    <class>com.softavail.commsrouter.domain.Rule</class>
-    <class>com.softavail.commsrouter.domain.Task</class>
+    <non-jta-data-source>java:comp/env/jdbc/commsRouterDB</non-jta-data-source>
+
     <properties>
-      <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
-      <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test"/>
-      <!--<property name="hibernabe.hbm2ddl.auto" value="create"/>-->
-      <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-      <property name="javax.persistence.schema-generation.database.action" value="create-drop"/>
+      <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
+      <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL57Dialect" />
+      <property name="javax.persistence.schema-generation.database.action" value="create"/>
     </properties>
+
   </persistence-unit>
+
+  <persistence-unit name="mnf-pu-test" transaction-type="RESOURCE_LOCAL">
+      <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+      <class>com.softavail.commsrouter.domain.Router</class>
+      <class>com.softavail.commsrouter.domain.Agent</class>
+      <class>com.softavail.commsrouter.domain.Attribute</class>
+      <class>com.softavail.commsrouter.domain.AttributeGroup</class>
+      <class>com.softavail.commsrouter.domain.Plan</class>
+      <class>com.softavail.commsrouter.domain.Queue</class>
+      <class>com.softavail.commsrouter.domain.Rule</class>
+      <class>com.softavail.commsrouter.domain.Task</class>
+      <properties>
+          <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
+          <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test"/>
+          <!--<property name="hibernabe.hbm2ddl.auto" value="create"/>-->
+          <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+          <property name="javax.persistence.schema-generation.database.action" value="create-drop"/>
+      </properties>
+  </persistence-unit>
+
 </persistence>

@@ -9,13 +9,13 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfLongsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.LongAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
@@ -35,20 +35,20 @@ public class AttributesMapper {
   private static final Logger LOGGER = LogManager.getLogger(AttributesMapper.class);
 
   public static enum JpaAttributeValueType {
-    STRING, LONG, BOOLEAN
+    STRING, DOUBLE, BOOLEAN
   }
 
   private JpaAttributeValueType getJpaAttributeValueType(Attribute jpa) {
     if (jpa.getStringValue() != null) {
-      assert jpa.getBooleanValue() == null && jpa.getLongValue() == null;
+      assert jpa.getBooleanValue() == null && jpa.getDoubleValue() == null;
       return JpaAttributeValueType.STRING;
     }
-    if (jpa.getLongValue() != null) {
+    if (jpa.getDoubleValue() != null) {
       assert jpa.getBooleanValue() == null && jpa.getStringValue() == null;
-      return JpaAttributeValueType.LONG;
+      return JpaAttributeValueType.DOUBLE;
     }
     if (jpa.getBooleanValue() != null) {
-      assert jpa.getStringValue() == null && jpa.getStringValue() == null;
+      assert jpa.getStringValue() == null && jpa.getDoubleValue() == null;
       return JpaAttributeValueType.BOOLEAN;
     }
     throw new RuntimeException("Attribute with no value: " + jpa.getId() + " / " + jpa.getName());
@@ -68,8 +68,8 @@ public class AttributesMapper {
         case STRING:
           attributesMap.put(name, new StringAttributeValueDto(jpaAttribute.getStringValue()));
           break;
-        case LONG:
-          attributesMap.put(name, new LongAttributeValueDto(jpaAttribute.getLongValue()));
+        case DOUBLE:
+          attributesMap.put(name, new DoubleAttributeValueDto(jpaAttribute.getDoubleValue()));
           break;
         case BOOLEAN:
           attributesMap.put(name, new BooleanAttributeValueDto(jpaAttribute.getBooleanValue()));
@@ -98,9 +98,9 @@ public class AttributesMapper {
             }
 
             @Override
-            public void handleLongValue(LongAttributeValueDto value) throws IOException {
-              ArrayOfLongsAttributeValueDto arrayValue;
-              arrayValue = new ArrayOfLongsAttributeValueDto();
+            public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+              ArrayOfDoublesAttributeValueDto arrayValue;
+              arrayValue = new ArrayOfDoublesAttributeValueDto();
               arrayValue.add(value.getValue());
               while (iterator.hasNext()) {
                 iterator.next().accept(new AttributeValueVisitor() {
@@ -112,7 +112,8 @@ public class AttributesMapper {
                   }
 
                   @Override
-                  public void handleLongValue(LongAttributeValueDto value) throws IOException {
+                  public void handleDoubleValue(DoubleAttributeValueDto value)
+                      throws IOException {
                     arrayValue.add(value.getValue());
                   }
 
@@ -130,7 +131,7 @@ public class AttributesMapper {
                   }
 
                   @Override
-                  public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+                  public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
                       throws IOException {
                     throw new RuntimeException(
                         "Nested array -> long for " + key + " in " + jpa.getId());
@@ -162,7 +163,7 @@ public class AttributesMapper {
                   }
 
                   @Override
-                  public void handleLongValue(LongAttributeValueDto value) throws IOException {
+                  public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
                     throw new RuntimeException(
                         "Mixed array long -> string for " + key + " in " + jpa.getId());
                   }
@@ -180,7 +181,7 @@ public class AttributesMapper {
                   }
 
                   @Override
-                  public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+                  public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
                       throws IOException {
                     throw new RuntimeException(
                         "Nested array -> string for " + key + " in " + jpa.getId());
@@ -205,7 +206,7 @@ public class AttributesMapper {
             }
 
             @Override
-            public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+            public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
                 throws IOException {
               throw new RuntimeException(
                   "Unexpected array array value for " + key + " in " + jpa.getId());
@@ -243,7 +244,7 @@ public class AttributesMapper {
           }
 
           @Override
-          public void handleLongValue(LongAttributeValueDto value) throws IOException {
+          public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
             jpa.add(key, value.getValue());
           }
 
@@ -262,9 +263,9 @@ public class AttributesMapper {
           }
 
           @Override
-          public void handleArrayOfLongsValue(ArrayOfLongsAttributeValueDto value)
+          public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
-            List<Long> elements = value.getValue();
+            List<Double> elements = value.getValue();
             elements.forEach(element -> {
               jpa.add(key, element);
             });

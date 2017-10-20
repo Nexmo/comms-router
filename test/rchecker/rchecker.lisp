@@ -14,7 +14,7 @@
           (if (equal (jsown:val json key) value)
               (list t (list(format nil "ok - result contains key ~S=~S" key value)))
               (list nil (list(format nil "FAIL- key ~S should be ~S but it is ~S" key value (jsown:val json key)))) )
-          (list nil (list(format nil "FAIL- ~A should have key ~S" (jsown:to-json json) key))))))
+          (list nil (list(format nil "FAIL- should have key ~A in ~S" key (jsown:to-json json)))))))
 
 (defun has-key(key)
   #'(lambda(json)
@@ -76,14 +76,6 @@
   #'(lambda()
       (let((res (funcall thunk-fn)))
         (list* res (funcall check-fn res))) ) )
-
-(defun step-bind(step-fn p-step-fn)
-  #'(lambda()
-      (destructuring-bind (result status descr) (funcall step-fn)
-        ;(print status)
-        (if status
-            (funcall (funcall p-step-fn result descr))
-            (list result status descr)))))
 
 (defun step-seq(step &rest steps)
   (if steps
@@ -322,7 +314,7 @@
                                  (crouter-del)))))))
 
 (defun test-task-queue()
-  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "1!=1")))
+  (let*((simple (generator (or "1" "1==1" "1!=0" "1<2" "2>1" "true" "IN(1,[2,1,3])" "HAS([1,2,3],2)")))
         (composite (generator (tuple "(" (tuple simple
                                                 (list (tuple (or "&&" "||") simple))
                                                 ) ")"))))

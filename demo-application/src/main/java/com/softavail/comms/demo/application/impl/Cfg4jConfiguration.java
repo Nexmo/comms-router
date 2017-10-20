@@ -25,8 +25,8 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
 
   public Cfg4jConfiguration() {
     ConfigurationSource source;
-    ConfigFilesProvider configFilesProvider = () ->
-        Lists.newArrayList(Paths.get("application.properties"));
+    ConfigFilesProvider configFilesProvider =
+        () -> Lists.newArrayList(Paths.get("application.properties"));
 
     String configPath = System.getProperty(SYSTEM_PROPERTY_KEY);
 
@@ -35,24 +35,25 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
 
       source = new FilesConfigurationSource(configFilesProvider);
       ImmutableEnvironment environment = new ImmutableEnvironment(configPath);
-      provider = new ConfigurationProviderBuilder()
-          .withConfigurationSource(source)
-          .withEnvironment(environment)
-          .build();
+      provider = new ConfigurationProviderBuilder().withConfigurationSource(source)
+          .withEnvironment(environment).build();
 
     } else {
       LOGGER.debug("loading config from classpath");
 
       source = new ClasspathConfigurationSource(configFilesProvider);
-      provider = new ConfigurationProviderBuilder()
-          .withConfigurationSource(source)
-          .build();
+      provider = new ConfigurationProviderBuilder().withConfigurationSource(source).build();
     }
   }
 
   @Override
   public String callbackBaseUrl() {
     return provider.getProperty("app.callbackBaseUrl", String.class);
+  }
+
+  @Override
+  public String nexmoCallbackBaseUrl() {
+    return provider.getProperty("app.nexmoCallbackBaseUrl", String.class);
   }
 
   @Override
@@ -85,4 +86,8 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
     return provider.getProperty("app.musicOnHoldUrl", String.class);
   }
 
+  @Override
+  public String commsQueueID() {
+    return provider.getProperty("comms.queueId", String.class);
+  }
 }

@@ -22,12 +22,14 @@ public class PropertiesConfiguration implements ConfigurationProperties {
 
   private static final String APPLICATION_PROPERTIES = "application.properties";
   private static final String CALLBACK_BASE_URL = "app.callbackBaseUrl";
+  private static final String NEXMO_CALLBACK_BASE_URL = "app.nexmoCallbackBaseUrl";
   private static final String APP_PHONE = "app.phone";
   private static final String APP_MUSIC_ON_HOLD_URL = "app.musicOnHoldUrl";
   private static final String NEXMO_APP_ID = "nexmo.appId";
   private static final String NEXMO_APP_PRIVATE_KEY = "nexmo.appPrivateKey";
   private static final String COMMS_ROUTER_URL = "comms.routerUrl";
   private static final String COMMS_ROUTER_ID = "comms.routerId";
+  private static final String COMMS_QUEUE_ID = "comms.queueId";
 
   private final Properties properties;
 
@@ -52,6 +54,11 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   @Override
   public String callbackBaseUrl() {
     return properties.getProperty(CALLBACK_BASE_URL);
+  }
+
+  @Override
+  public String nexmoCallbackBaseUrl() {
+    return properties.getProperty(NEXMO_CALLBACK_BASE_URL);
   }
 
   @Override
@@ -84,8 +91,12 @@ public class PropertiesConfiguration implements ConfigurationProperties {
     return properties.getProperty(APP_MUSIC_ON_HOLD_URL);
   }
 
-  private URL getFile(String path, String filename)
-      throws MalformedURLException {
+  @Override
+  public String commsQueueID() {
+    return properties.getProperty(COMMS_QUEUE_ID);
+  }
+
+  private URL getFile(String path, String filename) throws MalformedURLException {
 
     File file = new File(path, filename);
 

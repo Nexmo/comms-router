@@ -1,35 +1,46 @@
 package com.softavail.comms.demo.application.api;
 
 import com.nexmo.client.NexmoClientException;
+import com.nexmo.client.voice.Call;
 import com.nexmo.client.voice.CallDirection;
 import com.nexmo.client.voice.CallEvent;
-import com.nexmo.client.voice.CallStatus;
-import com.softavail.comms.demo.application.impl.NexMoConversationServiceImpl;
-import com.softavail.comms.demo.application.model.NexMoCall;
-import com.softavail.comms.demo.application.model.NexMoConversation;
-import com.softavail.comms.demo.application.model.NexMoConversationStatus;
-import com.softavail.comms.demo.application.model.UpdateNexMoConversationArg;
+import com.nexmo.client.voice.Endpoint;
+import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
-import com.softavail.comms.demo.application.services.ConversationService;
 import com.softavail.comms.demo.application.services.NexMoService;
+import com.softavail.comms.nexmo.model.NexmoCallEvent;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
+import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -37,8 +48,6 @@ import javax.ws.rs.core.Response;
 public class NexMoEventResource {
 
   private static final Logger LOGGER = LogManager.getLogger(NexMoEventResource.class);
-
-  private ConversationService conversationService = new NexMoConversationServiceImpl();
 
   @Inject
   Configuration configuration;
@@ -50,217 +59,56 @@ public class NexMoEventResource {
   NexMoService nexMoService;
 
   @POST
-  public Response callState(CallEvent callEvent) {
-
+  public Response callState(NexmoCallEvent callEvent) {
+    
     if (callEvent != null) {
       LOGGER.debug("/event with call uuid: {} status: {} direction: {}",
           callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
 
-      // Update call info. Creates the call if it does not exist
-      NexMoCall call = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-      call.setDirection(callEvent.getDirection());
-      call.setStatus(callEvent.getStatus());
-
-      conversationService.updateCall(call);
-
-      if (callEvent.getDirection() == CallDirection.INBOUND) {
-        handleInboundCallEvent(callEvent);
-      } else {
-        handleOutboundCallEvent(callEvent);
-      }
-
+      handleCustomerCallEvent(callEvent);
     }
 
     Response response = Response.ok().build();
     return response;
   }
 
-  @POST
-  @Path("/{uuid}")
-  public void callState(@PathParam("uuid") String uuid) {
-    LOGGER.debug("uuid: {}", uuid);
-  }
-
-  private void handleInboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleInboundCallEvent");
-
-    NexMoCall call =
-        conversationService.getCallWithUuid(callEvent.getUuid());
-
-    if (null != call) {
-
-      switch (call.getStatus()) {
-        case STARTED:
-          handleStartedInboundCallEvent(callEvent);
-          break;
-        case RINGING:
-          break;
-        case ANSWERED:
-          handleAnsweredInboundCallEvent(callEvent);
-          break;
-        case TIMEOUT:
-          break;
-        case MACHINE:
-          break;
-        case COMPLETED:
-          handleCompletedInboundCallEvent(callEvent);
-          break;
-        default:
-          break;
-      }
-    } else {
-      LOGGER.trace("could not find call with conv_uuid: {}", callEvent.getConversationUuid());
+  private void handleCustomerCallEvent(NexmoCallEvent callEvent) {
+    LOGGER.trace("handleCustomerCallEvent");
+    
+    switch (callEvent.getStatus()) {
+      case STARTED:
+        break;
+      case RINGING:
+        break;
+      case ANSWERED:
+        handleCustomerAnsweredCallEvent(callEvent);
+        break;
+      case MACHINE:
+        break;
+      case COMPLETED:
+        handleCustomerCompletedCallEvent(callEvent);
+        break;
+      case TIMEOUT:
+      case FAILED:
+      case REJECTED:
+      case CANCELLED:
+      case BUSY:
+        handleCustomerFailedCallEvent(callEvent);
+        break;
+      default:
+        break;
     }
   }
-
-  private void handleOutboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleOutboundCallEvent");
-    NexMoCall call =
-        conversationService.getCallWithUuid(callEvent.getUuid());
-
-    if (null != call) {
-      switch (call.getStatus()) {
-        case STARTED:
-          break;
-        case RINGING:
-          break;
-        case ANSWERED:
-          break;
-        case TIMEOUT:
-          handleTimedoutOutboundCallEvent(callEvent);
-          break;
-        case MACHINE:
-          break;
-        case COMPLETED:
-          handleCompletedOutboundCallEvent(callEvent);
-          break;
-        default:
-          break;
-      }
-    } else {
-      LOGGER.trace("could not find call with conv_uuid: {}", callEvent.getConversationUuid());
-    }
+  
+  private void handleCustomerAnsweredCallEvent(NexmoCallEvent callEvent) {
   }
 
-  private void handleStartedInboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleStartedInboundCallEvent");
-
+  private void handleCustomerCompletedCallEvent(NexmoCallEvent callEvent) {
   }
 
-  private void handleAnsweredInboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleAnsweredInboundCallEvent");
-    // check if we have a call set by its conversation uuid
-    // this can happen if answer_inbound callback is called before this event
-    NexMoCall call = conversationService.getCallWithUuid(callEvent.getConversationUuid());
-    if (null != call) {
-      LOGGER.debug("[TEMP_CALL] ****** would remove temp call: {}", call.getUuid());
-      conversationService.removeCallWithUuid(callEvent.getConversationUuid());
-    }
-
-    NexMoConversation conversation =
-        conversationService.getConversationWithInboundCall(callEvent.getConversationUuid());
-
-    if (null != conversation) {
-      UpdateNexMoConversationArg updateArg = new UpdateNexMoConversationArg();
-      NexMoCall caller = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-      call.setDirection(callEvent.getDirection());
-      call.setStatus(callEvent.getStatus());
-      updateArg.setCaller(caller);
-      LOGGER.debug("[TEMP_CALL] ****** would update conversation's caller for a temp call: {}",
-          callEvent.getConversationUuid());
-      conversationService.updateConversation(conversation.getId(), updateArg);
-    }
-
+  private void handleCustomerFailedCallEvent(NexmoCallEvent callEvent) {
   }
-
-  private void handleCompletedInboundCallEvent(CallEvent callEvent) {
-    NexMoConversation conversation =
-        conversationService.getConversationWithInboundCall(callEvent.getUuid());
-
-    if (null != conversation) {
-
-      NexMoCall agent = conversation.getAgent();
-      if (agent != null) {
-        NexMoCall outboundCall = conversationService.getCallWithUuid(agent.getUuid());
-        if (null != outboundCall && outboundCall.getStatus() == CallStatus.ANSWERED) {
-
-          try {
-            LOGGER.debug("Request to hangup call uuid: {}", outboundCall.getUuid());
-            nexMoService.getVoiceClient().modifyCall(outboundCall.getUuid(), "hangup");
-          } catch (IOException | NexmoClientException e) {
-            LOGGER.error("Hangup call failed with error: {}", e.getLocalizedMessage());
-            e.printStackTrace();
-          } catch (Exception e) {
-            LOGGER.error("Hangup call unexpected error: {}", e.getLocalizedMessage());
-            e.printStackTrace();
-          }
-
-        }
-      }
-
-    } else {
-      LOGGER.trace("could not find conversation with inbound call uuid: {}", callEvent.getUuid());
-    }
-
-    // Remove the call from the internal storage
-    conversationService.removeCallWithUuid(callEvent.getUuid());
-  }
-
-  private void handleCompletedOutboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleCompletedOutboundCallEvent");
-    NexMoConversation conversation =
-        conversationService.getConversationWithOutboundCall(callEvent.getUuid());
-
-    if (null != conversation) {
-      if (conversation.getStatus() != NexMoConversationStatus.COMPLETED) {
-        UpdateNexMoConversationArg updateArg =
-            new UpdateNexMoConversationArg(NexMoConversationStatus.COMPLETED);
-        conversationService.updateConversation(conversation.getId(), updateArg);
-
-        updateTaskServiceState(conversation.getTaskId(), TaskState.completed);
-      }
-
-      NexMoCall caller = conversation.getCaller();
-      if (caller != null) {
-        NexMoCall inboundCall = conversationService.getCallWithUuid(caller.getUuid());
-        if (null != inboundCall && inboundCall.getStatus() == CallStatus.ANSWERED) {
-
-          try {
-            LOGGER.debug("Request to hangup call uuid: {}", inboundCall.getUuid());
-            nexMoService.getVoiceClient().modifyCall(inboundCall.getUuid(), "hangup");
-          } catch (IOException | NexmoClientException e) {
-            LOGGER.error("Hangup call failed with error: {}", e.getLocalizedMessage());
-            e.printStackTrace();
-          } catch (Exception  e) {
-            LOGGER.error("Hangup call error: {}", e.getLocalizedMessage());
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-
-  }
-
-  private void handleTimedoutOutboundCallEvent(CallEvent callEvent) {
-    LOGGER.trace("handleTimedoutOutboundCallEvent");
-    NexMoConversation conversation =
-        conversationService.getConversationWithOutboundCall(callEvent.getUuid());
-
-    if (null != conversation) {
-      if (conversation.getStatus() != NexMoConversationStatus.COMPLETED) {
-        UpdateNexMoConversationArg updateArg =
-            new UpdateNexMoConversationArg(NexMoConversationStatus.STARTED);
-        conversationService.updateConversation(conversation.getId(), updateArg);
-
-        // TODO: decide how to report this state. may be it is better to report it as timedout?
-        updateTaskServiceState(conversation.getTaskId(), TaskState.completed);
-      }
-    }
-
-    // Remove the call from the internal storage
-    conversationService.removeCallWithUuid(callEvent.getUuid());
-  }
-
+  
   private void updateTaskServiceState(String taskId, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
     updTaskReq.setState(state);
@@ -276,6 +124,103 @@ public class NexMoEventResource {
       LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
+  }
 
+  private TaskDto getTask(String taskId) {
+    TaskDto result = null;
+    
+    try {
+      LOGGER.trace("Get task: {}", taskId);
+      result = taskServiceClient.get(new RouterObjectId(taskId, configuration.getCommsRouterId()));
+    } catch (NotFoundException e) {
+      LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
+      e.printStackTrace();
+    } catch (Exception ex) {
+      LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
+      ex.printStackTrace();
+    }
+    
+    return result;
+  }
+
+  private void hangupCall(String uuid) {
+    try {
+      LOGGER.debug("Request to hangup call uuid: {}", uuid);
+      nexMoService.getVoiceClient().modifyCall(uuid, "hangup");
+    } catch (IOException | NexmoClientException e) {
+      LOGGER.error("Hangup call failed with error: {}", e.getLocalizedMessage());
+      e.printStackTrace();
+    } catch (Exception e) {
+      LOGGER.error("Hangup call error: {}", e.getLocalizedMessage());
+      e.printStackTrace();
+    }
+  }
+  
+  private String normilizeNumber(String number) {
+    String normalized = number;
+    if (!number.startsWith("+")) {
+      normalized = "+" + number;
+    } else {
+      normalized = number;
+    }
+    
+    return normalized;
+  }
+  
+  private String getStringFromAttributeValueDto(AttributeValueDto valueDto) {
+
+    String stringValue = null;
+    ArrayList<String> result = new ArrayList<String>();
+    
+    try {
+      
+      valueDto.accept( new AttributeValueVisitor() {
+        @Override
+        public void handleStringValue(StringAttributeValueDto value) throws IOException {
+          result.add(value.getValue());
+        }
+        
+        @Override
+        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+        
+        @Override
+        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+        
+        @Override
+        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
+            throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+      });
+    } catch (IOException e) {
+      LOGGER.error(e.getLocalizedMessage());
+    }
+    
+    if (result != null && result.size() > 0) {
+      stringValue = result.get(0);
+    }
+    
+    return stringValue;
   }
 }

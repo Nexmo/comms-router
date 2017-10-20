@@ -11,6 +11,18 @@ package com.softavail.commsrouter.api.dto.model;
  */
 public enum TaskState {
 
-  waiting, assigned, completed
+  waiting, assigned, completed;
+
+  public boolean isWaiting() {
+    return this == waiting;
+  }
+
+  public boolean isAssigned() {
+    return this == assigned;
+  }
+
+  public boolean isCompleted() {
+    return this == completed;
+  }
 
 }

@@ -46,10 +46,10 @@ public class AttributeGroup implements Serializable {
     this.attributes = attributes;
   }
 
-  public void add(String name, Long value) {
+  public void add(String name, Double value) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
-    attribute.setLongValue(value);
+    attribute.setDoubleValue(value);
     attribute.setAttributeGroup(this);
     attributes.add(attribute);
   }
