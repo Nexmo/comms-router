@@ -1,0 +1,535 @@
+databaseChangeLog:
+- changeSet:
+    id: 1508514146261-1
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: INT
+        - column:
+            name: router_id
+            type: VARCHAR(255)
+        - column:
+            name: address
+            type: VARCHAR(255)
+        - column:
+            name: state
+            type: VARCHAR(255)
+        - column:
+            name: capabilities_attribute_group_id
+            type: BIGINT
+        tableName: agent
+- changeSet:
+    id: 1508514146261-2
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: agent_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: queue_id
+            type: VARCHAR(255)
+        tableName: agent_queue
+- changeSet:
+    id: 1508514146261-3
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: BIGINT
+        - column:
+            name: boolean_value
+            type: BIT(1)
+        - column:
+            name: double_value
+            type: DOUBLE
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: string_value
+            type: VARCHAR(255)
+        - column:
+            name: attribute_group_id
+            type: BIGINT
+        tableName: attribute
+- changeSet:
+    id: 1508514146261-4
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: BIGINT
+        tableName: attribute_group
+- changeSet:
+    id: 1508514146261-5
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: next_val
+            type: BIGINT
+        tableName: hibernate_sequence
+- changeSet:
+    id: 1508514146261-6
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: INT
+        - column:
+            name: router_id
+            type: VARCHAR(255)
+        - column:
+            name: description
+            type: VARCHAR(255)
+        tableName: plan
+- changeSet:
+    id: 1508514146261-7
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: INT
+        - column:
+            name: router_id
+            type: VARCHAR(255)
+        - column:
+            name: description
+            type: VARCHAR(255)
+        - column:
+            name: predicate
+            type: VARCHAR(255)
+        tableName: queue
+- changeSet:
+    id: 1508514146261-8
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: INT
+        - column:
+            name: description
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: router
+- changeSet:
+    id: 1508514146261-9
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: BIGINT
+        - column:
+            name: predicate
+            type: VARCHAR(255)
+        - column:
+            name: queue_id
+            type: VARCHAR(255)
+        - column:
+            name: tag
+            type: VARCHAR(255)
+        - column:
+            name: plan_id
+            type: VARCHAR(255)
+        - column:
+            name: rule_order
+            type: INT
+        tableName: rule
+- changeSet:
+    id: 1508514146261-10
+    author: mapuo (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: INT
+        - column:
+            name: router_id
+            type: VARCHAR(255)
+        - column:
+            name: callback_url
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: priority
+            type: BIGINT
+        - column:
+            name: state
+            type: VARCHAR(255)
+        - column:
+            name: agent_id
+            type: VARCHAR(255)
+        - column:
+            name: plan_id
+            type: VARCHAR(255)
+        - column:
+            name: queue_id
+            type: VARCHAR(255)
+        - column:
+            name: requirements_attribute_group_id
+            type: BIGINT
+        - column:
+            name: user_context_attribute_group_id
+            type: BIGINT
+        tableName: task
+- changeSet:
+    id: 1508514146261-11
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: agent
+- changeSet:
+    id: 1508514146261-12
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: attribute
+- changeSet:
+    id: 1508514146261-13
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: attribute_group
+- changeSet:
+    id: 1508514146261-14
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: plan
+- changeSet:
+    id: 1508514146261-15
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: queue
+- changeSet:
+    id: 1508514146261-16
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: router
+- changeSet:
+    id: 1508514146261-17
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: rule
+- changeSet:
+    id: 1508514146261-18
+    author: mapuo (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: task
+- changeSet:
+    id: 1508514146261-19
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: user_context_attribute_group_id
+        indexName: FK6xtron4xc20182miiwp62yo91
+        tableName: task
+- changeSet:
+    id: 1508514146261-20
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: requirements_attribute_group_id
+        indexName: FK9rhh5b0u2yt2qbhfwna10xn00
+        tableName: task
+- changeSet:
+    id: 1508514146261-21
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: agent_id
+        indexName: FK9w6soi9vd3ys91fmnd4xlx5os
+        tableName: task
+- changeSet:
+    id: 1508514146261-22
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: capabilities_attribute_group_id
+        indexName: FKc48ete3lfauerkuko5gise7xw
+        tableName: agent
+- changeSet:
+    id: 1508514146261-23
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: attribute_group_id
+        indexName: FKc9knp9aomud6g3kcd8dyycsm2
+        tableName: attribute
+- changeSet:
+    id: 1508514146261-24
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: plan_id
+        indexName: FKd5ec716qndoletp9gk5m34t
+        tableName: rule
+- changeSet:
+    id: 1508514146261-25
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: plan_id
+        indexName: FKgvvo2w30gq9wxnbi69rx4iqb4
+        tableName: task
+- changeSet:
+    id: 1508514146261-26
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: queue_id
+        indexName: FKhee0wu4107ncs84mq9968tbx2
+        tableName: task
+- changeSet:
+    id: 1508514146261-27
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: queue_id
+        indexName: FKmf9qpp9pfneo67leq6uej5vhj
+        tableName: agent_queue
+- changeSet:
+    id: 1508514146261-28
+    author: mapuo (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: agent_id
+        indexName: FKoqsbnajicmn8xqc85py0ph6ap
+        tableName: agent_queue
+- changeSet:
+    id: 1508514146261-29
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_context_attribute_group_id
+        baseTableName: task
+        constraintName: FK6xtron4xc20182miiwp62yo91
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: attribute_group
+- changeSet:
+    id: 1508514146261-30
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: requirements_attribute_group_id
+        baseTableName: task
+        constraintName: FK9rhh5b0u2yt2qbhfwna10xn00
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: attribute_group
+- changeSet:
+    id: 1508514146261-31
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: agent_id
+        baseTableName: task
+        constraintName: FK9w6soi9vd3ys91fmnd4xlx5os
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: agent
+- changeSet:
+    id: 1508514146261-32
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: capabilities_attribute_group_id
+        baseTableName: agent
+        constraintName: FKc48ete3lfauerkuko5gise7xw
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: attribute_group
+- changeSet:
+    id: 1508514146261-33
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: attribute_group_id
+        baseTableName: attribute
+        constraintName: FKc9knp9aomud6g3kcd8dyycsm2
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: attribute_group
+- changeSet:
+    id: 1508514146261-34
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: plan_id
+        baseTableName: rule
+        constraintName: FKd5ec716qndoletp9gk5m34t
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: plan
+- changeSet:
+    id: 1508514146261-35
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: plan_id
+        baseTableName: task
+        constraintName: FKgvvo2w30gq9wxnbi69rx4iqb4
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: plan
+- changeSet:
+    id: 1508514146261-36
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: queue_id
+        baseTableName: task
+        constraintName: FKhee0wu4107ncs84mq9968tbx2
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: queue
+- changeSet:
+    id: 1508514146261-37
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: queue_id
+        baseTableName: agent_queue
+        constraintName: FKmf9qpp9pfneo67leq6uej5vhj
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: queue
+- changeSet:
+    id: 1508514146261-38
+    author: mapuo (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: agent_id
+        baseTableName: agent_queue
+        constraintName: FKoqsbnajicmn8xqc85py0ph6ap
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: agent

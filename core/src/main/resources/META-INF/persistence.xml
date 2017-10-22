@@ -10,7 +10,6 @@
 
     <properties>
       <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
-      <property name="javax.persistence.schema-generation.database.action" value="create"/>
     </properties>
 
   </persistence-unit>
