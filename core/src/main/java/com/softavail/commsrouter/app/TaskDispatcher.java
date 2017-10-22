@@ -47,10 +47,7 @@ public class TaskDispatcher {
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
 
-  public TaskDispatcher(
-      JpaDbFacade db,
-      TaskEventHandler taskEventHandler,
-      EntityMappers dtoMappers,
+  public TaskDispatcher(JpaDbFacade db, TaskEventHandler taskEventHandler, EntityMappers dtoMappers,
       int threadPoolSize) {
 
     this.db = db;
@@ -64,13 +61,9 @@ public class TaskDispatcher {
   @SuppressWarnings("unchecked")
   private void startQueueProcessors() {
     try {
-      db.transactionManager.executeVoid(em ->
-          db.router.list(em).stream()
-              .map(router -> db.queue.list(em, router.getId()))
-              .flatMap(Collection::stream)
-              .map(Queue::getId)
-              .map(this::createQueueProcessor)
-              .forEach(QueueProcessor::process));
+      db.transactionManager.executeVoid(em -> db.router.list(em).stream()
+          .map(router -> db.queue.list(em, router.getId())).flatMap(Collection::stream)
+          .map(Queue::getId).map(this::createQueueProcessor).forEach(QueueProcessor::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
@@ -81,15 +74,8 @@ public class TaskDispatcher {
         .ifPresent(schedule -> schedule.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
     QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
     if (queueProcessor == null) {
-      queueProcessor =
-          new QueueProcessor(
-              queueId,
-              db,
-              mappers,
-              this,
-              taskEventHandler,
-              threadPool,
-              (StateIdleListener) this::handleStateChange);
+      queueProcessor = new QueueProcessor(queueId, db, mappers, this, taskEventHandler, threadPool,
+          (StateIdleListener) this::handleStateChange);
       QUEUE_PROCESSORS.put(queueId, queueProcessor);
     }
     return queueProcessor;
@@ -103,8 +89,8 @@ public class TaskDispatcher {
   }
 
   private void handleStateChange(String queueId) {
-    ScheduledFuture<?> schedule = threadPool.schedule(
-        () -> removeQueueProcessor(queueId), EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
+    ScheduledFuture<?> schedule = threadPool.schedule(() -> removeQueueProcessor(queueId),
+        EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
     SCHEDULED_FUTURES.put(queueId, schedule);
   }
 
@@ -135,12 +121,8 @@ public class TaskDispatcher {
   public void dispatchAgent(String agentId) {
     try {
       // Get the queueId from the agent
-      db.transactionManager.executeVoid(em ->
-          db.agent.get(em, agentId).getQueues()
-              .parallelStream()
-              .map(ApiObject::getId)
-              .map(this::createQueueProcessor)
-              .forEach(QueueProcessor::process));
+      db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
+          .map(ApiObject::getId).map(this::createQueueProcessor).forEach(QueueProcessor::process));
     } catch (CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
@@ -161,6 +143,16 @@ public class TaskDispatcher {
     }
 
     return Optional.empty();
+  }
+
+  public void rejectAssignment(String taskId) {
+    LOGGER.debug("Rejecting assignment of task {}", taskId);
+    try {
+      db.transactionManager.execute(em -> rejectAssignment(em, taskId))
+          .ifPresent(this::dispatchQueue);
+    } catch (CommsRouterException | RuntimeException ex) {
+      LOGGER.error("Failure rejecting assignment: {}", ex, ex);
+    }
   }
 
 }
