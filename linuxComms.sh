@@ -1,6 +1,13 @@
 
 #for testing - https://requestb.in/1koh4zk1?inspect
-read -p "Enter Callback Url: " callback
+
+if [ "$1" = "" ]
+then
+    read -p "Enter Callback Url: " callback
+else
+    callback = $1;
+fi
+
 echo
 
 echo Create a router, providing it’s ID:

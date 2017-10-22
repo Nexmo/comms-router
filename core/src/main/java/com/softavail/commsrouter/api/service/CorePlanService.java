@@ -58,8 +58,9 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
         plan.removeRules();
         app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
       }
-      Fields.update(plan::setDefaultRoute, plan.getDefaultRoute(),
-          app.entityMapper.plan.fromDto(updateArg.getDefaultRoute()));
+      if (updateArg.getDefaultRoute() != null) {
+        plan.setDefaultRoute(app.entityMapper.plan.fromDto(updateArg.getDefaultRoute()));
+      }
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }

@@ -11,7 +11,6 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
@@ -156,6 +155,16 @@ public class TaskDispatcher {
     return Optional.empty();
   }
 
+  public void rejectAssignment(String taskId) {
+    LOGGER.debug("Rejecting assignment of task {}", taskId);
+    try {
+      db.transactionManager.execute(em -> rejectAssignment(em, taskId))
+          .ifPresent(this::dispatchTask);
+    } catch (CommsRouterException | RuntimeException ex) {
+      LOGGER.error("Failure rejecting assignment: {}", ex, ex);
+    }
+  }
+
   private void startTaskTimer(TaskDto taskDto) {
 
     LOGGER.debug("Starting wait timer for task {}", taskDto.getId());
@@ -254,7 +263,5 @@ public class TaskDispatcher {
 
     return null;
   }
-
-
 
 }
