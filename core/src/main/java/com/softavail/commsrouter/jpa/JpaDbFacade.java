@@ -28,10 +28,16 @@ public class JpaDbFacade {
   public final RouterObjectRepository<Agent> agent;
   public final RouterObjectRepository<Task> task;
 
-  public JpaDbFacade() {
+    public JpaDbFacade() {
+
+        this("com.softavail.comms-router.core-pu");
+
+    }
+
+    public JpaDbFacade(String unit) {
 
     EntityManagerFactory emf =
-        Persistence.createEntityManagerFactory("com.softavail.comms-router.core-pu");
+        Persistence.createEntityManagerFactory(unit);
 
     transactionManager = new JpaTransactionManager(emf);
 
