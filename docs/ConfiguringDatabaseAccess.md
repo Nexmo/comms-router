@@ -165,7 +165,7 @@ Setting up the JNDI datasource on Tomcat.
     Then you can populate/migrate the database to the latest version with:
     ```bash
     cd web/
-    mvn liqiubase:update
+    mvn liquibase:update
     ``` 
 
 
