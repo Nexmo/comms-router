@@ -53,13 +53,6 @@ public class QueueProcessor {
     this.state = QueueProcessorState.IDLE;
   }
 
-  public QueueProcessor(String queueId, JpaDbFacade db, EntityMappers mappers,
-      TaskEventHandler taskEventHandler, ScheduledThreadPoolExecutor threadPool,
-      TaskDispatcher taskDispatcher) {
-
-    this(queueId, db, mappers, taskDispatcher, taskEventHandler, threadPool, null);
-  }
-
   public String getQueueId() {
     return queueId;
   }
@@ -110,12 +103,12 @@ public class QueueProcessor {
 
   private void processQueue() {
 
-    for (;;) {
+    for (; ; ) {
       Optional<TaskAssignmentDto> taskAssignmentDto;
       try {
         taskAssignmentDto = db.transactionManager.executeWithLockRetry(this::getAssignment);
       } catch (CommsRouterException | RuntimeException e) {
-        // Failed to get assignment. Most porbably DB is down, so let's try again a bit later.
+        // Failed to get assignment. Most probably DB is down, so let's try again a bit later.
         LOGGER.error("Queue processor {}: failure getting assignment: {}", e, e);
         // @todo make this wait time configurable
         threadPool.schedule(this::processQueue, PROCESS_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
@@ -123,7 +116,7 @@ public class QueueProcessor {
       }
 
       if (!taskAssignmentDto.isPresent()) {
-        // No task or no agent, try to compelte.
+        // No task or no agent, try to complete.
         if (tryComplete()) {
           return;
         }
@@ -165,6 +158,57 @@ public class QueueProcessor {
       AgentDto agentDto = mappers.agent.toDto(agent);
       return new TaskAssignmentDto(taskDto, agentDto);
     });
+  }
+
+  public static class Builder {
+
+    private String queueId;
+    private JpaDbFacade db;
+    private EntityMappers mappers;
+    private TaskDispatcher taskDispatcher;
+    private TaskEventHandler taskEventHandler;
+    private ScheduledThreadPoolExecutor threadPool;
+    private StateChangeListener stateChangeListener = null;
+
+    public Builder setQueueId(String queueId) {
+      this.queueId = queueId;
+      return this;
+    }
+
+    public Builder setDb(JpaDbFacade db) {
+      this.db = db;
+      return this;
+    }
+
+    public Builder setMappers(EntityMappers mappers) {
+      this.mappers = mappers;
+      return this;
+    }
+
+    public Builder setTaskDispatcher(TaskDispatcher taskDispatcher) {
+      this.taskDispatcher = taskDispatcher;
+      return this;
+    }
+
+    public Builder setTaskEventHandler(TaskEventHandler taskEventHandler) {
+      this.taskEventHandler = taskEventHandler;
+      return this;
+    }
+
+    public Builder setThreadPool(ScheduledThreadPoolExecutor threadPool) {
+      this.threadPool = threadPool;
+      return this;
+    }
+
+    public Builder setStateChangeListener(StateChangeListener stateChangeListener) {
+      this.stateChangeListener = stateChangeListener;
+      return this;
+    }
+
+    public QueueProcessor build() {
+      return new QueueProcessor(queueId, db, mappers, taskDispatcher, taskEventHandler, threadPool,
+          stateChangeListener);
+    }
   }
 
 }

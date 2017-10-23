@@ -44,16 +44,11 @@ public class TaskDispatcher {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskDispatcher.class);
 
-  private static final Map<String, QueueProcessor> QUEUE_PROCESSORS = Maps.newHashMap();
-
-  private static final Map<String, ScheduledFuture> SCHEDULED_FUTURES = Maps.newHashMap();
-  private static final long EVICTION_DELAY_MINUTES = 10;
-  private static final boolean DO_NOT_INTERRUPT_IF_RUNNING = false;
-
   private final JpaDbFacade db;
   private final EntityMappers mappers;
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
+  private final QueueProcessorManager queueProcessorManager;
   private static Map<String, ScheduledFuture<?>> scheduledWaitTasksTimers = new HashMap<>();
 
   public TaskDispatcher(JpaDbFacade db, TaskEventHandler taskEventHandler, EntityMappers dtoMappers,
@@ -64,43 +59,23 @@ public class TaskDispatcher {
     this.taskEventHandler = taskEventHandler;
     this.threadPool = new ScheduledThreadPoolExecutor(threadPoolSize);
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    this.queueProcessorManager = QueueProcessorManager.getInstance();
     startQueueProcessors();
   }
 
   @SuppressWarnings("unchecked")
   private void startQueueProcessors() {
     try {
-      db.transactionManager.executeVoid(em -> db.router.list(em).stream()
-          .map(router -> db.queue.list(em, router.getId())).flatMap(Collection::stream)
-          .map(Queue::getId).map(this::createQueueProcessor).forEach(QueueProcessor::process));
+      db.transactionManager.executeVoid(
+          em -> db.router.list(em).stream().map(router -> db.queue.list(em, router.getId()))
+              .flatMap(Collection::stream).map(Queue::getId).forEach(this::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
   }
 
-  private synchronized QueueProcessor createQueueProcessor(String queueId) {
-    Optional.ofNullable(SCHEDULED_FUTURES.get(queueId))
-        .ifPresent(schedule -> schedule.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
-    QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
-    if (queueProcessor == null) {
-      queueProcessor = new QueueProcessor(queueId, db, mappers, this, taskEventHandler, threadPool,
-          (StateIdleListener) this::handleStateChange);
-      QUEUE_PROCESSORS.put(queueId, queueProcessor);
-    }
-    return queueProcessor;
-  }
-
-  private synchronized void removeQueueProcessor(String queueId) {
-    QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
-    if (!queueProcessor.isWorking()) {
-      QUEUE_PROCESSORS.remove(queueId);
-    }
-  }
-
-  private void handleStateChange(String queueId) {
-    ScheduledFuture<?> schedule = threadPool.schedule(() -> removeQueueProcessor(queueId),
-        EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
-    SCHEDULED_FUTURES.put(queueId, schedule);
+  private void process(String queueId) {
+    queueProcessorManager.processQueue(queueId, db, mappers, this, taskEventHandler, threadPool);
   }
 
   public void close() {
@@ -124,15 +99,16 @@ public class TaskDispatcher {
   }
 
   public void dispatchTask(TaskDto taskDto) {
-    createQueueProcessor(taskDto.getQueueId()).process();
+    process(taskDto.getQueueId());
     startTaskTimer(taskDto);
   }
 
   public void dispatchAgent(String agentId) {
     try {
       // Get the queueId from the agent
-      db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
-          .map(ApiObject::getId).map(this::createQueueProcessor).forEach(QueueProcessor::process));
+      db.transactionManager.executeVoid(
+          em -> db.agent.get(em, agentId).getQueues().parallelStream().map(ApiObject::getId)
+              .forEach(this::process));
     } catch (RuntimeException | CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
