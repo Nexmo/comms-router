@@ -23,7 +23,6 @@
     <module>client</module>
     <module>core</module>
     <module>web</module>
-    <module>nexmo-apps</module>
   </modules>
 
   <build>
@@ -63,6 +62,11 @@
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
           <version>3.1.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.liquibase</groupId>
+          <artifactId>liquibase-maven-plugin</artifactId>
+          <version>3.5.3</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -257,6 +261,11 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>org.liquibase</groupId>
+        <artifactId>liquibase-core</artifactId>
+        <version>3.5.3</version>
+      </dependency>
       <!-- WEB DEPENDENCIES -->
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
@@ -310,9 +319,9 @@
         <version>2.8.2</version>
       </dependency>
       <dependency>
-        <groupId>javax</groupId>
-        <artifactId>javaee-web-api</artifactId>
-        <version>7.0</version>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
         <scope>provided</scope>
       </dependency>
       <!-- TEST DEPENDENCIES -->

@@ -22,13 +22,16 @@ import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Uuid;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -51,54 +54,48 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     RouterObjectId routerObjectId =
         RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
 
-    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((EntityManager em) -> {
+    CreateTaskResult createTaskResult = app.db.transactionManager.execute((EntityManager em) -> {
       return doCreate(em, createArg, routerObjectId);
     });
 
-    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
-    return createdTaskDto;
+    app.taskDispatcher.dispatchTask(createTaskResult.getTaskDto());
+    return new CreatedTaskDto(createTaskResult.getTaskDto(),
+        createTaskResult.getTaskDto().getQueueId(), createTaskResult.getQueuePosition());
   }
 
   @Override
   public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+
     validate(createArg);
 
-    CreatedTaskDto createdTaskDto = app.db.transactionManager.execute((em) -> {
+    CreateTaskResult createTaskResult = app.db.transactionManager.execute((em) -> {
       app.db.task.delete(em, objectId.getId());
       return doCreate(em, createArg, objectId);
     });
 
-    app.taskDispatcher.dispatchTask(createdTaskDto.getId());
-    return createdTaskDto;
+    app.taskDispatcher.dispatchTask(createTaskResult.getTaskDto());
+    return new CreatedTaskDto(createTaskResult.getTaskDto(),
+        createTaskResult.getTaskDto().getQueueId(), createTaskResult.getQueuePosition());
   }
 
   @Override
   public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
 
-    if (updateArg.getState() != TaskState.completed) {
-      throw new BadValueException("Expected state: completed");
-    }
-
-    String releasedAgentId = app.db.transactionManager.execute((em) -> {
-      Task task = app.db.task.get(em, objectId.getId());
-      // @todo: check current state and throw if not appropriate and then agent == null would be
-      // internal error
-      task.setState(TaskState.completed);
-      Agent agent = task.getAgent();
-      if (agent == null) {
-        return null;
-      }
-      if (agent.getState() != AgentState.busy) {
-        return null;
-      }
-      agent.setState(AgentState.ready);
-      return agent.getId();
-    });
-
-    if (releasedAgentId != null) {
-      app.taskDispatcher.dispatchAgent(releasedAgentId);
+    switch (updateArg.getState()) {
+      case waiting:
+        app.db.transactionManager
+            .execute(em -> app.taskDispatcher.rejectAssignment(em, objectId.getId()))
+            .ifPresent(app.taskDispatcher::dispatchTask);
+        break;
+      case completed:
+        app.db.transactionManager.execute((em) -> completeTask(em, objectId.getId()))
+            .ifPresent(app.taskDispatcher::dispatchAgent);
+        break;
+      case assigned:
+      default:
+        throw new BadValueException("Expected state: waiting or completed");
     }
   }
 
@@ -112,6 +109,25 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
+  private Optional<String> completeTask(EntityManager em, String taskId) throws NotFoundException {
+
+    Task task = app.db.task.get(em, taskId);
+    // @todo: check current state and throw if not appropriate and then agent == null would be
+    // internal error
+    task.setState(TaskState.completed);
+
+
+    Agent agent = task.getAgent();
+    if (agent == null) {
+      return Optional.empty();
+    }
+    if (agent.getState() != AgentState.busy) {
+      return Optional.empty();
+    }
+    agent.setState(AgentState.ready);
+    return Optional.of(agent.getId());
+  }
+
   @Override
   public void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
       throws CommsRouterException {
@@ -120,38 +136,81 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Task task = app.db.task.get(em, objectId.getId());
       AttributeGroupDto existingContext = app.entityMapper.attributes.toDto(task.getUserContext());
       AttributeGroupDto newContext = taskContext.getUserContext();
-      
+
       if (null == existingContext) {
-        existingContext = newContext; 
+        existingContext = newContext;
       } else {
         for (String key : newContext.keySet()) {
           existingContext.put(key, newContext.get(key));
         }
       }
-      
+
       task.setUserContext(app.entityMapper.attributes.toJpa(existingContext));
     });
   }
-  
-  private CreatedTaskDto doCreate(EntityManager em, CreateTaskArg createArg,
+
+  private Route getMatchedRoute(AttributeGroupDto attributesGroup, Rule rule) {
+    if (rule != null) {
+      if (rule.getRoutes().isEmpty()) {
+        return null;
+      }
+
+      try {
+        if (app.evaluator.evaluatePredicateByAttributes(attributesGroup, rule.getPredicate())) {
+          return rule.getRoutes().get(0);
+        }
+      } catch (CommsRouterException ex) {
+        LOGGER.error("Evaluation for Queue with ID={} failed : {}",
+            rule.getRoutes().get(0).getQueueId(), ex, ex);
+      }
+
+      LOGGER.debug("Did not found any route info in the current rule: {}", rule);
+    }
+
+    return null;
+  }
+
+  private static class CreateTaskResult {
+    private TaskDto taskDto;
+    private long queuePosition;
+
+    public TaskDto getTaskDto() {
+      return taskDto;
+    }
+
+    public void setTaskDto(TaskDto taskDto) {
+      this.taskDto = taskDto;
+    }
+
+    public long getQueuePosition() {
+      return queuePosition;
+    }
+
+    public void setQueuePosition(long queuePosition) {
+      this.queuePosition = queuePosition;
+    }
+  }
+
+  private CreateTaskResult doCreate(EntityManager em, CreateTaskArg createArg,
       RouterObjectId objectId) throws CommsRouterException {
 
     app.db.router.get(em, objectId.getRouterId());
 
     Task task = fromPlan(em, createArg, objectId);
     task.setState(TaskState.waiting);
-    task.setPriority(createArg.getPriority());
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
     task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
     task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
 
     em.persist(task);
 
-    long queueTasks = app.db.queue.getQueueSize(em, task.getQueue().getId()) - 1;
+    String queueId = task.getQueue().getId();
 
-    TaskDto taskDto = entityMapper.toDto(task);
+    CreateTaskResult result = new CreateTaskResult();
 
-    return new CreatedTaskDto(taskDto, queueTasks);
+    result.setQueuePosition(app.db.queue.getQueueSize(em, queueId) - 1);
+    result.setTaskDto(entityMapper.toDto(task));
+    return result;
   }
 
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
@@ -162,25 +221,33 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     if (createArg.getPlanId() != null) {
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
+      Route matchedRoute = null;
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        try {
-          if (app.evaluator.evaluateNewTaskToQueueByPlanRules(objectId.getId(), createArg, rule)) {
-            queueId = rule.getQueueId();
-            break;
-          }
-        } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Queue with ID={} failed : {}", rule.getQueueId(),
-              ex.getLocalizedMessage());
+        matchedRoute = getMatchedRoute(createArg.getRequirements(), rule);
+        if (matchedRoute != null) {
+          task.setRule(rule);
+          break;
         }
       }
 
-      if (queueId == null) {
-        throw new IllegalArgumentException(
+      if (matchedRoute == null) {
+        matchedRoute = plan.getDefaultRoute();
+      }
+
+      if (matchedRoute == null) {
+        throw new NotFoundException("Did not found any Route for task '{}'" + createArg);
+      }
+
+      if (matchedRoute.getQueueId() == null) {
+        throw new NotFoundException(
             "Evaluator didn't match task to any queues using the plan rules.");
       }
 
-      task.setPlan(plan);
+      queueId = matchedRoute.getQueueId();
+      task.setPriority(matchedRoute.getPriority());
+      task.setQueuedTimeout(matchedRoute.getTimeout());
+      task.setCurrentRoute(matchedRoute);
     }
 
     Queue queue = app.db.queue.get(em,

@@ -30,6 +30,7 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   private static final String COMMS_ROUTER_URL = "comms.routerUrl";
   private static final String COMMS_ROUTER_ID = "comms.routerId";
   private static final String COMMS_QUEUE_ID = "comms.queueId";
+  private static final String COMMS_PLAN_ID = "comms.planId";
 
   private final Properties properties;
 
@@ -94,6 +95,11 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   @Override
   public String commsQueueID() {
     return properties.getProperty(COMMS_QUEUE_ID);
+  }
+
+  @Override
+  public String commsPlanID() {
+    return properties.getProperty(COMMS_PLAN_ID);
   }
 
   private URL getFile(String path, String filename) throws MalformedURLException {

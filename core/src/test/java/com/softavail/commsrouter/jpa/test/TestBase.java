@@ -1,0 +1,236 @@
+/*
+ * To change this license header, choose License Headers in Project Properties. To change this
+ * template file, choose Tools | Templates and open the template in the editor.
+ */
+package com.softavail.commsrouter.jpa.test;
+
+import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
+import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
+import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
+import com.softavail.commsrouter.api.dto.model.RuleDto;
+import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.service.CoreAgentService;
+import com.softavail.commsrouter.api.service.CorePlanService;
+import com.softavail.commsrouter.api.service.CoreQueueService;
+import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.api.service.CoreTaskService;
+import com.softavail.commsrouter.app.AppContext;
+import com.softavail.commsrouter.app.TaskDispatcher;
+import com.softavail.commsrouter.domain.AttributeGroup;
+import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
+import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
+import com.softavail.commsrouter.jpa.JpaDbFacade;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+/**
+ * @author G.Ivanov
+ */
+public class TestBase {
+
+  protected static EntityManagerFactory emf;
+  protected static EntityManager em;
+  protected Router testRouter;
+  // All services
+  protected static CoreQueueService queueService;
+  protected static CoreTaskService taskService;
+  protected static CoreAgentService agentService;
+  protected static CoreRouterService routerService;
+  protected static CorePlanService planService;
+  protected static AppContext app;
+
+  // Connects to the in-memory h2 database.
+  @Before
+  public void initDb() throws CommsRouterException {
+    // Inserting two test routers into the database
+    emf = Persistence.createEntityManagerFactory("mnf-pu-test");
+    em = emf.createEntityManager();
+    createRouter("name_one", "description_one", "01");
+    createRouter("name_two", "description_two", "02");
+  }
+
+  @BeforeClass
+  public static void setTestCoreQueueService() {
+    CommsRouterEvaluator ev = new CommsRouterEvaluator();
+    JpaDbFacade db = new JpaDbFacade("mnf-pu-test");
+    TaskDispatcher td = new TaskDispatcher(db, null, null, 20);
+    EntityMappers enm = new EntityMappers();
+    app = new AppContext(db, ev, td, enm);
+    // Instantiating all of the services
+    queueService = new CoreQueueService(app);
+    taskService = new CoreTaskService(app);
+    agentService = new CoreAgentService(app);
+    routerService = new CoreRouterService(app);
+    planService = new CorePlanService(app);
+  }
+
+  @After
+  public void closeDb() {
+    em.close();
+    emf.close();
+  }
+
+  // Creates and adds a new router object to the DB
+  public static void createRouter(String name, String description, String id) {
+    em.getTransaction().begin();
+    Router r = new Router();
+    r.setDescription(description);
+    r.setName(name);
+    r.setId(id);
+    r.setVersion(1);
+    em.persist(r);
+    em.getTransaction().commit();
+  }
+
+  public CreateAgentArg newCreateAgentArg(String address) {
+    // Creating test attributeGroup and attributes
+    AttributeGroup aGroup = new AttributeGroup();
+    aGroup.add("name", "value");
+    aGroup.setId(5L);
+    AttributesMapper mapper = new AttributesMapper();
+    AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+    // Creating test agent arguments
+    CreateAgentArg args = new CreateAgentArg();
+    args.setAddress(address);
+    args.setCapabilities(aGroupDto);
+    return args;
+  }
+
+  public UpdateAgentArg newUpdateAgentArg(String address, AgentState status) {
+    // Creating test attributeGroup and attributes
+    AttributeGroup aGroup = new AttributeGroup();
+    aGroup.add("name", "value");
+    aGroup.setId(5L);
+    AttributesMapper mapper = new AttributesMapper();
+    AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+    // Creating test agent arguments
+    UpdateAgentArg args = new UpdateAgentArg();
+    args.setAddress(address);
+    args.setCapabilities(aGroupDto);
+    args.setState(status);
+    return args;
+  }
+
+  public CreateQueueArg newCreateQueueArg(String predicate, String description) {
+    // Creating test queue arguments
+    CreateQueueArg args = new CreateQueueArg();
+    args.setDescription(description);
+    args.setPredicate(predicate);
+    return args;
+  }
+
+  public UpdateQueueArg newUpdateQueueArg(String predicate, String description) {
+    // Creating test queue arguments
+    UpdateQueueArg args = new UpdateQueueArg();
+    args.setDescription(description);
+    args.setPredicate(predicate);
+    return args;
+  }
+
+  public CreatePlanArg newCreatePlanArg(String description, String predicate, String queueId) {
+    // Creating test rules
+    RuleDto rule = new RuleDto();
+    rule.setPredicate(predicate);
+    RouteDto route = new RouteDto();
+    route.setQueueId(queueId);
+    rule.getRoutes().add(route);
+    rule.setTag("tag");
+    List<RuleDto> rules = new ArrayList<>();
+    rules.add(rule);
+    // Creating test plan arguments
+    CreatePlanArg args = new CreatePlanArg();
+    args.setDescription(description);
+    args.setRules(rules);
+    args.setDefaultRoute(route);
+    return args;
+  }
+
+  public UpdatePlanArg newUpdatePlanArg(String description, String predicate, String queueId) {
+    // Creating test rules
+    RuleDto rule = new RuleDto();
+    rule.setPredicate(predicate);
+    RouteDto route = new RouteDto();
+    route.setQueueId(queueId);
+    rule.getRoutes().add(route);
+    rule.setTag("tag");
+    List<RuleDto> rules = new ArrayList<>();
+    rules.add(rule);
+    // Creating test plan arguments
+    UpdatePlanArg args = new UpdatePlanArg();
+    args.setDescription(description);
+    args.setRules(rules);
+    return args;
+  }
+
+  public CreateRouterArg newCreateRouterArg(String name, String description) {
+    // Creating test router arguments
+    CreateRouterArg args = new CreateRouterArg();
+    args.setDescription(description);
+    args.setName(name);
+    return args;
+  }
+
+  public UpdateRouterArg newUpdateRouterArg(String name, String description) {
+    // Creating test router arguments
+    UpdateRouterArg args = new UpdateRouterArg();
+    args.setDescription(description);
+    args.setName(name);
+    return args;
+  }
+
+  public CreateTaskArg newCreateTaskArg(String queueId, String URL, String planId)
+      throws MalformedURLException {
+    // Creating test task arguments
+    CreateTaskArg args = new CreateTaskArg();
+    args.setQueueId(queueId);
+    URL url = new URL(URL);
+    AttributeGroupDto requirements = new AttributeGroupDto();
+    args.setRequirements(requirements);
+    args.setUserContext(requirements);
+    args.setCallbackUrl(url);
+    args.setPlanId(planId);
+    return args;
+  }
+
+  public UpdateTaskArg newUpdateTaskArg(long priority, TaskState state)
+      throws MalformedURLException {
+    // Creating test task arguments
+    UpdateTaskArg args = new UpdateTaskArg();
+    args.setState(state);
+    return args;
+  }
+
+  public UpdateTaskContext newUpdateTaskContext() {
+    AttributeGroup aGroup = new AttributeGroup();
+    aGroup.add("name", "value");
+    aGroup.setId(5L);
+    AttributesMapper mapper = new AttributesMapper();
+    AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+
+    UpdateTaskContext ctx = new UpdateTaskContext();
+    ctx.setUserContext(aGroupDto);
+    return ctx;
+  }
+}

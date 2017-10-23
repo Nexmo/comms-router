@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
 
-  <name>api-test</name>
+  <name>Tests: Comms Router API</name>
   <url>http://maven.apache.org</url>
 
   <properties>

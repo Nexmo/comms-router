@@ -62,8 +62,16 @@
       <artifactId>jersey-container-servlet</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-web-api</artifactId>
+      <groupId>org.cfg4j</groupId>
+      <artifactId>cfg4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -84,12 +92,10 @@
 
     <finalName>comms-router-web</finalName>
 
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-war-plugin</artifactId>
-          <groupId>org.apache.maven.plugins</groupId>
-          <version>3.1.0</version>
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
           <configuration>
             <webResources>
               <resource>
@@ -101,14 +107,20 @@
               </resource>
             </webResources>
           </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
+      </plugin>
       <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <groupId>org.apache.maven.plugins</groupId>
+        <groupId>org.liquibase</groupId>
+        <artifactId>liquibase-maven-plugin</artifactId>
+        <configuration>
+          <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.44</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
 

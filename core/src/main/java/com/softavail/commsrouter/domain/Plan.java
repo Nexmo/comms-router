@@ -13,6 +13,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
@@ -29,6 +30,9 @@ public class Plan extends RouterObject {
   @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderColumn(name = "rule_order")
   private List<Rule> rules = new ArrayList<>();
+
+  @OneToOne(cascade = CascadeType.ALL)
+  private Route defaultRoute;
 
   public Plan() {}
 
@@ -66,6 +70,15 @@ public class Plan extends RouterObject {
   public void removeRules() {
     rules.stream().forEach(rule -> rule.setPlan(null));
     rules.clear();
+  }
+
+  public Route getDefaultRoute() {
+    return defaultRoute;
+  }
+
+  public void setDefaultRoute(Route defaultRoute) {
+    this.defaultRoute = defaultRoute;
+    this.defaultRoute.setPlan(this);
   }
 
 }

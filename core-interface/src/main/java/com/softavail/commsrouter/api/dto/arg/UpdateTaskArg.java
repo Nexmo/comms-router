@@ -13,7 +13,6 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
  */
 public class UpdateTaskArg {
   private TaskState state;
-  private Long priority;
 
   public TaskState getState() {
     return state;
@@ -23,11 +22,4 @@ public class UpdateTaskArg {
     this.state = state;
   }
 
-  public Long getPriority() {
-    return priority;
-  }
-
-  public void setPriority(Long priority) {
-    this.priority = priority;
-  }
 }

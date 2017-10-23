@@ -1,8 +1,15 @@
 
 #for testing - https://requestb.in/1koh4zk1?inspect
-read -p "Enter Callback Url: " callback
+
+if [ "$1" = "" ]
+then
+    read -p "Enter Callback Url: " callback
+else
+    callback = $1;
+fi
+
 echo
- 
+
 echo Create a router, providing it’s ID:
 curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router
 
@@ -40,7 +47,7 @@ echo
 echo
 
 echo Create a plan.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"rules":[{"tag":"spanish","predicate":"#{language} = \'es\'","queueId":"queue-es"},{"tag":"default-english","predicate":"true","queueId":"queue-en"}]}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueId":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueId":"queue-en"}}'
 
 echo
 echo
@@ -79,11 +86,3 @@ curl -s -X POST http://localhost:8080/comms-router-web/api/routers/my-router/tas
 echo
 
 read -p "Press enter to continue"
-
-
-
-
-
-
-
-

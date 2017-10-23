@@ -5,6 +5,7 @@
 
 package com.softavail.commsrouter.api.dto.arg;
 
+import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public class CreatePlanArg {
 
   private String description;
   private List<RuleDto> rules;
+  private RouteDto defaultRoute;
+
 
   public String getDescription() {
     return description;
@@ -38,6 +41,14 @@ public class CreatePlanArg {
    */
   public void setRules(List<RuleDto> rules) {
     this.rules = rules;
+  }
+
+  public RouteDto getDefaultRoute() {
+    return defaultRoute;
+  }
+
+  public void setDefaultRoute(RouteDto defaultRoute) {
+    this.defaultRoute = defaultRoute;
   }
 
 

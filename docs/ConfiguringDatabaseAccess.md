@@ -4,7 +4,43 @@ Configuring Database Access
 The application expects database access to be provided
 from the Application Container via JNDI.
 
-### Tomcat
+## Configure MySQL
+
+### Create the Database
+
+Create the database with `CHARACTER SET utf8 COLLATE utf8_general_ci`.
+
+```sql
+CREATE DATABASE `comms_router_core` CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
+```
+
+### Create Users
+
+1. You can, optionally, create two users - one for the migration management 
+    (with create/drop table permissions) and another one for the application to manipulate the data.
+
+    Migration user:
+    
+    ```mysql
+    CREATE USER 'comms_migration'@'localhost' IDENTIFIED BY 'comms_migration_password';
+    GRANT ALL ON `comms_router_core`.* TO 'comms_migration'@'localhost';
+    ```
+    
+    Application user:
+    
+    ```mysql
+    CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
+    GRANT LOCK TABLES, SELECT, INSERT, DELETE, UPDATE ON `comms_router_core`.* TO 'comms_router'@'localhost';
+    ```
+
+2. Or just create one user for both with all privileges:
+
+    ```mysql
+    CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
+    GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
+    ```
+
+## Configure Tomcat
 
 Setting up the JNDI datasource on Tomcat.
 
@@ -114,15 +150,23 @@ Setting up the JNDI datasource on Tomcat.
     set CATALINA_OPTS=%CATALINA_OPTS% -Dhibernate.dialect.storage_engine=innodb
     ```
 
-
-### MySQL Tips
-
-- Create the database with `CHARACTER SET utf8 COLLATE utf8_general_ci`
-
-    Like this:
-    ```sql
-    CREATE DATABASE `comms_router_core` CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
+6. Edit `web/src/main/resources/liquibase.properties` file and fill the details for the user that 
+    has all permissions granted.  
+    It should look like this:
+    ```properties
+    verbose = true
+    driver = com.mysql.jdbc.Driver
+    changeLogFile = src/main/resources/db/changelog.yaml
+    url = jdbc:mysql://localhost:3306/comms_router_core
+    username = {USERNAME}
+    password = {PASSWORD}
     ```
+    
+    Then you can populate/migrate the database to the latest version with:
+    ```bash
+    cd web/
+    mvn liquibase:update
+    ``` 
 
 
 [1]: 

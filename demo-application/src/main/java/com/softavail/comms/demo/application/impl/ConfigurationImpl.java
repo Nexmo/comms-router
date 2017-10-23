@@ -30,6 +30,7 @@ public class ConfigurationImpl implements Configuration {
   private final String nexmoCallbackBaseUrl;
   private final String musicOnHoldUrl;
   private final String commsQueueId;
+  private final String commsPlanId;
 
   @Inject
   public ConfigurationImpl(ConfigurationProperties properties) {
@@ -63,6 +64,8 @@ public class ConfigurationImpl implements Configuration {
     musicOnHoldUrl = properties.musicOnHoldUrl();
     
     commsQueueId = properties.commsQueueID();
+    
+    commsPlanId = properties.commsPlanID();
   }
 
   @Override
@@ -103,6 +106,11 @@ public class ConfigurationImpl implements Configuration {
   @Override
   public String getCommsQueueId() {
     return commsQueueId;
+  }
+
+  @Override
+  public String getCommsPlanId() {
+    return commsPlanId;
   }
 
   private URL getFile(String path, String filename) throws MalformedURLException {

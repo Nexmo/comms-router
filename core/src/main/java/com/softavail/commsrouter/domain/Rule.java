@@ -6,14 +6,19 @@
 package com.softavail.commsrouter.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 /**
@@ -25,18 +30,19 @@ import javax.persistence.Table;
 public class Rule implements Serializable {
 
   @Id
-  @GeneratedValue
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String tag;
   private String predicate;
 
-  @Column(name = "queue_id")
-  private String queueId;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "plan_id")
   private Plan plan;
+
+  @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderColumn(name = "route_order")
+  private List<Route> routes = new ArrayList<>();
 
   @Override
   public boolean equals(Object rhs) {
@@ -78,14 +84,6 @@ public class Rule implements Serializable {
     this.predicate = predicate;
   }
 
-  public String getQueueId() {
-    return queueId;
-  }
-
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
-  }
-
   public Plan getPlan() {
     return plan;
   }
@@ -94,4 +92,26 @@ public class Rule implements Serializable {
     this.plan = plan;
   }
 
+  public List<Route> getRoutes() {
+    return routes;
+  }
+
+  public void setRoutes(List<Route> routes) {
+    this.routes = routes;
+  }
+
+  public void addRoute(Route route) {
+    route.setRule(this);
+    routes.add(route);
+  }
+
+  public void removeRoute(Route route) {
+    routes.remove(route);
+    route.setRule(null);
+  }
+
+  public void removeRoutes() {
+    routes.stream().forEach(route -> route.setRule(null));
+    routes.clear();
+  }
 }

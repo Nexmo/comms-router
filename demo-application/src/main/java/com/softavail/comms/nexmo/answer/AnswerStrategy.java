@@ -1,9 +1,14 @@
 package com.softavail.comms.nexmo.answer;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 public interface AnswerStrategy {
 
+  public String answerInboundCallWithParams(Map<String, String> paramaters) 
+      throws AnswerStrategyException;
+  
   public String answerInboundCall(String convUuid, String from, String to)
       throws AnswerStrategyException;
   

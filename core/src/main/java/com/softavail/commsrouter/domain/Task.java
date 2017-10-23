@@ -8,6 +8,11 @@ package com.softavail.commsrouter.domain;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.util.Date;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +23,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -39,8 +46,8 @@ public class Task extends RouterObject {
   private TaskState state;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "plan_id")
-  private Plan plan;
+  @JoinColumn(name = "rule_id")
+  private Rule rule;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "queue_id")
@@ -54,6 +61,23 @@ public class Task extends RouterObject {
 
   @Column(name = "priority", nullable = false)
   private Long priority = new Long(0);
+
+  @CreationTimestamp
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "create_date")
+  private Date createDate;
+
+  @UpdateTimestamp
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "update_date")
+  private Date updateDate;
+
+  @Column(name = "timeout", nullable = false)
+  private Long queuedTimeout = new Long(60 * 60); // default 1h - in seconds
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "currentRoute")
+  private Route currentRoute;
 
   public Task() {}
 
@@ -93,12 +117,12 @@ public class Task extends RouterObject {
     this.callbackUrl = callbackUrl;
   }
 
-  public Plan getPlan() {
-    return plan;
+  public Rule getRule() {
+    return rule;
   }
 
-  public void setPlan(Plan plan) {
-    this.plan = plan;
+  public void setRule(Rule rule) {
+    this.rule = rule;
   }
 
   public Queue getQueue() {
@@ -125,6 +149,32 @@ public class Task extends RouterObject {
     if (priority != null) {
       this.priority = priority;
     }
+  }
+
+  public Date getCreateDate() {
+    return createDate;
+  }
+
+  public Date getUpdateDate() {
+    return updateDate;
+  }
+
+  public Long getQueuedTimeout() {
+    return queuedTimeout;
+  }
+
+  public void setQueuedTimeout(Long queuedTimeout) {
+    if (queuedTimeout != null) {
+      this.queuedTimeout = queuedTimeout;
+    }
+  }
+
+  public Route getCurrentRoute() {
+    return currentRoute;
+  }
+
+  public void setCurrentRoute(Route currentRoute) {
+    this.currentRoute = currentRoute;
   }
 
   @Override

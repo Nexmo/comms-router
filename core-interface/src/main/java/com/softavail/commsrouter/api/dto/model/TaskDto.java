@@ -8,6 +8,8 @@ package com.softavail.commsrouter.api.dto.model;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
+import java.util.Date;
+
 /**
  *
  * @author ikrustev
@@ -17,11 +19,15 @@ public class TaskDto extends RouterObjectId {
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private TaskState state;
-  private String planId;
   private String queueId;
   private String agentId;
   private String callbackUrl;
   private Long priority;
+  private Date createDate;
+  private Date updateDate;
+  private Long queuedTimeout;
+  private Long routeId;
+  private Long ruleId;
 
   public TaskDto() {}
 
@@ -29,17 +35,16 @@ public class TaskDto extends RouterObjectId {
     super(objectId.getId(), objectId.getRouterId());
     requirements = createArg.getRequirements();
     userContext = createArg.getUserContext();
-    planId = createArg.getPlanId();
+    // ruleId = createArg.getPlanId();
     queueId = createArg.getQueueId();
     callbackUrl = createArg.getCallbackUrl().toString();
-    priority = createArg.getPriority();
   }
 
   public TaskDto(TaskDto taskDto) {
     super(taskDto);
     requirements = taskDto.requirements;
     userContext = taskDto.userContext;
-    planId = taskDto.planId;
+    ruleId = taskDto.ruleId;
     queueId = taskDto.queueId;
     agentId = taskDto.agentId;
     callbackUrl = taskDto.callbackUrl;
@@ -70,12 +75,12 @@ public class TaskDto extends RouterObjectId {
     this.state = state;
   }
 
-  public String getPlanId() {
-    return planId;
+  public Long getRuleId() {
+    return ruleId;
   }
 
-  public void setPlanId(String planId) {
-    this.planId = planId;
+  public void setRuleId(Long ruleId) {
+    this.ruleId = ruleId;
   }
 
   public String getQueueId() {
@@ -110,14 +115,43 @@ public class TaskDto extends RouterObjectId {
     this.priority = priority;
   }
 
+  public Date getCreateDate() {
+    return createDate;
+  }
+
+  public void setCreateDate(Date createDate) {
+    this.createDate = createDate;
+  }
+
+  public Date getUpdateDate() {
+    return updateDate;
+  }
+
+  public void setUpdateDate(Date updateDate) {
+    this.updateDate = updateDate;
+  }
+
+  public Long getQueuedTimeout() {
+    return queuedTimeout;
+  }
+
+  public void setQueuedTimeout(Long queuedTimeout) {
+    this.queuedTimeout = queuedTimeout;
+  }
+
+  public Long getRouteId() {
+    return routeId;
+  }
+
+  public void setRouteId(Long routeId) {
+    this.routeId = routeId;
+  }
+
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder()
-        .append("Task [")
-        .append("requirements = ").append(getRequirements())
-        .append(", userContext = ").append(getUserContext())
-        .append(", callbackUrl = ").append(getCallbackUrl())
-        .append("]");
+    StringBuilder sb = new StringBuilder().append("Task [").append("requirements = ")
+        .append(getRequirements()).append(", userContext = ").append(getUserContext())
+        .append(", callbackUrl = ").append(getCallbackUrl()).append("]");
     return sb.toString();
   }
 

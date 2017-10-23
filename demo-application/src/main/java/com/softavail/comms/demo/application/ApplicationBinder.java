@@ -15,7 +15,8 @@ import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.answer.AnswerStrategy;
 import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
-
+import com.softavail.comms.nexmo.ivr.IvrStrategy;
+import com.softavail.comms.nexmo.ivr.IvrStrategyWithSimpleFlow;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.api.interfaces.QueueService;
@@ -81,6 +82,10 @@ public class ApplicationBinder extends AbstractBinder {
         .to(AnswerStrategy.class)
         .to(AnswerStrategyWithCallback.class);
 
+    bind(IvrStrategyWithSimpleFlow.class)
+        .to(IvrStrategy.class)
+        .to(IvrStrategyWithSimpleFlow.class);
+    
     bindFactory(QueueServiceClientFactory.class)
         .to(QueueService.class)
         .to(QueueServiceClient.class);

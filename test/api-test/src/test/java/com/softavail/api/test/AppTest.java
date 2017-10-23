@@ -1,7 +1,5 @@
 package com.softavail.api.test;
 
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
@@ -12,6 +10,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -21,6 +20,7 @@ import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
 
 /**
  * Unit test for simple App.
@@ -66,13 +66,18 @@ public class AppTest {
     Router r = new Router(state);
     Plan p = new Plan(state);
     ApiObjectId id = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+    ApiObjectId queueId = q.create(new CreateQueueArg());
     CreatePlanArg arg = new CreatePlanArg();
+    RouteDto defaultRoute = new RouteDto();
+    defaultRoute.setQueueId(queueId.getId());
+    arg.setDefaultRoute(defaultRoute);
     id = p.create(arg);
     PlanDto resource = p.get();
     assertThat(resource.getDescription(), nullValue());
     assertThat(p.list(), hasItems(hasProperty("id", is(id.getId()))));
-    p.replace(new CreatePlanArg());
-    p.update(new CreatePlanArg());
+    p.replace(arg);
+    p.update(arg);
     p.delete();
     r.delete();
   }
@@ -89,7 +94,7 @@ public class AppTest {
     assertThat(resource.getCapabilities(), nullValue());
     assertThat(a.list(), hasItems(hasProperty("id", is(id.getId()))));
     a.createWithId(new CreateAgentArg());
-    a.update(new CreateAgentArg());
+    a.update(new UpdateAgentArg());
     a.delete();
     r.delete();
   }
@@ -109,8 +114,8 @@ public class AppTest {
     TaskDto resource = t.get();
     assertThat(resource.getRequirements(), nullValue());
     assertThat(t.list(), hasItems(hasProperty("id", is(id.getId()))));
-    //t.replace(new CreateTaskArg());
-    //t.update(new CreateTaskArg());
+    // t.replace(new CreateTaskArg());
+    // t.update(new CreateTaskArg());
     t.delete();
     q.delete();
     t.delete();

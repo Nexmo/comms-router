@@ -22,21 +22,17 @@ import javax.persistence.EntityManager;
 /**
  * @author ikrustev
  */
-public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
-    implements PlanService {
+public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> implements PlanService {
 
   public CorePlanService(AppContext app) {
     super(app, app.db.plan, app.entityMapper.plan);
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, String routerId)
-      throws CommsRouterException {
+  public ApiObjectId create(CreatePlanArg createArg, String routerId) throws CommsRouterException {
 
-    RouterObjectId routerObjectId = RouterObjectId.builder()
-        .setId(Uuid.get())
-        .setRouterId(routerId)
-        .build();
+    RouterObjectId routerObjectId =
+        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
 
     return app.db.transactionManager.execute((em) -> {
       return doCreate(em, createArg, routerObjectId);
@@ -54,14 +50,16 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg, RouterObjectId objectId)
-      throws CommsRouterException {
+  public void update(UpdatePlanArg updateArg, RouterObjectId objectId) throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectId.getId());
       if (updateArg.getRules() != null) {
         plan.removeRules();
         app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
+      }
+      if (updateArg.getDefaultRoute() != null) {
+        plan.setDefaultRoute(app.entityMapper.plan.fromDto(updateArg.getDefaultRoute()));
       }
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
@@ -70,8 +68,18 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan>
   private ApiObjectId doCreate(EntityManager em, CreatePlanArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    if (createArg.getDefaultRoute() == null) {
+      throw new IllegalArgumentException(
+          "Default route 'default_route' is mandatory option for plan creation.");
+    }
+
+    if (createArg.getDefaultRoute().getQueueId() == null) {
+      throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
+    }
+
     Plan plan = new Plan(createArg, objectId);
     app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
+    plan.setDefaultRoute(app.entityMapper.plan.fromDto(createArg.getDefaultRoute()));
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
     return new ApiObjectId(planDto);

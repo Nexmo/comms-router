@@ -7,7 +7,6 @@ package com.softavail.commsrouter.jpa;
 
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
-import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
 
@@ -30,8 +29,13 @@ public class JpaDbFacade {
 
   public JpaDbFacade() {
 
-    EntityManagerFactory emf =
-        Persistence.createEntityManagerFactory("com.softavail.comms-router.core-pu");
+    this("com.softavail.comms-router.core-pu");
+
+  }
+
+  public JpaDbFacade(String unit) {
+
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory(unit);
 
     transactionManager = new JpaTransactionManager(emf);
 
