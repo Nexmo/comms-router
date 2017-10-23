@@ -133,12 +133,22 @@
 (defun plan-new(&key (router-id (get-event :router))
                   (queue-id (get-event :queue))
                   (predicate "1 ==1")
-                  (rules (list (jsown:new-js ("tag" "test-rule") ("predicate" predicate) ("queueId" queue-id))))
+                  (rules (list (jsown:new-js ("tag" "test-rule")
+                                             ("predicate" predicate)
+                                             ("routes" (list (jsown:new-js
+                                                               ("queueId" queue-id)
+                                                               ("priority" 0)
+                                                               ("timeout" 360000))))
+                                             )))
                   (description "description") )
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
                         ("rules" rules)
-                        ("description" description)))
+                        ("description" description)
+                        ("defaultRoute" (jsown:new-js
+                                          ("queueId" queue-id)
+                                          ("priority" 0)
+                                          ("timeout" 360000)))))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :plan) (jsown:val js "id")))))
 
