@@ -30,14 +30,14 @@ CREATE DATABASE `comms_router_core` CHARACTER SET `utf8` COLLATE `utf8_general_c
     
     ```mysql
     CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
-    GRANT LOCK TABLES, SELECT, INSERT, DELETE, UPDATE ON `comms_router_core`.* TO 'comms_migration'@'localhost';
+    GRANT LOCK TABLES, SELECT, INSERT, DELETE, UPDATE ON `comms_router_core`.* TO 'comms_router'@'localhost';
     ```
 
 2. Or just create one user for both with all privileges:
 
     ```mysql
     CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
-    GRANT ALL ON `comms_router_core`.* TO 'comms_migration'@'localhost';
+    GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
     ```
 
 ## Configure Tomcat
@@ -165,7 +165,7 @@ Setting up the JNDI datasource on Tomcat.
     Then you can populate/migrate the database to the latest version with:
     ```bash
     cd web/
-    mvn liqiubase:update
+    mvn liquibase:update
     ``` 
 
 
