@@ -101,7 +101,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   
   private static final String MESSAGE_REGULAR_TASK_GREETING = "Please wait while we connect you";
   
-  private static final String MESSAGE_ASSIGNED_CALLBACK_TASK = "An agent become ready to handle your request. Please wait while we connect you";
+  private static final String MESSAGE_ASSIGNED_CALLBACK_TASK = 
+      "An agent become ready to handle your request. Please wait while we connect you";
   
   private NccoFactory nccoFactory = new NccoFactory(); 
   
@@ -113,6 +114,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   
   private boolean withFeatureRecordName;
   
+  private Map<String, String> parameters;
+  
   @Inject
   AnswerStrategyWithCallback(
       TaskServiceClient taskServiceClient, 
@@ -122,8 +125,27 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     this.configuration = configuration;
     this.nexMoService = nexMoService;
     this.withFeatureRecordName = false;
+    this.parameters = null;
   }
   
+  @Override
+  public String answerInboundCallWithParams(Map<String, String> parameters) 
+      throws AnswerStrategyException {
+    
+    if (parameters == null) {
+      throw new AnswerStrategyException("Invalid argument: <parameters>");
+    }
+    
+    String convUuid = parameters.get("conversation_uuid");
+    String from = parameters.get("from");
+    String to = parameters.get("to");
+    
+    this.parameters = parameters;
+    LOGGER.debug("parameters: {}", parameters);
+    
+    return answerInboundCall(convUuid, from, to);
+  }
+
   @Override
   public String answerInboundCall(final String convUuid, final String from, final String to)
       throws AnswerStrategyException {
@@ -698,32 +720,43 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       if (null != callbackNumber) {
         String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
         if (null != conversationName) {
-          String text = "Please wait while we are connecting to the customer";
-          String musicOnHoldUrl = configuration.getMusicOnHoldUrl();
-          
-          List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForCallbackTask(text,
-              conversationName, musicOnHoldUrl);
-          
-          // preparing a response    
-          NccoResponseBuilder builder = new NccoResponseBuilder();
-          list.forEach(ncco -> {
-            builder.appendNcco(ncco);
-          });
 
-          NccoResponse nccoResponse = builder.getValue();
-          answer = nccoResponse.toJson();
-          
           String callbackState =  attributeGroupDtogetString(KEY_STATE, task.getUserContext());
           
-          // check the callback state and call customer only if it has completed its callback ivr
-          if (null != callbackState && callbackState.equals(STATE_END)) {
-            LOGGER.trace("");
-            new Thread(new Runnable() {
-              @Override
-              public void run() {
-                callCustomer(callbackNumber, taskId);
-              }
-            }).start();
+          if (null != callbackState && callbackState.length() > 0) {
+            boolean flagOk = false;
+            // check the callback state and call customer only if it has completed its callback IVR
+            if (callbackState.equals(STATE_END)) {
+              LOGGER.trace("Will customer to connect it to the agent");
+              flagOk = true;
+              new Thread(new Runnable() {
+                @Override
+                public void run() {
+                  callCustomer(callbackNumber, taskId);
+                }
+              }).start();
+            } else if (callbackState.equals(STATE_ASSIGNED)) {
+              LOGGER.trace("Will not call customer as the task has been assigned");
+              flagOk = true;
+            }
+            
+            if (flagOk) {
+              String text = "Please wait while we are connecting to the customer";
+              String musicOnHoldUrl = configuration.getMusicOnHoldUrl();
+              List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForCallbackTask(text,
+                  conversationName, musicOnHoldUrl);
+              
+              // preparing a response    
+              NccoResponseBuilder builder = new NccoResponseBuilder();
+              list.forEach(ncco -> {
+                builder.appendNcco(ncco);
+              });
+
+              NccoResponse nccoResponse = builder.getValue();
+              answer = nccoResponse.toJson();
+            } else {
+              LOGGER.trace("Customer's call has been left unfinished. Will not try to connect");
+            } 
           }
         }
       }      
@@ -888,7 +921,6 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       URI uri = UriBuilder.fromPath(getTaskCallbackUrl()).build();
 
       taskReq.setCallbackUrl(uri.toURL());
-      taskReq.setQueueId(getQueueId());
 
       AttributeGroupDto userContext = new AttributeGroupDto(); 
       userContext.put(KEY_CONV_NAME, new StringAttributeValueDto(conversationName));
@@ -897,6 +929,22 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         userContext.put(KEY_NUMBER, new StringAttributeValueDto(from));
       }
       taskReq.setUserContext(userContext);
+
+      // add requirements if any
+      if (this.parameters != null && this.parameters.size() > 0) {
+        LOGGER.trace("Will create task with requirements");
+        AttributeGroupDto requirements = new AttributeGroupDto();
+
+        this.parameters.keySet().forEach(key -> {
+          String value = this.parameters.get(key);
+          requirements.put(key, new StringAttributeValueDto(value));
+        });
+
+        taskReq.setRequirements(requirements);
+        taskReq.setPlanId(getPlanId());
+      } else {
+        taskReq.setQueueId(getQueueId());
+      }
 
       task = taskServiceClient.create(taskReq, getRouterId());
     } catch (CommsRouterException e) {
@@ -967,6 +1015,10 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private String getQueueId() {
     return configuration.getCommsQueueId();
+  }
+
+  private String getPlanId() {
+    return configuration.getCommsPlanId();
   }
 
   private String getMusicOnHoldUrl() {
