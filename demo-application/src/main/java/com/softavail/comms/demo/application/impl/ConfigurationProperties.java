@@ -24,4 +24,6 @@ public interface ConfigurationProperties {
   String musicOnHoldUrl();
 
   String commsQueueID();
+
+  String commsPlanID();
 }

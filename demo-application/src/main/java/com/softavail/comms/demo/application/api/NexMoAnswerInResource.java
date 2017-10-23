@@ -3,6 +3,7 @@ package com.softavail.comms.demo.application.api;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.nexmo.answer.AnswerStrategyException;
 import com.softavail.comms.nexmo.answer.AnswerStrategyWithCallback;
+import com.softavail.comms.nexmo.ivr.IvrStrategyWithSimpleFlow;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
@@ -32,8 +33,8 @@ public class NexMoAnswerInResource {
   TaskServiceClient taskServiceClient;
   
   @Inject
-  AnswerStrategyWithCallback strategy;
-
+  IvrStrategyWithSimpleFlow strategy;
+ 
   /**
    * .
    *
@@ -56,10 +57,6 @@ public class NexMoAnswerInResource {
       String answerNcco = strategy.answerInboundCall(uuid, from, to);
       LOGGER.debug("/answer_inbound ncco: {}", answerNcco);
       response = Response.ok(answerNcco, MediaType.APPLICATION_JSON).build();
-    } catch (AnswerStrategyException e) {
-      LOGGER.error("/answer_inbound failed: {}", e.getMessage());
-      response =  Response.status(Response.Status.BAD_REQUEST)
-          .entity(e.getMessage()).build();
     } catch (Exception ex) {
       LOGGER.error("/answer_inbound failed: {}", ex.getMessage());
       response =  Response.status(Response.Status.INTERNAL_SERVER_ERROR)

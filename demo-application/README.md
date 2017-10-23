@@ -32,17 +32,22 @@ Before installing the demo app, you'll need to make some configuration changes.
 Find application.properties file which has the following structure:
 ```
 app.callbackBaseUrl=
+app.nexmoCallbackBaseUrl=
 app.phone=
 app.musicOnHoldUrl=
 comms.routerUrl=
 comms.routerId=
+comms.planId=
+comms.queueId=
 nexmo.appId=
 nexmo.appPrivateKey=
 ```
 Please put the values inside the application properties as follow:
 
-* __app.callbackBaseUrl__ Base URL to the server where the demo app is
-  served from. For example http://host:port/demo-app-root/api
+* __app.nexmoCallbackBaseUrl__ Base URL to the server where the demo app is
+  served from. This URL will be used from the Nexmo server for invoking web hooks. For example http://host:port/demo-app-root/api
+
+* __app.callbackBaseUrl__ Base URL to the server where the demo app is served from. This URL will be used from the CommsRouter web app for invoking tasks' callback hooks. For example http://host:port/demo-app-root/api
 
 * __app.phone__ This is the number you bought from Nexmo and associated it
   with your voice application
@@ -53,6 +58,10 @@ Please put the values inside the application properties as follow:
   For example  http://commsrouterhost:port/comms-router-web-api/api
 
 * __comms.routerId__ This is the id of the router object in the CommsRouter
+
+* __comms.planId__ This is the id of the plan object in the CommsRouter
+
+* __comms.queueId__ This is the id of the default queue object in the CommsRouter
 
 * __nexmo.appId__ This is the app-id from your Nexmo Voice application
 
@@ -77,12 +86,9 @@ Ex. With Tomcat JVM properties are set like this:
 
 ## Initialize CommsRouter
 
-Before using the demo app, you'll need to create a router object, a Queue and an Agent
-in the CommsRouter via its REST API.
+Before using the demo app, you'll need to create Router, Queue, Agent and Plan objects in the CommsRouter via its REST API.
 
-Router object must be with an ID equal to the id specified in the *comms.routerId* parameter
+Router, Queue, Plan objects, must be with an ID equal to the id specified in the *comms.routerId* parameter
 in _application.properties_ file.
-
-A Queue object must be with an id set to _queue-demo_.
 
 An Agent must have a valid address (phone number) where the Nexmo will make a voice call.
