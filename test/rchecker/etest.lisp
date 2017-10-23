@@ -96,7 +96,7 @@
 (defun remove-char(pos string)
   (concatenate 'string (subseq string 0 pos) (subseq string (1+ pos))))
 
-(defun shrink (string fn)
+(defun shrink-string (string fn)
   (loop for x from 1 to (length string)
      for small = (remove-char (1- x) string)
      :if (funcall fn small) :collect small) )
@@ -108,7 +108,7 @@
 
 (defun find-smallest(candidates fn)
   (when candidates
-    (let((smallest (shrink (first candidates) fn )))
+    (let((smallest (shrink-string (first candidates) fn )))
       (format t "~%~A->~A" (length (first candidates)) smallest)
       (if smallest
           (find-smallest (append smallest (rest candidates)) fn)
