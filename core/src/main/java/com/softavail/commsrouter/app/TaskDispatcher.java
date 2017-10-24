@@ -104,9 +104,8 @@ public class TaskDispatcher {
   public void dispatchAgent(String agentId) {
     try {
       // Get the queueId from the agent
-      db.transactionManager.executeVoid(
-          em -> db.agent.get(em, agentId).getQueues().parallelStream().map(ApiObject::getId)
-              .forEach(this::process));
+      db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
+          .map(ApiObject::getId).forEach(this::process));
     } catch (RuntimeException | CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
@@ -232,7 +231,7 @@ public class TaskDispatcher {
       }
       return null;
     } else {
-      LOGGER.debug("Did not found any route info in the current rule: {}", rule);
+      LOGGER.debug("Did not find any route info in the current rule: {}", rule);
     }
 
     return null;
