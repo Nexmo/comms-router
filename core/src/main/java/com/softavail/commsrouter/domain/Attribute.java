@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -33,12 +34,14 @@ public class Attribute implements Serializable {
   private AttributeGroup attributeGroup;
 
   @Column(name = "name")
+  @Size(max = 255, message = "{domain.Attribute.name.size}")
   private String name;
 
   @Column(name = "double_value")
   private Double doubleValue;
 
   @Column(name = "string_value")
+  @Size(max = 255, message = "{domain.Attribute.string.size}")
   private String stringValue;
 
   @Column(name = "boolean_value")
