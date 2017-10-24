@@ -22,8 +22,8 @@ public class QueueProcessorManager {
 
   private static final QueueProcessorManager instance = new QueueProcessorManager();
 
-  private final Map<String, QueueProcessor> QUEUE_PROCESSORS = Maps.newHashMap();
-  private final Map<String, ScheduledFuture> SCHEDULED_FUTURES = Maps.newHashMap();
+  private final Map<String, QueueProcessor> queueProcessors = Maps.newHashMap();
+  private final Map<String, ScheduledFuture> scheduledFutures = Maps.newHashMap();
 
   private QueueProcessorManager() {
   }
@@ -36,10 +36,10 @@ public class QueueProcessorManager {
       EntityMappers mappers, TaskDispatcher taskDispatcher, TaskEventHandler taskEventHandler,
       ScheduledThreadPoolExecutor threadPool) {
 
-    Optional.ofNullable(SCHEDULED_FUTURES.get(queueId))
+    Optional.ofNullable(scheduledFutures.get(queueId))
         .ifPresent(scheduledFuture -> scheduledFuture.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
 
-    QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
+    QueueProcessor queueProcessor = queueProcessors.get(queueId);
     if (queueProcessor == null) {
       queueProcessor = new QueueProcessor.Builder()
           .setQueueId(queueId)
@@ -51,18 +51,18 @@ public class QueueProcessorManager {
           .setStateChangeListener((StateIdleListener) processedQueueId -> {
             ScheduledFuture<?> schedule = threadPool.schedule(() ->
                 removeQueueProcessor(processedQueueId), EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
-            SCHEDULED_FUTURES.put(processedQueueId, schedule);
+            scheduledFutures.put(processedQueueId, schedule);
           })
           .build();
-      QUEUE_PROCESSORS.put(queueId, queueProcessor);
+      queueProcessors.put(queueId, queueProcessor);
     }
     queueProcessor.process();
   }
 
   private synchronized void removeQueueProcessor(String queueId) {
-    QueueProcessor queueProcessor = QUEUE_PROCESSORS.get(queueId);
+    QueueProcessor queueProcessor = queueProcessors.get(queueId);
     if (!queueProcessor.isWorking()) {
-      QUEUE_PROCESSORS.remove(queueId);
+      queueProcessors.remove(queueId);
     }
   }
 

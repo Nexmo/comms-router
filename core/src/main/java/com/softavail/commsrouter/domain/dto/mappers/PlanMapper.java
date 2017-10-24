@@ -39,20 +39,20 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
     return dto;
   }
 
-  public Route fromDto(RouteDto dto) {
-    Route route = new Route();
-    route.setQueueId(dto.getQueueId());
-    route.setPriority(dto.getPriority());
-    route.setTimeout(dto.getTimeout());
-    return route;
-  }
-
   private RuleDto toDto(Rule jpa) {
     RuleDto dto = new RuleDto();
     dto.setPredicate(jpa.getPredicate());
     dto.setTag(jpa.getTag());
     dto.setRoutes(toDtoRoutes(jpa.getRoutes()));
     return dto;
+  }
+
+  public Route fromDto(RouteDto dto) {
+    Route route = new Route();
+    route.setQueueId(dto.getQueueId());
+    route.setPriority(dto.getPriority());
+    route.setTimeout(dto.getTimeout());
+    return route;
   }
 
   private Rule fromDto(RuleDto dto) {
