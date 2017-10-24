@@ -66,7 +66,8 @@ public class ExpressionEvaluator extends Evaluator {
       String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
       evaluate(formatedExpression);
     } catch (EvaluationException ex) {
-      throw new EvaluatorException(EvaluatorHelpers.getDetailedMessage(ex), ex);
+      throw new EvaluatorException("Predicate \"" + expression + "\" failed with error: "
+          + EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
   }
 }
