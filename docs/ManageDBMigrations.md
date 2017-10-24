@@ -38,6 +38,48 @@ After adding the property issue this command:
 mvn liquibase:update
 ```
 
+### Create diff with changes
+
+That will generate changeSet(s) with the difference between two given databases.
+
+* Prerequisite for this task is to have an identical database with the new changes.
+
+    ```sql
+    CREATE DATABASE `comms_router_dev` CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
+    ```
+    
+    ```mysql
+    CREATE USER IF NOT EXISTS 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
+    GRANT ALL ON `comms_router_dev`.* TO 'comms_router'@'localhost';
+    ```
+
+Required by [`liquibase:diff`][liquibase:diff] are the reference arguments:
+
+```properties
+referenceDriver=com.mysql.jdbc.Driver
+referenceUrl=jdbc:mysql://localhost:3306/comms_router_core
+referenceUsername=comms_router
+referencePassword=comms_password
+```
+
+Add the `diffChangeLogFile` property with file where the changeSet(s) will be saved:
+
+```properties
+diffChangeLogFile=src/main/resources/db/migrations/changelog-next.yaml
+```
+
+Edit the standard connection settings to point to the _dev_ database instance:
+
+```properties
+url=jdbc:mysql://localhost:3306/comms_router_dev
+```
+
+Finally execute:
+
+```bash
+mvn liquibase:diff
+```
+
 ## Generate ChangeLog
 
 To generate a changelog from existing database.
@@ -49,6 +91,11 @@ the schema from the current database will be imported.
 outputChangeLogFile	 = src/main/resources/db/changelog.yaml
 ```
 
+Execute:
+
+```bash
+mvn liquibase:generateChangeLog
+```
 
 
 
@@ -64,10 +111,13 @@ http://www.liquibase.org/documentation/maven/
 http://www.liquibase.org/bestpractices.html
 "Best practices"
 
-
 [liquibase:update]: 
 http://www.liquibase.org/documentation/maven/maven_update.html 
 "Maven update"
+
+[liquibase:diff]:
+http://www.liquibase.org/documentation/maven/maven_diff.html
+"Maven diff"
 
 [liquibase:generateChangeLog]: 
 http://www.liquibase.org/documentation/maven/maven_generateChangeLog.html 

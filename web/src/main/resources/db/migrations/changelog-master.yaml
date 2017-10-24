@@ -643,3 +643,13 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: route
+- changeSet:
+    id: 1508851006088-1
+    author: mapuo (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: last_time_at_busy_state
+            type: DATETIME(19)
+        tableName: agent
