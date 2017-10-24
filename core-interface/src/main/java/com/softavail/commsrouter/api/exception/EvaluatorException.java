@@ -15,4 +15,8 @@ public class EvaluatorException extends CommsRouterException {
     super(message);
   }
 
+  public EvaluatorException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

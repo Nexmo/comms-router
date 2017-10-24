@@ -112,8 +112,7 @@ public class AttributesMapper {
                   }
 
                   @Override
-                  public void handleDoubleValue(DoubleAttributeValueDto value)
-                      throws IOException {
+                  public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
                     arrayValue.add(value.getValue());
                   }
 
@@ -281,7 +280,7 @@ public class AttributesMapper {
           }
         });
       } catch (IOException ex) {
-        LOGGER.error(ex.getLocalizedMessage());
+        LOGGER.error(ex.getMessage());
       }
     });
 

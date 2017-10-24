@@ -5,12 +5,11 @@
 
 package com.softavail.commsrouter.eval;
 
+import com.softavail.commsrouter.api.exception.EvaluatorException;
+import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
-import net.sourceforge.jeval.EvaluationHelper;
 import net.sourceforge.jeval.Evaluator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -20,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 public class ExpressionEvaluator extends Evaluator {
 
   private boolean isValidation = false;
-  private static final Logger LOGGER = LogManager.getLogger(ExpressionEvaluator.class);
 
   @Override
   public String replaceVariables(final String expression) throws EvaluationException {
@@ -30,8 +28,22 @@ public class ExpressionEvaluator extends Evaluator {
     }
 
     if (isValidation) {
-      return EvaluationHelper.replaceAll(expression, EvaluatorHelpers.VALIDATION_VARIABLE,
-          EvaluatorHelpers.VALIDATION_VARIABLE_KEY_VALUE);
+      replacedVariable = EvaluatorHelpers.validationReplaceIfSingleVariable(expression,
+          EvaluationConstants.BOOLEAN_STRING_TRUE);
+      if (replacedVariable != null) {
+        return replacedVariable;
+      }
+
+      replacedVariable = EvaluatorHelpers.validationReplaceIfStringValue(expression,
+          EvaluationConstants.BOOLEAN_STRING_TRUE);
+      if (replacedVariable != null) {
+        return replacedVariable;
+      }
+
+      replacedVariable = EvaluatorHelpers.validationCheckSpecialCharsInVariable(expression);
+      if (replacedVariable != null) {
+        return replacedVariable;
+      }
     }
 
     return super.replaceVariables(expression);
@@ -43,19 +55,18 @@ public class ExpressionEvaluator extends Evaluator {
 
   public void init(boolean isValidation) {
     this.isValidation = isValidation;
-    putFunction(new HasFunction());
-    putFunction(new InFunction());
+    putFunction(new HasFunction(isValidation));
+    putFunction(new InFunction(isValidation));
     putFunction(new ContainsFunction());
-    setVariableResolver(new CommsRouterVariableResolver(isValidation));
+    setVariableResolver(new CommsRouterVariableResolver(isValidation, this));
   }
 
-  public boolean isValidExpression(String expression) {
+  public void isValidExpression(String expression) throws EvaluatorException {
     try {
-      evaluate(expression);
-      return true;
+      String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
+      evaluate(formatedExpression);
     } catch (EvaluationException ex) {
-      LOGGER.info("Expression validation failed with: {}", ex.getLocalizedMessage());
+      throw new EvaluatorException(EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
-    return false;
   }
 }

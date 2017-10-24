@@ -39,8 +39,6 @@ public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
-  private final int openBracketCharacter = '[';
-  private final int closeBracketCharacter = ']';
 
 
   /**
@@ -121,16 +119,14 @@ public class CommsRouterEvaluator {
     return false;
   }
 
-  public Boolean isValidExpression(String expression) {
+  public void isValidExpression(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {
-      return false;
+      throw new EvaluatorException("Expression cannot be NULL or empty.");
     }
 
-    String formatedExpression = supportArraysInExpression(expression);
     ExpressionEvaluator evaluator = new ExpressionEvaluator();
     evaluator.init(true);
-
-    return evaluator.isValidExpression(formatedExpression);
+    evaluator.isValidExpression(expression);
   }
 
   public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
@@ -200,7 +196,7 @@ public class CommsRouterEvaluator {
         });
 
       } catch (IOException ex) {
-        LOGGER.error(ex.getLocalizedMessage());
+        LOGGER.error(ex.getMessage());
       }
     });
 
@@ -225,8 +221,8 @@ public class CommsRouterEvaluator {
       LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
       return true;
     } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getLocalizedMessage());
-      throwException = ex.getLocalizedMessage();
+      LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getMessage());
+      throwException = ex.getMessage();
     }
 
     if (throwException != null && !throwException.isEmpty()) {
@@ -250,28 +246,8 @@ public class CommsRouterEvaluator {
     return predicate;
   }
 
-  private String supportArraysInExpression(String expression) {
-    String formatedExpression = expression;
-    int startIndex = 0;
-    do {
-      startIndex = formatedExpression.indexOf(openBracketCharacter, startIndex);
-      if (startIndex >= 0) {
-        int endIndex = formatedExpression.indexOf(closeBracketCharacter, startIndex + 1);
-        if (endIndex > 0) {
-          String arrayString = formatedExpression.substring(startIndex, endIndex + 1);
-          arrayString = String.format("'%s'", arrayString.replace(',', ';'));
-          formatedExpression = formatedExpression.substring(0, startIndex) + arrayString
-              + formatedExpression.substring(endIndex + 1);
-          endIndex += 3;
-        }
-        startIndex = endIndex;
-      }
-    } while (startIndex > 0);
-    return formatedExpression;
-  }
-
   private String validateExpressionFormat(AttributeGroupDto attributesGroup, String expression) {
-    String formatedExpression = supportArraysInExpression(expression);
+    String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
     formatedExpression = reMapVariableKeysInPredicate(attributesGroup, formatedExpression);
 
     return formatedExpression;

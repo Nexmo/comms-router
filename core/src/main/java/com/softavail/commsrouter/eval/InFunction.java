@@ -28,6 +28,13 @@ import java.util.ArrayList;
  *         function works.
  */
 public class InFunction implements Function {
+
+  private boolean isValidation = false;
+
+  public InFunction(boolean isValidation) {
+    this.isValidation = isValidation;
+  }
+
   /**
    * Returns the name of the function - "IN".
    * 
@@ -70,15 +77,21 @@ public class InFunction implements Function {
       throw new FunctionException(exceptionMessage);
     }
 
-    String argumentTwo = null;
+    String argumentTwo = (String) strings.get(1);
     try {
+      if (isValidation) {
+        String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentTwo);
+        if (variable != null) {
+          argumentTwo = variable;
+        }
+      }
       String argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(0),
           evaluator.getQuoteCharacter());
       boolean isDouble = EvaluatorHelpers.isDouble(argumentOne);
-      argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(1),
+      argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed(argumentTwo,
           evaluator.getQuoteCharacter());
-      JSONArray jsonArray = new JSONArray(argumentTwo);
       ArrayList<String> list = new ArrayList<>();
+      JSONArray jsonArray = new JSONArray(argumentTwo);
       int len = jsonArray.length();
       for (int i = 0; i < len; i++) {
         String item = jsonArray.get(i).toString();
@@ -97,7 +110,7 @@ public class InFunction implements Function {
       throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() second argument is \"%s\": %s",
-          getName(), argumentTwo, e.getLocalizedMessage()));
+          getName(), argumentTwo, e.getMessage()));
     } catch (NumberFormatException e) {
       throw new FunctionException(exceptionMessage, e);
     } catch (Exception e) {
