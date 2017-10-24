@@ -5,8 +5,12 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -19,6 +23,8 @@ public class AgentDto extends RouterObjectId {
   private String address;
   private AgentState state;
   private List<String> queueIds;
+  @JsonIgnore
+  private Date lastTimeAtBusyState;
 
   public AgentDto() {}
 
@@ -52,6 +58,16 @@ public class AgentDto extends RouterObjectId {
 
   public void setQueueIds(List<String> queueIds) {
     this.queueIds = queueIds;
+  }
+
+  @JsonProperty(access = Access.READ_ONLY)
+  public Date getLastTimeAtBusyState() {
+    return lastTimeAtBusyState;
+  }
+
+  @JsonIgnore
+  public void setLastTimeAtBusyState(Date lastTimeAtBusyState) {
+    this.lastTimeAtBusyState = lastTimeAtBusyState;
   }
 
 }

@@ -5,8 +5,6 @@
 
 package com.softavail.commsrouter.app;
 
-import com.google.common.collect.Maps;
-
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -26,12 +24,12 @@ import com.softavail.commsrouter.util.Fields;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -106,9 +104,8 @@ public class TaskDispatcher {
   public void dispatchAgent(String agentId) {
     try {
       // Get the queueId from the agent
-      db.transactionManager.executeVoid(
-          em -> db.agent.get(em, agentId).getQueues().parallelStream().map(ApiObject::getId)
-              .forEach(this::process));
+      db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
+          .map(ApiObject::getId).forEach(this::process));
     } catch (RuntimeException | CommsRouterException e) {
       LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
     }
@@ -234,7 +231,7 @@ public class TaskDispatcher {
       }
       return null;
     } else {
-      LOGGER.debug("Did not found any route info in the current rule: {}", rule);
+      LOGGER.debug("Did not find any route info in the current rule: {}", rule);
     }
 
     return null;

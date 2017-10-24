@@ -82,6 +82,7 @@ public class QueueProcessor {
       case CONSUME:
         changeState(QueueProcessorState.IDLE);
         return true;
+      default:
     }
     LOGGER.error("Queue processor {}: invalid complete state: {}", queueId, state);
     throw new RuntimeException("Queue processor " + queueId + ": invalid compelte state: " + state);

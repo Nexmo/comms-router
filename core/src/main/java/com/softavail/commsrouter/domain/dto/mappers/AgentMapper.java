@@ -28,6 +28,7 @@ public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
     dto.setAddress(jpa.getAddress());
     dto.setState(jpa.getState());
     dto.setQueueIds(createIdList(jpa.getQueues()));
+    dto.setLastTimeAtBusyState(jpa.getLastTimeAtBusyState());
     return dto;
   }
 

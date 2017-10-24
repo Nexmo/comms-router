@@ -18,7 +18,7 @@ public class BaseExceptionMapper<E extends Throwable> implements ExceptionMapper
   private static final Logger LOGGER = LogManager.getLogger(BaseExceptionMapper.class);
 
   @Context
-  private HttpHeaders headers;
+  protected HttpHeaders headers;
 
   private final Status status;
 

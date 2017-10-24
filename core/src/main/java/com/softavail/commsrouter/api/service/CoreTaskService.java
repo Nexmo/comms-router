@@ -16,6 +16,7 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.InvalidStateException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.app.AppContext;
@@ -109,19 +110,35 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Optional<String> completeTask(EntityManager em, String taskId) throws NotFoundException {
+  private Optional<String> completeTask(EntityManager em, String taskId)
+      throws NotFoundException, InvalidStateException {
 
     Task task = app.db.task.get(em, taskId);
-    // @todo: check current state and throw if not appropriate and then agent == null would be
-    // internal error
+
+    switch (task.getState()) {
+      case completed:
+        throw new InvalidStateException("Task already completed");
+      case waiting:
+        assert task.getAgent() == null : "Waiting task " + task.getId() + " has assigned agent: "
+            + task.getAgent().getId();
+        task.setState(TaskState.completed);
+        return Optional.empty();
+      case assigned:
+        break;
+      default:
+        throw new InvalidStateException(
+            "Current state cannot be switched to completed: " + task.getState());
+    }
+
     task.setState(TaskState.completed);
 
-
     Agent agent = task.getAgent();
-    if (agent == null) {
-      return Optional.empty();
-    }
+
+    assert agent != null : "Completed task with no agent: " + task.getId();
+
     if (agent.getState() != AgentState.busy) {
+      assert false : "Invalid agent state '" + agent.getState() + "' for completed task: "
+          + task.getId();
       return Optional.empty();
     }
     agent.setState(AgentState.ready);

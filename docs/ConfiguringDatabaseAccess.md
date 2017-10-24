@@ -168,6 +168,8 @@ Setting up the JNDI datasource on Tomcat.
     mvn liquibase:update
     ``` 
 
+    Also see [Manage DB Migrations]
+
 
 [1]: 
 https://tomcat.apache.org/tomcat-8.0-doc/config/context.html  
@@ -192,3 +194,7 @@ http://commons.apache.org/proper/commons-dbcp/configuration.html
 [6]: 
 https://dev.mysql.com/downloads/connector/j/5.1.html 
 "MySQL Connector/J"
+
+[Manage DB Migrations]:
+ManageDBMigrations.md
+"Manage DB Migrations"
