@@ -20,6 +20,7 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 
 import com.softavail.commsrouter.api.dto.model.TaskDto;
+import com.softavail.commsrouter.api.dto.model.TaskState;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -116,4 +117,10 @@ public class Task extends Resource {
         .when().post("/routers/{routerId}/tasks/{queueId}")
         .then().statusCode(204);
   }
+  public void setState(TaskState state) {
+    UpdateTaskArg arg = new UpdateTaskArg();
+    arg.setState(state);
+    update(arg);
+  }
+
 }
