@@ -227,7 +227,7 @@ public class AttributesMapper {
     return dto;
   }
 
-  public AttributeGroup toJpa(AttributeGroupDto dto) {
+  public AttributeGroup fromDto(AttributeGroupDto dto) {
     if (dto == null) {
       return null;
     }

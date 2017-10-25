@@ -106,7 +106,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     app.db.transactionManager.executeVoid((em) -> {
       Task task = app.db.task.get(em, objectId.getId());
-      task.setUserContext(app.entityMapper.attributes.toJpa(taskContext.getUserContext()));
+      task.setUserContext(app.entityMapper.attributes.fromDto(taskContext.getUserContext()));
     });
   }
 
@@ -162,7 +162,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
         }
       }
 
-      task.setUserContext(app.entityMapper.attributes.toJpa(existingContext));
+      task.setUserContext(app.entityMapper.attributes.fromDto(existingContext));
     });
   }
 
@@ -216,8 +216,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     Task task = fromPlan(em, createArg, objectId);
     task.setState(TaskState.waiting);
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
-    task.setRequirements(app.entityMapper.attributes.toJpa(createArg.getRequirements()));
-    task.setUserContext(app.entityMapper.attributes.toJpa(createArg.getUserContext()));
+    task.setRequirements(app.entityMapper.attributes.fromDto(createArg.getRequirements()));
+    task.setUserContext(app.entityMapper.attributes.fromDto(createArg.getUserContext()));
 
     em.persist(task);
 

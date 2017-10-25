@@ -168,7 +168,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     Fields.update(agent::setQueues, agent.getQueues(), matchedQueues);
     agent.removeCapabilities();
 
-    agent.setCapabilities(app.entityMapper.attributes.toJpa(newCapabilities));
+    agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
   }
 
   private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
@@ -176,7 +176,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     Agent agent = new Agent(objectId);
     agent.setAddress(createArg.getAddress());
-    agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
+    agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
 
     if (objectId.getRouterId() != null) {
