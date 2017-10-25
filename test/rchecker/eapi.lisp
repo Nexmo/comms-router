@@ -4,6 +4,115 @@
   #'(lambda()
       (list (apply (funcall *endpoint* #'cmd-curl) (funcall request))
             (apply (funcall *endpoint* #'transport) (funcall request)))))
+;;; queue
+(defun equeue-new (&key (router-id (get-event :router))
+                     (description "description")
+                     (predicate "1==1"))
+  (tstep (format nil "Create new queue with predicate ~A."  predicate)
+         (tapply (http-post (list "/routers" router-id "queues")
+                            (jsown:new-js ("description" description)
+                                          ("predicate" predicate))))
+         (check-and (has-json) (has-key "id") (publish-id :queue))))
+
+(defun equeue-put (&key (router-id (get-event :router))
+                     (id (get-event :queue))
+                     (description "description")
+                     (predicate "1==1") )
+  (tstep (format nil "Replace or create queue.")
+         (tapply (http-put (list "/routers" router-id "queues" id) (jsown:new-js
+                                                                     ("description" description)
+                                                                     ("predicate" predicate))))
+         (check-and (has-json) (has-key "id") (publish-id :queue))))
+
+(defun equeue-del (&key (router-id (get-event :router))
+                     (id (get-event :queue)))
+  (tstep (format nil "Delete queue ~A." id)
+         (tapply (http-del  "/routers" router-id "queues" id))
+         (check-and (is-equal "") (remove-id :queue))))
+
+;;; agent
+(defun eagent-new (&key (router-id (get-event :router))
+                     (address "address")
+                     (capabilities (jsown:new-js ("language" "en"))))
+  (tstep (format nil "Create new agent with capabilities ~A."  (jsown:to-json capabilities))
+         (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
+                                                                   ("address" address)
+                                                                   ("capabilities" capabilities))))
+         (check-and (has-json) (has-key "id") (publish-id :agent))))
+
+(defun eagent-put (&key (router-id (get-event :router))
+                     (id (get-event :agent))
+                     (address "address")
+                     (capabilities (jsown:new-js ("language" "en"))))
+  (tstep (format nil "Replace or create agent.")
+         (http-put (list "/routers" router-id "agents" id) (jsown:new-js
+                                                             ("address" address)
+                                                             ("capabilities" capabilities)))
+         (check-and (has-json) (has-key "id") (publish-id :agent))))
+
+(defun eagent-set (&key (router-id (get-event :router))
+                     (id (get-event :agent))
+                     (address "address")
+                     (state "ready") ;; offline busy
+                     (capabilities (jsown:new-js ("language" "en"))))
+  (tstep (format nil "Set properties on agent ~A." (jsown:to-json (jsown:new-js
+                                                                    ("address" address)
+                                                                    ("state" state)
+                                                                    ("capabilities" capabilities))))
+         (tapply (http-post (list "/routers" router-id "agents" id) (jsown:new-js
+                                                               ("address" address)
+                                                               ("state" state)
+                                                               ("capabilities" capabilities))))
+         (check-and (is-equal "") #'(lambda(res) (funcall (fire-event :agent-state) state)
+                                           (list t (list(format nil "ok - publish agent-state -> ~A" state)))))))
+
+(defun eagent-del(&key (router-id (get-event :router))
+                    (id (get-event :agent)))
+  (tstep (format nil "Delete agent ~A." id)
+         (tapply (http-del  "/routers" router-id "agents" id))
+         (check-and (is-equal "") (remove-id :agent))))
+
+;;; router
+(defun erouter-new (&key (name "name") (description "description"))
+  (tstep (format nil "Create new router.")
+         (tapply (http-post "/routers" (jsown:new-js("name" name)
+                                                    ("description" description))))
+         (check-and (has-json) (has-key "id") (publish-id :router))))
+
+(defun erouter-put (&key (id (get-event :router)) (name "name") (description "description"))
+  (tstep (format nil "Replace or create router.")
+         (tapply (http-put (list "/routers" id) (jsown:new-js ("name" name)
+                                                              ("description" description))))
+         (check-and (has-json) (has-key "id") (publish-id :router))))
+
+(defun erouter-del (&key (id (get-event :router)))
+  (tstep (format nil "Delete router ~A." id)
+         (tapply (http-del "/routers" id))
+         (check-and (is-equal "") (remove-id :router))))
+;;; task
+(defun etask-new(&key (router-id (get-event :router))
+
+                   (requirements (jsown:new-js ("key" t)))
+                   (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
+                   (context (jsown:new-js ("key" "value")))
+                   (queue-id (get-event :queue))
+                   (plan-id :null))
+  (tstep (format nil "Create new task to queue ~A and context ~A." queue-id (jsown:to-json context))
+         (tapply (http-post (list "/routers" router-id "tasks")
+                            (jsown:new-js
+                              ("callbackUrl" callback-url)
+                              ("userContext" context)
+                              ("requirements" requirements)
+                              ("queueId" queue-id)
+                              ("planId" plan-id))))
+         (check-and (has-json) (has-key "id") (publish-id :task))))
+
+(defun etask-del (&key (router-id (get-event :router))
+                    (id (get-event :task)))
+  (tstep (format nil "Delete a task ~A." id)
+         (tapply (http-del  "/routers" router-id "tasks" id))
+         (check-and (is-equal "") (remove-id :task))))
+
 
 (defun etask(&key (router-id (get-event :router)) (task-id (get-event :task)) (state "assigned"))
   (tstep (format nil "Check that task is in state ~A." state)
@@ -13,8 +122,7 @@
 (defun etask-set(&key (router-id (get-event :router)) (task-id (get-event :task)) (state :null) )
   (tstep (format nil "Set task's state = ~A." state )
          (tapply (http-post (list "/routers" router-id "tasks" task-id)
-                            (jsown:new-js ("state" "completed")
-                                          )))
+                            (jsown:new-js ("state" "completed") )))
          (is-equal "")))
 
 (defun etask-all(&key (router-id (get-event :router)))

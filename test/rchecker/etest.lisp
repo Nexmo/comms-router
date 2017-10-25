@@ -115,3 +115,82 @@
           (if (rest candidates)
               (find-smallest (rest candidates) fn)
               (remove-if-not  fn candidates) ) )) ))
+
+(defparameter *tasks* (list
+                       (list #'(lambda() (not (has-event :router))) #'(lambda()(funcall (erouter-new))))
+                       (list #'(lambda() (not (has-event :router))) #'(lambda()(funcall (erouter-put :id (get-id "router")))))
+                       (list #'(lambda() (has-event :router))
+                             #'(lambda() (prog1 (funcall (erouter-del))
+                                           (mapcar #'clear-event '(:queue :task :agent :plan)))))
+
+                       (list #'(lambda() (and (has-event :router) (not (has-event :queue))))
+                             #'(lambda()(funcall(equeue-new))))
+
+                       (list #'(lambda() (and (has-event :router)
+                                              (has-event :queue)
+                                              (not(has-event :task))))
+                             #'(lambda()(funcall (equeue-del)) ))
+
+                       (list #'(lambda() (and (has-event :router) (not (has-event :agent)))) #'(lambda()(funcall(eagent-new))))
+
+                       (list #'(lambda() (and (has-event :router)
+                                              (has-event :agent)
+                                              (not(has-event :agent-busy))))
+                             #'(lambda()(funcall (eagent-set :state "ready"))))
+                       (list #'(lambda() (and (has-event :router)
+                                              (has-event :agent)
+                                              (not(has-event :agent-busy))))
+                             #'(lambda()(funcall (eagent-set :state "offline"))))
+
+                       (list #'(lambda() (and (has-event :router) (has-event :agent)))
+                             #'(lambda()(prog1 (funcall (eagent-del))
+                                                (clear-event :agent))))
+
+                       (list #'(lambda() (and (has-event :router)
+                                              (has-event :queue)
+                                              (not (has-event :task)) ))
+                             #'(lambda()(funcall (etask-new :callback-url "http://localhost:8080"))))
+
+                       (list #'(lambda() (and (has-event :router)
+                                              (has-event :queue)
+                                              (has-event :task)))
+                             #'(lambda()(funcall (etask-del))))))
+
+(defun generate-sample(&key(tasks *tasks*) (path ()) (size 100))
+  (if (>= (length path) size)  'pass
+      (let*((available (remove-if-not #'(lambda(task)(funcall (first task))) tasks))
+            (selected (random (length available)))
+            (result (funcall (second (nth selected available))))
+            (new-path (list* (cons selected result) path)))
+        (cond
+          ((null (second result)) new-path);;error detected
+          (t (generate-sample :tasks tasks :path new-path :size size)) )) )  )
+
+(defun replay-sample(&key(tasks *tasks*) (path ()) (test-case ()))
+  (if (null test-case)
+      'pass
+      (let*((available (remove-if-not #'(lambda(task)(funcall (first task))) tasks))
+            (selected (first test-case))
+            (result (funcall (second (nth selected available))))
+            (new-path (list* (cons selected result) path)))
+        (cond
+          ((null (second result)) new-path);;error detected
+          (t (replay-sample :tasks tasks :path new-path :test-case (rest test-case))) )) ) )
+
+(defun test-random(&key(size 100))
+  (clear-events)
+  (let ((res (generate-sample :tasks *tasks* :size size)))
+    (unless (equal res 'pass)
+      (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+      (mapcar #'first res) ) ) )
+
+(defun test-case(list)
+  (clear-events)
+  (let ((res (replay-sample :tasks *tasks* :test-case list)))
+    (if (equal res 'pass)
+        'pass
+        (progn
+          (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+          res ) ) ) )
+(defun find-bug (size)
+  (loop for x = (test-random :size size) :repeat 1000 :if x :return x))

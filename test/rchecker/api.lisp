@@ -1,6 +1,8 @@
 (in-package #:rchecker)
 (defparameter *cells* (make-hash-table))
+(defun clear-events() (setf *cells* (make-hash-table)))
 (defun get-event(key) (assert (gethash key *cells*)) (gethash key *cells*))
+(defun has-event(key) (gethash key *cells*))
 (defun fire-event(key)  #'(lambda(val) (assert val) (setf (gethash key *cells*) val)))
 (defun clear-event(key)  (setf (gethash key *cells*) nil))
 
