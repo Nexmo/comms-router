@@ -30,7 +30,7 @@ public class NccoFactory {
 
   public List<Ncco> nccoListWithPromptCallerId(String text, String eventUrl) {
     TalkNcco talk = new TalkNcco(text);
-    talk.setBargeIn(true);
+    talk.setBargeIn(Boolean.TRUE);
 
     InputNcco input = new InputNcco();
     input.setEventUrl(eventUrl);
@@ -47,7 +47,7 @@ public class NccoFactory {
   public List<Ncco> nccoListWithGetNumber(String text, String eventUrl) {
 
     TalkNcco talk = new TalkNcco(text);
-    talk.setBargeIn(true);
+    talk.setBargeIn(Boolean.TRUE);
     
     InputNcco input = new InputNcco();
     input.setEventUrl(eventUrl);
@@ -65,7 +65,7 @@ public class NccoFactory {
   public List<Ncco> nccoListWithConfirmNumber(String text, String eventUrl) {
 
     TalkNcco talk = new TalkNcco(text);
-    talk.setBargeIn(true);
+    talk.setBargeIn(Boolean.TRUE);
 
     InputNcco input = new InputNcco();
     input.setEventUrl(eventUrl);
@@ -90,8 +90,8 @@ public class NccoFactory {
     
     ConversationNccoEx ncco = new ConversationNccoEx(conversationId);
     ncco.setMusicOnHoldUrl(musicOnHoldUrl);
-    ncco.setStartOnEnter(false);
-    ncco.setRecord(false);
+    ncco.setStartOnEnter(Boolean.FALSE);
+    ncco.setRecord(Boolean.FALSE);
 
     return ncco;
   }
@@ -102,9 +102,23 @@ public class NccoFactory {
       String musicOnHoldUrl) {
 
     ConversationNccoEx conv = new ConversationNccoEx(conversationId);
-    conv.setMusicOnHoldUrl(musicOnHoldUrl);
-    conv.setStartOnEnter(false);
-    conv.setRecord(false);
+    conv.setRecord(Boolean.FALSE);
+    conv.setEndOnExit(Boolean.TRUE);
+
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(new TalkNcco(text));
+    list.add(conv);
+    
+    return list;
+  }
+  
+  public List<Ncco> nccoListWithAnswerFromAgentForRegularTask(
+      String text, 
+      String conversationId) {
+
+    ConversationNccoEx conv = new ConversationNccoEx(conversationId);
+    conv.setRecord(Boolean.FALSE);
+    conv.setEndOnExit(Boolean.TRUE);
    
     ArrayList<Ncco> list = new ArrayList<Ncco>();
     list.add(new TalkNcco(text));
@@ -112,6 +126,7 @@ public class NccoFactory {
     
     return list;
   }
+  
 
   public List<Ncco> nccoListWithAnswerFromCustomerForCallbackTask(
       String text, 
@@ -120,7 +135,8 @@ public class NccoFactory {
     TalkNcco talk = new TalkNcco(text);
 
     ConversationNccoEx conv = new ConversationNccoEx(conversationId);
-    conv.setRecord(false);
+    conv.setStartOnEnter(Boolean.FALSE);
+    conv.setRecord(Boolean.FALSE);
    
     ArrayList<Ncco> list = new ArrayList<Ncco>();
     list.add(talk);
@@ -133,7 +149,7 @@ public class NccoFactory {
 
     RecordNcco rec = new RecordNcco();
     rec.setEndOnKey(new Character('#'));
-    rec.setBeepStart(new Boolean(true));
+    rec.setBeepStart(Boolean.TRUE);
     rec.setEventUrl(eventUrl);
     
     ArrayList<Ncco> list = new ArrayList<Ncco>();

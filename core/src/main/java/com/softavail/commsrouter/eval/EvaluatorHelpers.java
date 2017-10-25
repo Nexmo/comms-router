@@ -15,6 +15,9 @@ import net.sourceforge.jeval.function.FunctionHelper;
  */
 public class EvaluatorHelpers {
 
+
+  public EvaluatorHelpers() {}
+
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();
