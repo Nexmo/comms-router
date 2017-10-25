@@ -36,10 +36,13 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public ApiObjectId create(CreateQueueArg createArg, String routerId) throws CommsRouterException {
+  public ApiObjectId create(CreateQueueArg createArg, String routerId)
+      throws CommsRouterException {
 
-    RouterObjectId routerObjectId =
-        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
 
     return app.db.transactionManager.execute((em) -> {
       return doCreate(em, createArg, routerObjectId);
@@ -74,7 +77,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
             }
           } catch (CommsRouterException ex) {
             LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
-                ex.getMessage());
+                ex.getLocalizedMessage());
           }
         });
         if (matchedAgents.isEmpty()) {
@@ -91,7 +94,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public long getQueueSize(RouterObjectId routerObjectId) throws CommsRouterException {
+  public long getQueueSize(RouterObjectId routerObjectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectId); // Check that queue exists
@@ -102,7 +106,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
   @SuppressWarnings("unchecked")
   @Override
-  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId) throws CommsRouterException {
+  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId)
+      throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectId); // Check that queue exists
@@ -110,8 +115,10 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       String qlString = "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId "
           + "AND t.state = :state ORDER BY t.priority DESC";
 
-      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectId.getId())
-          .setParameter("state", TaskState.waiting).getResultList();
+      List<Task> list = em.createQuery(qlString)
+          .setParameter("queueId", routerObjectId.getId())
+          .setParameter("state", TaskState.waiting)
+          .getResultList();
 
       return app.entityMapper.task.toDto(list);
     });
@@ -133,7 +140,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
           }
         } catch (CommsRouterException ex) {
           LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
-              ex.getMessage());
+              ex.getLocalizedMessage());
         }
       });
     }

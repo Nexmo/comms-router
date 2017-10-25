@@ -39,10 +39,13 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public ApiObjectId create(CreateAgentArg createArg, String routerId) throws CommsRouterException {
+  public ApiObjectId create(CreateAgentArg createArg, String routerId)
+      throws CommsRouterException {
 
-    RouterObjectId routerObjectId =
-        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
+    RouterObjectId routerObjectId = RouterObjectId.builder()
+        .setId(Uuid.get())
+        .setRouterId(routerId)
+        .build();
 
     return app.db.transactionManager.execute((EntityManager em) -> {
       return doCreate(em, createArg, routerObjectId);
@@ -109,7 +112,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       } else {
         switch (oldState) {
           case busy:
-            throw new InvalidStateException("Changing state of a busy agent is not implemented");
+            throw new InvalidStateException(
+                "Changing state of a busy agent is not implemented");
           case offline:
             // check once again just in case
             agentBecameAvailabe = updateArg.getState() == AgentState.ready;
@@ -128,8 +132,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     });
   }
 
-  private void updateCapabilitiesAndQueues(EntityManager em, Agent agent,
-      UpdateAgentArg updateArg) {
+  private void updateCapabilitiesAndQueues(
+      EntityManager em, Agent agent, UpdateAgentArg updateArg) {
 
     final AttributeGroupDto newCapabilities = updateArg.getCapabilities();
 
@@ -153,7 +157,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
           matchedQueues.add(queue);
         }
       } catch (CommsRouterException ex) {
-        LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(), ex.getMessage());
+        LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
+            ex.getLocalizedMessage());
       }
     });
     if (matchedQueues.isEmpty()) {
@@ -183,7 +188,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
           }
         } catch (CommsRouterException ex) {
           LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
-              ex.getMessage());
+              ex.getLocalizedMessage());
         }
       }
     }
