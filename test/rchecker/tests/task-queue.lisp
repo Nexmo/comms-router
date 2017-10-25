@@ -212,6 +212,53 @@
               (tand
                (eagent-del :router-id router-id :agent-id agent-id)
                (etask-all :router-id router-id)) ) ) )) )
+(defun test-set-unavailable()
+  (tlet ((router-id (js-val "id") (erouter-new))
+         (queue-id (js-val "id") (equeue-new :router-id router-id))
+         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/not-existing-page"))
+         (agent-id (js-val "id") (eagent-new :router-id router-id)))
+    (tand
+     (eagent-set :state "ready")
+     (twait (eagent :id agent-id :checks (has-kv "state" "unavailable")))
+     (eagent-set :description "Restore agent to working state" :state "ready") )) )
+
+(defun test-task-ordering()
+  (tlet ((router-id (js-val "id") (erouter-new))
+         (queue-id (js-val "id") (equeue-new :router-id router-id))
+         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (task1-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (agent-id (js-val "id") (eagent-new :router-id router-id)))
+    (tand
+     (eagent-set :router-id router-id :state "ready")
+     (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "busy")))
+     (etask :description "Check that first task is the selected one"
+            :router-id router-id
+            :id task-id
+            :checks (has-kv "agentId" agent-id))
+     (tlet ((task2-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/")))
+       (etask-set :state "completed"
+                  :id task-id
+                  :router-id router-id)
+       (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "busy")))
+       (etask :description "Check that second task is the selected one"
+              :router-id router-id
+              :id task1-id
+              :checks (check-and (has-kv "agentId" agent-id)
+                                 (has-kv "state" "assigned")))
+       (etask-set :state "completed"
+                  :id task1-id
+                  :router-id router-id)
+       (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "busy")))
+       (etask :description "Check that second task is the selected one"
+              :router-id router-id
+              :id task2-id
+              :checks (check-and (has-kv "agentId" agent-id)
+                                 (has-kv "state" "assigned")))
+       (etask-set :state "completed"
+                  :id task2-id
+                  :router-id router-id) ))))
+
+
 
 (defun test-set-context(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
   (tlet ((task-id (js-val "id")
@@ -263,9 +310,17 @@
       )
   )
 
-(defun test-all()
-  (mapcar #'print-log (remove-if #'second (mapcar #'funcall (list (test-delete-agent) (test-set-context) (test-complete-task)))))
-)
+(defun test-all(&key (tests (list (test-task-ordering)
+                             (test-delete-agent)
+                             (test-set-context)
+                             (test-complete-task))))
+  (mapcar
+   #'print-log
+   (remove-if
+    #'second
+    (mapcar
+     #'funcall tests ))))
+
 (defun delete-completed-tasks()
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
 (defun setup-demo()

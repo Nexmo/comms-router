@@ -114,14 +114,18 @@
          (check-and (is-equal "") (remove-id :task))))
 
 
-(defun etask(&key (router-id (get-event :router)) (task-id (get-event :task)) (state "assigned"))
-  (tstep (format nil "Check that task is in state ~A." state)
-         (tapply (http-get "/routers" router-id "tasks" task-id ))
-         (check-and (has-json) (has-kv "state" state))))
+(defun etask(&key (description (format nil "Check that task is in state ~A." state))
+               (router-id (get-event :router))
+               (id (get-event :task))
+               (state "assigned")
+               (checks (check-and (has-json) (has-kv "state" state))))
+  (tstep description
+         (tapply (http-get "/routers" router-id "tasks" id ))
+         checks))
 
-(defun etask-set(&key (router-id (get-event :router)) (task-id (get-event :task)) (state :null) )
+(defun etask-set(&key (router-id (get-event :router)) (id (get-event :task)) (state :null) )
   (tstep (format nil "Set task's state = ~A." state )
-         (tapply (http-post (list "/routers" router-id "tasks" task-id)
+         (tapply (http-post (list "/routers" router-id "tasks" id)
                             (jsown:new-js ("state" "completed") )))
          (is-equal "")))
 
@@ -141,6 +145,28 @@
   (tstep "List all agents"
          (tapply (http-get "/routers" router-id "agents"))
          (not-contains "error")))
+
+(defun eagent-set(&key
+                    (description "Set state of the agent")
+                    (router-id (get-event :router))
+                    (id (get-event :agent))
+                    (address "address")
+                    (state "ready") ;; offline busy
+                    (capabilities (jsown:new-js ("language" "en"))))
+  (tstep description
+         (tapply (http-post (list "/routers" router-id "agents" id)
+                            (jsown:new-js
+                              ("address" address)
+                              ("state" state)
+                              ("capabilities" capabilities))))
+         (is-equal "")))
+
+(defun eagent(&key (description "Get state of the agent") (router-id (get-event :router))
+                (id (get-event :agent)) (checks (has-kv "id" id)))
+  (tstep description
+         (tapply (http-get "/routers" router-id "agents" id))
+         checks))
+
 (defun eagent-del(&key (router-id (get-event :router))
                     (agent-id (get-event :agent)))
   (tstep (format nil "Delete agent with id ~A." agent-id)
