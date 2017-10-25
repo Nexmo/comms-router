@@ -28,6 +28,7 @@ import com.softavail.commsrouter.api.service.CoreRouterService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
+import com.softavail.commsrouter.app.TaskDispatcher.Configuration;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
@@ -75,7 +76,7 @@ public class TestBase {
   public static void setTestCoreQueueService() {
     CommsRouterEvaluator ev = new CommsRouterEvaluator();
     JpaDbFacade db = new JpaDbFacade("mnf-pu-test");
-    TaskDispatcher td = new TaskDispatcher(db, null, null, 20);
+    TaskDispatcher td = new TaskDispatcher(db, null, new Configuration(20, 5, 60, 42), null);
     EntityMappers enm = new EntityMappers();
     app = new AppContext(db, ev, td, enm);
     // Instantiating all of the services

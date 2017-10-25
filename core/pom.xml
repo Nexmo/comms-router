@@ -26,6 +26,10 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>failsafe</artifactId>
+    </dependency>
+    <dependency>
       <groupId>net.sourceforge.jeval</groupId>
       <artifactId>jeval</artifactId>
     </dependency>

@@ -51,10 +51,10 @@ public class JpaPlayground implements AutoCloseable {
   private final JpaDbFacade db = new JpaDbFacade();
   private final EntityMappers entityMapper = new EntityMappers();
   private final CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
-  private final TaskDispatcher taskDispatcher = new TaskDispatcher(db, (assignment) -> {
+  private final TaskDispatcher taskDispatcher = new TaskDispatcher(db, entityMapper, (assignment) -> {
     System.out
         .println("Task: " + assignment.getTask() + " assigned to Agent: " + assignment.getAgent());
-  }, entityMapper, 10);
+  });
   private final AppContext app = new AppContext(db, evaluator, taskDispatcher, entityMapper);
   private final CoreRouterService routerService = new CoreRouterService(app);
   private final CoreQueueService queueService = new CoreQueueService(app);

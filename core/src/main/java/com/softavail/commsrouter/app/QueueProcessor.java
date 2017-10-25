@@ -36,8 +36,12 @@ public class QueueProcessor {
 
   private QueueProcessorState state;
 
-  public QueueProcessor(String queueId, JpaDbFacade db, EntityMappers mappers,
-      TaskDispatcher taskDispatcher, ScheduledThreadPoolExecutor threadPool,
+  public QueueProcessor(
+      String queueId,
+      JpaDbFacade db,
+      EntityMappers mappers,
+      TaskDispatcher taskDispatcher,
+      ScheduledThreadPoolExecutor threadPool,
       StateChangeListener stateChangeListener) {
 
     this.queueId = queueId;
@@ -81,7 +85,8 @@ public class QueueProcessor {
       default:
     }
     LOGGER.error("Queue processor {}: invalid complete state: {}", queueId, state);
-    throw new RuntimeException("Queue processor " + queueId + ": invalid compelte state: " + state);
+    throw new RuntimeException(
+        "Queue processor " + queueId + ": invalid complete state: " + state);
   }
 
   private void changeState(QueueProcessorState newState) {
@@ -100,7 +105,7 @@ public class QueueProcessor {
 
   private void processQueue() {
 
-    for (;;) {
+    for (; ; ) {
       Optional<TaskAssignmentDto> taskAssignmentDto;
       try {
         taskAssignmentDto = db.transactionManager.executeWithLockRetry(this::getAssignment);
@@ -127,20 +132,22 @@ public class QueueProcessor {
   }
 
   @SuppressWarnings("unchecked")
-  private Optional<TaskAssignmentDto> getAssignment(EntityManager em) throws CommsRouterException {
+  private Optional<TaskAssignmentDto> getAssignment(EntityManager em)
+      throws CommsRouterException {
 
-    return db.queue.findAssignment(em, queueId).map(matchResult -> {
-      Agent agent = matchResult.agent;
-      Task task = matchResult.task;
-      // Assign
-      agent.setState(AgentState.busy);
-      task.setState(TaskState.assigned);
-      task.setAgent(agent);
+    return db.queue.findAssignment(em, queueId)
+        .map(matchResult -> {
+          Agent agent = matchResult.agent;
+          Task task = matchResult.task;
+          // Assign
+          agent.setState(AgentState.busy);
+          task.setState(TaskState.assigned);
+          task.setAgent(agent);
 
-      TaskDto taskDto = mappers.task.toDto(task);
-      AgentDto agentDto = mappers.agent.toDto(agent);
-      return new TaskAssignmentDto(taskDto, agentDto);
-    });
+          TaskDto taskDto = mappers.task.toDto(task);
+          AgentDto agentDto = mappers.agent.toDto(agent);
+          return new TaskAssignmentDto(taskDto, agentDto);
+        });
   }
 
   public static class Builder {

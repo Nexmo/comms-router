@@ -53,45 +53,54 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     validate(createArg);
 
     RouterObjectId routerObjectId =
-        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
+        RouterObjectId.builder()
+            .setId(Uuid.get())
+            .setRouterId(routerId)
+            .build();
 
-    CreateTaskResult createTaskResult = app.db.transactionManager.execute((EntityManager em) -> {
-      return doCreate(em, createArg, routerObjectId);
-    });
+    CreateTaskResult createTaskResult = app.db.transactionManager
+        .execute(em -> doCreate(em, createArg, routerObjectId));
 
     app.taskDispatcher.dispatchTask(createTaskResult.getTaskDto());
-    return new CreatedTaskDto(createTaskResult.getTaskDto(),
-        createTaskResult.getTaskDto().getQueueId(), createTaskResult.getQueuePosition());
+
+    return new CreatedTaskDto(
+        createTaskResult.getTaskDto(),
+        createTaskResult.getTaskDto().getQueueId(),
+        createTaskResult.getQueuePosition());
   }
 
   @Override
   public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-
     validate(createArg);
 
-    CreateTaskResult createTaskResult = app.db.transactionManager.execute((em) -> {
+    CreateTaskResult createTaskResult = app.db.transactionManager.execute(em -> {
       app.db.task.delete(em, objectId.getId());
       return doCreate(em, createArg, objectId);
     });
 
     app.taskDispatcher.dispatchTask(createTaskResult.getTaskDto());
-    return new CreatedTaskDto(createTaskResult.getTaskDto(),
-        createTaskResult.getTaskDto().getQueueId(), createTaskResult.getQueuePosition());
+
+    return new CreatedTaskDto(
+        createTaskResult.getTaskDto(),
+        createTaskResult.getTaskDto().getQueueId(),
+        createTaskResult.getQueuePosition());
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+      throws CommsRouterException {
 
     switch (updateArg.getState()) {
       case waiting:
         app.db.transactionManager
-            .execute(em -> app.taskDispatcher.rejectAssignment(em, objectId.getId()))
+            .execute(em -> rejectAssignment(em, objectId.getId()))
             .ifPresent(app.taskDispatcher::dispatchTask);
         break;
       case completed:
-        app.db.transactionManager.execute((em) -> completeTask(em, objectId.getId()))
+        app.db.transactionManager
+            .execute(em -> completeTask(em, objectId.getId()))
             .ifPresent(app.taskDispatcher::dispatchAgent);
         break;
       case assigned:
@@ -108,41 +117,6 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Task task = app.db.task.get(em, objectId.getId());
       task.setUserContext(app.entityMapper.attributes.fromDto(taskContext.getUserContext()));
     });
-  }
-
-  private Optional<String> completeTask(EntityManager em, String taskId)
-      throws NotFoundException, InvalidStateException {
-
-    Task task = app.db.task.get(em, taskId);
-
-    switch (task.getState()) {
-      case completed:
-        throw new InvalidStateException("Task already completed");
-      case waiting:
-        assert task.getAgent() == null : "Waiting task " + task.getId() + " has assigned agent: "
-            + task.getAgent().getId();
-        task.setState(TaskState.completed);
-        return Optional.empty();
-      case assigned:
-        break;
-      default:
-        throw new InvalidStateException(
-            "Current state cannot be switched to completed: " + task.getState());
-    }
-
-    task.setState(TaskState.completed);
-
-    Agent agent = task.getAgent();
-
-    assert agent != null : "Completed task with no agent: " + task.getId();
-
-    if (agent.getState() != AgentState.busy) {
-      assert false : "Invalid agent state '" + agent.getState() + "' for completed task: "
-          + task.getId();
-      return Optional.empty();
-    }
-    agent.setState(AgentState.ready);
-    return Optional.of(agent.getId());
   }
 
   @Override
@@ -208,12 +182,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     }
   }
 
-  private CreateTaskResult doCreate(EntityManager em, CreateTaskArg createArg,
-      RouterObjectId objectId) throws CommsRouterException {
+  private CreateTaskResult doCreate(EntityManager em, CreateTaskArg createArg, RouterObjectId obj)
+      throws CommsRouterException {
 
-    app.db.router.get(em, objectId.getRouterId());
+    app.db.router.get(em, obj.getRouterId());
 
-    Task task = fromPlan(em, createArg, objectId);
+    Task task = fromPlan(em, createArg, obj);
     task.setState(TaskState.waiting);
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
     task.setRequirements(app.entityMapper.attributes.fromDto(createArg.getRequirements()));
@@ -291,6 +265,58 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throw new IllegalArgumentException("Provide either planId or queueId, but not both");
     }
 
+  }
+
+  private Optional<TaskDto> rejectAssignment(EntityManager em, String taskId)
+      throws NotFoundException {
+
+    Task task = app.db.task.get(em, taskId);
+    Agent agent = task.getAgent();
+
+    if (task.getState().isAssigned() && agent != null) {
+      agent.setState(AgentState.unavailable);
+      task.setState(TaskState.waiting);
+      task.setAgent(null);
+
+      return Optional.of(app.entityMapper.task.toDto(task));
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional<String> completeTask(EntityManager em, String taskId)
+      throws NotFoundException, InvalidStateException {
+
+    Task task = app.db.task.get(em, taskId);
+
+    switch (task.getState()) {
+      case completed:
+        throw new InvalidStateException("Task already completed");
+      case waiting:
+        assert task.getAgent() == null
+            : "Waiting task " + task.getId() + " has assigned agent: " + task.getAgent().getId();
+        task.setState(TaskState.completed);
+        return Optional.empty();
+      case assigned:
+        break;
+      default:
+        throw new InvalidStateException(
+            "Current state cannot be switched to completed: " + task.getState());
+    }
+
+    task.setState(TaskState.completed);
+
+    Agent agent = task.getAgent();
+
+    assert agent != null : "Completed task with no agent: " + task.getId();
+
+    if (agent.getState() != AgentState.busy) {
+      assert false
+          : "Invalid agent state '" + agent.getState() + "' for completed task: " + task.getId();
+      return Optional.empty();
+    }
+    agent.setState(AgentState.ready);
+    return Optional.of(agent.getId());
   }
 
 }
