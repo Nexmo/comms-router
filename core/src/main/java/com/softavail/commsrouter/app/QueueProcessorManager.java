@@ -2,7 +2,6 @@ package com.softavail.commsrouter.app;
 
 import com.google.common.collect.Maps;
 
-import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 
@@ -32,9 +31,8 @@ public class QueueProcessorManager {
     return instance;
   }
 
-  public synchronized void processQueue(String queueId, JpaDbFacade db,
-      EntityMappers mappers, TaskDispatcher taskDispatcher, TaskEventHandler taskEventHandler,
-      ScheduledThreadPoolExecutor threadPool) {
+  public synchronized void processQueue(String queueId, JpaDbFacade db, EntityMappers mappers,
+      TaskDispatcher taskDispatcher, ScheduledThreadPoolExecutor threadPool) {
 
     Optional.ofNullable(scheduledFutures.get(queueId))
         .ifPresent(scheduledFuture -> scheduledFuture.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
@@ -46,7 +44,6 @@ public class QueueProcessorManager {
           .setDb(db)
           .setMappers(mappers)
           .setTaskDispatcher(taskDispatcher)
-          .setTaskEventHandler(taskEventHandler)
           .setThreadPool(threadPool)
           .setStateChangeListener((StateIdleListener) processedQueueId -> {
             ScheduledFuture<?> schedule = threadPool.schedule(() ->
