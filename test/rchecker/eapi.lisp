@@ -114,10 +114,11 @@
          (check-and (is-equal "") (remove-id :task))))
 
 
-(defun etask(&key (description (format nil "Check that task is in state ~A." state))
+(defun etask(&key (state "assigned")
+               (description (format nil "Check that task is in state ~A." state))
                (router-id (get-event :router))
                (id (get-event :task))
-               (state "assigned")
+
                (checks (check-and (has-json) (has-kv "state" state))))
   (tstep description
          (tapply (http-get "/routers" router-id "tasks" id ))
@@ -168,7 +169,7 @@
          checks))
 
 (defun eagent-del(&key (router-id (get-event :router))
-                    (agent-id (get-event :agent)))
-  (tstep (format nil "Delete agent with id ~A." agent-id)
-         (tapply (http-del "/routers" router-id "agents" agent-id))
+                    (id (get-event :agent)))
+  (tstep (format nil "Delete agent with id ~A." id)
+         (tapply (http-del "/routers" router-id "agents" id))
          (is-equal "")))
