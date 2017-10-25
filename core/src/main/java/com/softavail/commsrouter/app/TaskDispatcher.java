@@ -5,20 +5,23 @@
 
 package com.softavail.commsrouter.app;
 
+import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
-import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
+import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.util.Fields;
 import org.apache.logging.log4j.LogManager;
@@ -73,7 +76,7 @@ public class TaskDispatcher {
   }
 
   private void process(String queueId) {
-    queueProcessorManager.processQueue(queueId, db, mappers, this, taskEventHandler, threadPool);
+    queueProcessorManager.processQueue(queueId, db, mappers, this, threadPool);
   }
 
   public void close() {
@@ -102,12 +105,57 @@ public class TaskDispatcher {
   }
 
   public void dispatchAgent(String agentId) {
+    threadPool.submit(() -> {
+      try {
+        doDispatchAgent(agentId);
+      } catch (RuntimeException | CommsRouterException e) {
+        LOGGER.error("Dispatch agent {}: failure: {}", agentId, e, e);
+      }
+    });
+  }
+
+  private void doDispatchAgent(String agentId) throws CommsRouterException {
+    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
+      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
+
+      if (matchResult == null) {
+        return null;
+      }
+
+      Agent agent = matchResult.agent;
+      Task task = matchResult.task;
+      // Assign
+      agent.setState(AgentState.busy);
+      task.setState(TaskState.assigned);
+      task.setAgent(agent);
+
+      TaskDto taskDto = mappers.task.toDto(task);
+      AgentDto agentDto = mappers.agent.toDto(agent);
+      return new TaskAssignmentDto(taskDto, agentDto);
+    });
+    if (taskAssignmentDto != null) {
+      handleTaskAssignment(taskAssignmentDto);
+    }
+  }
+
+  public void submitTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
+    threadPool.submit(() -> {
+      handleTaskAssignment(taskAssignmentDto);
+    });
+  }
+
+  public void handleTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
     try {
-      // Get the queueId from the agent
-      db.transactionManager.executeVoid(em -> db.agent.get(em, agentId).getQueues().parallelStream()
-          .map(ApiObject::getId).forEach(this::process));
-    } catch (RuntimeException | CommsRouterException e) {
-      LOGGER.error("Dispatch task {}: failure: {}", agentId, e, e);
+      taskEventHandler.onTaskAssigned(taskAssignmentDto);
+      LOGGER.debug("Task {} assigned to agent {}", taskAssignmentDto.getTask(),
+          taskAssignmentDto.getAgent());
+    } catch (AssignmentRejectedException e) {
+      // The handler has issued AssignmentRejectedException, so we should cancel the assignment
+      rejectAssignment(taskAssignmentDto.getTask().getId());
+    } catch (RuntimeException ex) {
+      LOGGER.error("Failure assigning task {} to agent {}: {}", taskAssignmentDto.getTask(),
+          taskAssignmentDto.getAgent(), ex, ex);
+      // TODO Implement some backoff retry with exponential time
     }
   }
 

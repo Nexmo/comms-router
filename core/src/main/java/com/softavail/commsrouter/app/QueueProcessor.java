@@ -5,9 +5,7 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
@@ -33,21 +31,19 @@ public class QueueProcessor {
   private final JpaDbFacade db;
   private final EntityMappers mappers;
   private final TaskDispatcher taskDispatcher;
-  private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
   private final StateChangeListener stateChangeListener;
 
   private QueueProcessorState state;
 
   public QueueProcessor(String queueId, JpaDbFacade db, EntityMappers mappers,
-      TaskDispatcher taskDispatcher, TaskEventHandler taskEventHandler,
-      ScheduledThreadPoolExecutor threadPool, StateChangeListener stateChangeListener) {
+      TaskDispatcher taskDispatcher, ScheduledThreadPoolExecutor threadPool,
+      StateChangeListener stateChangeListener) {
 
     this.queueId = queueId;
     this.db = db;
     this.mappers = mappers;
     this.taskDispatcher = taskDispatcher;
-    this.taskEventHandler = taskEventHandler;
     this.threadPool = threadPool;
     this.stateChangeListener = stateChangeListener;
     this.state = QueueProcessorState.IDLE;
@@ -104,7 +100,7 @@ public class QueueProcessor {
 
   private void processQueue() {
 
-    for (; ; ) {
+    for (;;) {
       Optional<TaskAssignmentDto> taskAssignmentDto;
       try {
         taskAssignmentDto = db.transactionManager.executeWithLockRetry(this::getAssignment);
@@ -125,23 +121,9 @@ public class QueueProcessor {
         continue;
       }
 
-      handleTaskAssignment(taskAssignmentDto.get());
+      taskDispatcher.submitTaskAssignment(taskAssignmentDto.get());
     }
 
-  }
-
-  private void handleTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
-    threadPool.submit(() -> {
-      try {
-        taskEventHandler.onTaskAssigned(taskAssignmentDto);
-      } catch (AssignmentRejectedException e) {
-        // The handler has issued AssignmentRejectedException, so we should cancel the assignment
-        taskDispatcher.rejectAssignment(taskAssignmentDto.getTask().getId());
-      } catch (RuntimeException ex) {
-        LOGGER.error("Queue {}: task assignment callback failure: {}", queueId, ex, ex);
-        // TODO Implement some backoff retry with exponential time
-      }
-    });
   }
 
   @SuppressWarnings("unchecked")
@@ -167,7 +149,6 @@ public class QueueProcessor {
     private JpaDbFacade db;
     private EntityMappers mappers;
     private TaskDispatcher taskDispatcher;
-    private TaskEventHandler taskEventHandler;
     private ScheduledThreadPoolExecutor threadPool;
     private StateChangeListener stateChangeListener = null;
 
@@ -191,11 +172,6 @@ public class QueueProcessor {
       return this;
     }
 
-    public Builder setTaskEventHandler(TaskEventHandler taskEventHandler) {
-      this.taskEventHandler = taskEventHandler;
-      return this;
-    }
-
     public Builder setThreadPool(ScheduledThreadPoolExecutor threadPool) {
       this.threadPool = threadPool;
       return this;
@@ -207,7 +183,7 @@ public class QueueProcessor {
     }
 
     public QueueProcessor build() {
-      return new QueueProcessor(queueId, db, mappers, taskDispatcher, taskEventHandler, threadPool,
+      return new QueueProcessor(queueId, db, mappers, taskDispatcher, threadPool,
           stateChangeListener);
     }
   }

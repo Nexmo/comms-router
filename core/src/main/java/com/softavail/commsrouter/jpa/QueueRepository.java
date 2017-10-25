@@ -55,4 +55,20 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     return result.stream().findFirst();
   }
 
+  @SuppressWarnings("unchecked")
+  public MatchResult findAssignmentForAgent(EntityManager em, String agentId)
+      throws CommsRouterException {
+
+    String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "
+        + "FROM Task t JOIN t.queue q JOIN q.agents a "
+        + "WHERE t.state = :taskState AND a.state = :agentState AND a.id = :agentId "
+        + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState DESC";
+
+    List<MatchResult> result = em.createQuery(query).setParameter("taskState", TaskState.waiting)
+        .setParameter("agentState", AgentState.ready).setParameter("agentId", agentId)
+        .setMaxResults(1).getResultList();
+
+    return result.isEmpty() ? null : result.get(0);
+  }
+
 }
