@@ -8,7 +8,11 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.domain.Queue;
@@ -36,9 +40,12 @@ public class CommsRouterEvaluatorTest {
   Queue queue;
   String agentId;
   String taskId;
-  String predicate1;
-  String predicate2;
-  String predicate3;
+  String predicateOK1;
+  String predicateFailed1;
+  String predicateOK2;
+  String predicateFailed2;
+  String predicateOK3;
+  String predicateFailed3;
 
   public CommsRouterEvaluatorTest() {
     createTaskArg = new CreateTaskArg();
@@ -50,9 +57,12 @@ public class CommsRouterEvaluatorTest {
     queue = new Queue();
     taskId = "task-id1";
     agentId = "agent-id1";
-    predicate1 = "#{language} == 'en'";
-    predicate2 = "IN(#{language}, ['es', 'en', 'fr']) || #{color}=='brown'";
-    predicate3 = "CONTAINS(#{nickname}, 'Sto') && HAS(['es', 'en', 'fr'], 'de') && #{color}=='red'";
+    predicateOK1 = "#{language} == 'en' && #{price} > 10 && #{bool} == true";
+    predicateFailed1 = "#{language} == 'en' && #{price} > 10 && false";
+    predicateOK2 = "(IN('fr',#{languages}) || #{color}=='red') && HAS(#{prices}, 30)";
+    predicateFailed2 = "(IN('fr',['en','es','de']) || #{color}=='red') && HAS(#{prices}, 90)";
+    predicateOK3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'fr') && #{color}=='red'";
+    predicateFailed3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'de') && #{color}=='red'";
   }
 
   @BeforeClass
@@ -67,6 +77,21 @@ public class CommsRouterEvaluatorTest {
     requirements.put("nickname", new StringAttributeValueDto("The Stone"));
     requirements.put("color", new StringAttributeValueDto("red"));
     requirements.put("price", new DoubleAttributeValueDto(42D));
+    requirements.put("bool", new BooleanAttributeValueDto(true));
+    ArrayOfStringsAttributeValueDto languages = new ArrayOfStringsAttributeValueDto();
+    languages.add("en");
+    languages.add("es");
+    languages.add("fr");
+    requirements.put("languages", languages);
+    ArrayOfDoublesAttributeValueDto prices = new ArrayOfDoublesAttributeValueDto();
+    prices.add(20D);
+    prices.add(30D);
+    prices.add(50D);
+    requirements.put("prices", prices);
+    ArrayOfBooleansAttributeValueDto allowedBools = new ArrayOfBooleansAttributeValueDto();
+    allowedBools.add(true);
+    allowedBools.add(false);
+    requirements.put("allowedBools", allowedBools);
     createTaskArg.setRequirements(requirements);
     try {
       createTaskArg.setCallbackUrl(new URL("https://localhost:8084"));
@@ -81,7 +106,7 @@ public class CommsRouterEvaluatorTest {
     updateAgentArg.setCapabilities(requirements);
     updateAgentArg.setState(AgentState.ready);
 
-    rule.setPredicate(predicate1);
+    rule.setPredicate(predicateOK1);
     rule.setTag("rule1");
 
     Route route = new Route();
@@ -101,7 +126,7 @@ public class CommsRouterEvaluatorTest {
 
     queue.setRouterId("router-id");
     queue.setId("queue-id1");
-    queue.setPredicate(predicate2);
+    queue.setPredicate(predicateOK2);
 
   }
 
@@ -120,6 +145,10 @@ public class CommsRouterEvaluatorTest {
     Boolean expResult = true;
     Boolean result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
     assertEquals(expResult, result);
+    expResult = false;
+    rule.setPredicate(predicateFailed1);
+    result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
+    assertEquals(expResult, result);
   }
 
   /**
@@ -133,6 +162,10 @@ public class CommsRouterEvaluatorTest {
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
     Boolean expResult = true;
     Boolean result = instance.evaluateNewAgentForQueue(agentId, createAgentArg, queue);
+    assertEquals(expResult, result);
+    expResult = false;
+    queue.setPredicate(predicateFailed2);
+    result = instance.evaluateNewAgentForQueue(agentId, createAgentArg, queue);
     assertEquals(expResult, result);
   }
 
@@ -148,6 +181,10 @@ public class CommsRouterEvaluatorTest {
     Boolean expResult = true;
     Boolean result = instance.evaluateUpdateAgentForQueue(agentId, updateAgentArg, queue);
     assertEquals(expResult, result);
+    expResult = false;
+    queue.setPredicate(predicateFailed2);
+    result = instance.evaluateUpdateAgentForQueue(agentId, updateAgentArg, queue);
+    assertEquals(expResult, result);
   }
 
   /**
@@ -162,6 +199,10 @@ public class CommsRouterEvaluatorTest {
     Boolean expResult = true;
     Boolean result = instance.evaluateAgentCapabilitiesForQueue(agentId, requirements, queue);
     assertEquals(expResult, result);
+    expResult = false;
+    queue.setPredicate(predicateFailed2);
+    result = instance.evaluateAgentCapabilitiesForQueue(agentId, requirements, queue);
+    assertEquals(expResult, result);
   }
 
   /**
@@ -173,8 +214,11 @@ public class CommsRouterEvaluatorTest {
   public void testEvaluatePredicateByAttributes() throws Exception {
     System.out.println("evaluatePredicateByAttributes");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = false;
-    Boolean result = instance.evaluatePredicateByAttributes(requirements, predicate3);
+    Boolean expResult = true;
+    Boolean result = instance.evaluatePredicateByAttributes(requirements, predicateOK3);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed3);
     assertEquals(expResult, result);
   }
 
