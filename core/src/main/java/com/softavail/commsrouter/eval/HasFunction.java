@@ -28,6 +28,13 @@ import java.util.ArrayList;
  *         function works.
  */
 public class HasFunction implements Function {
+
+  private boolean isValidation = false;
+
+  public HasFunction(boolean isValidation) {
+    this.isValidation = isValidation;
+  }
+
   /**
    * Returns the name of the function - "HAS".
    * 
@@ -70,15 +77,21 @@ public class HasFunction implements Function {
       throw new FunctionException(exceptionMessage);
     }
 
-    String argumentOne = null;
+    String argumentOne = (String) strings.get(0);
     try {
-      argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(0),
+      if (isValidation) {
+        String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentOne);
+        if (variable != null) {
+          argumentOne = variable;
+        }
+      }
+      argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed(argumentOne,
           evaluator.getQuoteCharacter());
       String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(1),
           evaluator.getQuoteCharacter());
       boolean isDouble = EvaluatorHelpers.isDouble(argumentTwo);
-      JSONArray jsonArray = new JSONArray(argumentOne);
       ArrayList<String> list = new ArrayList<>();
+      JSONArray jsonArray = new JSONArray(argumentOne);
       int len = jsonArray.length();
       for (int i = 0; i < len; i++) {
         String item = jsonArray.get(i).toString();
@@ -97,7 +110,7 @@ public class HasFunction implements Function {
       throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() first argument is \"%s\": %s",
-          getName(), argumentOne, e.getLocalizedMessage()));
+          getName(), argumentOne, e.getMessage()));
     } catch (NumberFormatException e) {
       throw new FunctionException(exceptionMessage, e);
     } catch (Exception e) {

@@ -26,7 +26,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void createTest() throws MalformedURLException, CommsRouterException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), id);
     taskService.create(newCreateTaskArg(queue.getId(), "https://test.com", null), id);
     TaskDto task = taskService.get(id);
     assertEquals(task.getCallbackUrl(), "https://test.com");
@@ -35,7 +35,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
   // Testing the create method that takes a String routerId
   @Test
   public void createTestTwo() throws MalformedURLException, CommsRouterException {
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), "01");
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), "01");
     taskService.create(newCreateTaskArg(queue.getId(), "https://test.com", null), "01");
     List<TaskDto> task = taskService.list("01");
     assertEquals(task.get(0).getCallbackUrl(), "https://test.com");
@@ -45,7 +45,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateTest() throws CommsRouterException, MalformedURLException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), id);
     taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
     // Updating
     taskService.update(newUpdateTaskArg(2, TaskState.completed), id);
@@ -57,7 +57,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateContextTest_one() throws CommsRouterException, MalformedURLException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), id);
     taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
     UpdateTaskContext ctx = newUpdateTaskContext();
     TaskDto taskBefore = taskService.get(id);
@@ -71,7 +71,7 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateContextTest_two() throws CommsRouterException, MalformedURLException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), id);
     taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
     UpdateTaskContext ctx = newUpdateTaskContext();
     TaskDto taskBefore = taskService.get(id);
@@ -85,17 +85,17 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test(expected = BadValueException.class)
   public void exceptionTestTwo() throws MalformedURLException, CommsRouterException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), id);
     taskService.create(newCreateTaskArg(queue.getId(), "https://test_one.com", null), id);
     taskService.update(newUpdateTaskArg(2, TaskState.assigned), id);
   }
 
   // Creating from a plan
   public void createFromPlan() throws MalformedURLException, CommsRouterException {
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "desctiption_one"), "01");
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), "01");
 
     ApiObjectId plan =
-        planService.create(newCreatePlanArg("description_one", "1=1", queue.getId()), "01");
+        planService.create(newCreatePlanArg("description_one", "1==1", queue.getId()), "01");
 
     taskService.create(newCreateTaskArg(null, "https://test.com", plan.getId()), "01");
     List<TaskDto> task = taskService.list("01");

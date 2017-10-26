@@ -9,14 +9,10 @@ package com.softavail.commsrouter.api.exception;
  *
  * @author ergyunsyuleyman
  */
-public class EvaluatorException extends CommsRouterException {
+public class ExpressionException extends CommsRouterException {
 
-  public EvaluatorException(String message) {
+  public ExpressionException(String message) {
     super(message);
-  }
-
-  public EvaluatorException(String message, Throwable cause) {
-    super(message, cause);
   }
 
 }
