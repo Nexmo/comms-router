@@ -2,16 +2,17 @@
 
 We use [Liquibase] to manage the Database Schema over time.  
 The integration is done with [Maven Liquibase Plugin] and you can issue commands with 
-the `mvn liquibase:<command>` in the `web` directory.  
+the `mvn liquibase:<command>` in the `db-migrations` directory.  
 
 Following the [best practices] document we have main changelog file at `src/main/resources/db/changelog.yaml`. 
-This file has `include` statements in the correct order to the `migrations` directory where are the changelog files by major release.  
+This file has `include` statement(s) in the correct order to the `migrations` directory where are the changelog files by major release.  
 The _master_ file at `src/main/resources/db/migrations/changelog-master.yaml` has all the change sets for the initial schema creation. 
 
 
 ## Setting up the connection
 
-The Maven Plug-in settings are stored in `web/src/main/resources/liquibase.properties`.  
+The Liquibase plug-in settings are expected to be stored in `db-migrations/src/main/resources/liquibase.properties`.
+If the file does not exists copy it from the template provided at `db-migrations/src/main/resources/liquibase.properties.template`   
 Common properties are:
 
 ```properties

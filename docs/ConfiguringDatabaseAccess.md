@@ -150,8 +150,8 @@ Setting up the JNDI datasource on Tomcat.
     set CATALINA_OPTS=%CATALINA_OPTS% -Dhibernate.dialect.storage_engine=innodb
     ```
 
-6. Edit `web/src/main/resources/liquibase.properties` file and fill the details for the user that 
-    has all permissions granted.  
+6. Edit `db-migrations/src/main/resources/liquibase.properties` file and fill the details 
+    for the user that has all permissions granted.  
     It should look like this:
     ```properties
     verbose = true
@@ -164,7 +164,7 @@ Setting up the JNDI datasource on Tomcat.
     
     Then you can populate/migrate the database to the latest version with:
     ```bash
-    cd web/
+    cd db-migrations/
     mvn liquibase:update
     ``` 
 

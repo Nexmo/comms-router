@@ -66,10 +66,6 @@
       <artifactId>cfg4j-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
@@ -107,25 +103,6 @@
               </resource>
             </webResources>
           </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.liquibase</groupId>
-        <artifactId>liquibase-maven-plugin</artifactId>
-        <configuration>
-          <propertyFile>src/main/resources/liquibase.properties</propertyFile>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.44</version>
-          </dependency>
-          <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.1.4</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
 

@@ -23,6 +23,7 @@
     <module>client</module>
     <module>core</module>
     <module>web</module>
+    <module>db-migrations</module>
   </modules>
 
   <build>

@@ -1,0 +1,24 @@
+# Shows more data in the console
+verbose=true
+
+# JDBC driver
+driver=com.mysql.jdbc.Driver
+# Database Url
+url=jdbc:mysql://localhost:3306/comms_router_core
+# Database username
+username=
+# Database password
+password=
+
+# Changelog file location
+changeLogFile=src/main/resources/db/changelog.yaml
+
+# Location of the generateChangeLog output
+outputChangeLogFile=src/main/resources/db/changelog_gen.yaml
+
+# Diff
+referenceDriver=com.mysql.jdbc.Driver
+referenceUrl=jdbc:mysql://localhost:3306/comms_router_core
+referenceUsername=
+referencePassword=
+diffChangeLogFile=src/main/resources/db/migrations/changelog-next.yaml
