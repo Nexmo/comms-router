@@ -5,6 +5,23 @@
 
 package com.softavail.commsrouter.app;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.persistence.EntityManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
@@ -24,19 +41,6 @@ import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.util.Fields;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import javax.persistence.EntityManager;
 
 /**
  * @author ikrustev
@@ -62,6 +66,7 @@ public class TaskDispatcher {
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     this.queueProcessorManager = QueueProcessorManager.getInstance();
     startQueueProcessors();
+    restartWaitingTaskTimers();
   }
 
   @SuppressWarnings("unchecked")
@@ -191,20 +196,20 @@ public class TaskDispatcher {
     LOGGER.debug("Starting wait timer for task {}", taskDto.getId());
 
     ScheduledFuture<?> timer = threadPool.schedule(() -> {
-      onQueuedTaskTimeout(taskDto);
+      onQueuedTaskTimeout(taskDto.getId());
     }, taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
 
     scheduledWaitTasksTimers.put(taskDto.getId(), timer);
   }
 
-  public void onQueuedTaskTimeout(TaskDto taskDto) {
+  private void onQueuedTaskTimeout(String taskId) {
 
     try {
-      LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskDto.getId());
-      scheduledWaitTasksTimers.remove(taskDto.getId());
-      processTaskTimeout(taskDto.getId());
+      LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskId);
+      scheduledWaitTasksTimers.remove(taskId);
+      processTaskTimeout(taskId);
     } catch (RuntimeException | CommsRouterException ex) {
-      LOGGER.error("Exception while provessing timeout for task {}: {}", taskDto.getId(), ex, ex);
+      LOGGER.error("Exception while provessing timeout for task {}: {}", taskId, ex, ex);
     }
   }
 
@@ -228,21 +233,48 @@ public class TaskDispatcher {
             matchedRoute = getNextRoute(task.getRule(), task.getCurrentRoute().getId());
           } else {
             // default route
+            Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
             return null;
           }
 
           if (matchedRoute == null) {
+            Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
             return null;
           }
 
           Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
+
           if (matchedRoute.getPriority() != null) {
             Fields.update(task::setPriority, task.getPriority(), matchedRoute.getPriority());
           }
+          
           if (matchedRoute.getTimeout() != null) {
             Fields.update(task::setQueuedTimeout, task.getQueuedTimeout(),
                 matchedRoute.getTimeout());
+
+            if (matchedRoute.getTimeout() > 0) {
+              Date expirationDate =
+                  new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
+              LOGGER.trace("Next route, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getId());
+              Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
+            } else {
+              LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
+              Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+            }
+          } else {
+            if (task.getQueuedTimeout() != null && task.getQueuedTimeout() > 0) {
+              Date expirationDate =
+                  new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
+              LOGGER.trace("Default, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getId());
+              Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
+            } else {
+              LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
+              Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+            }
           }
+          
           if (matchedRoute.getQueueId() != null) {
             Queue queue = db.queue.get(em, RouterObjectId.builder().setId(matchedRoute.getQueueId())
                 .setRouterId(task.getRouterId()).build());
@@ -285,4 +317,55 @@ public class TaskDispatcher {
     return null;
   }
 
+  private void restartWaitingTaskTimers() {
+    LOGGER.debug("Restart timer for waiting tasks at startup");
+    
+    threadPool.submit(() -> doRestartWaitingTaskTimers());
+  }
+
+  private void doRestartWaitingTaskTimers() {
+    try {
+      db.transactionManager.executeVoid(
+          em -> db.router.list(em)
+          .stream()
+          .map(router -> filterTasksByState(em, router.getId(), TaskState.waiting))
+          .flatMap(Collection::stream)
+          .forEach(this::attachExpirationTimerToTask));
+    } catch (CommsRouterException e) {
+      throw new RuntimeException("Can not restart timers for all waiting tasks!", e);
+    }
+  }
+
+  private List<Task> filterTasksByState(EntityManager em, String routerId, TaskState state) {
+    ArrayList<Task> filteredTasks = new ArrayList<Task>(); 
+    List<Task> allTasks = db.task.list(em, routerId);
+    
+    if (null != allTasks) {
+      allTasks.forEach(task -> {
+        if (task.getState() == state) {
+          filteredTasks.add(task);
+        }
+      });
+    }
+    
+    return filteredTasks; 
+  }
+  
+  private void attachExpirationTimerToTask(Task task) {
+
+    if (task.getExpirationDate() != null) {
+      LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getId());
+    } else {
+
+      long timeout = task.getExpirationDate().getTime() - System.currentTimeMillis();
+
+      LOGGER.debug("Attaching expiration timer with delay:{}ms for task:{}", 
+          timeout, task.getId());
+      ScheduledFuture<?> timer = threadPool.schedule(() -> {
+        onQueuedTaskTimeout(task.getId());
+      }, timeout, TimeUnit.MILLISECONDS);
+
+      scheduledWaitTasksTimers.put(task.getId(), timer);
+    }
+  }
 }
