@@ -14,6 +14,14 @@
                                           ("predicate" predicate))))
          (check-and (has-json) (has-key "id") (publish-id :queue))))
 
+(defun equeue-size (&key (router-id (get-event :router))
+                      (id (get-event :queue))
+                      (description (format nil "Get size of the queue."))
+                      (checks (check-and (has-json) (has-key "size"))))
+  (tstep description
+         (tapply (http-get "/routers" router-id "queues" id "size"))
+         checks ))
+
 (defun equeue-put (&key (router-id (get-event :router))
                      (id (get-event :queue))
                      (description "description")

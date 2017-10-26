@@ -18,6 +18,8 @@ import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -67,6 +69,13 @@ public class Agent extends Resource {
     String id = oid.getId();
     state().put(CommsRouterResource.AGENT, id);
     return oid;
+  }
+
+  public ApiObjectId create(String language) {
+    CreateAgentArg arg = new CreateAgentArg();
+    arg.setAddress("phonenumber");
+    arg.setCapabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto(language)));
+    return create(arg);
   }
 
   public void delete() {

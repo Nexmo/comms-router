@@ -193,7 +193,7 @@
       (mapcar #'first res) ) ) )
 
 (defun find-bug (size)
-  (length (loop for x = (test-random :size size) :repeat 100 :if x :return (print (reverse x)))))
+  (length (loop for x = (test-random :size size) :repeat 1000 :if x :return (print (reverse x)))))
 
 
 ;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))

@@ -67,7 +67,7 @@
          #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
                                 (agents (jsown:val model "agents"))
                                 (agent (nth selected agents))
-                                (res (funcall (twait (eagent :id (jsown:val agent "id") :checks (has-kv "state" (jsown:val agent "state"))) :timeout 3))))
+                                (res (funcall (twait (eagent :id (jsown:val agent "id") :checks (has-kv "state" (jsown:val agent "state"))) :timeout 10))))
                            (list res model)))
          "check agent state")
 
@@ -95,12 +95,17 @@
            (fnot (fhas-key "agents"))
            (fand (fhas-key "agents") #'(lambda(model) (every #'(lambda(task)(not (equal (jsown:val task "state") "ready")))
                                                              (jsown:val model "agents")))) ))
-         #'(lambda(model)(let ((res (funcall (etask-new :checks (check-and (has-json) (has-key "id")
-                                                                           (has-kv "queueTasks" (if (jsown:keyp model "tasks")
-                                                                                                    (length (remove-if-not
-                                                                                                             (fhas-kv "state" "waiting" #'equal)
-                                                                                                             (jsown:val model "tasks")))
-                                                                                                    0)))))))
+         #'(lambda(model)(let* ((waiting-tasks (if (jsown:keyp model "tasks")
+                                                   (length (remove-if-not
+                                                            (fhas-kv "state" "waiting" #'equal)
+                                                            (jsown:val model "tasks")))
+                                                   0))
+                                (res (funcall (tand (twait (equeue-size
+                                                            :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                                                            :checks (check-and (has-json) (has-key "size")
+                                                                                           (has-kv "size" waiting-tasks))))
+                                                    (etask-new :checks (check-and (has-json) (has-key "id")
+                                                                                  (has-kv "queueTasks" waiting-tasks)))))))
                            (list res (if (second res)
                                          (jsown:extend-js (copy-tree model)
                                            ("tasks" (list* (jsown:extend-js
@@ -155,7 +160,7 @@
          #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                                 (tasks (jsown:val model "tasks"))
                                 (task (nth selected tasks))
-                                (res (funcall (twait (etask :id (jsown:val task "id") :state (jsown:val task "state")) :timeout 3))))
+                                (res (funcall (twait (etask :id (jsown:val task "id") :state (jsown:val task "state")) :timeout 10))))
                            (list res model)))
          "check task state")
 
