@@ -11,9 +11,8 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
+import com.softavail.commsrouter.api.exception.CallbackException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
@@ -24,6 +23,8 @@ import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.util.Fields;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,11 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import javax.persistence.EntityManager;
 
 /**
  * @author ikrustev
@@ -50,17 +49,26 @@ public class TaskDispatcher {
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
   private final QueueProcessorManager queueProcessorManager;
+  private final RetryPolicy retryPolicy;
   private static Map<String, ScheduledFuture<?>> scheduledWaitTasksTimers = new HashMap<>();
 
-  public TaskDispatcher(JpaDbFacade db, TaskEventHandler taskEventHandler, EntityMappers dtoMappers,
-      int threadPoolSize) {
+  public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, TaskEventHandler taskEventHandler) {
+    this(db, mappers, Configuration.DEFAULT, taskEventHandler);
+  }
 
+  public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, Configuration configuration,
+      TaskEventHandler taskEventHandler) {
     this.db = db;
-    this.mappers = dtoMappers;
+    this.mappers = mappers;
     this.taskEventHandler = taskEventHandler;
-    this.threadPool = new ScheduledThreadPoolExecutor(threadPoolSize);
+    this.threadPool = new ScheduledThreadPoolExecutor(configuration.threadPoolSize);
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     this.queueProcessorManager = QueueProcessorManager.getInstance();
+    this.retryPolicy = new RetryPolicy()
+        .retryOn(CallbackException.class)
+        .retryOn(RuntimeException.class)
+        .withBackoff(configuration.backOffDelay, configuration.backOffMaxDelay, TimeUnit.SECONDS)
+        .withJitter(configuration.jitter, TimeUnit.MILLISECONDS);
     startQueueProcessors();
   }
 
@@ -134,56 +142,22 @@ public class TaskDispatcher {
       return new TaskAssignmentDto(taskDto, agentDto);
     });
     if (taskAssignmentDto != null) {
-      handleTaskAssignment(taskAssignmentDto);
+      submitTaskAssignment(taskAssignmentDto);
     }
   }
 
   public void submitTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
-    threadPool.submit(() -> {
-      handleTaskAssignment(taskAssignmentDto);
-    });
-  }
-
-  public void handleTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
-    try {
-      taskEventHandler.onTaskAssigned(taskAssignmentDto);
-      LOGGER.debug("Task {} assigned to agent {}", taskAssignmentDto.getTask(),
-          taskAssignmentDto.getAgent());
-    } catch (AssignmentRejectedException e) {
-      // The handler has issued AssignmentRejectedException, so we should cancel the assignment
-      rejectAssignment(taskAssignmentDto.getTask().getId());
-    } catch (RuntimeException ex) {
-      LOGGER.error("Failure assigning task {} to agent {}: {}", taskAssignmentDto.getTask(),
-          taskAssignmentDto.getAgent(), ex, ex);
-      // TODO Implement some backoff retry with exponential time
-    }
-  }
-
-  public Optional<TaskDto> rejectAssignment(EntityManager em, String taskId)
-      throws NotFoundException {
-
-    Task task = db.task.get(em, taskId);
-    Agent agent = task.getAgent();
-
-    if (task.getState().isAssigned() && agent != null) {
-      agent.setState(AgentState.unavailable);
-      task.setState(TaskState.waiting);
-      task.setAgent(null);
-
-      return Optional.of(mappers.task.toDto(task));
-    }
-
-    return Optional.empty();
-  }
-
-  public void rejectAssignment(String taskId) {
-    LOGGER.debug("Rejecting assignment of task {}", taskId);
-    try {
-      db.transactionManager.execute(em -> rejectAssignment(em, taskId))
-          .ifPresent(this::dispatchTask);
-    } catch (CommsRouterException | RuntimeException ex) {
-      LOGGER.error("Failure rejecting assignment: {}", ex, ex);
-    }
+    Failsafe.with(retryPolicy).with(threadPool)
+        .onSuccess((ignored, executionContext) ->
+            LOGGER.debug("Task {} assigned to agent {}",
+                taskAssignmentDto.getTask(), taskAssignmentDto.getAgent()))
+        .onRetry((result, failure, context) ->
+            LOGGER.warn("Retry assigning task {} to agent {}: {}, {}",
+                taskAssignmentDto.getTask(), taskAssignmentDto.getAgent(), failure, context))
+        .onFailure((ignored, throwable) ->
+            LOGGER.error("Failure assigning task {} to agent {}: {}",
+                taskAssignmentDto.getTask(), taskAssignmentDto.getAgent(), throwable, throwable))
+        .run(() -> taskEventHandler.onTaskAssigned(taskAssignmentDto));
   }
 
   private void startTaskTimer(TaskDto taskDto) {
@@ -204,11 +178,13 @@ public class TaskDispatcher {
       scheduledWaitTasksTimers.remove(taskDto.getId());
       processTaskTimeout(taskDto.getId());
     } catch (RuntimeException | CommsRouterException ex) {
-      LOGGER.error("Exception while provessing timeout for task {}: {}", taskDto.getId(), ex, ex);
+      LOGGER.error("Exception while processing timeout for task {}: {}",
+          taskDto.getId(), ex, ex);
     }
   }
 
-  private void processTaskTimeout(String taskId) throws CommsRouterException {
+  private void processTaskTimeout(String taskId)
+      throws CommsRouterException {
 
     TaskDto taskDto = db.transactionManager.execute((em) -> {
       Task task = db.task.get(em, taskId);
@@ -283,6 +259,25 @@ public class TaskDispatcher {
     }
 
     return null;
+  }
+
+  public static class Configuration {
+
+    private static final Configuration DEFAULT =
+        new Configuration(10, 2, 60, 500);
+
+    public final int threadPoolSize;
+    public final int backOffDelay;
+    public final int backOffMaxDelay;
+    public final int jitter;
+
+    public Configuration(int threadPoolSize, int backOffDelay, int backOffMaxDelay, int jitter) {
+      this.threadPoolSize = threadPoolSize;
+      this.backOffDelay = backOffDelay;
+      this.backOffMaxDelay = backOffMaxDelay;
+      this.jitter = jitter;
+    }
+
   }
 
 }

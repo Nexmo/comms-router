@@ -236,11 +236,11 @@ public class AgentTest {
 
     TimeUnit.SECONDS.sleep(1);
     AgentDto resource = a.get();
-    assertThat(String.format("Check agent state (%s) to be unavailable.", resource.getState()),
-               resource.getState(), is(AgentState.unavailable));
+    assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
     TaskDto task = t.get();
-    assertThat(String.format("Check task state (%s) to be waiting.", task.getState()),
-               task.getState(), is(TaskState.waiting));
+    assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+               task.getState(), is(TaskState.assigned));
 
     UpdateTaskArg updateTask = new UpdateTaskArg();
     updateTask.setState(TaskState.completed);
@@ -253,7 +253,7 @@ public class AgentTest {
     a.setState(AgentState.ready);
 
     resource = a.get();
-    assertThat(String.format("Check agent state (%s) to be ready after it was unavailable.", resource.getState()),
+    assertThat(String.format("Check agent state (%s) to be ready after it was completed.", resource.getState()),
                resource.getState(), is(AgentState.ready));
 
     t.delete();
