@@ -96,7 +96,8 @@
                    (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                    (context (jsown:new-js ("key" "value")))
                    (queue-id (get-event :queue))
-                   (plan-id :null))
+                   (plan-id :null)
+                   (checks (check-and (has-json) (has-key "id") (publish-id :task))))
   (tstep (format nil "Create new task to queue ~A and context ~A." queue-id (jsown:to-json context))
          (tapply (http-post (list "/routers" router-id "tasks")
                             (jsown:new-js
@@ -105,7 +106,7 @@
                               ("requirements" requirements)
                               ("queueId" queue-id)
                               ("planId" plan-id))))
-         (check-and (has-json) (has-key "id") (publish-id :task))))
+         checks))
 
 (defun etask-del (&key (router-id (get-event :router))
                     (id (get-event :task)))

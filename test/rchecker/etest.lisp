@@ -146,25 +146,26 @@
 
 (defun remove-nth(n lst)  (append (subseq lst 0 n) (subseq lst (1+ n) (length lst))))
 (defun set-nth(n lst item)  (append (subseq lst 0 n) (list item) (subseq lst (1+ n) (length lst))))
-
-
-
+(defparameter *model* (jsown:new-js));; current model
 (defun generate-sample(&key (model (jsown:new-js))
                          (tasks *tasks*)
                          (path ())
                          (size 100)
                          (prefix '())
                          (selector #'random))
+  (setf *model* (copy-tree model))
   (format t "~%With model:~S" model)
   (if (>= (length path) size)  'pass
-      (let ((available (remove-if-not #'(lambda(task)(format t "~%checking ~A"(third task))
-                                          (funcall (first task) model)) tasks)))
+      (let ((available (remove-if-not #'(lambda(task)(let ((res (funcall (first task) model)))
+                                                       (format t "~%~:[skip~;OK~] ~A" res (third task))
+                                                       res))
+                                      tasks)))
         (if available
             (let*((selected (if prefix
                                 (first prefix)
                                 (funcall selector (length available))))
-                  (name (third (nth selected available)))
-                  (step-result (funcall (second (nth selected available))  model))
+                  (name (print (third (nth selected available))))
+                  (step-result (funcall (second (nth selected available)) (copy-tree model)))
                   (result (first step-result))
                   (new-model (second step-result))
                   (new-path (list* (cons selected result) path)))
@@ -192,7 +193,7 @@
       (mapcar #'first res) ) ) )
 
 (defun find-bug (size)
-  (length (loop for x = (test-random :size size) :repeat 1000 :if x :return (print (reverse x)))))
+  (length (loop for x = (test-random :size size) :repeat 100 :if x :return (print (reverse x)))))
 
 
 ;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))
