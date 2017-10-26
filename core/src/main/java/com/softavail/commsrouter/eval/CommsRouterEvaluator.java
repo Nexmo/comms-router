@@ -222,7 +222,7 @@ public class CommsRouterEvaluator {
       LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
       return true;
     } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getMessage());
+      LOGGER.info("Evaluator expression failed with message: '{}", ex.getMessage());
       throwException = ex.getMessage();
     }
 
