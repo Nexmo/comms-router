@@ -79,9 +79,9 @@ public class AgentTest {
 
   @AfterEach
   public void cleanup() {
-    a.delete();
-    q.delete();
-    r.delete();
+    //a.delete();
+    //q.delete();
+    //r.delete();
   }
 
   @Test
@@ -364,6 +364,7 @@ public class AgentTest {
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
                resource.getState(), is(AgentState.busy));
     t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 
     state.put(CommsRouterResource.TASK, task1.getId());
     t.setState(TaskState.completed);
@@ -387,6 +388,7 @@ public class AgentTest {
     ApiObjectId a1_id = a.create("en");
     assertThat(q.size(), is(0));
     CreatedTaskDto task1 = t.createQueueTask();
+    TimeUnit.SECONDS.sleep(2);
     CreatedTaskDto task2 = t.createQueueTask();
     assertThat(q.size(), is(2));
     a.setState(AgentState.ready);
