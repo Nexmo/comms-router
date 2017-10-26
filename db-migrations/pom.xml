@@ -12,7 +12,7 @@
   <artifactId>db-migrations</artifactId>
   <packaging>pom</packaging>
 
-  <name>db-migrations</name>
+  <name>Comms Router DB Migrations</name>
 
   <dependencies>
     <dependency>
