@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
@@ -32,6 +33,7 @@ public class Plan extends RouterObject {
   private List<Rule> rules = new ArrayList<>();
 
   @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "default_route")
   private Route defaultRoute;
 
   public Plan() {}

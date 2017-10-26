@@ -44,8 +44,10 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   private static final String VOICE_SPANISH = "Penelope";
   private static final String VOICE_ENGLISH = "Kimberly";
   
-  private static final String MSG_WELCOME = "Hello and thank you for calling Nexmo";
-  private static final String MSG_PROMPT_LANGUAGE = "Si necesita servicio en español, presione 1";
+  private static final String MSG_WELCOME =
+      "Hello and thank you for calling comms-router demo service";
+  private static final String MSG_PROMPT_LANGUAGE = 
+      "Si necesita servicio en español, presione 1";
   
   private static final String MSG_PROMPT_DEPARTMENT_EN =
       "For Sales, press 1. For Technical Support, press 2.";

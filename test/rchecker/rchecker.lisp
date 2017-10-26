@@ -16,6 +16,16 @@
               (list nil (list(format nil "FAIL- key ~S should be ~S but it is ~S" key value (jsown:val json key)))) )
           (list nil (list(format nil "FAIL- should have key ~A in ~S" key (jsown:to-json json)))))))
 
+(defun publish-id(resource)
+  #'(lambda(js)
+      (funcall (fire-event resource) (jsown:val js "id"))
+      (list t (list(format nil "ok - publish ~A id ->~A" resource (jsown:val js "id"))))))
+
+(defun remove-id(resource)
+  #'(lambda(js)
+      (clear-event resource)
+      (list t (list(format nil "ok - remove resource ~A id" resource)))))
+
 (defun has-key(key)
   #'(lambda(json)
       (if (member key (jsown:keywords json) :test #'equal)
@@ -123,6 +133,9 @@
 (defun crouter-update()
   (check-step #'(lambda()(router-set))
               (is-equal "")))
+(defun crouter-put()
+  (check-step #'(lambda()(router-put :id (get-id "router-")))
+              (has-key "id")))
 (defun crouter-del()
   (check-step #'(lambda()(router-del))
               (is-equal "")))
@@ -237,7 +250,6 @@
 (defun cplan-del()
   (check-step #'(lambda()(plan-del))
               (is-equal "")))
-
 
 ;;;
 ;;; task
@@ -359,6 +371,30 @@
                 )
                :max-length 1)
                )) #'check-ops))
+
+
+(def-generator model ()
+  (let ((routers (router-all)))
+    (if routers
+        (generator (or `(router-del :id ,(get-event :router))
+                       `(router-del :id ,(get-event :router))))
+        (generator (or '(crouter-new) '(crouter-put))))))
+
+(defun test-model()
+  (check-it (generator
+             (chain ((router (or 'crouter-new 'crouter-put)))
+                    (generate
+                     (generator (tuple router
+                                       (or (chain
+                                            ((queue (or 'cqueue-new 'cqueue-put))
+                                             (agent (or 'cagent-new 'cagent-put)))
+                                            (generate(generator (tuple
+                                                                 router
+                                                                 (or (tuple queue agent) (tuple agent queue))
+                                                                 (or nil 'cqueue-del)
+                                                                 (or nil 'cagent-del)))))
+                                           'crouter-all
+                                           'crouter-del)))))) #'check-ops))
 
 (defun crud (resource)
   (apply #'step-seq (mapcar #'(lambda(name)(funcall (symbol-function (intern name))))

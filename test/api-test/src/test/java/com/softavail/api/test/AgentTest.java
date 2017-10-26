@@ -174,4 +174,142 @@ public class AgentTest {
     a.delete();
   }
 
+  @Test
+  @DisplayName("Create new agent task and set agent ready to complete task.")
+  public void agentOfflineTaskReady() throws MalformedURLException, InterruptedException {
+    CreateAgentArg arg = new CreateAgentArg();
+    arg.setAddress("phonenumber");
+    arg.setCapabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")));
+    ApiObjectId id = a.create(arg);
+    assertThat(q.size(), is(0));
+
+    CreateTaskArg taskArg = new CreateTaskArg();
+    taskArg.setCallbackUrl(new URL("http://example.com"));
+    taskArg.setRequirements(new AttributeGroupDto());
+    taskArg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    t.create(taskArg);
+
+    assertThat(q.size(), is(1));
+
+    a.setState(AgentState.ready);
+
+    TimeUnit.SECONDS.sleep(1);
+    AgentDto resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
+    TaskDto task = t.get();
+    assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+               task.getState(), is(TaskState.assigned));
+
+    UpdateTaskArg updateTask = new UpdateTaskArg();
+    updateTask.setState(TaskState.completed);
+    t.update(updateTask);
+
+    TimeUnit.SECONDS.sleep(1);
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+
+    t.delete();
+    a.delete();
+  }
+
+  @Test
+  @DisplayName("Create new agent with 404 callback - agent should be unavailable.")
+  public void taskWith404Callback() throws MalformedURLException, InterruptedException {
+    CreateAgentArg arg = new CreateAgentArg();
+    arg.setAddress("phonenumber");
+    arg.setCapabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")));
+    ApiObjectId id = a.create(arg);
+    assertThat(q.size(), is(0));
+
+    CreateTaskArg taskArg = new CreateTaskArg();
+    taskArg.setCallbackUrl(new URL("http://google.com/not-found"));
+    taskArg.setRequirements(new AttributeGroupDto());
+    taskArg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    t.create(taskArg);
+
+    assertThat(q.size(), is(1));
+
+    a.setState(AgentState.ready);
+
+    TimeUnit.SECONDS.sleep(1);
+    AgentDto resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
+    TaskDto task = t.get();
+    assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+               task.getState(), is(TaskState.assigned));
+
+    UpdateTaskArg updateTask = new UpdateTaskArg();
+    updateTask.setState(TaskState.completed);
+    t.update(updateTask);
+
+    assertThat(q.size(), is(0));
+
+    TimeUnit.SECONDS.sleep(1);
+
+    a.setState(AgentState.ready);
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready after it was completed.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+
+    t.delete();
+    a.delete();
+  }
+
+  @Test
+  @DisplayName("Create new agent reject task.")
+  public void taskRejected() throws MalformedURLException, InterruptedException {
+    CreateAgentArg arg = new CreateAgentArg();
+    arg.setAddress("phonenumber");
+    arg.setCapabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")));
+    ApiObjectId id = a.create(arg);
+    assertThat(q.size(), is(0));
+
+    CreateTaskArg taskArg = new CreateTaskArg();
+    taskArg.setCallbackUrl(new URL("http://not-existing-google.com/not-found"));
+    taskArg.setRequirements(new AttributeGroupDto());
+    taskArg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    t.create(taskArg);
+
+    assertThat(q.size(), is(1));
+
+    a.setState(AgentState.ready);
+
+    TimeUnit.SECONDS.sleep(1);
+    AgentDto resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
+
+    t.setState(TaskState.waiting);
+
+    TaskDto task = t.get();
+    assertThat(String.format("Check task state (%s) to be waiting.", task.getState()),
+               task.getState(), is(TaskState.waiting));
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be unavailable.", resource.getState()),
+               resource.getState(), is(AgentState.unavailable));
+
+    UpdateTaskArg updateTask = new UpdateTaskArg();
+    updateTask.setState(TaskState.completed);
+    t.update(updateTask);
+
+    assertThat(q.size(), is(0));
+
+    TimeUnit.SECONDS.sleep(1);
+
+    a.setState(AgentState.ready);
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready after it was unavailable.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+
+    t.delete();
+    a.delete();
+  }
+
 }

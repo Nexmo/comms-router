@@ -798,15 +798,17 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null != task) {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
-        TalkNcco talkNcco = new TalkNcco("Please wait while we connect you");
-        talkNcco.setLoop(1);
 
-        ConversationNccoEx convNcco = new ConversationNccoEx(conversationName);
 
+        List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForRegularTask(
+            MESSAGE_REGULAR_TASK_GREETING, conversationName);
+
+        // preparing a response    
         NccoResponseBuilder builder = new NccoResponseBuilder();
-        builder.appendNcco(talkNcco);
-        builder.appendNcco(convNcco);
-        
+        list.forEach(ncco -> {
+          builder.appendNcco(ncco);
+        });
+
         NccoResponse nccoResponse = builder.getValue();
         return nccoResponse.toJson();
       }

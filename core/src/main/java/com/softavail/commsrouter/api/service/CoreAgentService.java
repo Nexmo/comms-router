@@ -99,27 +99,29 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   private boolean updateAgent(UpdateAgentArg updateArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    if (updateArg.getState() == AgentState.busy) {
-      throw new BadValueException("Setting agent state to busy not allowed");
+    if (updateArg.getState() == AgentState.busy
+        || updateArg.getState() == AgentState.unavailable) {
+      throw new BadValueException("Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
 
     return app.db.transactionManager.execute((em) -> {
       Agent agent = app.db.agent.get(em, objectId.getId());
       AgentState oldState = agent.getState();
-      boolean agentBecameAvailabe;
+      boolean agentBecameAvailable;
       if (oldState == updateArg.getState()) {
-        agentBecameAvailabe = false;
+        agentBecameAvailable = false;
       } else {
         switch (oldState) {
           case busy:
             throw new InvalidStateException(
                 "Changing state of a busy agent is not implemented");
           case offline:
+          case unavailable:
             // check once again just in case
-            agentBecameAvailabe = updateArg.getState() == AgentState.ready;
+            agentBecameAvailable = updateArg.getState() == AgentState.ready;
             break;
           case ready:
-            agentBecameAvailabe = false;
+            agentBecameAvailable = false;
             break;
           default:
             throw new InternalErrorException("Unexpected agent state");
@@ -128,7 +130,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       updateCapabilitiesAndQueues(em, agent, updateArg);
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
       Fields.update(agent::setState, agent.getState(), updateArg.getState());
-      return agentBecameAvailabe;
+      return agentBecameAvailable;
     });
   }
 
@@ -168,7 +170,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     Fields.update(agent::setQueues, agent.getQueues(), matchedQueues);
     agent.removeCapabilities();
 
-    agent.setCapabilities(app.entityMapper.attributes.toJpa(newCapabilities));
+    agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
   }
 
   private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
@@ -176,7 +178,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     Agent agent = new Agent(objectId);
     agent.setAddress(createArg.getAddress());
-    agent.setCapabilities(app.entityMapper.attributes.toJpa(createArg.getCapabilities()));
+    agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
 
     if (objectId.getRouterId() != null) {

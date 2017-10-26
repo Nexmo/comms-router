@@ -34,9 +34,10 @@ public class CommsRouterVariableResolver implements VariableResolver {
     if (isValidation) {
       evaluator.isValidName(variableName);
       variableName = EvaluatorHelpers.VALIDATION_VARIABLE_VALUE;
+      return variableName;
     }
 
-    return variableName;
+    return null;
   }
 
 }

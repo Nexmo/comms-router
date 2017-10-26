@@ -23,6 +23,8 @@ public class EvaluatorHelpers {
           + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
   private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
 
+  public EvaluatorHelpers() {}
+
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();

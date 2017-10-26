@@ -96,7 +96,7 @@
 (defun remove-char(pos string)
   (concatenate 'string (subseq string 0 pos) (subseq string (1+ pos))))
 
-(defun shrink (string fn)
+(defun shrink-string (string fn)
   (loop for x from 1 to (length string)
      for small = (remove-char (1- x) string)
      :if (funcall fn small) :collect small) )
@@ -108,10 +108,197 @@
 
 (defun find-smallest(candidates fn)
   (when candidates
-    (let((smallest (shrink (first candidates) fn )))
+    (let((smallest (shrink-string (first candidates) fn )))
       (format t "~%~A->~A" (length (first candidates)) smallest)
       (if smallest
           (find-smallest (append smallest (rest candidates)) fn)
           (if (rest candidates)
               (find-smallest (rest candidates) fn)
               (remove-if-not  fn candidates) ) )) ))
+
+(defun fand(check &rest checks)
+  (if checks
+      #'(lambda(js)
+          (when (funcall check js)
+            (funcall (apply #'fand checks) js)))
+      check))
+
+(defun fnot(check)
+  #'(lambda(js)
+      (not (funcall check js))))
+
+(defun for(check &rest checks)
+  (if checks
+      #'(lambda(js)
+          (if (funcall check js) t
+              (apply #'for checks)))
+      check))
+
+(defun fhas-json() #'(lambda(js)(and (listp json) (not (null json)))))
+(defun fhas-key(key) #'(lambda(js)(jsown:keyp js key)))
+(defun fhas-kv(key value op)#'(lambda(js)(funcall op (jsown:val js key) value)))
+(defun fcompare-keys(key1 key2 op)#'(lambda(js)(funcall op (jsown:val js key1) (jsown:val js key2))))
+
+(defun remove-nth(n lst)  (append (subseq lst 0 n) (subseq lst (1+ n) (length lst))))
+
+(defparameter *tasks*
+  (list
+   (list (for
+          (fnot (fhas-key "agents"))
+          (fand (fhas-kv "agents" 2 #'(lambda(js-val val)(< (length js-val) val)))))
+         #'(lambda(model)(let ((res (funcall (eagent-new))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model)
+                                           ("agents" (list* (first res) (when (jsown:keyp model "agents")
+                                                                          (jsown:val model "agents")))))
+                                         model))))
+         "create agent")
+
+   (list (fand (fhas-key "agents")
+               (fhas-kv "agents" 0 #'(lambda(js-val val)(> (length js-val) val))))
+         #'(lambda(model)(let ((res (funcall (tstep-result "Select the latest agent." 0 t "Select the latest agent." nil))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model) ("selected-agent" 0))
+                                         model))))
+         "select last agent")
+   (list (fand (fhas-key "agents")
+               (fhas-key "selected-agent")
+               (fcompare-keys "selected-agent" "agents" #'(lambda(selected items)(< (1+ selected) (length items)))))
+         #'(lambda(model)(let* ((next (1+ (jsown:val model "selected-agent")))
+                                (res (funcall (tstep-result "Select previous agent" next t "Select previous agent" nil))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model) ("selected-agent" next))
+                                         model))))
+         "select next agent")
+
+   ;; (list (fand
+   ;;        (fhas-key "selected-agent"))
+   ;;       #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
+   ;;                              (agents (jsown:val model "agents"))
+   ;;                              (res (funcall (eagent-set :state "ready"))))
+   ;;                         (list res (if (second res)
+   ;;                                       (jsown:remkey (jsown:extend-js(copy-tree model)
+   ;;                                                       ("agents" (remove-nth selected agents)))
+   ;;                                                     "selected-agent")
+   ;;                                       model))))
+   ;;       "set-agent ready")
+   (list (fhas-key "selected-agent")
+         #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
+                                (agents (jsown:val model "agents"))
+                                (agent (nth selected agents))
+                                (res (funcall (eagent-del :id (jsown:val agent "id")))))
+                           (list res (if (second res)
+                                         (jsown:remkey (jsown:extend-js(copy-tree model)
+                                                         ("agents" (remove-nth selected agents)))
+                                                       "selected-agent")
+                                         model))))
+         "delete agent")
+
+;; tasks
+   (list (for
+          (fnot (fhas-key "tasks"))
+          (fand (fhas-kv "tasks" 10 #'(lambda(js-val val)(< (length js-val) val)))))
+         #'(lambda(model)(let ((res (funcall (etask-new))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model)
+                                           ("tasks" (list* (jsown:extend-js
+                                                               (first res)
+                                                             ("state" "waiting") )
+                                                           (when (jsown:keyp model "tasks")
+                                                             (jsown:val model "tasks")))))
+                                         model))))
+         "create task")
+   (list (fand (fhas-key "tasks")
+               (fhas-kv "tasks" 0 #'(lambda(js-val val)(> (length js-val) val))))
+         #'(lambda(model)(let ((res (funcall (tstep-result "Select the latest task." 0 t "Select the latest task." nil))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model) ("selected-task" 0))
+                                         model))))
+         "select last task")
+   (list (fand (fhas-key "tasks")
+               (fhas-key "selected-task")
+               (fcompare-keys "selected-task" "tasks" #'(lambda(selected tasks)(< (1+ selected) (length tasks)))))
+         #'(lambda(model)(let* ((next (1+ (jsown:val model "selected-task")))
+                                (res (funcall (tstep-result "Select previous task." next t "Select the previous task." nil))))
+                           (list res (if (second res)
+                                         (jsown:extend-js (copy-tree model) ("selected-task" next))
+                                         model))))
+         "select next task")
+
+   (list (fhas-key "selected-task")
+         #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
+                                (tasks (jsown:val model "tasks"))
+                                (task (nth selected tasks))
+                                (res (funcall (etask :id (jsown:val task "id") :state (jsown:val task "state")))))
+                           (list res model)))
+         "task is waiting")
+
+   (list (fhas-key "selected-task")
+         #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
+                                (tasks (jsown:val model "tasks"))
+                                (res (funcall (etask-del :id (jsown:val (nth selected tasks) "id")))))
+                           (list res (if (second res)
+                                         (jsown:remkey (jsown:extend-js(copy-tree model)
+                                                         ("tasks" (remove-nth selected tasks)))
+                                                       "selected-task")
+                                         model))))
+         "delete task")))
+
+(defun generate-sample(&key (model (jsown:new-js))
+                         (tasks *tasks*)
+                         (path ())
+                         (size 100)
+                         (prefix '()))
+  (if (>= (length path) size)  'pass
+      (let*((available (remove-if-not #'(lambda(task);(format t "~%checking ~A"(third task))
+                                               (funcall (first task) model)) tasks))
+            (selected (if prefix
+                          (first prefix)
+                          (random (length available))))
+            (name (third (nth selected available)))
+            (step-result (funcall (second (nth selected available))  model))
+            (result (first step-result))
+            (new-model (second step-result))
+            (new-path (list* (cons selected result) path)))
+        (format t "~%Processing ~A" name)
+        (cond
+          ((null (second result)) new-path);;error detected
+          (t (generate-sample :prefix (rest prefix)
+                              :model new-model
+                              :tasks tasks
+                              :path new-path
+                              :size size)) )) )  )
+
+(defun test-random(&key(size 100)(prefix ()))
+  (clear-events)
+  (router-new)
+  (queue-new)
+  (let ((res (generate-sample :tasks *tasks* :size size :prefix prefix)))
+    (unless (equal res 'pass)
+      (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+      (mapcar #'first res) ) ) )
+
+(defun find-bug (size)
+  (length (loop for x = (test-random :size size) :repeat 1000 :if x :return (print (reverse x)))))
+
+
+;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))
+;;   (if (null test-case)
+;;       'pass
+;;       (let*((available (remove-if-not #'(lambda(task)(funcall (first task))) tasks))
+;;             (selected (first test-case))
+;;             (result (funcall (second (nth selected available))))
+;;             (new-path (list* (cons selected result) path)))
+;;         (cond
+;;           ((null (second result)) new-path);;error detected
+;;           (t (replay-sample :tasks tasks :path new-path :test-case (rest test-case))) )) ) )
+
+
+;; (defun test-case(list)
+;;   (clear-events)
+;;   (let ((res (replay-sample :tasks *tasks* :test-case list)))
+;;     (if (equal res 'pass)
+;;         'pass
+;;         (progn
+;;           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+;;           res ) ) ) )
