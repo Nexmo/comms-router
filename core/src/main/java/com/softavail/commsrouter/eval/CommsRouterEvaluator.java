@@ -196,7 +196,8 @@ public class CommsRouterEvaluator {
         });
 
       } catch (IOException ex) {
-        LOGGER.error(ex.getMessage());
+        // this exception will never happens in the block above.
+        LOGGER.error("Not expected exception here: {}", ex);
       }
     });
 
