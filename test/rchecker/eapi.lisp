@@ -148,11 +148,11 @@
          (not-contains "error")))
 
 (defun eagent-set(&key
-                    (description "Set state of the agent")
+                    (state "ready") ;; offline busy
+                    (description (format nil "Set state=~A of the agent"state ))
                     (router-id (get-event :router))
                     (id (get-event :agent))
                     (address "address")
-                    (state "ready") ;; offline busy
                     (capabilities (jsown:new-js ("language" "en"))))
   (tstep description
          (tapply (http-post (list "/routers" router-id "agents" id)
