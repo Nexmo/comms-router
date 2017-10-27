@@ -52,7 +52,7 @@ public class JpaTransactionManager {
             continue;
           }
 
-          // Hibernate does not follow JPA 2 specs and wraps ConstraintViolation in RollbackException
+          // Hibernate does not follow JPA 2 specs and wraps ConstraintViolation in RollbackEx
           Class<javax.validation.ConstraintViolationException> javaxConstraint =
               javax.validation.ConstraintViolationException.class;
           if (javaxConstraint.isInstance(ex.getCause())) {

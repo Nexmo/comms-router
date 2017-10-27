@@ -55,8 +55,7 @@ public class TaskDispatcher {
   private final RetryPolicy retryPolicy;
 
   public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, TaskEventHandler taskEventHandler) {
-    this(db, mappers, new CoreConfiguration() {
-    }, taskEventHandler);
+    this(db, mappers, CoreConfiguration.DEFAULT, taskEventHandler);
   }
 
   public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, CoreConfiguration configuration,

@@ -6,39 +6,61 @@ package com.softavail.commsrouter.app;
 public interface CoreConfiguration {
 
   CoreConfiguration DEFAULT = new CoreConfiguration() {
-    // Nothing to implement, all methods should have default modifier
+    @Override
+    public Integer getBackoffDelay() {
+      return 2;
+    }
+
+    @Override
+    public Integer getBackoffDelayMax() {
+      return 60;
+    }
+
+    @Override
+    public Integer getJitter() {
+      return 500;
+    }
+
+    @Override
+    public Integer getDispatcherThreadPoolSize() {
+      return 10;
+    }
+
+    @Override
+    public Integer getDispatcherThreadShutdownDelay() {
+      return 10;
+    }
+
+    @Override
+    public Integer getQueueProcessRetryDelay() {
+      return 10;
+    }
+
+    @Override
+    public Long getQueueProcessorEvictionDelay() {
+      return 10L;
+    }
+
+    @Override
+    public Integer getJpaLockRetryCount() {
+      return 10;
+    }
   };
 
-  default Integer getBackoffDelay() {
-    return 2;
-  }
+  Integer getBackoffDelay();
 
-  default Integer getBackoffDelayMax() {
-    return 60;
-  }
+  Integer getBackoffDelayMax();
 
-  default Integer getJitter() {
-    return 500;
-  }
+  Integer getJitter();
 
-  default Integer getDispatcherThreadPoolSize() {
-    return 10;
-  }
+  Integer getDispatcherThreadPoolSize();
 
-  default Integer getDispatcherThreadShutdownDelay() {
-    return 10;
-  }
+  Integer getDispatcherThreadShutdownDelay();
 
-  default Integer getQueueProcessRetryDelay() {
-    return 10;
-  }
+  Integer getQueueProcessRetryDelay();
 
-  default Long getQueueProcessorEvictionDelay() {
-    return 10L;
-  }
+  Long getQueueProcessorEvictionDelay();
 
-  default Integer getJpaLockRetryCount() {
-    return 10;
-  }
+  Integer getJpaLockRetryCount();
 
 }

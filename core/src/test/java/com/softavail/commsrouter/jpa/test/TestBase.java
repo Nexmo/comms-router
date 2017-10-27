@@ -79,8 +79,43 @@ public class TestBase {
     JpaDbFacade db = new JpaDbFacade( "mnf-pu-test");
     TaskDispatcher td = new TaskDispatcher(db, null, new CoreConfiguration() {
       @Override
+      public Integer getBackoffDelay() {
+        return CoreConfiguration.DEFAULT.getBackoffDelay();
+      }
+
+      @Override
+      public Integer getBackoffDelayMax() {
+        return CoreConfiguration.DEFAULT.getBackoffDelayMax();
+      }
+
+      @Override
+      public Integer getJitter() {
+        return CoreConfiguration.DEFAULT.getJitter();
+      }
+
+      @Override
       public Integer getDispatcherThreadPoolSize() {
         return 20;
+      }
+
+      @Override
+      public Integer getDispatcherThreadShutdownDelay() {
+        return CoreConfiguration.DEFAULT.getDispatcherThreadShutdownDelay();
+      }
+
+      @Override
+      public Integer getQueueProcessRetryDelay() {
+        return CoreConfiguration.DEFAULT.getQueueProcessRetryDelay();
+      }
+
+      @Override
+      public Long getQueueProcessorEvictionDelay() {
+        return CoreConfiguration.DEFAULT.getQueueProcessorEvictionDelay();
+      }
+
+      @Override
+      public Integer getJpaLockRetryCount() {
+        return CoreConfiguration.DEFAULT.getJpaLockRetryCount();
       }
     }, null);
     EntityMappers enm = new EntityMappers();
