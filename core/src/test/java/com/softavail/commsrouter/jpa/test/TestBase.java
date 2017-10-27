@@ -27,14 +27,18 @@ import com.softavail.commsrouter.api.service.CoreQueueService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
+import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.app.TaskDispatcher;
-import com.softavail.commsrouter.app.TaskDispatcher.Configuration;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,9 +46,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  * @author G.Ivanov
@@ -75,8 +76,13 @@ public class TestBase {
   @BeforeClass
   public static void setTestCoreQueueService() {
     CommsRouterEvaluator ev = new CommsRouterEvaluator();
-    JpaDbFacade db = new JpaDbFacade("mnf-pu-test");
-    TaskDispatcher td = new TaskDispatcher(db, null, new Configuration(20, 5, 60, 42), null);
+    JpaDbFacade db = new JpaDbFacade( "mnf-pu-test");
+    TaskDispatcher td = new TaskDispatcher(db, null, new CoreConfiguration() {
+      @Override
+      public Integer getDispatcherThreadPoolSize() {
+        return 20;
+      }
+    }, null);
     EntityMappers enm = new EntityMappers();
     app = new AppContext(db, ev, td, enm);
     // Instantiating all of the services

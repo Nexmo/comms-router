@@ -5,20 +5,22 @@ package com.softavail.commsrouter.webservice.config;
  */
 public interface Configuration {
 
+  Configuration DEFAULT = new Configuration() {
+    // Nothing to implement, all methods should have default modifier
+  };
+
   String SYSTEM_PROPERTY_KEY = "comms.router.config.file";
 
-  Integer getClientConnectTimeout();
+  default Integer getClientConnectTimeout() {
+    return 1500;
+  }
 
-  Integer getClientReadTimeout();
+  default Integer getClientReadTimeout() {
+    return 1500;
+  }
 
-  Boolean getClientFollowRedirects();
-
-  Integer getClientRetryDelaySeconds();
-
-  Integer getClientRetryDelayMaxSeconds();
-
-  Integer getClientRetryJitterMilliseconds();
-
-  Integer getTaskDispatcherThreadPoolSize();
+  default Boolean getClientFollowRedirects() {
+    return true;
+  }
 
 }

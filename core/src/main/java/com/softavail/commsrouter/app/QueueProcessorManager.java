@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class QueueProcessorManager {
 
-  private static final long EVICTION_DELAY_MINUTES = 10;
   private static final boolean DO_NOT_INTERRUPT_IF_RUNNING = false;
 
   private static final QueueProcessorManager instance = new QueueProcessorManager();
@@ -31,8 +30,13 @@ public class QueueProcessorManager {
     return instance;
   }
 
-  public synchronized void processQueue(String queueId, JpaDbFacade db, EntityMappers mappers,
-      TaskDispatcher taskDispatcher, ScheduledThreadPoolExecutor threadPool) {
+  public synchronized void processQueue(
+      String queueId,
+      JpaDbFacade db,
+      EntityMappers mappers,
+      TaskDispatcher taskDispatcher,
+      CoreConfiguration configuration,
+      ScheduledThreadPoolExecutor threadPool) {
 
     Optional.ofNullable(scheduledFutures.get(queueId))
         .ifPresent(scheduledFuture -> scheduledFuture.cancel(DO_NOT_INTERRUPT_IF_RUNNING));
@@ -45,9 +49,11 @@ public class QueueProcessorManager {
           .setMappers(mappers)
           .setTaskDispatcher(taskDispatcher)
           .setThreadPool(threadPool)
+          .setProcessRetryDelaySeconds(configuration.getQueueProcessRetryDelay())
           .setStateChangeListener((StateIdleListener) processedQueueId -> {
-            ScheduledFuture<?> schedule = threadPool.schedule(() ->
-                removeQueueProcessor(processedQueueId), EVICTION_DELAY_MINUTES, TimeUnit.MINUTES);
+            ScheduledFuture<?> schedule = threadPool.schedule(
+                () -> removeQueueProcessor(processedQueueId),
+                configuration.getQueueProcessorEvictionDelay(), TimeUnit.MINUTES);
             scheduledFutures.put(processedQueueId, schedule);
           })
           .build();
