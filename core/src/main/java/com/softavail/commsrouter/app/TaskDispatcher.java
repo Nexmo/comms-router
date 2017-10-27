@@ -44,66 +44,76 @@ public class TaskDispatcher {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskDispatcher.class);
 
+  private static final Map<String, ScheduledFuture<?>> scheduledTaskTimers = new HashMap<>();
+
   private final JpaDbFacade db;
   private final EntityMappers mappers;
   private final TaskEventHandler taskEventHandler;
   private final ScheduledThreadPoolExecutor threadPool;
+  private final CoreConfiguration configuration;
   private final QueueProcessorManager queueProcessorManager;
   private final RetryPolicy retryPolicy;
-  private static Map<String, ScheduledFuture<?>> scheduledWaitTasksTimers = new HashMap<>();
 
   public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, TaskEventHandler taskEventHandler) {
-    this(db, mappers, Configuration.DEFAULT, taskEventHandler);
+    this(db, mappers, CoreConfiguration.DEFAULT, taskEventHandler);
   }
 
-  public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, Configuration configuration,
+  public TaskDispatcher(JpaDbFacade db, EntityMappers mappers, CoreConfiguration configuration,
       TaskEventHandler taskEventHandler) {
+    this.configuration = configuration;
     this.db = db;
     this.mappers = mappers;
     this.taskEventHandler = taskEventHandler;
-    this.threadPool = new ScheduledThreadPoolExecutor(configuration.threadPoolSize);
+    this.threadPool = new ScheduledThreadPoolExecutor(configuration.getDispatcherThreadPoolSize());
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     this.queueProcessorManager = QueueProcessorManager.getInstance();
     this.retryPolicy = new RetryPolicy()
         .retryOn(CallbackException.class)
         .retryOn(RuntimeException.class)
-        .withBackoff(configuration.backOffDelay, configuration.backOffMaxDelay, TimeUnit.SECONDS)
-        .withJitter(configuration.jitter, TimeUnit.MILLISECONDS);
+        .withBackoff(configuration.getBackoffDelay(), configuration.getBackoffDelayMax(),
+            TimeUnit.SECONDS)
+        .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
   }
 
   @SuppressWarnings("unchecked")
   private void startQueueProcessors() {
     try {
-      db.transactionManager.executeVoid(
-          em -> db.router.list(em).stream().map(router -> db.queue.list(em, router.getId()))
-              .flatMap(Collection::stream).map(Queue::getId).forEach(this::process));
+      db.transactionManager.executeVoid(em ->
+          db.router.list(em).stream()
+              .map(router -> db.queue.list(em, router.getId()))
+              .flatMap(Collection::stream)
+              .map(Queue::getId)
+              .forEach(this::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
   }
 
   private void process(String queueId) {
-    queueProcessorManager.processQueue(queueId, db, mappers, this, threadPool);
+    queueProcessorManager
+        .processQueue(queueId, db, mappers, this, configuration, threadPool);
   }
 
   public void close() {
-    // @todo: logs and config
+    // @todo: logs
     threadPool.shutdown();
     try {
-      if (threadPool.awaitTermination(10, TimeUnit.SECONDS)) {
+      final Integer shutdownDelay = configuration.getDispatcherThreadShutdownDelay();
+      if (threadPool.awaitTermination(shutdownDelay, TimeUnit.SECONDS)) {
         LOGGER.info("Dispatcher thread pool down.");
       } else {
         LOGGER.warn("Dispatcher thread pool shutdown timeout. Forcing ...");
         threadPool.shutdownNow();
-        if (threadPool.awaitTermination(10, TimeUnit.SECONDS)) {
+        if (threadPool.awaitTermination(shutdownDelay, TimeUnit.SECONDS)) {
           LOGGER.info("Dispatcher thread pool down after being forced.");
         } else {
           LOGGER.error("Dispatcher thread pool did not shut down.");
         }
       }
     } catch (InterruptedException ex) {
-      LOGGER.warn("Interrupted while waiting for the dispatcher thread pool to go shut down.");
+      LOGGER.warn(
+          "Interrupted while waiting for the dispatcher thread pool to go shut down.");
     }
   }
 
@@ -164,18 +174,18 @@ public class TaskDispatcher {
 
     LOGGER.debug("Starting wait timer for task {}", taskDto.getId());
 
-    ScheduledFuture<?> timer = threadPool.schedule(() -> {
-      onQueuedTaskTimeout(taskDto);
-    }, taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
+    ScheduledFuture<?> timer = threadPool.schedule(
+        () -> onQueuedTaskTimeout(taskDto),
+        taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
 
-    scheduledWaitTasksTimers.put(taskDto.getId(), timer);
+    scheduledTaskTimers.put(taskDto.getId(), timer);
   }
 
   public void onQueuedTaskTimeout(TaskDto taskDto) {
 
     try {
       LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskDto.getId());
-      scheduledWaitTasksTimers.remove(taskDto.getId());
+      scheduledTaskTimers.remove(taskDto.getId());
       processTaskTimeout(taskDto.getId());
     } catch (RuntimeException | CommsRouterException ex) {
       LOGGER.error("Exception while processing timeout for task {}: {}",
@@ -213,15 +223,19 @@ public class TaskDispatcher {
 
           Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
           if (matchedRoute.getPriority() != null) {
-            Fields.update(task::setPriority, task.getPriority(), matchedRoute.getPriority());
+            Fields.update(
+                task::setPriority, task.getPriority(), matchedRoute.getPriority());
           }
           if (matchedRoute.getTimeout() != null) {
-            Fields.update(task::setQueuedTimeout, task.getQueuedTimeout(),
-                matchedRoute.getTimeout());
+            Fields.update(
+                task::setQueuedTimeout, task.getQueuedTimeout(), matchedRoute.getTimeout());
           }
           if (matchedRoute.getQueueId() != null) {
-            Queue queue = db.queue.get(em, RouterObjectId.builder().setId(matchedRoute.getQueueId())
-                .setRouterId(task.getRouterId()).build());
+            RouterObjectId objectId = RouterObjectId.builder()
+                .setId(matchedRoute.getQueueId())
+                .setRouterId(task.getRouterId())
+                .build();
+            Queue queue = db.queue.get(em, objectId);
             Fields.update(task::setQueue, task.getQueue(), queue);
             if (!task.getQueue().getId().equals(matchedRoute.getQueueId())) {
               Fields.update(task::setAgent, task.getAgent(), null);
@@ -259,25 +273,6 @@ public class TaskDispatcher {
     }
 
     return null;
-  }
-
-  public static class Configuration {
-
-    private static final Configuration DEFAULT =
-        new Configuration(10, 2, 60, 500);
-
-    public final int threadPoolSize;
-    public final int backOffDelay;
-    public final int backOffMaxDelay;
-    public final int jitter;
-
-    public Configuration(int threadPoolSize, int backOffDelay, int backOffMaxDelay, int jitter) {
-      this.threadPoolSize = threadPoolSize;
-      this.backOffDelay = backOffDelay;
-      this.backOffMaxDelay = backOffMaxDelay;
-      this.jitter = jitter;
-    }
-
   }
 
 }

@@ -29,23 +29,17 @@ public class ApplicationContext {
 
   private final Client client;
   private final AppContext coreContext;
-  private final Configuration configuration;
+  private final ConfigurationImpl configuration;
 
   public ApplicationContext(ServletContext servletContext) {
     configuration = new ConfigurationImpl(servletContext);
     client = createClient();
 
-    JpaDbFacade db = new JpaDbFacade();
+    JpaDbFacade db = new JpaDbFacade(configuration);
     CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
     EntityMappers mappers = new EntityMappers();
-    TaskDispatcher.Configuration dispatcherConfiguration =
-        new TaskDispatcher.Configuration(
-            configuration.getTaskDispatcherThreadPoolSize(),
-            configuration.getClientRetryDelaySeconds(),
-            configuration.getClientRetryDelayMaxSeconds(),
-            configuration.getClientRetryJitterMilliseconds());
     TaskDispatcher taskDispatcher =
-        new TaskDispatcher(db, mappers, dispatcherConfiguration, this::handleAssignment);
+        new TaskDispatcher(db, mappers, configuration, this::handleAssignment);
 
     coreContext = new AppContext(db, evaluator, taskDispatcher, mappers);
   }

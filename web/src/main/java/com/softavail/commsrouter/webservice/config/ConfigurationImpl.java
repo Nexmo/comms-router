@@ -3,6 +3,7 @@ package com.softavail.commsrouter.webservice.config;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
+import com.softavail.commsrouter.app.CoreConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cfg4j.provider.ConfigurationProvider;
@@ -26,29 +27,53 @@ import javax.servlet.ServletContext;
 /**
  * Created by @author mapuo on 16.10.17.
  */
-public class ConfigurationImpl implements Configuration {
+public class ConfigurationImpl implements CoreConfiguration, Configuration {
 
   private static final Logger LOGGER = LogManager.getLogger(ConfigurationImpl.class);
 
   private static final String CLIENT_TIMEOUT_CONNECT = "client.timeout.connect";
   private static final String CLIENT_TIMEOUT_READ = "client.timeout.read";
   private static final String CLIENT_FOLLOW_REDIRECTS = "client.followRedirects";
-  private static final String RETRY_DELAY_SECONDS = "client.retry.delaySeconds";
-  private static final String RETRY_DELAY_MAX_SECONDS = "client.retry.delayMaxSeconds";
-  private static final String RETRY_JITTER_MILLIS = "client.retry.jitterMilliseconds";
+  private static final String BACKOFF_DELAY_SECONDS = "client.retry.delaySeconds";
+  private static final String BACKOFF_DELAY_MAX_SECONDS = "client.retry.delayMaxSeconds";
+  private static final String BACKOFF_JITTER_MILLIS = "client.retry.jitterMilliseconds";
   private static final String THREAD_POOL_SIZE = "task_dispatcher.thread_pool.size";
+  private static final String THREAD_POOL_SHUTDOWN_TIMEOUT =
+      "task_dispatcher.thread_pool.shutdown.delaySeconds";
+  private static final String QUEUE_RETRY_DELAY_SECONDS = "queue.retry.delaySeconds";
+  private static final String QUEUE_PROCESSOR_EVICTION_DELAY =
+      "queue.remove.idleDelaySeconds";
+  private static final String JPA_OPTIMISTIC_LOCK_RETRY_COUNT =
+      "jpa.optimisticLock.retryCount";
 
   private static final Properties defaultProperties;
 
   static {
     defaultProperties = new Properties();
-    defaultProperties.setProperty(CLIENT_TIMEOUT_CONNECT, "1500");
-    defaultProperties.setProperty(CLIENT_TIMEOUT_READ, "1500");
-    defaultProperties.setProperty(CLIENT_FOLLOW_REDIRECTS, "true");
-    defaultProperties.setProperty(RETRY_DELAY_SECONDS, "2");
-    defaultProperties.setProperty(RETRY_DELAY_MAX_SECONDS, "60");
-    defaultProperties.setProperty(RETRY_JITTER_MILLIS, "500");
-    defaultProperties.setProperty(THREAD_POOL_SIZE, "10");
+
+    defaultProperties.setProperty(BACKOFF_DELAY_SECONDS,
+        String.valueOf(CoreConfiguration.DEFAULT.getBackoffDelay()));
+    defaultProperties.setProperty(BACKOFF_DELAY_MAX_SECONDS,
+        String.valueOf(CoreConfiguration.DEFAULT.getBackoffDelayMax()));
+    defaultProperties.setProperty(BACKOFF_JITTER_MILLIS,
+        String.valueOf(CoreConfiguration.DEFAULT.getJitter()));
+    defaultProperties.setProperty(THREAD_POOL_SIZE,
+        String.valueOf(CoreConfiguration.DEFAULT.getDispatcherThreadPoolSize()));
+    defaultProperties.setProperty(THREAD_POOL_SHUTDOWN_TIMEOUT,
+        String.valueOf(CoreConfiguration.DEFAULT.getDispatcherThreadShutdownDelay()));
+    defaultProperties.setProperty(QUEUE_PROCESSOR_EVICTION_DELAY,
+        String.valueOf(CoreConfiguration.DEFAULT.getQueueProcessRetryDelay()));
+    defaultProperties.setProperty(QUEUE_RETRY_DELAY_SECONDS,
+        String.valueOf(CoreConfiguration.DEFAULT.getQueueProcessRetryDelay()));
+    defaultProperties.setProperty(JPA_OPTIMISTIC_LOCK_RETRY_COUNT,
+        String.valueOf(CoreConfiguration.DEFAULT.getJpaLockRetryCount()));
+
+    defaultProperties.setProperty(CLIENT_TIMEOUT_CONNECT,
+        String.valueOf(Configuration.DEFAULT.getClientConnectTimeout()));
+    defaultProperties.setProperty(CLIENT_TIMEOUT_READ,
+        String.valueOf(Configuration.DEFAULT.getClientReadTimeout()));
+    defaultProperties.setProperty(CLIENT_FOLLOW_REDIRECTS,
+        String.valueOf(Configuration.DEFAULT.getClientFollowRedirects()));
   }
 
   private final ConfigurationProvider provider;
@@ -114,23 +139,43 @@ public class ConfigurationImpl implements Configuration {
   }
 
   @Override
-  public Integer getClientRetryDelaySeconds() {
-    return provider.getProperty(RETRY_DELAY_SECONDS, Integer.class);
+  public Integer getBackoffDelay() {
+    return provider.getProperty(BACKOFF_DELAY_SECONDS, Integer.class);
   }
 
   @Override
-  public Integer getClientRetryDelayMaxSeconds() {
-    return provider.getProperty(RETRY_DELAY_MAX_SECONDS, Integer.class);
+  public Integer getBackoffDelayMax() {
+    return provider.getProperty(BACKOFF_DELAY_MAX_SECONDS, Integer.class);
   }
 
   @Override
-  public Integer getClientRetryJitterMilliseconds() {
-    return provider.getProperty(RETRY_JITTER_MILLIS, Integer.class);
+  public Integer getJitter() {
+    return provider.getProperty(BACKOFF_JITTER_MILLIS, Integer.class);
   }
 
   @Override
-  public Integer getTaskDispatcherThreadPoolSize() {
+  public Integer getDispatcherThreadPoolSize() {
     return provider.getProperty(THREAD_POOL_SIZE, Integer.class);
+  }
+
+  @Override
+  public Integer getDispatcherThreadShutdownDelay() {
+    return provider.getProperty(THREAD_POOL_SHUTDOWN_TIMEOUT, Integer.class);
+  }
+
+  @Override
+  public Integer getQueueProcessRetryDelay() {
+    return provider.getProperty(QUEUE_RETRY_DELAY_SECONDS, Integer.class);
+  }
+
+  @Override
+  public Long getQueueProcessorEvictionDelay() {
+    return provider.getProperty(QUEUE_PROCESSOR_EVICTION_DELAY, Long.class);
+  }
+
+  @Override
+  public Integer getJpaLockRetryCount() {
+    return provider.getProperty(JPA_OPTIMISTIC_LOCK_RETRY_COUNT, Integer.class);
   }
 
 }
