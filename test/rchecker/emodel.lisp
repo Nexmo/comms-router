@@ -5,6 +5,7 @@
           (fnot (fhas-key "agents"))
           (fand (fhas-kv "agents" 2 #'(lambda(js-val val)(< (length js-val) val)))))
          #'(lambda(model)(let ((res (funcall (eagent-new))))
+                           (sleep 1)
                            (list res (if (second res)
                                          (jsown:extend-js (copy-tree model)
                                            ("agents" (list* (jsown:extend-js (first res)
@@ -48,12 +49,6 @@
                     (task-position (position-if (fhas-kv "state" "waiting" #'equal) tasks :from-end t))
                     (task (nth task-position tasks))
                     (res (funcall (eagent-set :id (jsown:val agent "id") :state "ready"))))
-               ;; (format t "~%Selected ~A" selected)
-               ;; (format t "~%Agent old ~A" agent)
-               ;; (format t "~%Agent new ~A" (jsown::extend-js agent ("state" "ready")))
-               ;; (format t "~%Agents old ~A" agents)
-               ;; (format t "~%Agents new ~A" (set-nth selected (copy-tree agents)
-               ;;                                                (jsown::extend-js agent ("state" "ready")) ))
                (list res (if (second res)
                              (jsown:extend-js (copy-tree model)
                                ("agents" (set-nth selected (copy-tree agents)
@@ -67,7 +62,9 @@
          #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
                                 (agents (jsown:val model "agents"))
                                 (agent (nth selected agents))
-                                (res (funcall (twait (eagent :id (jsown:val agent "id") :checks (has-kv "state" (jsown:val agent "state"))) :timeout 10))))
+                                (res (funcall (twait
+                                               (eagent :id (jsown:val agent "id") :checks (has-kv "state" (jsown:val agent "state")))
+                                               :timeout 10))))
                            (list res model)))
          "check agent state")
 
@@ -90,7 +87,7 @@
    (list (fand
           (for
            (fnot (fhas-key "tasks"))
-           (fand (fhas-kv "tasks" 10 #'(lambda(js-val val)(< (length js-val) val)))))
+           (fand (fhas-kv "tasks" 5 #'(lambda(js-val val)(< (length js-val) val)))))
           (for
            (fnot (fhas-key "agents"))
            (fand (fhas-key "agents") #'(lambda(model) (every #'(lambda(task)(not (equal (jsown:val task "state") "ready")))
@@ -106,6 +103,7 @@
                                                                                            (has-kv "size" waiting-tasks))))
                                                     (etask-new :checks (check-and (has-json) (has-key "id")
                                                                                   (has-kv "queueTasks" waiting-tasks)))))))
+                           (sleep 1)
                            (list res (if (second res)
                                          (jsown:extend-js (copy-tree model)
                                            ("tasks" (list* (jsown:extend-js
@@ -119,14 +117,26 @@
    (list (fand
           (for
            (fnot (fhas-key "tasks"))
-           (fand (fhas-kv "tasks" 10 #'(lambda(js-val val)(< (length js-val) val)))))
+           (fand (fhas-kv "tasks" 5 #'(lambda(js-val val)(< (length js-val) val)))))
           (fand (fhas-key "agents") #'(lambda(model) (some (fhas-kv "state" "ready" #'equal)
                                                            (jsown:val model "agents")))))
          #'(lambda(model)
-             (let ((agents (jsown:val model "agents"))
+             (let ((waiting-tasks (if (jsown:keyp model "tasks")
+                                      (length (remove-if-not
+                                               (fhas-kv "state" "waiting" #'equal)
+                                               (jsown:val model "tasks")))
+                                      0))
+                   (agents (jsown:val model "agents"))
                    (agent-pos (position-if (fhas-kv "state" "ready") agents))
-                   (res (funcall (etask-new)))
+                   (res (fand
+                         (twait (equeue-size
+                                 :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                                 :checks (check-and (has-json) (has-key "size")
+                                                    (has-kv "size" waiting-tasks))))
+                         (funcall (etask-new :checks (check-and (has-json) (has-key "id")
+                                                                (has-kv "queueTasks" waiting-tasks))))))
                    (agent (nth agent-pos agents)))
+               (sleep 1)
                (list res (if (second res)
                              (jsown:extend-js (copy-tree model)
                                ("tasks" (list* (jsown:extend-js
@@ -160,11 +170,16 @@
          #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                                 (tasks (jsown:val model "tasks"))
                                 (task (nth selected tasks))
-                                (res (funcall (twait (etask :id (jsown:val task "id") :state (jsown:val task "state")) :timeout 10))))
+                                (res (funcall (twait (etask :id (jsown:val task "id") :state (jsown:val task "state"))
+                                                     :timeout 10))))
                            (list res model)))
          "check task state")
 
-   (list (fhas-key "selected-task")
+   (list (fand
+          (fhas-key "selected-task")
+          (fnth "selected-task" "tasks" (for(fhas-kv "state" "completed" #'equal)
+                                            (fhas-kv "state" "waiting" #'equal)))
+          )
          #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                                 (tasks (jsown:val model "tasks"))
                                 (res (funcall (etask-del :id (jsown:val (nth selected tasks) "id")))))

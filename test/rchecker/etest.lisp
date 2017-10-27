@@ -157,9 +157,12 @@
   (format t "~%With model:~S" model)
   (if (>= (length path) size)  'pass
       (let ((available (remove-if-not #'(lambda(task)(let ((res (funcall (first task) model)))
-                                                       (format t "~%~:[skip~;OK~] ~A" res (third task))
+                                                       ;(format t "~%~:[skip~;OK~] ~A" res (third task))
                                                        res))
                                       tasks)))
+        (unless available
+          (format t "~%Deadend reached!")
+          (break "Deadend"))
         (if available
             (let*((selected (if prefix
                                 (first prefix)
@@ -168,7 +171,7 @@
                   (step-result (funcall (second (nth selected available)) (copy-tree model)))
                   (result (first step-result))
                   (new-model (second step-result))
-                  (new-path (list* (cons selected result) path)))
+                  (new-path (list* (cons (cons selected name) result) path)))
               (format t "~%Processing ~A" name)
               (cond
                 ((null (second result)) new-path);;error detected
@@ -188,9 +191,14 @@
   (router-new)
   (queue-new)
   (let ((res (generate-sample :tasks *tasks* :size size :prefix prefix)))
-    (unless (equal res 'pass)
-      (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-      (mapcar #'first res) ) ) )
+    (if (equal res 'pass)
+        (progn
+          (format t "~%Pass"))
+        (progn
+          (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+          (mapcar #'first res)
+          )
+       ) ) )
 
 (defun find-bug (size)
   (length (loop for x = (test-random :size size) :repeat 1000 :if x :return (print (reverse x)))))
