@@ -11,6 +11,14 @@ public interface Configuration {
 
   Integer getClientReadTimeout();
 
+  Boolean getClientFollowRedirects();
+
+  Integer getClientRetryDelaySeconds();
+
+  Integer getClientRetryDelayMaxSeconds();
+
+  Integer getClientRetryJitterMilliseconds();
+
   Integer getTaskDispatcherThreadPoolSize();
 
 }

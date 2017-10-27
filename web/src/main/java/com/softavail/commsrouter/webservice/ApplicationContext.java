@@ -1,7 +1,7 @@
 package com.softavail.commsrouter.webservice;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
-import com.softavail.commsrouter.api.exception.AssignmentRejectedException;
+import com.softavail.commsrouter.api.exception.CallbackException;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
@@ -14,12 +14,13 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
 
 import javax.servlet.ServletContext;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status.Family;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Created by @author mapuo on 16.10.17.
@@ -37,9 +38,14 @@ public class ApplicationContext {
     JpaDbFacade db = new JpaDbFacade();
     CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
     EntityMappers mappers = new EntityMappers();
-    Integer poolSize = configuration.getTaskDispatcherThreadPoolSize();
+    TaskDispatcher.Configuration dispatcherConfiguration =
+        new TaskDispatcher.Configuration(
+            configuration.getTaskDispatcherThreadPoolSize(),
+            configuration.getClientRetryDelaySeconds(),
+            configuration.getClientRetryDelayMaxSeconds(),
+            configuration.getClientRetryJitterMilliseconds());
     TaskDispatcher taskDispatcher =
-        new TaskDispatcher(db, this::handleAssignment, mappers, poolSize);
+        new TaskDispatcher(db, mappers, dispatcherConfiguration, this::handleAssignment);
 
     coreContext = new AppContext(db, evaluator, taskDispatcher, mappers);
   }
@@ -61,19 +67,25 @@ public class ApplicationContext {
   }
 
   private void handleAssignment(TaskAssignmentDto taskAssignment)
-      throws AssignmentRejectedException {
+      throws CallbackException {
 
-    String callbackUrl = taskAssignment.getTask().getCallbackUrl();
+    try {
+      String callbackUrl = taskAssignment.getTask().getCallbackUrl();
 
-    Response response = client.target(callbackUrl)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.entity(taskAssignment, MediaType.APPLICATION_JSON_TYPE));
+      Response response = client.target(callbackUrl)
+          .property(ClientProperties.FOLLOW_REDIRECTS, configuration.getClientFollowRedirects())
+          .request(MediaType.WILDCARD_TYPE)
+          .post(Entity.entity(taskAssignment, MediaType.APPLICATION_JSON_TYPE));
 
-    if (response.getStatusInfo().getFamily().equals(Family.CLIENT_ERROR)) {
-      String rejectionMessage = response.getStatusInfo().getReasonPhrase();
-      throw new AssignmentRejectedException("Rejected with: " + rejectionMessage);
+      if (response.getStatus() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+        // On 503 response we will try again
+        // TODO Retry-After header?!
+        throw new CallbackException();
+      }
+
+    } catch (ProcessingException e) {
+      throw new CallbackException();
     }
-
   }
 
   public void close() {

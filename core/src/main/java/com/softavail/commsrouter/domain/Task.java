@@ -7,12 +7,11 @@ package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
-
+import java.util.concurrent.TimeUnit;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -27,7 +26,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 /**
- *
  * @author ikrustev
  */
 @Entity
@@ -60,7 +58,7 @@ public class Task extends RouterObject {
   private String callbackUrl;
 
   @Column(name = "priority", nullable = false)
-  private Long priority = new Long(0);
+  private Long priority = 0L;
 
   @CreationTimestamp
   @Temporal(TemporalType.TIMESTAMP)
@@ -73,10 +71,10 @@ public class Task extends RouterObject {
   private Date updateDate;
 
   @Column(name = "timeout", nullable = false)
-  private Long queuedTimeout = new Long(60 * 60); // default 1h - in seconds
+  private Long queuedTimeout = TimeUnit.HOURS.toSeconds(1); // default 1h - in seconds
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "currentRoute")
+  @JoinColumn(name = "current_route")
   private Route currentRoute;
 
   @Temporal(TemporalType.TIMESTAMP)
@@ -191,9 +189,11 @@ public class Task extends RouterObject {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder().append("JpaTask [").append("requirements = ")
-        .append(requirements).append(", userContext = ").append(userContext)
-        .append(", callbackUrl = ").append(callbackUrl).append("]");
+    StringBuilder sb = new StringBuilder().append("JpaTask [")
+        .append("requirements = ").append(requirements)
+        .append(", userContext = ").append(userContext)
+        .append(", callbackUrl = ").append(callbackUrl)
+        .append("]");
     return sb.toString();
   }
 

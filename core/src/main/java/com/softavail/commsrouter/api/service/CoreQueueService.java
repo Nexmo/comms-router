@@ -127,6 +127,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    app.evaluator.isValidExpression(createArg.getPredicate());
     Queue queue = new Queue(createArg, objectId);
 
     if (objectId.getRouterId() != null) {

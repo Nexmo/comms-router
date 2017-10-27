@@ -14,6 +14,14 @@
                                           ("predicate" predicate))))
          (check-and (has-json) (has-key "id") (publish-id :queue))))
 
+(defun equeue-size (&key (router-id (get-event :router))
+                      (id (get-event :queue))
+                      (description (format nil "Get size of the queue."))
+                      (checks (check-and (has-json) (has-key "size"))))
+  (tstep description
+         (tapply (http-get "/routers" router-id "queues" id "size"))
+         checks ))
+
 (defun equeue-put (&key (router-id (get-event :router))
                      (id (get-event :queue))
                      (description "description")
@@ -96,7 +104,8 @@
                    (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                    (context (jsown:new-js ("key" "value")))
                    (queue-id (get-event :queue))
-                   (plan-id :null))
+                   (plan-id :null)
+                   (checks (check-and (has-json) (has-key "id") (publish-id :task))))
   (tstep (format nil "Create new task to queue ~A and context ~A." queue-id (jsown:to-json context))
          (tapply (http-post (list "/routers" router-id "tasks")
                             (jsown:new-js
@@ -105,7 +114,7 @@
                               ("requirements" requirements)
                               ("queueId" queue-id)
                               ("planId" plan-id))))
-         (check-and (has-json) (has-key "id") (publish-id :task))))
+         checks))
 
 (defun etask-del (&key (router-id (get-event :router))
                     (id (get-event :task)))
@@ -148,11 +157,11 @@
          (not-contains "error")))
 
 (defun eagent-set(&key
-                    (description "Set state of the agent")
+                    (state "ready") ;; offline busy
+                    (description (format nil "Set state=~A of the agent"state ))
                     (router-id (get-event :router))
                     (id (get-event :agent))
                     (address "address")
-                    (state "ready") ;; offline busy
                     (capabilities (jsown:new-js ("language" "en"))))
   (tstep description
          (tapply (http-post (list "/routers" router-id "agents" id)

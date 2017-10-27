@@ -25,7 +25,6 @@ import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
 import net.sourceforge.jeval.Evaluator;
-import net.sourceforge.jeval.VariableResolver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,31 +39,6 @@ public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
   // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
-  private final int openBracketCharacter = '[';
-  private final int closeBracketCharacter = ']';
-
-
-  public static class VariableResolverEx implements VariableResolver {
-
-    @Override
-    public String resolveVariable(String variableName) {
-      return EvaluatorHelpers.resolveBooleanVariable(variableName);
-    }
-  }
-
-  public static class EvaluatorEx extends Evaluator {
-
-    @Override
-    public String replaceVariables(final String expression) throws EvaluationException {
-      String replacedVariable = EvaluatorHelpers.resolveBooleanVariable(expression);
-      if (replacedVariable != null) {
-        return replacedVariable;
-      }
-
-      return super.replaceVariables(expression);
-    }
-  }
-
 
 
   /**
@@ -145,16 +119,24 @@ public class CommsRouterEvaluator {
     return false;
   }
 
+  public void isValidExpression(String expression) throws EvaluatorException {
+    if (expression == null || expression.isEmpty()) {
+      throw new EvaluatorException("Expression cannot be NULL or empty.");
+    }
+
+    ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    evaluator.init(true);
+    evaluator.isValidExpression(expression);
+  }
+
   public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
       throws CommsRouterException {
     if (pridicate == null || pridicate.isEmpty()) {
       return false;
     }
-    Evaluator evaluator = new EvaluatorEx();
-    evaluator.putFunction(new HasFunction());
-    evaluator.putFunction(new InFunction());
-    evaluator.putFunction(new ContainsFunction());
-    evaluator.setVariableResolver(new VariableResolverEx());
+
+    ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    evaluator.init();
 
     return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
   }
@@ -214,7 +196,8 @@ public class CommsRouterEvaluator {
         });
 
       } catch (IOException ex) {
-        LOGGER.error(ex.getLocalizedMessage());
+        // this exception will never happens in the block above.
+        LOGGER.error("Not expected exception here: {}", ex);
       }
     });
 
@@ -239,8 +222,8 @@ public class CommsRouterEvaluator {
       LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
       return true;
     } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator::evaluate() failed with error: '{}", ex.getLocalizedMessage());
-      throwException = ex.getLocalizedMessage();
+      LOGGER.info("Evaluator expression failed with message: '{}", ex.getMessage());
+      throwException = ex.getMessage();
     }
 
     if (throwException != null && !throwException.isEmpty()) {
@@ -264,28 +247,8 @@ public class CommsRouterEvaluator {
     return predicate;
   }
 
-  private String supportArraysInExpression(String expression) {
-    String formatedExpression = expression;
-    int startIndex = 0;
-    do {
-      startIndex = formatedExpression.indexOf(openBracketCharacter, startIndex);
-      if (startIndex >= 0) {
-        int endIndex = formatedExpression.indexOf(closeBracketCharacter, startIndex + 1);
-        if (endIndex > 0) {
-          String arrayString = formatedExpression.substring(startIndex, endIndex + 1);
-          arrayString = String.format("'%s'", arrayString.replace(',', ';'));
-          formatedExpression = formatedExpression.substring(0, startIndex) + arrayString
-              + formatedExpression.substring(endIndex + 1);
-          endIndex += 3;
-        }
-        startIndex = endIndex;
-      }
-    } while (startIndex > 0);
-    return formatedExpression;
-  }
-
   private String validateExpressionFormat(AttributeGroupDto attributesGroup, String expression) {
-    String formatedExpression = supportArraysInExpression(expression);
+    String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
     formatedExpression = reMapVariableKeysInPredicate(attributesGroup, formatedExpression);
 
     return formatedExpression;

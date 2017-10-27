@@ -5,6 +5,8 @@ import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import static io.restassured.RestAssured.*;
 
@@ -18,6 +20,8 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -73,6 +77,18 @@ public class Task extends Resource {
     return oid;
   }
 
+  public CreatedTaskDto createQueueTask(URL url) {
+    CreateTaskArg taskArg = new CreateTaskArg();
+    taskArg.setCallbackUrl(url);
+    taskArg.setRequirements(new AttributeGroupDto());
+    taskArg.setQueueId(state().get(CommsRouterResource.QUEUE));
+    return create(taskArg);
+  }
+
+  public CreatedTaskDto createQueueTask()  throws MalformedURLException{
+    return createQueueTask(new URL("http://example.com"));
+  }
+
   public CreatedTaskDto createWithPlan(CreateTaskArg args) {
     args.setPlanId(state().get(CommsRouterResource.PLAN));
     CreatedTaskDto oid = given()
@@ -117,6 +133,7 @@ public class Task extends Resource {
         .when().post("/routers/{routerId}/tasks/{queueId}")
         .then().statusCode(204);
   }
+
   public void setState(TaskState state) {
     UpdateTaskArg arg = new UpdateTaskArg();
     arg.setState(state);

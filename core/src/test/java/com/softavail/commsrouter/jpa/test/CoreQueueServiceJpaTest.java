@@ -25,7 +25,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
   public void createTest() throws CommsRouterException {
     RouterObjectId id = new RouterObjectId("", "01");
     agentService.create(newCreateAgentArg("address_one"), id);
-    queueService.create(newCreateQueueArg("1=1", "description_one"), id);
+    queueService.create(newCreateQueueArg("1==1", "description_one"), id);
     QueueDto queue = queueService.get(id);
     assertEquals(queue.getDescription(), "description_one");
   }
@@ -35,10 +35,10 @@ public class CoreQueueServiceJpaTest extends TestBase {
   public void updateTest() throws CommsRouterException {
     RouterObjectId id = new RouterObjectId("", "01");
     agentService.create(newCreateAgentArg("address_one"), id);
-    queueService.create(newCreateQueueArg("1=1", "description_one"), id);
+    queueService.create(newCreateQueueArg("1==1", "description_one"), id);
     QueueDto queueBefore = queueService.get(id);
     // Updating
-    queueService.update(newUpdateQueueArg("1=1", "description_two"), id);
+    queueService.update(newUpdateQueueArg("1==1", "description_two"), id);
     QueueDto queueAfter = queueService.get(id);
     assertNotEquals(queueAfter, queueBefore);
   }
@@ -47,7 +47,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
   @Test
   public void getQueueSizeTest() throws CommsRouterException, MalformedURLException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "description_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "description_one"), id);
     taskService.create(newCreateTaskArg(id.getId(), "https://test.com", null), id);
     RouterObjectId idd = new RouterObjectId(queue.getId(), "01");
     long size = queueService.getQueueSize(idd);
@@ -58,7 +58,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
   @Test
   public void getTasksTest() throws CommsRouterException, MalformedURLException {
     RouterObjectId id = new RouterObjectId("", "01");
-    ApiObjectId queue = queueService.create(newCreateQueueArg("1=1", "description_one"), id);
+    ApiObjectId queue = queueService.create(newCreateQueueArg("1==1", "description_one"), id);
     taskService.create(newCreateTaskArg(id.getId(), "https://test.com", null), id);
     RouterObjectId idd = new RouterObjectId(queue.getId(), "01");
     Collection<TaskDto> tasks = queueService.getTasks(idd);

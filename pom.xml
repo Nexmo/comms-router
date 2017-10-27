@@ -23,6 +23,7 @@
     <module>client</module>
     <module>core</module>
     <module>web</module>
+    <module>db-migrations</module>
   </modules>
 
   <build>
@@ -219,6 +220,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>23.0</version>
+      </dependency>
+      <dependency>
+        <groupId>net.jodah</groupId>
+        <artifactId>failsafe</artifactId>
+        <version>1.0.4</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
