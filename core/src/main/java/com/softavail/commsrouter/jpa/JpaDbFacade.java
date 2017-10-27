@@ -5,6 +5,7 @@
 
 package com.softavail.commsrouter.jpa;
 
+import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Router;
@@ -14,10 +15,11 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 /**
- *
  * @author ikrustev
  */
 public class JpaDbFacade {
+
+  private static final String PERSISTENCE_UNIT = "com.softavail.comms-router.core-pu";
 
   public final JpaTransactionManager transactionManager;
 
@@ -28,16 +30,22 @@ public class JpaDbFacade {
   public final RouterObjectRepository<Task> task;
 
   public JpaDbFacade() {
+    this(CoreConfiguration.DEFAULT, PERSISTENCE_UNIT);
+  }
 
-    this("com.softavail.comms-router.core-pu");
-
+  public JpaDbFacade(CoreConfiguration configuration) {
+    this(configuration, PERSISTENCE_UNIT);
   }
 
   public JpaDbFacade(String unit) {
+    this(CoreConfiguration.DEFAULT, unit);
+  }
+
+  public JpaDbFacade(CoreConfiguration configuration, String unit) {
 
     EntityManagerFactory emf = Persistence.createEntityManagerFactory(unit);
 
-    transactionManager = new JpaTransactionManager(emf);
+    transactionManager = new JpaTransactionManager(emf, configuration.getJpaLockRetryCount());
 
     this.router = new RouterRepository(transactionManager);
     this.queue = new QueueRepository(transactionManager);

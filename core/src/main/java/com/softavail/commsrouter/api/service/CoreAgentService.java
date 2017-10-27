@@ -101,7 +101,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     if (updateArg.getState() == AgentState.busy
         || updateArg.getState() == AgentState.unavailable) {
-      throw new BadValueException("Setting agent state to '" + updateArg.getState() + "' not allowed");
+      throw new BadValueException(
+          "Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
 
     return app.db.transactionManager.execute((em) -> {
