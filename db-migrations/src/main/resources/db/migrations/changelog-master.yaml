@@ -21,7 +21,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: last_time_at_busy_state
-            type: TIMESTAMP
+            type: TIMESTAMP(3)
         - column:
             name: state
             type: VARCHAR(255)
@@ -238,7 +238,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: create_date
-            type: TIMESTAMP
+            type: TIMESTAMP(3)
         - column:
             constraints:
               nullable: false
@@ -254,7 +254,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: update_date
-            type: TIMESTAMP
+            type: TIMESTAMP(3)
         - column:
             name: agent_id
             type: VARCHAR(255)

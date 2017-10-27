@@ -5,8 +5,12 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.google.common.base.Throwables;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
+
+import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -14,7 +18,6 @@ import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
 /**
- *
  * @author ikrustev
  */
 public class JpaTransactionManager {
@@ -31,7 +34,7 @@ public class JpaTransactionManager {
     EntityManager em = emf.createEntityManager();
     try {
       EntityTransaction dbTransaction = em.getTransaction();
-      for (;;) {
+      for (; ; ) {
         try {
           dbTransaction.begin();
           RESULT result = transactionLogic.run(em);
@@ -41,11 +44,30 @@ public class JpaTransactionManager {
           if (dbTransaction.isActive()) {
             dbTransaction.rollback();
           }
-          Throwable cause = ex.getCause();
-          if (cause != null && cause instanceof OptimisticLockException && lockRetryCount > 0) {
+
+          if (OptimisticLockException.class.isInstance(ex.getCause()) && lockRetryCount > 0) {
             --lockRetryCount;
             continue;
           }
+
+          // Hibernate does not follow JPA 2 specs and wraps ConstraintViolation in RollbackException
+          Class<javax.validation.ConstraintViolationException> javaxConstraint =
+              javax.validation.ConstraintViolationException.class;
+          if (javaxConstraint.isInstance(ex.getCause())) {
+            throw javaxConstraint.cast(ex.getCause());
+          }
+
+          // Find Integrity Constraint Violations like foreign key constraint
+          Class<org.hibernate.exception.ConstraintViolationException> hibernateConstraint =
+              org.hibernate.exception.ConstraintViolationException.class;
+          Optional<Throwable> throwable = Throwables.getCausalChain(ex).stream()
+              .filter((hibernateConstraint)::isInstance)
+              .findFirst()
+              .map(Throwable::getCause);
+          if (throwable.isPresent()) {
+            throw new ReferenceIntegrityViolationException(throwable.get());
+          }
+
           throw ex;
         } catch (Exception ex) {
           if (dbTransaction.isActive()) {
