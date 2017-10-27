@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Rule;
@@ -46,6 +47,7 @@ public class CommsRouterEvaluatorTest {
   String predicateFailed2;
   String predicateOK3;
   String predicateFailed3;
+  EvaluatorHelpers evalHelper;
 
   public CommsRouterEvaluatorTest() {
     createTaskArg = new CreateTaskArg();
@@ -57,12 +59,14 @@ public class CommsRouterEvaluatorTest {
     queue = new Queue();
     taskId = "task-id1";
     agentId = "agent-id1";
-    predicateOK1 = "#{language} == 'en' && #{price} > 10 && #{bool} == true";
-    predicateFailed1 = "#{language} == 'en' && #{price} > 10 && false";
+    predicateOK1 =
+        "#{language} == 'en' && IN(50, #{prices}) && #{price} > 10 && #{boolTrue} == true";
+    predicateFailed1 = "#{language} == 'en' && !#{boolFalse} && #{price} > 100";
     predicateOK2 = "(IN('fr',#{languages}) || #{color}=='red') && HAS(#{prices}, 30)";
     predicateFailed2 = "(IN('fr',['en','es','de']) || #{color}=='red') && HAS(#{prices}, 90)";
     predicateOK3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'fr') && #{color}=='red'";
     predicateFailed3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'de') && #{color}=='red'";
+    evalHelper = new EvaluatorHelpers();
   }
 
   @BeforeClass
@@ -77,7 +81,8 @@ public class CommsRouterEvaluatorTest {
     requirements.put("nickname", new StringAttributeValueDto("The Stone"));
     requirements.put("color", new StringAttributeValueDto("red"));
     requirements.put("price", new DoubleAttributeValueDto(42D));
-    requirements.put("bool", new BooleanAttributeValueDto(true));
+    requirements.put("boolTrue", new BooleanAttributeValueDto(true));
+    requirements.put("boolFalse", new BooleanAttributeValueDto(false));
     ArrayOfStringsAttributeValueDto languages = new ArrayOfStringsAttributeValueDto();
     languages.add("en");
     languages.add("es");
@@ -143,47 +148,12 @@ public class CommsRouterEvaluatorTest {
     System.out.println("evaluateNewTaskToQueueByPlanRules");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
     Boolean expResult = true;
+    rule.setPredicate(predicateOK1);
     Boolean result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
     assertEquals(expResult, result);
     expResult = false;
     rule.setPredicate(predicateFailed1);
     result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
-    assertEquals(expResult, result);
-  }
-
-  /**
-   * Test of evaluateNewAgentForQueue method, of class CommsRouterEvaluator.
-   * 
-   * @throws java.lang.Exception
-   */
-  @Test
-  public void testEvaluateNewAgentForQueue() throws Exception {
-    System.out.println("evaluateNewAgentForQueue");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    Boolean result = instance.evaluateNewAgentForQueue(agentId, createAgentArg, queue);
-    assertEquals(expResult, result);
-    expResult = false;
-    queue.setPredicate(predicateFailed2);
-    result = instance.evaluateNewAgentForQueue(agentId, createAgentArg, queue);
-    assertEquals(expResult, result);
-  }
-
-  /**
-   * Test of evaluateUpdateAgentForQueue method, of class CommsRouterEvaluator.
-   * 
-   * @throws java.lang.Exception
-   */
-  @Test
-  public void testEvaluateUpdateAgentForQueue() throws Exception {
-    System.out.println("evaluateUpdateAgentForQueue");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    Boolean result = instance.evaluateUpdateAgentForQueue(agentId, updateAgentArg, queue);
-    assertEquals(expResult, result);
-    expResult = false;
-    queue.setPredicate(predicateFailed2);
-    result = instance.evaluateUpdateAgentForQueue(agentId, updateAgentArg, queue);
     assertEquals(expResult, result);
   }
 
@@ -197,6 +167,7 @@ public class CommsRouterEvaluatorTest {
     System.out.println("evaluateAgentCapabilitiesForQueue");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
     Boolean expResult = true;
+    queue.setPredicate(predicateOK2);
     Boolean result = instance.evaluateAgentCapabilitiesForQueue(agentId, requirements, queue);
     assertEquals(expResult, result);
     expResult = false;
@@ -215,8 +186,99 @@ public class CommsRouterEvaluatorTest {
     System.out.println("evaluatePredicateByAttributes");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
     Boolean expResult = true;
-    Boolean result = instance.evaluatePredicateByAttributes(requirements, predicateOK3);
+    Boolean result = true;
+    // validation should be failed cases
+    try {
+      instance.isValidExpression(null);
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
+    try {
+      instance
+          .isValidExpression("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
+    try {
+      instance.isValidExpression("#{boolTrue} && #{price}>10 && #{$price}^10");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
+    try {
+      instance.isValidExpression("#{color}$'red'");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
+    // validation should be passed
+    try {
+      instance.isValidExpression("true");
+    } catch (EvaluatorException ex) {
+      assertTrue(false);
+    }
+
+    try {
+      instance.isValidExpression(predicateOK3);
+    } catch (EvaluatorException ex) {
+      assertTrue(false);
+    }
+    try {
+      instance.isValidExpression("CONTAINS([10, 20, 30], 20)");
+    } catch (EvaluatorException ex) {
+      assertTrue(false);
+    }
+    try {
+      instance.isValidExpression("IN('fr', ['en','fr'])");
+    } catch (EvaluatorException ex) {
+      assertTrue(false);
+    }
+
+    // check expressions by attributte
+    expResult = true;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateOK3);
     assertEquals(expResult, result);
+    expResult = true;
+    result = instance.evaluatePredicateByAttributes(null, "1==1");
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.evaluatePredicateByAttributes(new AttributeGroupDto(), "2==3");
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.evaluatePredicateByAttributes(requirements, null);
+    assertEquals(expResult, result);
+    
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "CONTAINS('Sto')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "HAS(100)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements,
+          "HAS([false, 'true'], #{true}) && #{'true'}");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "IN(50)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements,
+          "IN(#{false}, [true, 'true']) && #{'false'}");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
     expResult = false;
     result = instance.evaluatePredicateByAttributes(requirements, predicateFailed3);
     assertEquals(expResult, result);

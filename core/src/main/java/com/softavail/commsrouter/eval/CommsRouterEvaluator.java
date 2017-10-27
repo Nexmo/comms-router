@@ -64,45 +64,6 @@ public class CommsRouterEvaluator {
 
   /**
    *
-   * @param agentId new creating agent ID
-   * @param createAgentArg arguments for creating an agent
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateNewAgentForQueue(String agentId, CreateAgentArg createAgentArg,
-      Queue queue) throws CommsRouterException {
-    AttributeGroupDto attrbutes = createAgentArg.getCapabilities();
-    if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The agent with ID={} matched to queue with ID={}", agentId, queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
-   * @param agentId updating agent ID
-   * @param updateAgentArg arguments for updating agent
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateUpdateAgentForQueue(String agentId, UpdateAgentArg updateAgentArg,
-      Queue queue) throws CommsRouterException {
-    AttributeGroupDto attrbutes = updateAgentArg.getCapabilities();
-    if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The updated agent with ID={} matched to queue with ID={}", agentId,
-          queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
    * @param agentId agent ID for which capabilities will be evaluated to queue
    * @param agentAttrbutes agent capabilities arguments for evaluate to queue predicate
    * @param queue the queue that will be evaluated
@@ -141,17 +102,16 @@ public class CommsRouterEvaluator {
     return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
   }
 
-  private Boolean setEvaluatorAttributeVariables(Evaluator evaluator,
+  private void setEvaluatorAttributeVariables(Evaluator evaluator,
       AttributeGroupDto attributesGroup) {
-    Boolean result = true;
     if (attributesGroup == null) {
       LOGGER.warn("Missing attributes for matching to predicate");
-      return true;
+      return;
     }
     Set<String> keys = attributesGroup.keySet();
     if (keys.isEmpty()) {
       LOGGER.warn("Missing attributes for matching to predicate");
-      result = true;
+      return;
     }
     keys.forEach((String key) -> {
       AttributeValueDto attributeValue = attributesGroup.get(key);
@@ -200,18 +160,13 @@ public class CommsRouterEvaluator {
         LOGGER.error("Not expected exception here: {}", ex);
       }
     });
-
-    return result;
   }
 
   private Boolean evaluatePredicateToAttributes(Evaluator evaluator,
       AttributeGroupDto attributesGroup, String predicate) throws CommsRouterException {
 
-    if (!setEvaluatorAttributeVariables(evaluator, attributesGroup)) {
-      return false;
-    }
+    setEvaluatorAttributeVariables(evaluator, attributesGroup);
 
-    String throwException;
     try {
       String result = evaluator.evaluate(validateExpressionFormat(attributesGroup, predicate));
       EvaluationResult res = new EvaluationResult(result, EvaluationConstants.SINGLE_QUOTE);
@@ -222,34 +177,14 @@ public class CommsRouterEvaluator {
       LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
       return true;
     } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator expression failed with message: '{}", ex.getMessage());
-      throwException = ex.getMessage();
+      String throwException = "Evaluator expression failed with message: " + ex.getMessage();
+      LOGGER.info(throwException);
+      throw new EvaluatorException(throwException, ex);
     }
-
-    if (throwException != null && !throwException.isEmpty()) {
-      throw new EvaluatorException(throwException);
-    }
-
-    return false;
-  }
-
-  private String reMapVariableKeysInPredicate(AttributeGroupDto attributesGroup, String predicate) {
-    // if (attributesGroup == null) {
-    // return predicate;
-    // }
-    // String result = predicate;
-    // Set<String> keys = attributesGroup.keySet();
-    // for (String key : keys) {
-    // String newKey = String.format(EVAL_VARIABLES_FORMAT, key);
-    // result = result.replaceAll(key, newKey);
-    // }
-    // return result;
-    return predicate;
   }
 
   private String validateExpressionFormat(AttributeGroupDto attributesGroup, String expression) {
     String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
-    formatedExpression = reMapVariableKeysInPredicate(attributesGroup, formatedExpression);
 
     return formatedExpression;
   }

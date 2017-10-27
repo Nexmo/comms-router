@@ -155,7 +155,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     List<Queue> queues = app.db.queue.list(em, agent.getRouterId());
     queues.forEach((queue) -> {
       try {
-        if (app.evaluator.evaluateUpdateAgentForQueue(agent.getId(), updateArg, queue)) {
+        if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
+            updateArg.getCapabilities(),            queue)) {
           matchedQueues.add(queue);
         }
       } catch (CommsRouterException ex) {
@@ -185,7 +186,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
       for (Queue queue : queues) {
         try {
-          if (app.evaluator.evaluateNewAgentForQueue(objectId.getId(), createArg, queue)) {
+          if (app.evaluator.evaluateAgentCapabilitiesForQueue(objectId.getId(),
+              createArg.getCapabilities(), queue)) {
             agent.getQueues().add(queue);
           }
         } catch (CommsRouterException ex) {

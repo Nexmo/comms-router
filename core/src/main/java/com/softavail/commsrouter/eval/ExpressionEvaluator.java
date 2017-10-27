@@ -40,10 +40,7 @@ public class ExpressionEvaluator extends Evaluator {
         return replacedVariable;
       }
 
-      replacedVariable = EvaluatorHelpers.validationCheckSpecialCharsInVariable(expression);
-      if (replacedVariable != null) {
-        return replacedVariable;
-      }
+      EvaluatorHelpers.validationCheckSpecialCharsInVariable(expression);
     }
 
     return super.replaceVariables(expression);

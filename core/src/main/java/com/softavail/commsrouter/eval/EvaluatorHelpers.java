@@ -23,8 +23,6 @@ public class EvaluatorHelpers {
           + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
   private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
 
-  public EvaluatorHelpers() {}
-
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();
@@ -77,7 +75,7 @@ public class EvaluatorHelpers {
   }
 
   // Helpers for validation expression usage
-  public static String validationCheckSpecialCharsInVariable(String variable)
+  public static void validationCheckSpecialCharsInVariable(String variable)
       throws EvaluationException {
     for (String illegalOperator : illegalExpressionSymbols) {
       int index = variable.indexOf(illegalOperator, 0);
@@ -93,7 +91,6 @@ public class EvaluatorHelpers {
             + "' is not allowed in expression at " + index + ": " + variable);
       }
     }
-    return null;
   }
 
   public static String validationTryReplaceArrayVariable(String variable) {

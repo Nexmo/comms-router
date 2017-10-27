@@ -113,8 +113,6 @@ public class HasFunction implements Function {
           getName(), argumentOne, e.getMessage()));
     } catch (NumberFormatException e) {
       throw new FunctionException(exceptionMessage, e);
-    } catch (Exception e) {
-      throw new FunctionException(exceptionMessage, e);
     }
 
     return new FunctionResult(result.toString(), FunctionConstants.FUNCTION_RESULT_TYPE_NUMERIC);
