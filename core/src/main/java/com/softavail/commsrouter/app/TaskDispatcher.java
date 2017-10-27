@@ -233,12 +233,12 @@ public class TaskDispatcher {
             matchedRoute = getNextRoute(task.getRule(), task.getCurrentRoute().getId());
           } else {
             // default route
-            Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+            Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             return null;
           }
 
           if (matchedRoute == null) {
-            Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+            Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             return null;
           }
 
@@ -260,7 +260,7 @@ public class TaskDispatcher {
               Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
             } else {
               LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
-              Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+              Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             }
           } else {
             if (task.getQueuedTimeout() != null && task.getQueuedTimeout() > 0) {
@@ -271,7 +271,7 @@ public class TaskDispatcher {
               Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
             } else {
               LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
-              Fields.update(task::setExpirationDate, task.getExpirationDate(), null);
+              Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             }
           }
           
@@ -318,12 +318,12 @@ public class TaskDispatcher {
   }
 
   private void restartWaitingTaskTimers() {
-    LOGGER.debug("Restart timer for waiting tasks at startup");
     
     threadPool.submit(() -> doRestartWaitingTaskTimers());
   }
 
   private void doRestartWaitingTaskTimers() {
+    LOGGER.debug("Restarting timers for waiting tasks at startup");
     try {
       db.transactionManager.executeVoid(
           em -> db.router.list(em)
@@ -332,7 +332,11 @@ public class TaskDispatcher {
           .flatMap(Collection::stream)
           .forEach(this::attachExpirationTimerToTask));
     } catch (CommsRouterException e) {
+      LOGGER.error("Can not restart timers for all waiting tasks!{}", e.getMessage());
       throw new RuntimeException("Can not restart timers for all waiting tasks!", e);
+    } catch (Exception ex) {
+      LOGGER.error("Can not restart timers for all waiting tasks!{}", ex.getMessage());
+      throw new RuntimeException("Can not restart timers for all waiting tasks!", ex);
     }
   }
 
@@ -353,7 +357,7 @@ public class TaskDispatcher {
   
   private void attachExpirationTimerToTask(Task task) {
 
-    if (task.getExpirationDate() != null) {
+    if (task.getExpirationDate() == null) {
       LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getId());
     } else {
 

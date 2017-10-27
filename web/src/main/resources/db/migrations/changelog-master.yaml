@@ -653,3 +653,12 @@ databaseChangeLog:
             name: last_time_at_busy_state
             type: DATETIME(19)
         tableName: agent
+    id: 1509090476157-1
+    author: acho (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: expiration_date
+            type: TIMESTAMP(3)
+        tableName: task
