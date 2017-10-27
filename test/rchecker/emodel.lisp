@@ -5,7 +5,6 @@
           (fnot (fhas-key "agents"))
           (fand (fhas-kv "agents" 2 #'(lambda(js-val val)(< (length js-val) val)))))
          #'(lambda(model)(let ((res (funcall (eagent-new))))
-                           (sleep 1)
                            (list res (if (second res)
                                          (jsown:extend-js (copy-tree model)
                                            ("agents" (list* (jsown:extend-js (first res)
@@ -103,7 +102,6 @@
                                                                                            (has-kv "size" waiting-tasks))))
                                                     (etask-new :checks (check-and (has-json) (has-key "id")
                                                                                   (has-kv "queueTasks" waiting-tasks)))))))
-                           (sleep 1)
                            (list res (if (second res)
                                          (jsown:extend-js (copy-tree model)
                                            ("tasks" (list* (jsown:extend-js
@@ -136,7 +134,6 @@
                          (funcall (etask-new :checks (check-and (has-json) (has-key "id")
                                                                 (has-kv "queueTasks" waiting-tasks))))))
                    (agent (nth agent-pos agents)))
-               (sleep 1)
                (list res (if (second res)
                              (jsown:extend-js (copy-tree model)
                                ("tasks" (list* (jsown:extend-js
@@ -170,7 +167,8 @@
          #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                                 (tasks (jsown:val model "tasks"))
                                 (task (nth selected tasks))
-                                (res (funcall (twait (etask :id (jsown:val task "id") :state (jsown:val task "state"))
+                                (res (funcall (twait (etask :id (jsown:val task "id")
+                                                            :state (jsown:val task "state"))
                                                      :timeout 10))))
                            (list res model)))
          "check task state")
