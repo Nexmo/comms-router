@@ -38,48 +38,13 @@ import java.util.Set;
 public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
-  // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
 
 
   /**
-   * 
-   * @param taskId new creating task ID
-   * @param createTaskArg new task arguments
-   * @param rule CommsRouter plan rule object
-   * @return matched queue ID for the matched RuleDto OR null if not match
-   * @throws com.softavail.commsrouter.api.exception.CommsRouterException
    *
+   * @param expression argument that will be check for valid expression or not
+   * @throws EvaluatorException
    */
-  public Boolean evaluateNewTaskToQueueByPlanRules(String taskId, CreateTaskArg createTaskArg,
-      Rule rule) throws CommsRouterException {
-    AttributeGroupDto attrbutes = createTaskArg.getRequirements();
-    if (evaluatePredicateByAttributes(attrbutes, rule.getPredicate())) {
-      LOGGER.info("The task with ID={} matched to rule predicate with ID={}, name='{}'", taskId,
-          rule.getId(), rule.getTag());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
-   * @param agentId agent ID for which capabilities will be evaluated to queue
-   * @param agentAttrbutes agent capabilities arguments for evaluate to queue predicate
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateAgentCapabilitiesForQueue(String agentId, AttributeGroupDto agentAttrbutes,
-      Queue queue) throws CommsRouterException {
-    if (evaluatePredicateByAttributes(agentAttrbutes, queue.getPredicate())) {
-      LOGGER.info("The agent with ID={} matched to queue with ID={}", agentId, queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
   public void isValidExpression(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {
       throw new EvaluatorException("Expression cannot be NULL or empty.");
@@ -90,16 +55,23 @@ public class CommsRouterEvaluator {
     evaluator.isValidExpression(expression);
   }
 
-  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
+  /**
+   *
+   * @param attributesGroup agent capabilities arguments for evaluate to queue predicate
+   * @param predicate the predicate that will be evaluated
+   * @return true - if matched queue
+   * @throws CommsRouterException .
+   */
+  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String predicate)
       throws CommsRouterException {
-    if (pridicate == null || pridicate.isEmpty()) {
+    if (predicate == null || predicate.isEmpty()) {
       return false;
     }
 
     ExpressionEvaluator evaluator = new ExpressionEvaluator();
     evaluator.init();
 
-    return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
+    return evaluatePredicateToAttributes(evaluator, attributesGroup, predicate);
   }
 
   private void setEvaluatorAttributeVariables(Evaluator evaluator,

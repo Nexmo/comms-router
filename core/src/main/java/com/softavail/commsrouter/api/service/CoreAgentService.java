@@ -155,8 +155,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     List<Queue> queues = app.db.queue.list(em, agent.getRouterId());
     queues.forEach((queue) -> {
       try {
-        if (app.evaluator.evaluateAgentCapabilitiesForQueue(agent.getId(),
-            updateArg.getCapabilities(),            queue)) {
+        if (app.evaluator.evaluatePredicateByAttributes(updateArg.getCapabilities(),
+            queue.getPredicate())) {
+          LOGGER.info("Update agent with ID={} matched to queue with ID={}", agent.getId(),
+              queue.getId());
           matchedQueues.add(queue);
         }
       } catch (CommsRouterException ex) {
@@ -184,17 +186,19 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     if (objectId.getRouterId() != null) {
       List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
-      for (Queue queue : queues) {
+      queues.forEach((queue) -> {
         try {
-          if (app.evaluator.evaluateAgentCapabilitiesForQueue(objectId.getId(),
-              createArg.getCapabilities(), queue)) {
+          if (app.evaluator.evaluatePredicateByAttributes(createArg.getCapabilities(),
+              queue.getPredicate())) {
+            LOGGER.info("Create agent with ID={} matched to queue with ID={}", objectId.getId(),
+                queue.getId());
             agent.getQueues().add(queue);
           }
         } catch (CommsRouterException ex) {
           LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
               ex.getLocalizedMessage());
-        }
-      }
+          }
+      });
     }
 
     if (agent.getQueues().isEmpty()) {

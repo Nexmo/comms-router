@@ -140,7 +140,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Route getMatchedRoute(AttributeGroupDto attributesGroup, Rule rule) {
+  private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule) {
     if (rule != null) {
       if (rule.getRoutes().isEmpty()) {
         return null;
@@ -148,6 +148,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
       try {
         if (app.evaluator.evaluatePredicateByAttributes(attributesGroup, rule.getPredicate())) {
+          LOGGER.info("The task with ID={} matched to rule predicate with ID={}, name='{}'", taskId,
+              rule.getId(), rule.getTag());
           return rule.getRoutes().get(0);
         }
       } catch (CommsRouterException ex) {
@@ -215,7 +217,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Route matchedRoute = null;
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        matchedRoute = getMatchedRoute(createArg.getRequirements(), rule);
+        matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule);
         if (matchedRoute != null) {
           task.setRule(rule);
           break;

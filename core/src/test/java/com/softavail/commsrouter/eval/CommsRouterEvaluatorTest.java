@@ -63,8 +63,9 @@ public class CommsRouterEvaluatorTest {
         "#{language} == 'en' && IN(50, #{prices}) && #{price} > 10 && #{boolTrue} == true";
     predicateFailed1 = "#{language} == 'en' && !#{boolFalse} && #{price} > 100";
     predicateOK2 = "(IN('fr',#{languages}) || #{color}=='red') && HAS(#{prices}, 30)";
-    predicateFailed2 = "(IN('fr',['en','es','de']) || #{color}=='red') && HAS(#{prices}, 90)";
-    predicateOK3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'fr') && #{color}=='red'";
+    predicateFailed2 = "(IN('de',#{languages}) || #{color}=='red') && HAS(#{prices}, 90)";
+    predicateOK3 =
+        "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'fr') && IN('en', #{languages}) && #{color}=='red'";
     predicateFailed3 = "CONTAINS(#{nickname}, 'Sto') && HAS(#{languages}, 'de') && #{color}=='red'";
     evalHelper = new EvaluatorHelpers();
   }
@@ -139,44 +140,6 @@ public class CommsRouterEvaluatorTest {
   public void tearDown() {}
 
   /**
-   * Test of evaluateNewTaskToQueueByPlanRules method, of class CommsRouterEvaluator.
-   * 
-   * @throws java.lang.Exception
-   */
-  @Test
-  public void testEvaluateNewTaskToQueueByPlanRules() throws Exception {
-    System.out.println("evaluateNewTaskToQueueByPlanRules");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    rule.setPredicate(predicateOK1);
-    Boolean result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
-    assertEquals(expResult, result);
-    expResult = false;
-    rule.setPredicate(predicateFailed1);
-    result = instance.evaluateNewTaskToQueueByPlanRules(taskId, createTaskArg, rule);
-    assertEquals(expResult, result);
-  }
-
-  /**
-   * Test of evaluateAgentCapabilitiesForQueue method, of class CommsRouterEvaluator.
-   * 
-   * @throws java.lang.Exception
-   */
-  @Test
-  public void testEvaluateAgentCapabilitiesForQueue() throws Exception {
-    System.out.println("evaluateAgentCapabilitiesForQueue");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    queue.setPredicate(predicateOK2);
-    Boolean result = instance.evaluateAgentCapabilitiesForQueue(agentId, requirements, queue);
-    assertEquals(expResult, result);
-    expResult = false;
-    queue.setPredicate(predicateFailed2);
-    result = instance.evaluateAgentCapabilitiesForQueue(agentId, requirements, queue);
-    assertEquals(expResult, result);
-  }
-
-  /**
    * Test of evaluatePredicateByAttributes method, of class CommsRouterEvaluator.
    * 
    * @throws java.lang.Exception
@@ -238,6 +201,12 @@ public class CommsRouterEvaluatorTest {
 
     // check expressions by attributte
     expResult = true;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateOK1);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateOK2);
+    assertEquals(expResult, result);
+    expResult = true;
     result = instance.evaluatePredicateByAttributes(requirements, predicateOK3);
     assertEquals(expResult, result);
     expResult = true;
@@ -248,6 +217,12 @@ public class CommsRouterEvaluatorTest {
     assertEquals(expResult, result);
     expResult = false;
     result = instance.evaluatePredicateByAttributes(requirements, null);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed1);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed2);
     assertEquals(expResult, result);
     
     try {
