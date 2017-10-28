@@ -79,6 +79,7 @@ public class InFunction implements Function {
 
     String argumentTwo = (String) strings.get(1);
     try {
+      argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentTwo);
         if (variable != null) {
