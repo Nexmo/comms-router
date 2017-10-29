@@ -10,7 +10,6 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
@@ -27,7 +26,7 @@ public class Queue extends RouterObject {
   private String description;
   private String predicate;
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "queues", cascade = CascadeType.REMOVE)
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "queues")
   private List<Agent> agents = new ArrayList<>();
 
   public Queue() {}

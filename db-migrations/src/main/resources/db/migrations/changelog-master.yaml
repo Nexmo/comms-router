@@ -512,12 +512,12 @@ databaseChangeLog:
         referencedTableName: agent
 - changeSet:
     id: 1509013814357-34
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: capabilities_attribute_group_id
         baseTableName: agent
-        constraintName: FKc48ete3lfauerkuko5gise7xw
+        constraintName: fk_agent__capabilities__attribute_group
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
@@ -596,20 +596,34 @@ databaseChangeLog:
         referencedTableName: plan
 - changeSet:
     id: 1509013814357-40
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: queue_id
         baseTableName: agent_queue
-        constraintName: FKmf9qpp9pfneo67leq6uej5vhj
+        constraintName: fk_agent_queue__queue
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: CASCADE
+        onUpdate: CASCADE
         referencedColumnNames: id
         referencedTableName: queue
 - changeSet:
     id: 1509013814357-41
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: agent_id
+        baseTableName: agent_queue
+        constraintName: fk_agent_queue__agent
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: agent
+- changeSet:
+    id: 1509013814357-42
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -622,20 +636,6 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: rule
-- changeSet:
-    id: 1509013814357-42
-    author: mapuo (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: agent_id
-        baseTableName: agent_queue
-        constraintName: FKoqsbnajicmn8xqc85py0ph6ap
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: agent
 - changeSet:
     id: 1509013814357-43
     author: mapuo (generated)
