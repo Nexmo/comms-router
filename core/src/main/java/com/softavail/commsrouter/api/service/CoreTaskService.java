@@ -321,4 +321,16 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     return Optional.of(agent.getId());
   }
 
+  @Override
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+    app.db.transactionManager.executeVoid((em) -> {
+      Task task = app.db.task.get(em, routerObjectId);
+      if (!task.getState().isDeleteAllowed()) {
+        throw new InvalidStateException(
+            "Deleting task in state " + task.getState() + " not allowed");
+      }
+      em.remove(task);
+    });
+  }
+
 }
