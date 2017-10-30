@@ -108,8 +108,6 @@ public class InFunction implements Function {
         list.add(item);
       }
       result = (list.contains(argumentOne) ? 1 : 0);
-    } catch (FunctionException fe) {
-      throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() second argument is \"%s\": %s",
           getName(), argumentTwo, e.getMessage()));
