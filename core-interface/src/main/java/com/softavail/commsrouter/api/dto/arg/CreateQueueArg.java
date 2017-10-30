@@ -24,4 +24,25 @@ public class CreateQueueArg {
     this.predicate = predicate;
   }
 
+  public static class Builder {
+
+    private CreateQueueArg arg = new CreateQueueArg();
+
+    public Builder() {}
+
+    public Builder description(String description) {
+      arg.setDescription(description);
+      return this;
+    }
+
+    public Builder predicate(String predicate) {
+      arg.setPredicate(predicate);
+      return this;
+    }
+
+    public CreateQueueArg build() {
+      return arg;
+    }
+  }
+
 }
