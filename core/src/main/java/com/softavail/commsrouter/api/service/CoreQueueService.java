@@ -148,7 +148,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
         } catch (CommsRouterException ex) {
           LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
               ex.getLocalizedMessage());
-          }
+        }
       });
     }
 
