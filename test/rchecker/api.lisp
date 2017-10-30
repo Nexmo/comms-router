@@ -310,8 +310,7 @@
                   (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                   (context (jsown:new-js ("key" "value")))
                   (queue-id (get-event :queue))
-                  (plan-id :null)
-                  )
+                  (plan-id :null) )
   (tr-step (http-post (list "/routers" router-id "tasks")
                       (jsown:new-js
                         ("callbackUrl" callback-url)

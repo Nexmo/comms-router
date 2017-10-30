@@ -2,8 +2,8 @@
 (defun autocomplete-task(router-id task-id)
   (destructuring-bind (response check description)
       (funcall (tand
-                (etask :router-id router-id :task-id task-id :state "assigned")
-                (etask-set :router-id router-id :task-id task-id :state "completed")))
+                (etask :router-id router-id :id task-id :state "assigned")
+                (etask-set :router-id router-id :id task-id :state "completed")))
     (list (list response check description)
             (funcall (tand (etask-set-context :router-id router-id :task-id task-id :key "result" :value (if check t :false))
                            (let ((descr (format nil "~S" description)))

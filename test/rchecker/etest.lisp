@@ -171,7 +171,7 @@
                          (path ())
                          (size 100)
                          (prefix '())
-                         (selector (policy-selector)))
+                         (selector (simple-selector)));(policy-selector)
   (setf *model* (copy-tree model))
   (format t "~%With model:~S" model)
   (if (>= (print(length path)) size)  'pass
