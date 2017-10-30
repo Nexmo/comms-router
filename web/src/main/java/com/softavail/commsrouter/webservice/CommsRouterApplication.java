@@ -1,6 +1,7 @@
 package com.softavail.commsrouter.webservice;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,8 +21,17 @@ public class CommsRouterApplication extends ResourceConfig {
 
   public CommsRouterApplication(@Context ServletContext servletContext)
       throws CommsRouterException {
+
     ApplicationContext applicationContext =
         (ApplicationContext) servletContext.getAttribute(WebServletListener.APPLICATION_CONTEXT);
+
+    ManifestConfigurationImpl manifest = applicationContext.getManifest();
+    LOGGER.info("Build info for {}; Version: {}-{}; Build at {}; Build on JDK {}",
+        manifest.getImplementationTitle(),
+        manifest.getImplementationVersion(),
+        manifest.getImplementationBuild(),
+        manifest.getImplementationBuildTime(),
+        manifest.getBuildJdk());
 
     register(new ApplicationBindings(applicationContext.getCoreContext()));
 

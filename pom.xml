@@ -15,7 +15,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
   </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/Nexmo/comms-router.git</connection>
+  </scm>
 
   <modules>
     <module>common</module>
@@ -68,6 +73,11 @@
           <groupId>org.liquibase</groupId>
           <artifactId>liquibase-maven-plugin</artifactId>
           <version>3.5.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>1.4</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -166,6 +176,21 @@
                 </rule>
               </rules>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <configuration>
+          <shortRevisionLength>7</shortRevisionLength>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
