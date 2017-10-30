@@ -14,6 +14,11 @@ import java.io.IOException;
 public class ArrayOfBooleansAttributeValueDto extends ArrayAttributeValueDto<Boolean> {
 
   @Override
+  public String getValueAsString() {
+    return getValue().toString();
+  }
+
+  @Override
   public void accept(AttributeValueVisitor visitor) throws IOException {
     visitor.handleArrayOfBooleansValue(this);
   }

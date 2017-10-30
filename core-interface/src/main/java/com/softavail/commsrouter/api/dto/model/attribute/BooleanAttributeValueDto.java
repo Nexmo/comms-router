@@ -30,6 +30,11 @@ public class BooleanAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
+  public String getValueAsString() {
+    return getValue().toString();
+  }
+
+  @Override
   public void accept(AttributeValueVisitor visitor) throws IOException {
     visitor.handleBooleanValue(this);
   }
