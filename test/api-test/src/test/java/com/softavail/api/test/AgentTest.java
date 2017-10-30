@@ -126,7 +126,6 @@ public class AgentTest {
     resource = a.get();
     assertThat(String.format("Check agent state (%s) to be ready.", resource.getState()),
                resource.getState(), is(AgentState.ready));
-
   }
 
   @Test
@@ -393,6 +392,48 @@ public class AgentTest {
     assertThat(q.size(), is(0));
     CreatedTaskDto task1 = t.createQueueTask();
     TimeUnit.SECONDS.sleep(2);
+    CreatedTaskDto task2 = t.createQueueTask();
+    assertThat(q.size(), is(2));
+    a.setState(AgentState.ready);
+    TimeUnit.SECONDS.sleep(2);
+
+    assertThat(q.size(), is(1));
+
+    AgentDto resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
+
+    state.put(CommsRouterResource.TASK, task1.getId());
+    TaskDto task = t.get();
+    assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be busy with the second task.", resource.getState()),
+               resource.getState(), is(AgentState.busy));
+
+    state.put(CommsRouterResource.TASK, task2.getId());
+    task = t.get();
+    assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready when all tasks are completed.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+  }
+
+  @Test
+  @DisplayName("Create task, create agent, create task- first one should be handled first.")
+  public void twoTaskBeforeAndAfterAgent() throws MalformedURLException, InterruptedException {
+    CreatedTaskDto task1 = t.createQueueTask();
+    TimeUnit.SECONDS.sleep(2);
+
+    ApiObjectId a1_id = a.create("en");
+    assertThat(q.size(), is(1));
     CreatedTaskDto task2 = t.createQueueTask();
     assertThat(q.size(), is(2));
     a.setState(AgentState.ready);

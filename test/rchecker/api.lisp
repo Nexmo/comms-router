@@ -134,14 +134,19 @@
 
 (defun plan-new(&key (router-id (get-event :router))
                   (queue-id (get-event :queue))
+                  (default-queue-id (get-event :queue))
                   (predicate "1 ==1")
+                  (priority 0)
+                  (next-route nil)
+                  (timeout 3600)
                   (rules (list (jsown:new-js ("tag" "test-rule")
                                              ("predicate" predicate)
-                                             ("routes" (list (jsown:new-js
-                                                               ("queueId" queue-id)
-                                                               ("priority" 0)
-                                                               ("timeout" 360000))))
-                                             )))
+                                             ("routes" (append
+                                                        (list (jsown:new-js
+                                                                ("queueId" queue-id)
+                                                                ("priority" priority)
+                                                                ("timeout" timeout)))
+                                                        next-route)))))
                   (description "description") )
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
@@ -287,10 +292,10 @@
 (defun task-set(&key (router-id (get-event :router))
                   (id (get-event :task))
                   (state "completed")
-                  (timeout 10))
+                  )
   (tr-step (http-post (list "/routers" router-id "tasks" id)
                      (jsown:new-js ("state" state)
-                                   ("queuedTimeout" timeout)))
+                                   ))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val js "id")))))
 (defun task-del(&key (router-id (get-event :router))
