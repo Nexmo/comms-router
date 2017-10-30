@@ -109,13 +109,13 @@ public class QueueTest {
     assertThat(queue.getDescription(), is(description));
     assertThat(queue.getId(), is(queueId));
 
-    queueArg.setDescription(null);
-    queueArg.setPredicate(null);
+    queueArg.setDescription("newDescription");
+    queueArg.setPredicate("2==2");
 
     id = q.replace(queueArg);
     queue = q.get();
-    assertThat(queue.getPredicate(), is(nullValue()));
-    assertThat(queue.getDescription(), is(nullValue()));
+    assertThat(queue.getPredicate(), is("2==2"));
+    assertThat(queue.getDescription(), is("newDescription"));
     assertThat(queue.getId(), is(queueId));
 
     q.delete();

@@ -106,9 +106,7 @@ public class RouterTest {
     assertThat(router.getDescription(), is(description));
 
     Queue q = new Queue(state);
-    CreateQueueArg qArg = new CreateQueueArg();
-    qArg.setPredicate("1==1");
-    ApiObjectId qid = q.create(new CreateQueueArg());
+    ApiObjectId qid = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
     ApiObjectId id1 = r.replace(new CreateRouterArg());// replace with null values
     // check that queue is still there
