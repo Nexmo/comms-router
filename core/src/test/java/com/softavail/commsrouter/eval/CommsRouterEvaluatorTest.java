@@ -116,7 +116,7 @@ public class CommsRouterEvaluatorTest {
     rule.setTag("rule1");
 
     Route route = new Route();
-    route.setQueueId("queue-id1");
+    route.setQueue(queue);
     route.setPriority(0L);
     route.setTimeout(300L);
     rule.getRoutes().add(route);
@@ -141,7 +141,7 @@ public class CommsRouterEvaluatorTest {
 
   /**
    * Test of evaluate method, of class CommsRouterEvaluator.
-   * 
+   *
    * @throws java.lang.Exception
    */
   @Test
@@ -224,13 +224,13 @@ public class CommsRouterEvaluatorTest {
     expResult = false;
     result = instance.evaluate(requirements, predicateFailed2);
     assertEquals(expResult, result);
-    
+
     try {
       instance.evaluate(requirements, "CONTAINS('Sto')");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
-    
+
     try {
       instance.evaluate(requirements, "HAS(100)");
       assertTrue(false);

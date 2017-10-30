@@ -568,12 +568,12 @@ databaseChangeLog:
         referencedTableName: route
 - changeSet:
     id: 1509013814357-38
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: queue_id
         baseTableName: task
-        constraintName: FKhee0wu4107ncs84mq9968tbx2
+        constraintName: fk_task__queue
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
@@ -650,3 +650,17 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: rule
+- changeSet:
+    id: 1509013814357-44
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: queue_id
+        baseTableName: route
+        constraintName: fk_route__queue
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: queue

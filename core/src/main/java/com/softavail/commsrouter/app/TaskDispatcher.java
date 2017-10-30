@@ -7,7 +7,6 @@ package com.softavail.commsrouter.app;
 
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -235,19 +234,11 @@ public class TaskDispatcher {
             Fields.update(
                 task::setQueuedTimeout, task.getQueuedTimeout(), matchedRoute.getTimeout());
           }
-          if (matchedRoute.getQueueId() != null) {
-            RouterObjectId objectId = RouterObjectId.builder()
-                .setId(matchedRoute.getQueueId())
-                .setRouterId(task.getRouterId())
-                .build();
-            Queue queue = db.queue.get(em, objectId);
-            Fields.update(task::setQueue, task.getQueue(), queue);
-            if (!task.getQueue().getId().equals(matchedRoute.getQueueId())) {
-              Fields.update(task::setAgent, task.getAgent(), null);
-            }
+          if (matchedRoute.getQueue() != null) {
+            task.setQueue(matchedRoute.getQueue());
           }
-        }
           break;
+        }
         default:
           return null;
       }

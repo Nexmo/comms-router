@@ -55,12 +55,13 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectId.getId());
+      PlanResolver planResolver = PlanResolver.create(app, em, plan);
       if (updateArg.getRules() != null) {
         plan.removeRules();
-        app.entityMapper.plan.addDtoRules(plan, updateArg.getRules());
+        planResolver.addDtoRules(updateArg.getRules());
       }
       if (updateArg.getDefaultRoute() != null) {
-        plan.setDefaultRoute(app.entityMapper.plan.fromDto(updateArg.getDefaultRoute()));
+        planResolver.setDefaultDtoRoute(updateArg.getDefaultRoute());
       }
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
@@ -85,8 +86,8 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     }
 
     Plan plan = new Plan(createArg, objectId);
-    app.entityMapper.plan.addDtoRules(plan, createArg.getRules());
-    plan.setDefaultRoute(app.entityMapper.plan.fromDto(createArg.getDefaultRoute()));
+    PlanResolver.create(app, em, plan).addDtoRules(createArg.getRules())
+            .setDefaultDtoRoute(createArg.getDefaultRoute());
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
     return new ApiObjectId(planDto);

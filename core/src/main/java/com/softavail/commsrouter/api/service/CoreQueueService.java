@@ -8,6 +8,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -155,6 +156,15 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
       return app.entityMapper.task.toDto(list);
     });
+  }
+
+  @Override
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+    try {
+      super.delete(routerObjectId);
+    } catch (ReferenceIntegrityViolationException ex) {
+      throw ex;
+    }
   }
 
 }
