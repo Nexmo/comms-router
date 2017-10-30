@@ -5,6 +5,8 @@ package com.softavail.commsrouter.api.exception;
  */
 public class ReferenceIntegrityViolationException extends CommsRouterException {
 
+  private String constraintName;
+
   public ReferenceIntegrityViolationException() {
   }
 
@@ -18,6 +20,14 @@ public class ReferenceIntegrityViolationException extends CommsRouterException {
 
   public ReferenceIntegrityViolationException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public String getConstraintName() {
+    return constraintName;
+  }
+
+  public void setConstraintName(String constraintName) {
+    this.constraintName = constraintName;
   }
 
 }

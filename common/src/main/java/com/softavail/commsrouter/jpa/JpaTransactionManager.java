@@ -64,10 +64,15 @@ public class JpaTransactionManager {
               org.hibernate.exception.ConstraintViolationException.class;
           Optional<Throwable> throwable = Throwables.getCausalChain(ex).stream()
               .filter((hibernateConstraint)::isInstance)
-              .findFirst()
-              .map(Throwable::getCause);
+              .findFirst().map(Throwable::getCause);
+
           if (throwable.isPresent()) {
-            throw new ReferenceIntegrityViolationException(throwable.get());
+            org.hibernate.exception.ConstraintViolationException hibernateException =
+                (org.hibernate.exception.ConstraintViolationException) throwable.get();
+            ReferenceIntegrityViolationException newEx =
+                new ReferenceIntegrityViolationException(hibernateException);
+            newEx.setConstraintName(hibernateException.getConstraintName());
+            throw newEx;
           }
 
           throw ex;
