@@ -133,27 +133,32 @@ public class TaskDispatcher {
   }
 
   private void doDispatchAgent(String agentId) throws CommsRouterException {
-    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
-      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
 
+    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
+
+      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
       if (matchResult == null) {
         return null;
       }
-
-      Agent agent = matchResult.agent;
-      Task task = matchResult.task;
-      // Assign
-      agent.setState(AgentState.busy);
-      task.setState(TaskState.assigned);
-      task.setAgent(agent);
-
-      TaskDto taskDto = mappers.task.toDto(task);
-      AgentDto agentDto = mappers.agent.toDto(agent);
-      return new TaskAssignmentDto(taskDto, agentDto);
+      return assingTask(matchResult);
     });
+
     if (taskAssignmentDto != null) {
       submitTaskAssignment(taskAssignmentDto);
     }
+  }
+
+  public TaskAssignmentDto assingTask(MatchResult matchResult) {
+    Agent agent = matchResult.agent;
+    Task task = matchResult.task;
+    // Assign
+    agent.setState(AgentState.busy);
+    task.setState(TaskState.assigned);
+    task.setAgent(agent);
+
+    TaskDto taskDto = mappers.task.toDto(task);
+    AgentDto agentDto = mappers.agent.toDto(agent);
+    return new TaskAssignmentDto(taskDto, agentDto);
   }
 
   public void submitTaskAssignment(TaskAssignmentDto taskAssignmentDto) {

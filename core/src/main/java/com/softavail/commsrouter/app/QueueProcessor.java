@@ -1,13 +1,7 @@
 package com.softavail.commsrouter.app;
 
-import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
-import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.domain.Agent;
-import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import org.apache.logging.log4j.LogManager;
@@ -135,19 +129,9 @@ public class QueueProcessor {
   private Optional<TaskAssignmentDto> getAssignment(EntityManager em)
       throws CommsRouterException {
 
-    return db.queue.findAssignment(em, queueId)
-        .map(matchResult -> {
-          Agent agent = matchResult.agent;
-          Task task = matchResult.task;
-          // Assign
-          agent.setState(AgentState.busy);
-          task.setState(TaskState.assigned);
-          task.setAgent(agent);
-
-          TaskDto taskDto = mappers.task.toDto(task);
-          AgentDto agentDto = mappers.agent.toDto(agent);
-          return new TaskAssignmentDto(taskDto, agentDto);
-        });
+    return db.queue.findAssignment(em, queueId).map(matchResult -> {
+          return taskDispatcher.assingTask(matchResult);
+    });
   }
 
   public static class Builder {
