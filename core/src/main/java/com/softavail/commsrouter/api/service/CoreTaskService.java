@@ -306,11 +306,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
             "Current state cannot be switched to completed: " + task.getState());
     }
 
-    task.setState(TaskState.completed);
-
     Agent agent = task.getAgent();
 
     assert agent != null : "Completed task with no agent: " + task.getId();
+
+    task.setState(TaskState.completed);
+    task.setAgent(null);
 
     if (agent.getState() != AgentState.busy) {
       assert false

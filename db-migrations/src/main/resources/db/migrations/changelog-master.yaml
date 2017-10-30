@@ -498,12 +498,12 @@ databaseChangeLog:
         referencedTableName: attribute_group
 - changeSet:
     id: 1509013814357-33
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: agent_id
         baseTableName: task
-        constraintName: FK9w6soi9vd3ys91fmnd4xlx5os
+        constraintName: fk_task__agent
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION

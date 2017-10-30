@@ -203,4 +203,16 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     attachQueues(em, agent, newCapabilities, false);
   }
 
+  @Override
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+    app.db.transactionManager.executeVoid((em) -> {
+      Agent agent = app.db.agent.get(em, routerObjectId);
+      if (!agent.getState().isDeleteAllowed()) {
+        throw new InvalidStateException(
+            "Deleting agent in state " + agent.getState() + " not allowed");
+      }
+      em.remove(agent);
+    });
+  }
+
 }
