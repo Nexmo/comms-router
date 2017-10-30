@@ -304,9 +304,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       case completed:
         throw new InvalidStateException("Task already completed");
       case waiting:
-        assert task.getAgent() == null
-            : "Waiting task " + task.getId() + " has assigned agent: " + task.getAgent().getId();
-        task.setState(TaskState.completed);
+        assert task.getAgent() == null : "Waiting task " + task.getId() + " has assigned agent: "
+            + task.getAgent().getId();
+        task.makeCompleted();
         return Optional.empty();
       case assigned:
         break;
@@ -319,8 +319,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     assert agent != null : "Completed task with no agent: " + task.getId();
 
-    task.setState(TaskState.completed);
-    task.setAgent(null);
+    task.makeCompleted();
 
     if (agent.getState() != AgentState.busy) {
       assert false
