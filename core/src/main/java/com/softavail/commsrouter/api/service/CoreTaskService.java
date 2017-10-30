@@ -76,7 +76,14 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     validate(createArg);
 
     CreateTaskResult createTaskResult = app.db.transactionManager.execute(em -> {
-      app.db.task.delete(em, objectId.getId());
+      Task task = em.find(Task.class, objectId.getId());
+      if (task != null) {
+        if (!task.getState().isDeleteAllowed()) {
+          throw new InvalidStateException(
+              "Replacing task in state " + task.getState() + " not allowed");
+        }
+        em.remove(task);
+      }
       return doCreate(em, createArg, objectId);
     });
 
@@ -327,13 +334,18 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   @Override
   public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
     app.db.transactionManager.executeVoid((em) -> {
-      Task task = app.db.task.get(em, routerObjectId);
-      if (!task.getState().isDeleteAllowed()) {
-        throw new InvalidStateException(
-            "Deleting task in state " + task.getState() + " not allowed");
-      }
-      em.remove(task);
+      doDelete(em, routerObjectId);
     });
+  }
+
+  private void doDelete(EntityManager em, RouterObjectId routerObjectId)
+      throws NotFoundException, InvalidStateException {
+
+    Task task = app.db.task.get(em, routerObjectId);
+    if (!task.getState().isDeleteAllowed()) {
+      throw new InvalidStateException("Deleting task in state " + task.getState() + " not allowed");
+    }
+    em.remove(task);
   }
 
 }

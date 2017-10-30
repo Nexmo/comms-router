@@ -55,7 +55,14 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.agent.delete(em, objectId.getId());
+      Agent agent = em.find(Agent.class, objectId.getId());
+      if (agent != null) {
+        if (!agent.getState().isDeleteAllowed()) {
+          throw new InvalidStateException(
+              "Replacing agent in state " + agent.getState() + " not allowed");
+        }
+        em.remove(agent);
+      }
       return doCreate(em, createArg, objectId);
     });
   }
