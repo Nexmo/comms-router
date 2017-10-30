@@ -167,8 +167,8 @@ public class TaskDispatcher {
         });
       } catch (CommsRouterException e) {
         LOGGER.debug("Error retrieving Task: {}", taskAssignmentDto.getTask().getId());
+        return true;
       }
-      return false;
     });
     Failsafe.with(retryPolicy).with(threadPool)
         .onSuccess((ignored, executionContext) ->
