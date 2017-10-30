@@ -38,7 +38,7 @@ public class CommsRouterEvaluator {
   /**
    *
    * @param expression argument that will be check for valid expression or not
-   * @throws EvaluatorException
+   * @throws EvaluatorException .
    */
   public void isValidExpression(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {

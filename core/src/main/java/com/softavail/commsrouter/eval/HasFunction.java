@@ -79,13 +79,14 @@ public class HasFunction implements Function {
 
     String argumentOne = (String) strings.get(0);
     try {
-      argumentOne = EvaluatorHelpers.trySupportSingleArraysElement(argumentOne);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentOne);
         if (variable != null) {
           argumentOne = variable;
         }
-      }
+      } else {
+        argumentOne = EvaluatorHelpers.trySupportSingleArraysElement(argumentOne);
+      } 
       argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed(argumentOne,
           evaluator.getQuoteCharacter());
       String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(1),

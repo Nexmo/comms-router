@@ -79,12 +79,13 @@ public class InFunction implements Function {
 
     String argumentTwo = (String) strings.get(1);
     try {
-      argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentTwo);
         if (variable != null) {
           argumentTwo = variable;
         }
+      } else {
+        argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       }
       String argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(0),
           evaluator.getQuoteCharacter());

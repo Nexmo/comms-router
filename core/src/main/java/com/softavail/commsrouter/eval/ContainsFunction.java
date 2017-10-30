@@ -56,7 +56,7 @@ public class ContainsFunction implements Function {
       throw new FunctionException(exceptionMessage);
     }
 
-    try {
+    {
       String argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) values.get(0),
           evaluator.getQuoteCharacter());
       String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) values.get(1),
@@ -67,8 +67,6 @@ public class ContainsFunction implements Function {
       } else {
         result = EvaluationConstants.BOOLEAN_STRING_FALSE;
       }
-    } catch (FunctionException fe) {
-      throw new FunctionException(fe.getMessage(), fe);
     }
 
     return new FunctionResult(result, FunctionConstants.FUNCTION_RESULT_TYPE_NUMERIC);

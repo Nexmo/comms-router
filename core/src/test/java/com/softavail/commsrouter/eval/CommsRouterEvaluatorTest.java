@@ -212,6 +212,9 @@ public class CommsRouterEvaluatorTest {
     expResult = true;
     result = instance.evaluatePredicateByAttributes(null, "1==1");
     assertEquals(expResult, result);
+    expResult = true;
+    result = instance.evaluatePredicateByAttributes(requirements, "HAS(#{language}, 'en')");
+    assertEquals(expResult, result);
     expResult = false;
     result = instance.evaluatePredicateByAttributes(new AttributeGroupDto(), "2==3");
     assertEquals(expResult, result);
@@ -224,13 +227,19 @@ public class CommsRouterEvaluatorTest {
     expResult = false;
     result = instance.evaluatePredicateByAttributes(requirements, predicateFailed2);
     assertEquals(expResult, result);
-    
+
     try {
       instance.evaluatePredicateByAttributes(requirements, "CONTAINS('Sto')");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
-    
+
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "CONTAINS(#{nickname}, #Stone)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
     try {
       instance.evaluatePredicateByAttributes(requirements, "HAS(100)");
       assertTrue(false);
@@ -239,6 +248,27 @@ public class CommsRouterEvaluatorTest {
     try {
       instance.evaluatePredicateByAttributes(requirements,
           "HAS([false, 'true'], #{true}) && #{'true'}");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      requirements.put("departments", new StringAttributeValueDto("sales; support"));
+      instance.evaluatePredicateByAttributes(requirements, "HAS(#{departments}, 'sales')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "HAS(#{languages}, 100)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "IN(#{language}, 'en]')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluatePredicateByAttributes(requirements, "IN(200, #{languages})");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
