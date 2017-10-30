@@ -62,7 +62,7 @@ public class CommsRouterEvaluator {
    * @return true - if matched queue
    * @throws CommsRouterException .
    */
-  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String predicate)
+  public Boolean evaluate(AttributeGroupDto attributesGroup, String predicate)
       throws CommsRouterException {
     if (predicate == null || predicate.isEmpty()) {
       return false;
