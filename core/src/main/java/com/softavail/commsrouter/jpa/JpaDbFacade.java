@@ -8,7 +8,6 @@ package com.softavail.commsrouter.jpa;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Router;
-import com.softavail.commsrouter.domain.Task;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -25,7 +24,7 @@ public class JpaDbFacade {
   public final QueueRepository queue;
   public final RouterObjectRepository<Plan> plan;
   public final RouterObjectRepository<Agent> agent;
-  public final RouterObjectRepository<Task> task;
+  public final TaskRepository task;
 
   public JpaDbFacade() {
 

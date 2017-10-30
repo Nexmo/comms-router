@@ -22,6 +22,7 @@ import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import com.softavail.commsrouter.jpa.result.TaskEnumerableResult;
 import com.softavail.commsrouter.util.Fields;
 
 import net.jodah.failsafe.Failsafe;
@@ -302,37 +303,21 @@ public class TaskDispatcher {
 
   private void doRestartWaitingTaskTimers() {
     LOGGER.debug("Restarting timers for waiting tasks at startup");
+
     try {
-      db.transactionManager.executeVoid(
-          em -> db.router.list(em)
-          .stream()
-          .map(router -> filterTasksByState(em, router.getId(), TaskState.waiting))
-          .flatMap(Collection::stream)
-          .forEach(this::attachExpirationTimerToTask));
-    } catch (CommsRouterException e) {
-      LOGGER.error("Can not restart timers for all waiting tasks!{}", e.getMessage());
-      throw new RuntimeException("Can not restart timers for all waiting tasks!", e);
+      TaskEnumerableResult enumResults = db.task.enumerableResultFilteredByWaitingState();
+      if (enumResults != null) {
+        while (enumResults.next()) {
+          List<Task> tasks = enumResults.get();
+          tasks.forEach(this::attachExpirationTimerToTask);
+        }
+      }
     } catch (Exception ex) {
       LOGGER.error("Can not restart timers for all waiting tasks!{}", ex.getMessage());
       throw new RuntimeException("Can not restart timers for all waiting tasks!", ex);
     }
   }
 
-  private List<Task> filterTasksByState(EntityManager em, String routerId, TaskState state) {
-    ArrayList<Task> filteredTasks = new ArrayList<Task>(); 
-    List<Task> allTasks = db.task.list(em, routerId);
-    
-    if (null != allTasks) {
-      allTasks.forEach(task -> {
-        if (task.getState() == state) {
-          filteredTasks.add(task);
-        }
-      });
-    }
-    
-    return filteredTasks; 
-  }
-  
   private void attachExpirationTimerToTask(Task task) {
 
     if (task.getExpirationDate() == null) {
