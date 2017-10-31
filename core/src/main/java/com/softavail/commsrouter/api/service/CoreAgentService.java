@@ -88,7 +88,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     for (Queue queue : app.db.queue.list(em, agent.getRouterId())) {
       try {
-        if (app.evaluator.evaluate(capabilities, queue.getPredicate())) {
+        if (app.evaluator.initEvaluator(queue.getPredicate()).evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
           ++attachedQueuesCount;

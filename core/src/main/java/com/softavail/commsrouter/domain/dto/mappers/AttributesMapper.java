@@ -38,7 +38,7 @@ public class AttributesMapper {
     STRING, DOUBLE, BOOLEAN
   }
 
-  private JpaAttributeValueType getJpaAttributeValueType(Attribute jpa) {
+  public static JpaAttributeValueType getJpaAttributeValueType(Attribute jpa) {
     if (jpa.getStringValue() != null) {
       assert jpa.getBooleanValue() == null && jpa.getDoubleValue() == null;
       return JpaAttributeValueType.STRING;

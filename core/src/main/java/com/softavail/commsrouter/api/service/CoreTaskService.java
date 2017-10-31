@@ -154,7 +154,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       }
 
       try {
-        if (app.evaluator.evaluate(attributesGroup, rule.getPredicate())) {
+        if (app.evaluator.initEvaluator(rule.getPredicate()).evaluate(attributesGroup)) {
           LOGGER.info("Task {}: matched rule {} tag {}", taskId, rule.getId(), rule.getTag());
           return rule.getRoutes().get(0);
         }

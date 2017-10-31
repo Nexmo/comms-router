@@ -19,6 +19,8 @@ import net.sourceforge.jeval.Evaluator;
 public class ExpressionEvaluator extends Evaluator {
 
   private boolean isValidation = false;
+  private String predicate;
+  private String predicateOrigin;
 
   @Override
   public String replaceVariables(final String expression) throws EvaluationException {
@@ -46,25 +48,46 @@ public class ExpressionEvaluator extends Evaluator {
     return super.replaceVariables(expression);
   }
 
-  public void init() {
-    init(false);
+  public void init(String predicate) {
+    init(predicate, false);
   }
 
-  public void init(boolean isValidation) {
+  public void init(String predicate, boolean isValidation) {
     this.isValidation = isValidation;
+    setPredicate(predicate);
     putFunction(new HasFunction(isValidation));
     putFunction(new InFunction(isValidation));
     putFunction(new ContainsFunction());
     setVariableResolver(new CommsRouterVariableResolver(isValidation, this));
   }
 
-  public void isValidExpression(String expression) throws EvaluatorException {
+  public void setPredicate(String predicate) {
+    this.predicateOrigin = predicate;
+    if (predicate != null) {
+      this.predicate = EvaluatorHelpers.supportArraysInExpression(predicate);
+    }
+  }
+  
+  public String getPredicate() {
+    return predicateOrigin;
+  }
+
+  public void isValid() throws EvaluatorException {
     try {
-      String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
-      evaluate(formatedExpression);
+      evaluateImpl();
     } catch (EvaluationException ex) {
-      throw new EvaluatorException("Predicate \"" + expression + "\" failed with error: "
+      throw new EvaluatorException("Predicate \"" + predicateOrigin + "\" failed with error: "
           + EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
   }
+
+  public String evaluateImpl() throws EvaluationException {
+    if (predicateOrigin == null || predicateOrigin.isEmpty()) {
+      return EvaluationConstants.BOOLEAN_STRING_FALSE;
+    }
+
+
+      return super.evaluate(predicate);
+  }
+  
 }

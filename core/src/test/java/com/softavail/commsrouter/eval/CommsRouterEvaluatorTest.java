@@ -4,10 +4,6 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
-import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -16,11 +12,8 @@ import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDt
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Queue;
-import com.softavail.commsrouter.domain.Route;
-import com.softavail.commsrouter.domain.Rule;
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.softavail.commsrouter.domain.Attribute;
+import com.softavail.commsrouter.domain.AttributeGroup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -33,14 +26,9 @@ import static org.junit.Assert.*;
  * @author ergyunsyuleyman
  */
 public class CommsRouterEvaluatorTest {
-  CreateTaskArg createTaskArg;
-  CreateAgentArg createAgentArg;
-  UpdateAgentArg updateAgentArg;
+
   AttributeGroupDto requirements;
-  Rule rule;
-  Queue queue;
-  String agentId;
-  String taskId;
+  AttributeGroup requirementsJpa;
   String predicateOK1;
   String predicateFailed1;
   String predicateOK2;
@@ -50,15 +38,8 @@ public class CommsRouterEvaluatorTest {
   EvaluatorHelpers evalHelper;
 
   public CommsRouterEvaluatorTest() {
-    createTaskArg = new CreateTaskArg();
-    createAgentArg = new CreateAgentArg();
-    updateAgentArg = new UpdateAgentArg();
     requirements = new AttributeGroupDto();
-
-    rule = new Rule();
-    queue = new Queue();
-    taskId = "task-id1";
-    agentId = "agent-id1";
+    requirementsJpa = new AttributeGroup();
     predicateOK1 =
         "#{language} == 'en' && IN(50, #{prices}) && #{price} > 10 && #{boolTrue} == true";
     predicateFailed1 = "#{language} == 'en' && !#{boolFalse} && #{price} > 100";
@@ -98,42 +79,26 @@ public class CommsRouterEvaluatorTest {
     allowedBools.add(true);
     allowedBools.add(false);
     requirements.put("allowedBools", allowedBools);
-    createTaskArg.setRequirements(requirements);
-    try {
-      createTaskArg.setCallbackUrl(new URL("https://localhost:8084"));
-    } catch (MalformedURLException ex) {
-      throw new RuntimeException("Bad URL");
-    }
+    
 
-    createAgentArg.setAddress("sip:someone@somesip.pip");
-    createAgentArg.setCapabilities(requirements);
+    requirementsJpa.add("language", "en");
+    requirementsJpa.add("nickname", "The Stone");
+    requirementsJpa.add("color", "red");
+    requirementsJpa.add("price", 42D);
+    requirementsJpa.add("boolTrue", true);
+    requirementsJpa.add("boolFalse", false);
 
-    updateAgentArg.setAddress("sip:someone2@somesip.pip");
-    updateAgentArg.setCapabilities(requirements);
-    updateAgentArg.setState(AgentState.ready);
+    requirementsJpa.add("languages", "en");
+    requirementsJpa.add("languages", "es");
+    requirementsJpa.add("languages", "fr");
 
-    rule.setPredicate(predicateOK1);
-    rule.setTag("rule1");
 
-    Route route = new Route();
-    route.setQueue(queue);
-    route.setPriority(0L);
-    route.setTimeout(300L);
-    rule.getRoutes().add(route);
+    requirementsJpa.add("prices", 20D);
+    requirementsJpa.add("prices", 30D);
+    requirementsJpa.add("prices", 50D);
 
-    route = new Route();
-    route.setPriority(6L);
-    route.setTimeout(600L);
-    rule.getRoutes().add(route);
-
-    route = new Route();
-    route.setPriority(10L);
-    rule.getRoutes().add(route);
-
-    queue.setRouterId("router-id");
-    queue.setId("queue-id1");
-    queue.setPredicate(predicateOK2);
-
+    requirementsJpa.add("allowedBools", true);
+    requirementsJpa.add("allowedBools", false);
   }
 
   @After
@@ -145,8 +110,8 @@ public class CommsRouterEvaluatorTest {
    * @throws java.lang.Exception
    */
   @Test
-  public void testEvaluatePredicateByAttributes() throws Exception {
-    System.out.println("evaluatePredicateByAttributes");
+  public void testEvaluate() throws Exception {
+    System.out.println("evaluate");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
     Boolean expResult = true;
     Boolean result = true;
@@ -201,86 +166,129 @@ public class CommsRouterEvaluatorTest {
 
     // check expressions by attributte
     expResult = true;
-    result = instance.evaluate(requirements, predicateOK1);
+    result = instance.initEvaluator(predicateOK1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, predicateOK2);
+    result = instance.initEvaluator(predicateOK2).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, predicateOK3);
+    result = instance.initEvaluator(predicateOK3).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(null, "1==1");
+    result = instance.initEvaluator("1==1").evaluate(null);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, "HAS(#{language}, 'en')");
+    result = instance.initEvaluator("HAS(#{language}, 'en')").evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(new AttributeGroupDto(), "2==3");
+    result = instance.initEvaluator("2==3").evaluate(new AttributeGroupDto());
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, null);
+    result = instance.initEvaluator(null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, predicateFailed1);
+    result = instance.initEvaluator(predicateFailed1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, predicateFailed2);
+    result = instance.initEvaluator(predicateFailed2).evaluate(requirements);
     assertEquals(expResult, result);
 
     try {
-      instance.evaluate(requirements, "CONTAINS('Sto')");
+      instance.initEvaluator("CONTAINS('Sto')").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.evaluate(requirements, "CONTAINS(#{nickname}, #Stone)");
+      instance.initEvaluator("CONTAINS(#{nickname}, #Stone)").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.evaluate(requirements,
-          "HAS([false, 'true'], #{true}) && #{'true'}");
+      instance.initEvaluator("HAS(100)").evaluate(requirements);
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.initEvaluator("HAS([false, 'true'], #{true}) && #{'true'}").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
       requirements.put("departments", new StringAttributeValueDto("sales; support"));
-      instance.evaluate(requirements, "HAS(#{departments}, 'sales')");
+      instance.initEvaluator("HAS(#{departments}, 'sales')").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements, "HAS(#{languages}, 100)");
+      instance.initEvaluator("HAS(#{languages}, 100)").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements, "IN(#{language}, 'en]')");
+      instance.initEvaluator("IN(#{language}, 'en]')").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements, "IN(200, #{languages})");
+      instance.initEvaluator("IN(200, #{languages})").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements, "IN(50)");
+      instance.initEvaluator("IN(50)").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements,
-          "IN(#{false}, [true, 'true']) && #{'false'}");
+      instance.initEvaluator("IN(#{false}, [true, 'true']) && #{'false'}").evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     expResult = false;
-    result = instance.evaluate(requirements, predicateFailed3);
+    result = instance.initEvaluator(predicateFailed3).evaluate(requirements);
+    assertEquals(expResult, result);
+  }
+
+  
+  
+  /**
+   * Test of evaluateJpa method, of class CommsRouterEvaluator.
+   * 
+   * @throws java.lang.Exception
+   */
+  @Test
+  public void testEvaluateJpa() throws Exception {
+    System.out.println("evaluateJpa");
+    CommsRouterEvaluator instance = new CommsRouterEvaluator();
+    Boolean expResult = true;
+    Boolean result = instance.initEvaluator(predicateOK1).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.initEvaluator(predicateOK2).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.initEvaluator(predicateOK3).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.initEvaluator("1==1").evaluateJpa(null);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.initEvaluator("HAS(#{language}, 'en')").evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.initEvaluator("2==3").evaluateJpa(new AttributeGroup());
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.initEvaluator(null).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.initEvaluator(predicateFailed1).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.initEvaluator(predicateFailed2).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
   }
 
