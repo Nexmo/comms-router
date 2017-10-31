@@ -53,7 +53,7 @@ public class Agent extends RouterObject {
   public Agent() {}
 
   public Agent(RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+    super(objectId.getId());
   }
 
   public AttributeGroup getCapabilities() {

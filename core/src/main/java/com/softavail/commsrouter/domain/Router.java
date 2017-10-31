@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 
 import javax.persistence.Entity;
@@ -24,12 +23,8 @@ public class Router extends ApiObject {
 
   public Router() {}
 
-  public Router(CreateRouterArg createArg, ApiObjectId objectId) {
+  public Router(ApiObjectId objectId) {
     super(objectId.getId());
-    if (createArg != null) {
-      this.name = createArg.getName();
-      this.description = createArg.getDescription();
-    }
   }
 
   public String getName() {
@@ -50,7 +45,7 @@ public class Router extends ApiObject {
 
   @Override
   public String toString() {
-    return "JpaRouter: [" + "id=" + getId() + "]";
+    return "Router: [" + "id=" + getId() + "]";
   }
 
 }

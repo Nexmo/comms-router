@@ -62,7 +62,11 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   private ApiObjectId doCreate(EntityManager em, CreateRouterArg createArg, ApiObjectId objectId)
       throws CommsRouterException {
 
-    Router router = new Router(createArg, objectId);
+    Router router = new Router(objectId);
+    if (createArg != null) {
+      router.setName(createArg.getName());
+      router.setDescription(createArg.getDescription());
+    }
     em.persist(router);
     RouterDto routerDto = entityMapper.toDto(router);
     return new ApiObjectId(routerDto);

@@ -13,6 +13,7 @@ import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
@@ -63,7 +64,12 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       throws CommsRouterException {
 
     app.evaluator.isValidExpression(createArg.getPredicate());
-    Queue queue = new Queue(createArg, objectId);
+
+    Router router = getRouter(em, objectId);
+    Queue queue = new Queue(objectId);
+    queue.setRouter(router);
+    queue.setDescription(createArg.getDescription());
+    queue.setPredicate(createArg.getPredicate());
     attachAgents(em, queue, true);
     em.persist(queue);
     return queue.cloneApiObjectId();
@@ -75,7 +81,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
     int attachedAgentsCount = 0;
 
-    for (Agent agent : app.db.agent.list(em, queue.getRouterId())) {
+    for (Agent agent : app.db.agent.list(em, queue.getRouter().getId())) {
       try {
         if (app.evaluator.evaluate(app.entityMapper.attributes.toDto(agent.getCapabilities()),
             queue.getPredicate())) {

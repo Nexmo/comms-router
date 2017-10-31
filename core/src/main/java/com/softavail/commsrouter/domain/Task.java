@@ -80,7 +80,7 @@ public class Task extends RouterObject {
   public Task() {}
 
   public Task(RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+    super(objectId.getId());
   }
 
   public AttributeGroup getRequirements() {
