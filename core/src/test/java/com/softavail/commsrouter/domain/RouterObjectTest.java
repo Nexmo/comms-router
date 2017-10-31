@@ -18,6 +18,8 @@ public class RouterObjectTest {
 
   private static final Logger LOGGER = LogManager.getLogger(RouterObjectTest.class);
 
+  private Router routerR1;
+  private Router routerR2;
   private Plan planP1R1;
   private Plan planP1R2;
   private Plan planP1R1new;
@@ -25,21 +27,28 @@ public class RouterObjectTest {
 
   @Before
   public void setUp() throws Exception {
+
+    routerR1 = new Router();
+    routerR1.setId("R1");
+
+    routerR2 = new Router();
+    routerR2.setId("R2");
+
     planP1R1 = new Plan();
     planP1R1.setId("P1");
-    planP1R1.setRouterId("R1");
+    planP1R1.setRouter(routerR1);
 
     planP1R1new = new Plan();
     planP1R1new.setId("P1");
-    planP1R1new.setRouterId("R1");
+    planP1R1new.setRouter(routerR1);
 
     planP1R2 = new Plan();
     planP1R2.setId("P1");
-    planP1R2.setRouterId("R2");
+    planP1R2.setRouter(routerR2);
 
     task = new Task();
     task.setId("P1");
-    task.setRouterId("R1");
+    task.setRouter(routerR2);
   }
 
   @Test

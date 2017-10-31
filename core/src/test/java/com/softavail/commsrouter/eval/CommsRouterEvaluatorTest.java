@@ -2,6 +2,7 @@
  * To change this license header, choose License Headers in Project Properties. To change this
  * template file, choose Tools | Templates and open the template in the editor.
  */
+
 package com.softavail.commsrouter.eval;
 
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
@@ -12,7 +13,6 @@ import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDt
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -91,7 +91,6 @@ public class CommsRouterEvaluatorTest {
     requirementsJpa.add("languages", "en");
     requirementsJpa.add("languages", "es");
     requirementsJpa.add("languages", "fr");
-
 
     requirementsJpa.add("prices", 20D);
     requirementsJpa.add("prices", 30D);

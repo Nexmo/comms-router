@@ -13,13 +13,15 @@ import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
-import java.util.Collection;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 
@@ -68,7 +70,12 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     long millis = System.currentTimeMillis();
     app.evaluator.isValidExpression(createArg.getPredicate());
     LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
-    Queue queue = new Queue(createArg, objectId);
+
+    Router router = getRouter(em, objectId);
+    Queue queue = new Queue(objectId);
+    queue.setRouter(router);
+    queue.setDescription(createArg.getDescription());
+    queue.setPredicate(createArg.getPredicate());
     attachAgents(em, queue, true);
     em.persist(queue);
     return queue.cloneApiObjectId();
@@ -81,7 +88,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     int attachedAgentsCount = 0;
     long millis = System.currentTimeMillis();
     app.evaluator.initEvaluator(queue.getPredicate());
-    List<Agent> agents = app.db.agent.list(em, queue.getRouterId());
+    List<Agent> agents = app.db.agent.list(em, queue.getRouter().getId());
     for (Agent agent : agents) {
       try {
         if (app.evaluator.evaluateJpa(agent.getCapabilities())) {

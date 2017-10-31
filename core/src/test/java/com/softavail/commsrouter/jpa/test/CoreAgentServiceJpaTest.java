@@ -21,7 +21,9 @@ public class CoreAgentServiceJpaTest extends TestBase {
   // Testing the create method that takes a RouterObjectId
   @Test
   public void createTest() throws CommsRouterException {
-    RouterObjectId id = new RouterObjectId("", "01");
+    String routerId = "router-id";
+    routerService.create(newCreateRouterArg("router-name", ""), routerId);
+    RouterObjectId id = new RouterObjectId("id", routerId);
     queueService.create(newCreateQueueArg("1==1", "description_one"), id);
     agentService.create(newCreateAgentArg("address_one"), id);
     AgentDto agent = agentService.get(id);
@@ -31,9 +33,11 @@ public class CoreAgentServiceJpaTest extends TestBase {
   // Testing the create method that takes a String routerId
   @Test
   public void createTestTwo() throws CommsRouterException {
-    queueService.create(newCreateQueueArg("1==1", "description_one"), "01");
-    agentService.create(newCreateAgentArg("address_one"), "01");
-    List<AgentDto> agent = agentService.list("01");
+    String routerId = "router-id";
+    routerService.create(newCreateRouterArg("router-name", ""), routerId);
+    queueService.create(newCreateQueueArg("1==1", "description_one"), routerId);
+    agentService.create(newCreateAgentArg("address_one"), routerId);
+    List<AgentDto> agent = agentService.list(routerId);
     assertEquals(agent.get(0).getAddress(), "address_one");
   }
 

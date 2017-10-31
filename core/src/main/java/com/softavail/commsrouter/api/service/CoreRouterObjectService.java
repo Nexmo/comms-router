@@ -8,8 +8,10 @@ package com.softavail.commsrouter.api.service;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import com.softavail.commsrouter.app.AppContext;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.RouterObject;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
 import com.softavail.commsrouter.jpa.RouterObjectRepository;
@@ -17,6 +19,7 @@ import com.softavail.commsrouter.jpa.RouterObjectRepository;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.validation.ValidationException;
 
 /**
@@ -74,7 +77,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
       String simpleName = entityClass.getSimpleName();
 
       String countString = "SELECT COUNT(e.id) FROM " + simpleName + " e "
-          + "WHERE e.routerId = :routerId";
+          + "JOIN e.router r WHERE r.id = :routerId";
       long totalCount =
           (long) em.createQuery(countString)
               .setParameter("routerId", routerId)
@@ -86,7 +89,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
         throw new ValidationException("{resource.list.max.page.number}");
       }
 
-      String qlString = "SELECT e FROM " + simpleName + " e WHERE e.routerId = :routerId";
+      String qlString = "SELECT e FROM " + simpleName + " e JOIN e.router r WHERE r.id = :routerId";
       List<ENTITYT> jpaResult = em.createQuery(qlString)
           .setParameter("routerId", routerId)
           .setFirstResult(startPosition)
@@ -100,6 +103,12 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   @Override
   public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
     repository.delete(routerObjectId);
+  }
+
+  protected Router getRouter(EntityManager em, RouterObjectId routerObjectId)
+      throws NotFoundException {
+
+    return app.db.router.get(em, routerObjectId.getRouterId());
   }
 
 }

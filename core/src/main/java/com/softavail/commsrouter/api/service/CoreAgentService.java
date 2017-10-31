@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -70,7 +71,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    Router router = getRouter(em, objectId);
     Agent agent = new Agent(objectId);
+    agent.setRouter(router);
     agent.setAddress(createArg.getAddress());
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
@@ -86,7 +89,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     int attachedQueuesCount = 0;
 
-    for (Queue queue : app.db.queue.list(em, agent.getRouterId())) {
+    for (Queue queue : app.db.queue.list(em, agent.getRouter().getId())) {
       try {
         if (app.evaluator.initEvaluator(queue.getPredicate()).evaluate(capabilities)) {
 
