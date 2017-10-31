@@ -30,6 +30,11 @@ public class StringAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
+  public String getValueAsString() {
+    return value;
+  }
+
+  @Override
   public void accept(AttributeValueVisitor visitor) throws IOException {
     visitor.handleStringValue(this);
   }

@@ -14,6 +14,11 @@ import java.io.IOException;
 public class ArrayOfStringsAttributeValueDto extends ArrayAttributeValueDto<String> {
 
   @Override
+  public String getValueAsString() {
+    return getValue().toString();
+  }
+
+  @Override
   public void accept(AttributeValueVisitor visitor) throws IOException {
     visitor.handleArrayOfStringsValue(this);
   }

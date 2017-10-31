@@ -147,54 +147,111 @@
 (defun remove-nth(n lst)  (append (subseq lst 0 n) (subseq lst (1+ n) (length lst))))
 (defun set-nth(n lst item)  (append (subseq lst 0 n) (list item) (subseq lst (1+ n) (length lst))))
 (defparameter *model* (jsown:new-js));; current model
+
+(defparameter *policy* (make-hash-table :test #'equal))
+(defparameter *update-policy* ())
+(defun policy-selector()
+  #'(lambda (available)
+      (let* ((items (mapcar #'third available))
+             (indexes (gethash (copy-tree items)
+                              *policy*
+                              (copy-tree items)))
+             (selected (alexandria:random-elt indexes)))
+        (setf (gethash items *policy*) indexes)
+        (push #'(lambda()(push selected (gethash items *policy*)))
+              *update-policy*)
+        selected )))
+
+(defun simple-selector()
+  #'(lambda(ops)(alexandria:random-elt
+                 (mapcar #'third ops))) )
+
 (defun generate-sample(&key (model (jsown:new-js))
                          (tasks *tasks*)
                          (path ())
                          (size 100)
                          (prefix '())
-                         (selector #'random))
+                         (selector (policy-selector)))
   (setf *model* (copy-tree model))
   (format t "~%With model:~S" model)
-  (if (>= (length path) size)  'pass
-      (let ((available (remove-if-not #'(lambda(task)(let ((res (funcall (first task) model)))
-                                                       (format t "~%~:[skip~;OK~] ~A" res (third task))
-                                                       res))
-                                      tasks)))
+  (if (>= (print(length path)) size)  'pass
+      (let ((available (remove-if-not
+                        #'(lambda(task)(let ((res (funcall (first task) model)))
+                                         ;;(format t "~%~:[skip~;OK~] ~A" res (third task))
+                                         res))
+                        tasks)))
         (if available
-            (let*((selected (if prefix
-                                (first prefix)
-                                (funcall selector (length available))))
-                  (name (print (third (nth selected available))))
-                  (step-result (funcall (second (nth selected available)) (copy-tree model)))
-                  (result (first step-result))
-                  (new-model (second step-result))
-                  (new-path (list* (cons selected result) path)))
-              (format t "~%Processing ~A" name)
-              (cond
-                ((null (second result)) new-path);;error detected
-                (t (generate-sample :prefix (rest prefix)
-                                    :model new-model
-                                    :tasks tasks
-                                    :path new-path
-                                    :size size))))
-            (progn (format t "~%DEADEND")path)
-            )
+            (let((selected (if prefix
+                               (and (member (first prefix) (mapcar #'third available) :test #'equal)
+                                    (first prefix))
+                               (funcall selector available))))
 
-        )
-      ))
+              (if selected
+                (let*((name (print selected))
+                      (step-result (funcall (second (find selected available :test #'equal
+                                                          :key #'third))
+                                            (copy-tree model)))
+                      (result (first step-result))
+                      (new-model (second step-result))
+                      (new-path (list* (cons name result) path)))
+                  (format t "~%Processing ~A" name)
+                  (cond
+                    ((null (second result)) new-path) ;;error detected
+                    (t (generate-sample :prefix (rest prefix)
+                                        :model new-model
+                                        :tasks tasks
+                                        :path new-path
+                                        :size size))))
+                (format t "~%invalid path")))
+            (progn (format t "~%Deadend reached!")) ) ) ))
 
-(defun test-random(&key(size 100)(prefix ()))
+
+(defun test-random(&key(prefix ()) (size (length prefix)))
   (clear-events)
   (router-new)
   (queue-new)
   (let ((res (generate-sample :tasks *tasks* :size size :prefix prefix)))
-    (unless (equal res 'pass)
-      (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-      (mapcar #'first res) ) ) )
+    (if (equal res 'pass)
+        (progn
+          (format t "~%Pass"))
+        (progn
+          (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
+          (mapcar #'first res)
+          )
+       ) ) )
 
-(defun find-bug (size)
-  (length (loop for x = (test-random :size size) :repeat 1000 :if x :return (print (reverse x)))))
 
+(defun find-bug (size )
+  (setf *update-policy* ())
+  (print(length (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
+              do (setf *update-policy* ()) (format t ".")))))
+
+(defun scan-bug(size)
+  (setf *policy* (make-hash-table :test #'equal))
+  (time (loop for max-size = size then (let ((last (find-bug max-size)))
+                                         (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
+                                         (if (< last max-size) last
+                                             max-size))
+           :repeat 100
+           do (print "--------")
+             )) )
+
+
+
+(defun reduce-test(candidates)
+  (when candidates
+    (let ((all ())
+          (candidate (first candidates)))
+
+      (destructuring-bind (list len) candidate
+        (format t "~%-------------------------")
+        (format t "~%--> Total:~A Current:~A ~{~S~^, ~}" (length candidates)(length list) list)
+        (format t "~%-------------------------")
+        (alexandria:map-combinations #'(lambda(steps) (push (reverse(test-random :prefix steps)) all)) list :length len)
+        (let((reduced (remove-if #'null all)))
+          (if reduced
+              (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
+              (list* candidate (reduce-test (rest candidates))) ))))))
 
 ;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))
 ;;   (if (null test-case)

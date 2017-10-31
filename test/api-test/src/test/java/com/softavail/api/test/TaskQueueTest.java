@@ -194,6 +194,36 @@ public class TaskQueueTest {
   }
 
   @Test
+  @DisplayName("Add task with one attribute and predicate HAS with single item")
+  public void addTaskHasOneItemExpression() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "HAS([10],#{age})");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate HAS with no items")
+  public void addTaskHasNoItemExpression() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "HAS([],#{age})");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with one attribute and predicate HAS that should fail.")
+  public void addTaskHasFailed() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "HAS([9],#{age})");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   @DisplayName("Add task with one attribute and predicate IN")
   public void addTaskExpressionIn() throws MalformedURLException {
     assertThat(q.size(), is(0));

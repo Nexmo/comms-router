@@ -92,17 +92,27 @@
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
-          <configuration>
-            <webResources>
-              <resource>
-                <directory>${basedir}/src/main/webapp</directory>
-                <filtering>true</filtering>
-                <includes>
-                  <include>*.html</include>
-                </includes>
-              </resource>
-            </webResources>
-          </configuration>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Build>${buildNumber}</Implementation-Build>
+              <Implementation-Build-Time>${maven.build.timestamp}</Implementation-Build-Time>
+            </manifestEntries>
+          </archive>
+          <webResources>
+            <resource>
+              <directory>${basedir}/src/main/webapp</directory>
+              <filtering>true</filtering>
+              <includes>
+                <include>*.html</include>
+              </includes>
+            </resource>
+          </webResources>
+        </configuration>
       </plugin>
     </plugins>
 

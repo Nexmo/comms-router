@@ -84,9 +84,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
         .orElse(new EmptyConfigurationSource());
 
     ConfigurationSource master = new MergeConfigurationSource(
-        configurationSource,
-        new InMemoryConfigurationSource(defaultProperties)
-    );
+        new InMemoryConfigurationSource(defaultProperties),
+        configurationSource);
 
     provider = getProvider(master);
   }

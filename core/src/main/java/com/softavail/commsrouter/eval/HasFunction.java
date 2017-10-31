@@ -84,7 +84,9 @@ public class HasFunction implements Function {
         if (variable != null) {
           argumentOne = variable;
         }
-      }
+      } else {
+        argumentOne = EvaluatorHelpers.trySupportSingleArraysElement(argumentOne);
+      } 
       argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed(argumentOne,
           evaluator.getQuoteCharacter());
       String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(1),
@@ -106,8 +108,6 @@ public class HasFunction implements Function {
         list.add(item);
       }
       result = (list.contains(argumentTwo) ? 1 : 0);
-    } catch (FunctionException fe) {
-      throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() first argument is \"%s\": %s",
           getName(), argumentOne, e.getMessage()));

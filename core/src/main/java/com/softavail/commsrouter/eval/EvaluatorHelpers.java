@@ -18,16 +18,18 @@ public class EvaluatorHelpers {
 
   private static String openBracketCharacter = "[";
   private static String closeBracketCharacter = "]";
-  public static String VALIDATION_VARIABLE_VALUE =
+  private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
+
+  public static final String VALIDATION_VARIABLE_VALUE =
       EvaluationConstants.SINGLE_QUOTE + "CREValidationValue_"
           + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
-  private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
+  public static final char ARRAY_ITEMS_DELIMITER = ';';
 
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();
     if (trimedValue.charAt(0) == quoteCharacter
-        && trimedValue.charAt(trimedValue.length() - 1) == quoteCharacter) {
+        || trimedValue.charAt(trimedValue.length() - 1) == quoteCharacter) {
       trimedValue = FunctionHelper.trimAndRemoveQuoteChars(trimedValue, quoteCharacter);
     }
 
@@ -63,7 +65,8 @@ public class EvaluatorHelpers {
         int endIndex = formatedExpression.indexOf(closeBracketCharacter, startIndex + 1);
         if (endIndex > 0) {
           String arrayString = formatedExpression.substring(startIndex, endIndex + 1);
-          arrayString = String.format("'%s'", arrayString.replace(',', ';'));
+          arrayString = String.format("'%s'",
+              arrayString.replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER));
           formatedExpression = formatedExpression.substring(0, startIndex) + arrayString
               + formatedExpression.substring(endIndex + 1);
           endIndex += 3;
@@ -71,6 +74,25 @@ public class EvaluatorHelpers {
         startIndex = endIndex;
       }
     } while (startIndex > 0);
+    return formatedExpression;
+  }
+
+  public static String trySupportSingleArraysElement(String arrayItems) {
+    String formatedExpression = arrayItems;
+    int index = formatedExpression.indexOf(openBracketCharacter, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
+    index = formatedExpression.indexOf(EvaluatorHelpers.ARRAY_ITEMS_DELIMITER, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
+    index = formatedExpression.indexOf(closeBracketCharacter, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
+    formatedExpression = openBracketCharacter + arrayItems + closeBracketCharacter;
+
     return formatedExpression;
   }
 

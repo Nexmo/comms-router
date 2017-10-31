@@ -66,11 +66,12 @@ public class TaskDispatcher {
     this.threadPool = new ScheduledThreadPoolExecutor(configuration.getDispatcherThreadPoolSize());
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     this.queueProcessorManager = QueueProcessorManager.getInstance();
+    Integer backoffDelay = configuration.getBackoffDelay();
+    Integer backoffDelayMax = configuration.getBackoffDelayMax();
     this.retryPolicy = new RetryPolicy()
         .retryOn(CallbackException.class)
         .retryOn(RuntimeException.class)
-        .withBackoff(configuration.getBackoffDelay(), configuration.getBackoffDelayMax(),
-            TimeUnit.SECONDS)
+        .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
         .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
   }
@@ -161,6 +162,18 @@ public class TaskDispatcher {
   }
 
   public void submitTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
+    RetryPolicy retryPolicy = this.retryPolicy.copy();
+    retryPolicy.abortIf(obj -> {
+      try {
+        return db.transactionManager.execute(em -> {
+          Task task = db.task.get(em, taskAssignmentDto.getTask());
+          return task.getState() != TaskState.assigned;
+        });
+      } catch (CommsRouterException e) {
+        LOGGER.debug("Error retrieving Task: {}", taskAssignmentDto.getTask().getId());
+        return true;
+      }
+    });
     Failsafe.with(retryPolicy).with(threadPool)
         .onSuccess((ignored, executionContext) ->
             LOGGER.debug("Task {} assigned to agent {}",

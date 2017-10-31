@@ -212,6 +212,9 @@ public class CommsRouterEvaluatorTest {
     expResult = true;
     result = instance.evaluate(null, "1==1");
     assertEquals(expResult, result);
+    expResult = true;
+    result = instance.evaluate(requirements, "HAS(#{language}, 'en')");
+    assertEquals(expResult, result);
     expResult = false;
     result = instance.evaluate(new AttributeGroupDto(), "2==3");
     assertEquals(expResult, result);
@@ -232,13 +235,35 @@ public class CommsRouterEvaluatorTest {
     }
 
     try {
-      instance.evaluate(requirements, "HAS(100)");
+      instance.evaluate(requirements, "CONTAINS(#{nickname}, #Stone)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+
+    try {
+      instance.evaluate(requirements,
+          "HAS([false, 'true'], #{true}) && #{'true'}");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluate(requirements,
-          "HAS([false, 'true'], #{true}) && #{'true'}");
+      requirements.put("departments", new StringAttributeValueDto("sales; support"));
+      instance.evaluate(requirements, "HAS(#{departments}, 'sales')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "HAS(#{languages}, 100)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "IN(#{language}, 'en]')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "IN(200, #{languages})");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }

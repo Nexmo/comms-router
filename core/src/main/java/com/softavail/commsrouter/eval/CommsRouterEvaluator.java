@@ -5,9 +5,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -19,8 +16,6 @@ import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Queue;
-import com.softavail.commsrouter.domain.Rule;
 import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
@@ -43,7 +38,7 @@ public class CommsRouterEvaluator {
   /**
    *
    * @param expression argument that will be check for valid expression or not
-   * @throws EvaluatorException
+   * @throws EvaluatorException .
    */
   public void isValidExpression(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {
@@ -108,22 +103,22 @@ public class CommsRouterEvaluator {
           @Override
           public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
 
           @Override
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
 
           @Override
           public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
         });
 
