@@ -8,6 +8,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -15,11 +16,10 @@ import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
+import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 
@@ -59,42 +59,72 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     });
   }
 
+  private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
+      throws CommsRouterException {
+
+    app.evaluator.isValidExpression(createArg.getPredicate());
+    Queue queue = new Queue(createArg, objectId);
+    attachAgents(em, queue, true);
+    em.persist(queue);
+    return queue.cloneApiObjectId();
+  }
+
+  private void attachAgents(EntityManager em, Queue queue, boolean isNewQueue) {
+
+    LOGGER.info("Queue {}: attaching agents...", queue.getId());
+
+    int attachedAgentsCount = 0;
+
+    for (Agent agent : app.db.agent.list(em, queue.getRouterId())) {
+      try {
+        if (app.evaluator.evaluate(app.entityMapper.attributes.toDto(agent.getCapabilities()),
+            queue.getPredicate())) {
+
+          LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
+          ++attachedAgentsCount;
+
+          if (isNewQueue || !agent.getQueues().contains(queue)) {
+            agent.getQueues().add(queue);
+          }
+          queue.getAgents().add(agent);
+        } else if (!isNewQueue) {
+          agent.getQueues().remove(queue);
+        }
+      } catch (CommsRouterException ex) {
+        LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getId(), agent.getId(), ex,
+            ex);
+      }
+    }
+    LOGGER.info("Queue {}: agents attached: {}", queue.getId(), attachedAgentsCount);
+  }
+
   @Override
   public void update(UpdateQueueArg updateArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    final String newPredicate = updateArg.getPredicate();
     app.db.transactionManager.executeVoid((em) -> {
       Queue queue = app.db.queue.get(em, objectId.getId());
-      List<Agent> matchedAgents = new ArrayList<>();
-      if (newPredicate != null && !newPredicate.isEmpty()) {
-        List<Agent> agents = app.db.agent.list(em, objectId.getRouterId());
-        agents.forEach((agent) -> {
-          try {
-            if (app.evaluator.evaluatePredicateByAttributes(
-                app.entityMapper.attributes.toDto(agent.getCapabilities()), queue.getPredicate())) {
-              LOGGER.info("Update queue with ID={} matched to agent with ID={}", queue.getId(),
-                  agent.getId());
-              matchedAgents.add(agent);
-              agent.getQueues().remove(queue);
-              agent.getQueues().add(queue);
-            }
-          } catch (CommsRouterException ex) {
-            LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
-                ex.getLocalizedMessage());
-          }
-        });
-        if (matchedAgents.isEmpty()) {
-          LOGGER.warn("Queue with ID={} didn't match to any agent capabilities.", queue.getId());
-        }
-      } else {
-        queue.getAgents().clear();
-        LOGGER.warn("Queue with ID={} cleared all assigned Agents.", queue.getId());
-      }
-      Fields.update(queue::setAgents, queue.getAgents(), matchedAgents);
+      updatePredicate(em, queue, updateArg.getPredicate());
       Fields.update(queue::setDescription, queue.getDescription(), updateArg.getDescription());
-      Fields.update(queue::setPredicate, queue.getPredicate(), updateArg.getPredicate());
     });
+  }
+
+  private void updatePredicate(EntityManager em, Queue queue, String predicate) {
+
+    if (predicate == null) {
+      // no change requested
+      return;
+    }
+
+    if (queue.getPredicate().equals(predicate)) {
+      LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getId());
+      return;
+    }
+    LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
+
+    queue.setPredicate(predicate);
+    queue.getAgents().clear();
+    attachAgents(em, queue, false);
   }
 
   @Override
@@ -128,37 +158,13 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     });
   }
 
-  private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
-      throws CommsRouterException {
-
-    app.evaluator.isValidExpression(createArg.getPredicate());
-    Queue queue = new Queue(createArg, objectId);
-
-    if (objectId.getRouterId() != null) {
-      List<Agent> agents = app.db.agent.list(em, objectId.getRouterId());
-      agents.forEach((agent) -> {
-        try {
-          if (app.evaluator.evaluatePredicateByAttributes(
-              app.entityMapper.attributes.toDto(agent.getCapabilities()), queue.getPredicate())) {
-            LOGGER.info("Create queue with ID={} matched to agent with ID={}", queue.getId(),
-                agent.getId());
-            queue.getAgents().add(agent);
-            agent.getQueues().add(queue);
-          }
-        } catch (CommsRouterException ex) {
-          LOGGER.warn("Evaluation for Agent with ID={} failed : {}", agent.getId(),
-              ex.getLocalizedMessage());
-        }
-      });
+  @Override
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+    try {
+      super.delete(routerObjectId);
+    } catch (ReferenceIntegrityViolationException ex) {
+      throw ex;
     }
-
-    if (queue.getAgents().isEmpty()) {
-      LOGGER.warn("Queue with ID={} didn't match to any agent capabilities.", queue.getId());
-    }
-
-    em.persist(queue);
-    QueueDto queueDto = entityMapper.toDto(queue);
-    return new ApiObjectId(queueDto);
   }
 
 }

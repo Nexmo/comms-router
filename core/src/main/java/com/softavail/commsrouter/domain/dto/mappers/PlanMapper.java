@@ -33,7 +33,9 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   private RouteDto toDto(Route jpa) {
     RouteDto dto = new RouteDto();
-    dto.setQueueId(jpa.getQueueId());
+    if (jpa.getQueue() != null) {
+      dto.setQueueId(jpa.getQueue().getId());
+    }
     dto.setPriority(jpa.getPriority());
     dto.setTimeout(jpa.getTimeout());
     return dto;
@@ -49,17 +51,15 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
 
   public Route fromDto(RouteDto dto) {
     Route route = new Route();
-    route.setQueueId(dto.getQueueId());
     route.setPriority(dto.getPriority());
     route.setTimeout(dto.getTimeout());
     return route;
   }
 
-  private Rule fromDto(RuleDto dto) {
+  public Rule fromDto(RuleDto dto) {
     Rule rule = new Rule();
     rule.setPredicate(dto.getPredicate());
     rule.setTag(dto.getTag());
-    addDtoRoutes(rule, dto.getRoutes());
     return rule;
   }
 
@@ -67,22 +67,8 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
     return jpaRules.stream().map(this::toDto).collect(Collectors.toList());
   }
 
-  public void addDtoRules(Plan plan, List<RuleDto> dtoRules) {
-    if (dtoRules == null) {
-      return;
-    }
-    dtoRules.forEach(dto -> plan.addRule(fromDto(dto)));
-  }
-
   private List<RouteDto> toDtoRoutes(List<Route> jpaRoutes) {
     return jpaRoutes.stream().map(this::toDto).collect(Collectors.toList());
-  }
-
-  public void addDtoRoutes(Rule rule, List<RouteDto> dtoRoutes) {
-    if (dtoRoutes == null) {
-      return;
-    }
-    dtoRoutes.forEach(dto -> rule.addRoute(fromDto(dto)));
   }
 
 }

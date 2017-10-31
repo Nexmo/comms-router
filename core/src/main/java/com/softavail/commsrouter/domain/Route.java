@@ -31,8 +31,9 @@ public class Route implements Serializable {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "queue_id")
-  private String queueId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "queue_id")
+  private Queue queue;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rule_id")
@@ -72,12 +73,12 @@ public class Route implements Serializable {
     this.id = id;
   }
 
-  public String getQueueId() {
-    return queueId;
+  public Queue getQueue() {
+    return queue;
   }
 
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
+  public void setQueue(Queue queue) {
+    this.queue = queue;
   }
 
   public Rule getRule() {

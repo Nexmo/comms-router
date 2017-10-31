@@ -185,4 +185,12 @@ public class Task extends RouterObject {
     return sb.toString();
   }
 
+  public void makeCompleted() {
+    setState(TaskState.completed);
+    setQueue(null);
+    setAgent(null);
+    setRule(null);
+    setCurrentRoute(null);
+  }
+
 }

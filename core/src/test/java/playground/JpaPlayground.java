@@ -156,12 +156,20 @@ public class JpaPlayground implements AutoCloseable {
 
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("plan-id").build(),
         planService, (em) -> {
+
+          Queue queue2 = db.queue.get(em,
+              RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build());
+          Queue queue5 = db.queue.get(em,
+              RouterObjectId.builder().setRouterId("router-id").setId("queue-id-5").build());
+          Queue queue6 = db.queue.get(em,
+              RouterObjectId.builder().setRouterId("router-id").setId("queue-id-6").build());
+
           Plan plan = new Plan();
           plan.setDescription("my plan");
 
           Route route;
           route = new Route();
-          route.setQueueId("queue-id-6");
+          route.setQueue(queue6);
           Rule rule;
           rule = new Rule();
           rule.setPredicate("language == 'es'");
@@ -170,7 +178,7 @@ public class JpaPlayground implements AutoCloseable {
           plan.addRule(rule);
 
           route = new Route();
-          route.setQueueId("queue-id-5");
+          route.setQueue(queue5);
           rule = new Rule();
           rule.setPredicate("toLowerCase(language)=='en'");
           rule.setTag("t5");
@@ -178,7 +186,7 @@ public class JpaPlayground implements AutoCloseable {
           plan.addRule(rule);
 
           route = new Route();
-          route.setQueueId("queue-id2");
+          route.setQueue(queue2);
           rule = new Rule();
           rule.setPredicate("B < 7");
           rule.setTag("t2");
@@ -186,14 +194,13 @@ public class JpaPlayground implements AutoCloseable {
           plan.addRule(rule);
 
           route = new Route();
-          route.setQueueId("queue-id-5");
+          route.setQueue(queue5);
           plan.setDefaultRoute(route);
 
           plan.setId("plan-id");
           plan.setRouterId("router-id");
 
           em.persist(plan);
-
         });
 
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("agent-id").build(),

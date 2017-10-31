@@ -10,5 +10,17 @@ package com.softavail.commsrouter.api.dto.model;
  * @author ikrustev
  */
 public enum AgentState {
-  offline, ready, busy, unavailable
+
+  offline(true), ready(true), busy(false), unavailable(true);
+
+  private boolean deleteAllowed;
+
+  AgentState(boolean deleteAllowed) {
+    this.deleteAllowed = deleteAllowed;
+  }
+
+  public boolean isDeleteAllowed() {
+    return deleteAllowed;
+  }
+
 }

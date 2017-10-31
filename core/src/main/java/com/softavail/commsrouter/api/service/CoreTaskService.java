@@ -76,7 +76,14 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     validate(createArg);
 
     CreateTaskResult createTaskResult = app.db.transactionManager.execute(em -> {
-      app.db.task.delete(em, objectId.getId());
+      Task task = em.find(Task.class, objectId.getId());
+      if (task != null) {
+        if (!task.getState().isDeleteAllowed()) {
+          throw new InvalidStateException(
+              "Replacing task in state " + task.getState() + " not allowed");
+        }
+        em.remove(task);
+      }
       return doCreate(em, createArg, objectId);
     });
 
@@ -147,14 +154,13 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       }
 
       try {
-        if (app.evaluator.evaluatePredicateByAttributes(attributesGroup, rule.getPredicate())) {
-          LOGGER.info("The task with ID={} matched to rule predicate with ID={}, name='{}'", taskId,
-              rule.getId(), rule.getTag());
+        if (app.evaluator.evaluate(attributesGroup, rule.getPredicate())) {
+          LOGGER.info("Task {}: matched rule {} tag {}", taskId, rule.getId(), rule.getTag());
           return rule.getRoutes().get(0);
         }
       } catch (CommsRouterException ex) {
-        LOGGER.error("Evaluation for Queue with ID={} failed : {}",
-            rule.getRoutes().get(0).getQueueId(), ex, ex);
+        LOGGER.error("Task {}: failure matching rule {} tag {}: {}", taskId, rule.getId(),
+            rule.getTag(), ex, ex);
       }
 
       LOGGER.debug("Did not found any route info in the current rule: {}", rule);
@@ -210,8 +216,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throws NotFoundException {
 
     Task task = new Task(objectId);
-    String queueId = createArg.getQueueId();
+
     if (createArg.getPlanId() != null) {
+
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
       Route matchedRoute = null;
@@ -232,20 +239,22 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
         throw new NotFoundException("Did not found any Route for task '{}'" + createArg);
       }
 
-      if (matchedRoute.getQueueId() == null) {
+      if (matchedRoute.getQueue() == null) {
         throw new NotFoundException(
             "Evaluator didn't match task to any queues using the plan rules.");
       }
 
-      queueId = matchedRoute.getQueueId();
+      task.setQueue(matchedRoute.getQueue());
       task.setPriority(matchedRoute.getPriority());
       task.setQueuedTimeout(matchedRoute.getTimeout());
       task.setCurrentRoute(matchedRoute);
-    }
 
-    Queue queue = app.db.queue.get(em,
-        RouterObjectId.builder().setId(queueId).setRouterId(objectId.getRouterId()).build());
-    task.setQueue(queue);
+    } else {
+
+      Queue queue = app.db.queue.get(em, RouterObjectId.builder().setId(createArg.getQueueId())
+          .setRouterId(objectId.getRouterId()).build());
+      task.setQueue(queue);
+    }
 
     return task;
   }
@@ -295,9 +304,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       case completed:
         throw new InvalidStateException("Task already completed");
       case waiting:
-        assert task.getAgent() == null
-            : "Waiting task " + task.getId() + " has assigned agent: " + task.getAgent().getId();
-        task.setState(TaskState.completed);
+        assert task.getAgent() == null : "Waiting task " + task.getId() + " has assigned agent: "
+            + task.getAgent().getId();
+        task.makeCompleted();
         return Optional.empty();
       case assigned:
         break;
@@ -306,11 +315,11 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
             "Current state cannot be switched to completed: " + task.getState());
     }
 
-    task.setState(TaskState.completed);
-
     Agent agent = task.getAgent();
 
     assert agent != null : "Completed task with no agent: " + task.getId();
+
+    task.makeCompleted();
 
     if (agent.getState() != AgentState.busy) {
       assert false
@@ -319,6 +328,23 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     }
     agent.setState(AgentState.ready);
     return Optional.of(agent.getId());
+  }
+
+  @Override
+  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+    app.db.transactionManager.executeVoid((em) -> {
+      doDelete(em, routerObjectId);
+    });
+  }
+
+  private void doDelete(EntityManager em, RouterObjectId routerObjectId)
+      throws NotFoundException, InvalidStateException {
+
+    Task task = app.db.task.get(em, routerObjectId);
+    if (!task.getState().isDeleteAllowed()) {
+      throw new InvalidStateException("Deleting task in state " + task.getState() + " not allowed");
+    }
+    em.remove(task);
   }
 
 }

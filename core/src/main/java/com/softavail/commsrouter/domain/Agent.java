@@ -32,7 +32,7 @@ import javax.persistence.TemporalType;
 @Table(name = "agent")
 public class Agent extends RouterObject {
 
-  @OneToOne(cascade = CascadeType.ALL)
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "capabilities_attribute_group_id")
   private AttributeGroup capabilities;
 
@@ -62,16 +62,6 @@ public class Agent extends RouterObject {
 
   public void setCapabilities(AttributeGroup capabilities) {
     this.capabilities = capabilities;
-  }
-
-  public void removeCapabilities() {
-    if (capabilities != null) {
-      capabilities.getAttributes().stream().forEach(attribute -> {
-        attribute.setAttributeGroup(null);
-      });
-      capabilities.getAttributes().clear();
-      capabilities = null;
-    }
   }
 
   public String getAddress() {
