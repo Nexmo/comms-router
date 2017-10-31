@@ -10,7 +10,6 @@ import org.cfg4j.provider.ConfigurationProvider;
 import org.cfg4j.provider.ConfigurationProviderBuilder;
 import org.cfg4j.source.ConfigurationSource;
 import org.cfg4j.source.classpath.ClasspathConfigurationSource;
-import org.cfg4j.source.compose.MergeConfigurationSource;
 import org.cfg4j.source.context.filesprovider.ConfigFilesProvider;
 import org.cfg4j.source.empty.EmptyConfigurationSource;
 import org.cfg4j.source.files.FilesConfigurationSource;
@@ -83,7 +82,7 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
         .map(this::getConfigurationSource)
         .orElse(new EmptyConfigurationSource());
 
-    ConfigurationSource master = new MergeConfigurationSource(
+    ConfigurationSource master = new SkipMissingConfigurationSource(
         new InMemoryConfigurationSource(defaultProperties),
         configurationSource);
 
