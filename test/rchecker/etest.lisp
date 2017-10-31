@@ -158,7 +158,8 @@
                               (copy-tree items)))
              (selected (alexandria:random-elt indexes)))
         (setf (gethash items *policy*) indexes)
-        (push #'(lambda()(push selected (gethash items *policy*)))
+        (push #'(lambda()
+                  (push selected (gethash items *policy*)))
               *update-policy*)
         selected )))
 
@@ -223,17 +224,17 @@
 
 (defun find-bug (size )
   (setf *update-policy* ())
-  (print(length (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
-              do (setf *update-policy* ()) (format t ".")))))
+  (print(length (test-random :prefix (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
+                    do (setf *update-policy* ()) (format t "."))))))
 
 (defun scan-bug(size)
   (setf *policy* (make-hash-table :test #'equal))
   (time (loop for max-size = size then (let ((last (find-bug max-size)))
                                          (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
-                                         (if (< last max-size) (1- max-size)
+                                         (if (< last max-size) (/ (- max-size last) 2)
                                              max-size))
            :repeat 100
-           do (print "--------")
+           do (format t  "~%-------- max-size ~A" max-size)
              )) )
 
 
