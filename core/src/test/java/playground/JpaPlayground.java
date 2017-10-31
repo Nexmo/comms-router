@@ -123,7 +123,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id1").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouterId("router-id");
+          queue.setRouter(db.router.get(em, "router-id"));
           queue.setId("queue-id1");
           em.persist(queue);
         });
@@ -131,7 +131,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouterId("router-id");
+          queue.setRouter(db.router.get(em, "router-id"));
           queue.setId("queue-id2");
           em.persist(queue);
         });
@@ -139,7 +139,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-6").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouterId("router-id");
+          queue.setRouter(db.router.get(em, "router-id"));
           queue.setId("queue-id-6");
           queue.setPredicate("CONTAINS(language, 'es')");
           em.persist(queue);
@@ -148,7 +148,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-5").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouterId("router-id");
+          queue.setRouter(db.router.get(em, "router-id"));
           queue.setId("queue-id-5");
           queue.setPredicate("language == 'en'");
           em.persist(queue);
@@ -198,7 +198,7 @@ public class JpaPlayground implements AutoCloseable {
           plan.setDefaultRoute(route);
 
           plan.setId("plan-id");
-          plan.setRouterId("router-id");
+          plan.setRouter(db.router.get(em, "router-id"));
 
           em.persist(plan);
         });
@@ -221,7 +221,7 @@ public class JpaPlayground implements AutoCloseable {
           agent.getQueues().add(queue1);
           agent.getQueues().add(queue2);
           agent.setId("agent-id");
-          agent.setRouterId("router-id");
+          agent.setRouter(db.router.get(em, "router-id"));
           em.persist(agent);
         });
 

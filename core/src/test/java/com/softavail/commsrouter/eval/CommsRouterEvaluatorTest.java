@@ -8,6 +8,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -18,6 +19,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -130,7 +132,7 @@ public class CommsRouterEvaluatorTest {
     route.setPriority(10L);
     rule.getRoutes().add(route);
 
-    queue.setRouterId("router-id");
+    queue.setRouter(new Router(new ApiObjectId("router-id")));
     queue.setId("queue-id1");
     queue.setPredicate(predicateOK2);
 

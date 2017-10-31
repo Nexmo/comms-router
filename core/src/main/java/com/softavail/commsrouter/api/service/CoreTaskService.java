@@ -24,6 +24,7 @@ import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.util.Uuid;
@@ -215,7 +216,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
       throws NotFoundException {
 
+    Router router = getRouter(em, objectId);
     Task task = new Task(objectId);
+    task.setRouter(router);
 
     if (createArg.getPlanId() != null) {
 
@@ -236,7 +239,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       }
 
       if (matchedRoute == null) {
-        throw new NotFoundException("Did not found any Route for task '{}'" + createArg);
+        throw new NotFoundException("Route task '{}' not found" + createArg);
       }
 
       if (matchedRoute.getQueue() == null) {

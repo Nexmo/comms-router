@@ -15,6 +15,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -85,7 +86,11 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       }
     }
 
-    Plan plan = new Plan(createArg, objectId);
+    Router router = getRouter(em, objectId);
+    Plan plan = new Plan(objectId);
+    plan.setRouter(router);
+    plan.setDescription(createArg.getDescription());
+
     PlanResolver.create(app, em, plan).addDtoRules(createArg.getRules())
             .setDefaultDtoRoute(createArg.getDefaultRoute());
     em.persist(plan);

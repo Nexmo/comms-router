@@ -40,7 +40,7 @@ public class GenericRepository<ENTITYT> {
   public ENTITYT get(EntityManager em, String id) throws NotFoundException {
     ENTITYT jpaEntity = em.find(entityClass, id);
     if (jpaEntity == null) {
-      throw new NotFoundException(entityClass.getSimpleName() + ": " + id + " not found");
+      throw new NotFoundException(entityClass.getSimpleName() + " " + id + " not found");
     }
     return jpaEntity;
   }

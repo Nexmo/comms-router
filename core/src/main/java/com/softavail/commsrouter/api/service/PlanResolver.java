@@ -70,7 +70,7 @@ class PlanResolver {
     Route route = app.entityMapper.plan.fromDto(routeDto);
     if (routeDto.getQueueId() != null) {
       Queue queue =
-          app.db.queue.get(em, new RouterObjectId(routeDto.getQueueId(), plan.getRouterId()));
+          app.db.queue.get(em, new RouterObjectId(routeDto.getQueueId(), plan.getRouter().getId()));
       route.setQueue(queue);
     }
     return route;

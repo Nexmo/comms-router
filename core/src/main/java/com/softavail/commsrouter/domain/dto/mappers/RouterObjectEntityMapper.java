@@ -11,7 +11,7 @@ public abstract class RouterObjectEntityMapper<DTOENTITYT, JPAENTITYT>
 
   protected void copyId(RouterObjectId to, RouterObject from) {
     to.setId(from.getId());
-    to.setRouterId(from.getRouterId());
+    to.setRouterId(from.getRouter().getId());
   }
 
 }
