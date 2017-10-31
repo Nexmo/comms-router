@@ -8,7 +8,6 @@ import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
-import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -37,17 +36,13 @@ public class CorePlanServiceJpaTest extends TestBase {
   @Test
   public void updateTest() throws CommsRouterException {
     String queueId1 = "queueId_one";
-    String queueId2 = "queueId_two";
     RouterObjectId id = new RouterObjectId("plan-id", ROUTER_ID);
     routerService.create(newCreateRouterArg("router-name", ""), ROUTER_ID);
     queueService.create(newCreateQueueArg("1==1", "queue 1"), new RouterObjectId(queueId1, id));
-    queueService.create(newCreateQueueArg("1==1", "queue 2"), new RouterObjectId(queueId2, id));
     planService.create(newCreatePlanArg("desctiption_one", "1==1", queueId1), id);
-    planService.update(newUpdatePlanArg("desctiption_two", "1==1", queueId2), id);
+    planService.update(newUpdatePlanArg("desctiption_two"), id);
     PlanDto updatedPlan = planService.get(id);
-    List<RuleDto> rules = updatedPlan.getRules();
     assertEquals(updatedPlan.getDescription(), "desctiption_two");
-    assertEquals(rules.get(0).getRoutes().get(0).getQueueId(), "queueId_two");
   }
 
   // Testing method list from CoreRouterObjectService

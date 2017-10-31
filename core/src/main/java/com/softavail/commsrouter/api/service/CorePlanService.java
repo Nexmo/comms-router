@@ -57,13 +57,6 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectId.getId());
       PlanResolver planResolver = PlanResolver.create(app, em, plan);
-      if (updateArg.getRules() != null) {
-        plan.removeRules();
-        planResolver.addDtoRules(updateArg.getRules());
-      }
-      if (updateArg.getDefaultRoute() != null) {
-        planResolver.setDefaultDtoRoute(updateArg.getDefaultRoute());
-      }
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }
