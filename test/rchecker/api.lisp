@@ -147,7 +147,7 @@
                                                                 ("priority" priority)
                                                                 ("timeout" timeout)))
                                                         next-route)))))
-                  (description "description") )
+                  (description "description"))
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
                         ("rules" rules)

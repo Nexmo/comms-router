@@ -9,10 +9,21 @@
                            (let ((descr (format nil "~S" description)))
                              (etask-set-context  :router-id router-id :task-id task-id  :key "log" :value (ppcre:regex-replace-all "'" "" (subseq descr (max 0 (- (length descr) 255))))))) )) ) )
 
+(hunchentoot:define-easy-handler (app :uri "/503") (data)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (setf (hunchentoot:return-code*) (list 503))
+  (hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data))))
+  "reserved for testing")
+
+(hunchentoot:define-easy-handler (app :uri "/404") (data)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (setf (hunchentoot:return-code*) (list 503))
+  "reserved for testing")
+
 (hunchentoot:define-easy-handler (app :uri "/task") (data)
   (setf (hunchentoot:content-type*) "text/plain")
   (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
-    ;(hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
+    (hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
     (let* ((task-info (jsown:parse body))
            (task-id (jsown:val (jsown:val task-info "task") "id"))
            (router-id (jsown:val (jsown:val task-info "task") "routerId"))

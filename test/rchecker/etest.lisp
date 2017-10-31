@@ -171,7 +171,7 @@
                          (path ())
                          (size 100)
                          (prefix '())
-                         (selector (simple-selector)));(policy-selector)
+                         (selector (policy-selector)));
   (setf *model* (copy-tree model))
   (format t "~%With model:~S" model)
   (if (>= (print(length path)) size)  'pass
@@ -230,7 +230,7 @@
   (setf *policy* (make-hash-table :test #'equal))
   (time (loop for max-size = size then (let ((last (find-bug max-size)))
                                          (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
-                                         (if (< last max-size) last
+                                         (if (< last max-size) (1- max-size)
                                              max-size))
            :repeat 100
            do (print "--------")
