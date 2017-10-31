@@ -79,6 +79,7 @@ public class HasFunction implements Function {
 
     String argumentOne = (String) strings.get(0);
     try {
+      argumentOne = EvaluatorHelpers.trySupportSingleArraysElement(argumentOne);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentOne);
         if (variable != null) {
@@ -112,8 +113,6 @@ public class HasFunction implements Function {
       throw new FunctionException(String.format("function %s() first argument is \"%s\": %s",
           getName(), argumentOne, e.getMessage()));
     } catch (NumberFormatException e) {
-      throw new FunctionException(exceptionMessage, e);
-    } catch (Exception e) {
       throw new FunctionException(exceptionMessage, e);
     }
 

@@ -5,9 +5,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -19,8 +16,6 @@ import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Queue;
-import com.softavail.commsrouter.domain.Rule;
 import net.sourceforge.jeval.EvaluationConstants;
 import net.sourceforge.jeval.EvaluationException;
 import net.sourceforge.jeval.EvaluationResult;
@@ -38,87 +33,13 @@ import java.util.Set;
 public class CommsRouterEvaluator {
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
-  // private static final String EVAL_VARIABLES_FORMAT = "#{%s}";
 
 
   /**
-   * 
-   * @param taskId new creating task ID
-   * @param createTaskArg new task arguments
-   * @param rule CommsRouter plan rule object
-   * @return matched queue ID for the matched RuleDto OR null if not match
-   * @throws com.softavail.commsrouter.api.exception.CommsRouterException
    *
+   * @param expression argument that will be check for valid expression or not
+   * @throws EvaluatorException
    */
-  public Boolean evaluateNewTaskToQueueByPlanRules(String taskId, CreateTaskArg createTaskArg,
-      Rule rule) throws CommsRouterException {
-    AttributeGroupDto attrbutes = createTaskArg.getRequirements();
-    if (evaluatePredicateByAttributes(attrbutes, rule.getPredicate())) {
-      LOGGER.info("The task with ID={} matched to rule predicate with ID={}, name='{}'", taskId,
-          rule.getId(), rule.getTag());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
-   * @param agentId new creating agent ID
-   * @param createAgentArg arguments for creating an agent
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateNewAgentForQueue(String agentId, CreateAgentArg createAgentArg,
-      Queue queue) throws CommsRouterException {
-    AttributeGroupDto attrbutes = createAgentArg.getCapabilities();
-    if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The agent with ID={} matched to queue with ID={}", agentId, queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
-   * @param agentId updating agent ID
-   * @param updateAgentArg arguments for updating agent
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateUpdateAgentForQueue(String agentId, UpdateAgentArg updateAgentArg,
-      Queue queue) throws CommsRouterException {
-    AttributeGroupDto attrbutes = updateAgentArg.getCapabilities();
-    if (evaluatePredicateByAttributes(attrbutes, queue.getPredicate())) {
-      LOGGER.info("The updated agent with ID={} matched to queue with ID={}", agentId,
-          queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   *
-   * @param agentId agent ID for which capabilities will be evaluated to queue
-   * @param agentAttrbutes agent capabilities arguments for evaluate to queue predicate
-   * @param queue the queue that will be evaluated
-   * @return true - if matched queue
-   * @throws CommsRouterException .
-   */
-  public Boolean evaluateAgentCapabilitiesForQueue(String agentId, AttributeGroupDto agentAttrbutes,
-      Queue queue) throws CommsRouterException {
-    if (evaluatePredicateByAttributes(agentAttrbutes, queue.getPredicate())) {
-      LOGGER.info("The agent with ID={} matched to queue with ID={}", agentId, queue.getId());
-      return true;
-    }
-
-    return false;
-  }
-
   public void isValidExpression(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {
       throw new EvaluatorException("Expression cannot be NULL or empty.");
@@ -129,29 +50,35 @@ public class CommsRouterEvaluator {
     evaluator.isValidExpression(expression);
   }
 
-  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String pridicate)
+  /**
+   *
+   * @param attributesGroup agent capabilities arguments for evaluate to queue predicate
+   * @param predicate the predicate that will be evaluated
+   * @return true - if matched queue
+   * @throws CommsRouterException .
+   */
+  public Boolean evaluatePredicateByAttributes(AttributeGroupDto attributesGroup, String predicate)
       throws CommsRouterException {
-    if (pridicate == null || pridicate.isEmpty()) {
+    if (predicate == null || predicate.isEmpty()) {
       return false;
     }
 
     ExpressionEvaluator evaluator = new ExpressionEvaluator();
     evaluator.init();
 
-    return evaluatePredicateToAttributes(evaluator, attributesGroup, pridicate);
+    return evaluatePredicateToAttributes(evaluator, attributesGroup, predicate);
   }
 
-  private Boolean setEvaluatorAttributeVariables(Evaluator evaluator,
+  private void setEvaluatorAttributeVariables(Evaluator evaluator,
       AttributeGroupDto attributesGroup) {
-    Boolean result = true;
     if (attributesGroup == null) {
       LOGGER.warn("Missing attributes for matching to predicate");
-      return true;
+      return;
     }
     Set<String> keys = attributesGroup.keySet();
     if (keys.isEmpty()) {
       LOGGER.warn("Missing attributes for matching to predicate");
-      result = true;
+      return;
     }
     keys.forEach((String key) -> {
       AttributeValueDto attributeValue = attributesGroup.get(key);
@@ -176,22 +103,22 @@ public class CommsRouterEvaluator {
           @Override
           public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
 
           @Override
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
 
           @Override
           public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
               throws IOException {
-            evaluator.putVariable(key,
-                String.format("'%s'", value.getValue().toString().replace(',', ';')));
+            evaluator.putVariable(key, String.format("'%s'",
+                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
         });
 
@@ -200,18 +127,13 @@ public class CommsRouterEvaluator {
         LOGGER.error("Not expected exception here: {}", ex);
       }
     });
-
-    return result;
   }
 
   private Boolean evaluatePredicateToAttributes(Evaluator evaluator,
       AttributeGroupDto attributesGroup, String predicate) throws CommsRouterException {
 
-    if (!setEvaluatorAttributeVariables(evaluator, attributesGroup)) {
-      return false;
-    }
+    setEvaluatorAttributeVariables(evaluator, attributesGroup);
 
-    String throwException;
     try {
       String result = evaluator.evaluate(validateExpressionFormat(attributesGroup, predicate));
       EvaluationResult res = new EvaluationResult(result, EvaluationConstants.SINGLE_QUOTE);
@@ -222,34 +144,14 @@ public class CommsRouterEvaluator {
       LOGGER.info("Attribute={} matched to predicate={}", attributesGroup, predicate);
       return true;
     } catch (EvaluationException ex) {
-      LOGGER.info("Evaluator expression failed with message: '{}", ex.getMessage());
-      throwException = ex.getMessage();
+      String throwException = "Evaluator expression failed with message: " + ex.getMessage();
+      LOGGER.info(throwException);
+      throw new EvaluatorException(throwException, ex);
     }
-
-    if (throwException != null && !throwException.isEmpty()) {
-      throw new EvaluatorException(throwException);
-    }
-
-    return false;
-  }
-
-  private String reMapVariableKeysInPredicate(AttributeGroupDto attributesGroup, String predicate) {
-    // if (attributesGroup == null) {
-    // return predicate;
-    // }
-    // String result = predicate;
-    // Set<String> keys = attributesGroup.keySet();
-    // for (String key : keys) {
-    // String newKey = String.format(EVAL_VARIABLES_FORMAT, key);
-    // result = result.replaceAll(key, newKey);
-    // }
-    // return result;
-    return predicate;
   }
 
   private String validateExpressionFormat(AttributeGroupDto attributesGroup, String expression) {
     String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
-    formatedExpression = reMapVariableKeysInPredicate(attributesGroup, formatedExpression);
 
     return formatedExpression;
   }

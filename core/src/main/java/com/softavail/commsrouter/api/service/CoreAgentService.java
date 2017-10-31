@@ -101,7 +101,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     if (updateArg.getState() == AgentState.busy
         || updateArg.getState() == AgentState.unavailable) {
-      throw new BadValueException("Setting agent state to '" + updateArg.getState() + "' not allowed");
+      throw new BadValueException(
+          "Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
 
     return app.db.transactionManager.execute((em) -> {
@@ -155,7 +156,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     List<Queue> queues = app.db.queue.list(em, agent.getRouterId());
     queues.forEach((queue) -> {
       try {
-        if (app.evaluator.evaluateUpdateAgentForQueue(agent.getId(), updateArg, queue)) {
+        if (app.evaluator.evaluatePredicateByAttributes(updateArg.getCapabilities(),
+            queue.getPredicate())) {
+          LOGGER.info("Update agent with ID={} matched to queue with ID={}", agent.getId(),
+              queue.getId());
           matchedQueues.add(queue);
         }
       } catch (CommsRouterException ex) {
@@ -183,16 +187,19 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     if (objectId.getRouterId() != null) {
       List<Queue> queues = app.db.queue.list(em, objectId.getRouterId());
-      for (Queue queue : queues) {
+      queues.forEach((queue) -> {
         try {
-          if (app.evaluator.evaluateNewAgentForQueue(objectId.getId(), createArg, queue)) {
+          if (app.evaluator.evaluatePredicateByAttributes(createArg.getCapabilities(),
+              queue.getPredicate())) {
+            LOGGER.info("Create agent with ID={} matched to queue with ID={}", objectId.getId(),
+                queue.getId());
             agent.getQueues().add(queue);
           }
         } catch (CommsRouterException ex) {
           LOGGER.warn("Evaluation for Queue with ID={} failed : {}", queue.getId(),
               ex.getLocalizedMessage());
-        }
-      }
+          }
+      });
     }
 
     if (agent.getQueues().isEmpty()) {

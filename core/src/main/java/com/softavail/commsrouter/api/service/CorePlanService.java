@@ -78,8 +78,10 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
     }
 
-    for (RuleDto rule : createArg.getRules()) {
-      app.evaluator.isValidExpression(rule.getPredicate());
+    if (createArg.getRules() != null) {
+      for (RuleDto rule : createArg.getRules()) {
+        app.evaluator.isValidExpression(rule.getPredicate());
+      }
     }
 
     Plan plan = new Plan(createArg, objectId);

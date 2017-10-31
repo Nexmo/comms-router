@@ -7,18 +7,28 @@ public interface Configuration {
 
   String SYSTEM_PROPERTY_KEY = "comms.router.config.file";
 
+  Configuration DEFAULT = new Configuration() {
+    @Override
+    public Integer getClientConnectTimeout() {
+      return 1500;
+    }
+
+    @Override
+    public Integer getClientReadTimeout() {
+      return 1500;
+    }
+
+    @Override
+    public Boolean getClientFollowRedirects() {
+      return true;
+    }
+  };
+
+
   Integer getClientConnectTimeout();
 
   Integer getClientReadTimeout();
 
   Boolean getClientFollowRedirects();
-
-  Integer getClientRetryDelaySeconds();
-
-  Integer getClientRetryDelayMaxSeconds();
-
-  Integer getClientRetryJitterMilliseconds();
-
-  Integer getTaskDispatcherThreadPoolSize();
 
 }

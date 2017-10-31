@@ -43,6 +43,7 @@ public class ContainsFunction implements Function {
    * 
    * @exception FunctionException Thrown if the argument(s) are not valid for this function.
    */
+  @Override
   public FunctionResult execute(final Evaluator evaluator, final String arguments)
       throws FunctionException {
     String result = null;
@@ -60,7 +61,7 @@ public class ContainsFunction implements Function {
           evaluator.getQuoteCharacter());
       String argumentTwo = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) values.get(1),
           evaluator.getQuoteCharacter());
-      Integer indexOf = new Integer(argumentOne.indexOf(argumentTwo, 0));
+      Integer indexOf = argumentOne.indexOf(argumentTwo, 0);
       if (indexOf >= 0) {
         result = EvaluationConstants.BOOLEAN_STRING_TRUE;
       } else {
@@ -68,8 +69,6 @@ public class ContainsFunction implements Function {
       }
     } catch (FunctionException fe) {
       throw new FunctionException(fe.getMessage(), fe);
-    } catch (Exception e) {
-      throw new FunctionException(exceptionMessage, e);
     }
 
     return new FunctionResult(result, FunctionConstants.FUNCTION_RESULT_TYPE_NUMERIC);

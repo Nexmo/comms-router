@@ -25,13 +25,12 @@ public class QueueProcessor {
 
   private static final Logger LOGGER = LogManager.getLogger(QueueProcessor.class);
 
-  private static final long PROCESS_RETRY_DELAY_SECONDS = 10;
-
   private final String queueId;
   private final JpaDbFacade db;
   private final EntityMappers mappers;
   private final TaskDispatcher taskDispatcher;
   private final ScheduledThreadPoolExecutor threadPool;
+  private final long processRetryDelaySeconds;
   private final StateChangeListener stateChangeListener;
 
   private QueueProcessorState state;
@@ -42,6 +41,7 @@ public class QueueProcessor {
       EntityMappers mappers,
       TaskDispatcher taskDispatcher,
       ScheduledThreadPoolExecutor threadPool,
+      long processRetryDelaySeconds,
       StateChangeListener stateChangeListener) {
 
     this.queueId = queueId;
@@ -49,6 +49,7 @@ public class QueueProcessor {
     this.mappers = mappers;
     this.taskDispatcher = taskDispatcher;
     this.threadPool = threadPool;
+    this.processRetryDelaySeconds = processRetryDelaySeconds;
     this.stateChangeListener = stateChangeListener;
     this.state = QueueProcessorState.IDLE;
   }
@@ -112,8 +113,7 @@ public class QueueProcessor {
       } catch (CommsRouterException | RuntimeException e) {
         // Failed to get assignment. Most probably DB is down, so let's try again a bit later.
         LOGGER.error("Queue processor {}: failure getting assignment: {}", e, e);
-        // @todo make this wait time configurable
-        threadPool.schedule(this::processQueue, PROCESS_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
+        threadPool.schedule(this::processQueue, processRetryDelaySeconds, TimeUnit.SECONDS);
         return;
       }
 
@@ -157,6 +157,7 @@ public class QueueProcessor {
     private EntityMappers mappers;
     private TaskDispatcher taskDispatcher;
     private ScheduledThreadPoolExecutor threadPool;
+    private long processRetryDelaySeconds;
     private StateChangeListener stateChangeListener = null;
 
     public Builder setQueueId(String queueId) {
@@ -184,6 +185,11 @@ public class QueueProcessor {
       return this;
     }
 
+    public Builder setProcessRetryDelaySeconds(long processRetryDelaySeconds) {
+      this.processRetryDelaySeconds = processRetryDelaySeconds;
+      return this;
+    }
+
     public Builder setStateChangeListener(StateChangeListener stateChangeListener) {
       this.stateChangeListener = stateChangeListener;
       return this;
@@ -191,7 +197,7 @@ public class QueueProcessor {
 
     public QueueProcessor build() {
       return new QueueProcessor(queueId, db, mappers, taskDispatcher, threadPool,
-          stateChangeListener);
+          processRetryDelaySeconds, stateChangeListener);
     }
   }
 

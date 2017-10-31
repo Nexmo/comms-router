@@ -79,6 +79,7 @@ public class InFunction implements Function {
 
     String argumentTwo = (String) strings.get(1);
     try {
+      argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentTwo);
         if (variable != null) {
@@ -112,8 +113,6 @@ public class InFunction implements Function {
       throw new FunctionException(String.format("function %s() second argument is \"%s\": %s",
           getName(), argumentTwo, e.getMessage()));
     } catch (NumberFormatException e) {
-      throw new FunctionException(exceptionMessage, e);
-    } catch (Exception e) {
       throw new FunctionException(exceptionMessage, e);
     }
 

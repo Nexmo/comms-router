@@ -18,12 +18,12 @@ public class EvaluatorHelpers {
 
   private static String openBracketCharacter = "[";
   private static String closeBracketCharacter = "]";
-  public static String VALIDATION_VARIABLE_VALUE =
-      EvaluationConstants.SINGLE_QUOTE + "CREValidationValue_"
-          + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
   private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
 
-  public EvaluatorHelpers() {}
+  public static final String VALIDATION_VARIABLE_VALUE =
+      EvaluationConstants.SINGLE_QUOTE + "CREValidationValue_"
+          + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
+  public final static char ARRAY_ITEMS_DELIMITER = ';';
 
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
@@ -65,7 +65,8 @@ public class EvaluatorHelpers {
         int endIndex = formatedExpression.indexOf(closeBracketCharacter, startIndex + 1);
         if (endIndex > 0) {
           String arrayString = formatedExpression.substring(startIndex, endIndex + 1);
-          arrayString = String.format("'%s'", arrayString.replace(',', ';'));
+          arrayString = String.format("'%s'",
+              arrayString.replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER));
           formatedExpression = formatedExpression.substring(0, startIndex) + arrayString
               + formatedExpression.substring(endIndex + 1);
           endIndex += 3;
@@ -76,8 +77,27 @@ public class EvaluatorHelpers {
     return formatedExpression;
   }
 
+  public static String trySupportSingleArraysElement(String arrayItems) {
+    String formatedExpression = arrayItems;
+      int index = formatedExpression.indexOf(openBracketCharacter, 0);
+      if (index >= 0) {
+          return arrayItems;
+      }
+    index = formatedExpression.indexOf(EvaluatorHelpers.ARRAY_ITEMS_DELIMITER, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
+    index = formatedExpression.indexOf(closeBracketCharacter, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
+    formatedExpression = openBracketCharacter + arrayItems + closeBracketCharacter;
+
+    return formatedExpression;
+  }
+
   // Helpers for validation expression usage
-  public static String validationCheckSpecialCharsInVariable(String variable)
+  public static void validationCheckSpecialCharsInVariable(String variable)
       throws EvaluationException {
     for (String illegalOperator : illegalExpressionSymbols) {
       int index = variable.indexOf(illegalOperator, 0);
@@ -93,7 +113,6 @@ public class EvaluatorHelpers {
             + "' is not allowed in expression at " + index + ": " + variable);
       }
     }
-    return null;
   }
 
   public static String validationTryReplaceArrayVariable(String variable) {

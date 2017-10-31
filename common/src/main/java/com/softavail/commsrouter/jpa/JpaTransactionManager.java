@@ -23,9 +23,11 @@ import javax.persistence.PersistenceException;
 public class JpaTransactionManager {
 
   private final EntityManagerFactory emf;
+  private final int lockRetryCount;
 
-  public JpaTransactionManager(EntityManagerFactory emf) {
+  public JpaTransactionManager(EntityManagerFactory emf, int lockRetryCount) {
     this.emf = emf;
+    this.lockRetryCount = lockRetryCount;
   }
 
   public <RESULT> RESULT execute(int lockRetryCount, TransactionLogic<RESULT> transactionLogic)
@@ -50,7 +52,7 @@ public class JpaTransactionManager {
             continue;
           }
 
-          // Hibernate does not follow JPA 2 specs and wraps ConstraintViolation in RollbackException
+          // Hibernate does not follow JPA 2 specs and wraps ConstraintViolation in RollbackEx
           Class<javax.validation.ConstraintViolationException> javaxConstraint =
               javax.validation.ConstraintViolationException.class;
           if (javaxConstraint.isInstance(ex.getCause())) {
@@ -83,16 +85,19 @@ public class JpaTransactionManager {
 
   public <RESULT> RESULT execute(TransactionLogic<RESULT> transactionLogic)
       throws CommsRouterException {
+
     return execute(0, transactionLogic);
   }
 
   public <RESULT> RESULT executeWithLockRetry(TransactionLogic<RESULT> transactionLogic)
       throws CommsRouterException {
-    // TODO: default retry count config
-    return execute(10, transactionLogic);
+
+    return execute(lockRetryCount, transactionLogic);
   }
 
-  public void executeVoid(VoidTransactionLogic voidTransactionLogic) throws CommsRouterException {
+  public void executeVoid(VoidTransactionLogic voidTransactionLogic)
+      throws CommsRouterException {
+
     execute(voidTransactionLogic);
   }
 
