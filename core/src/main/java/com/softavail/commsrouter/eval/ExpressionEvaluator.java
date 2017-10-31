@@ -85,9 +85,8 @@ public class ExpressionEvaluator extends Evaluator {
     if (predicateOrigin == null || predicateOrigin.isEmpty()) {
       return EvaluationConstants.BOOLEAN_STRING_FALSE;
     }
-
-
-      return super.evaluate(predicate);
+    
+    return super.evaluate(predicate);
   }
   
 }

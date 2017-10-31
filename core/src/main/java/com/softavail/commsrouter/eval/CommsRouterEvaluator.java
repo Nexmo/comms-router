@@ -7,6 +7,7 @@ package com.softavail.commsrouter.eval;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -38,11 +39,10 @@ import java.util.Set;
  */
 public class CommsRouterEvaluator {
 
-    
-   private ExpressionEvaluator evaluator;
-   private ExpressionEvaluator validationEvaluator;
+  private ExpressionEvaluator evaluator;
+  private ExpressionEvaluator validationEvaluator;
 
-   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
+  private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
 
   public CommsRouterEvaluator initEvaluator(String predicate) {
     if (evaluator == null) {
@@ -199,7 +199,8 @@ public class CommsRouterEvaluator {
     ListMultimap<String, Object> attributesMap = ArrayListMultimap.create();
     attributes.forEach(jpaAttribute -> {
       String name = jpaAttribute.getName();
-      AttributesMapper.JpaAttributeValueType valueType = AttributesMapper.getJpaAttributeValueType(jpaAttribute);
+      AttributesMapper.JpaAttributeValueType valueType =
+          AttributesMapper.getJpaAttributeValueType(jpaAttribute);
       switch (valueType) {
         case STRING:
           attributesMap.put(name, jpaAttribute.getStringValue());
@@ -211,7 +212,8 @@ public class CommsRouterEvaluator {
           attributesMap.put(name, jpaAttribute.getBooleanValue());
           break;
         default:
-          LOGGER.error("Unexpected attribute value type={}, name={}", valueType, jpaAttribute.getName());
+          LOGGER.error("Unexpected attribute value type={}, name={}", valueType,
+              jpaAttribute.getName());
           break;
       }
     });
