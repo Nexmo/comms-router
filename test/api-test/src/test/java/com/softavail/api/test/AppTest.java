@@ -45,17 +45,15 @@ public class AppTest {
   public void crdQueue() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
-    ApiObjectId id = r.create(new CreateRouterArg());
+    r.create(new CreateRouterArg());
 
     Queue q = new Queue(state);
-    CreateQueueArg qArg = new CreateQueueArg();
-    qArg.setPredicate("1==1");
-    id = q.create(new CreateQueueArg());
+    ApiObjectId id = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
     assertThat(q.list(), hasItems(hasProperty("id", is(id.getId()))));
-    q.replace(new CreateQueueArg());
-    q.update(new CreateQueueArg());
+    q.replace(new CreateQueueArg.Builder().predicate("2==2").build());
+    q.update(new CreateQueueArg.Builder().predicate("1==1").build());
     q.delete();
     r.delete();
   }

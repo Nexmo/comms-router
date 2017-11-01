@@ -7,7 +7,6 @@ package com.softavail.commsrouter.app;
 
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -72,11 +71,12 @@ public class TaskDispatcher {
     this.threadPool = new ScheduledThreadPoolExecutor(configuration.getDispatcherThreadPoolSize());
     this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     this.queueProcessorManager = QueueProcessorManager.getInstance();
+    Integer backoffDelay = configuration.getBackoffDelay();
+    Integer backoffDelayMax = configuration.getBackoffDelayMax();
     this.retryPolicy = new RetryPolicy()
         .retryOn(CallbackException.class)
         .retryOn(RuntimeException.class)
-        .withBackoff(configuration.getBackoffDelay(), configuration.getBackoffDelayMax(),
-            TimeUnit.SECONDS)
+        .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
         .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
     restartWaitingTaskTimers();
@@ -139,30 +139,47 @@ public class TaskDispatcher {
   }
 
   private void doDispatchAgent(String agentId) throws CommsRouterException {
-    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
-      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
 
+    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
+
+      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
       if (matchResult == null) {
         return null;
       }
-
-      Agent agent = matchResult.agent;
-      Task task = matchResult.task;
-      // Assign
-      agent.setState(AgentState.busy);
-      task.setState(TaskState.assigned);
-      task.setAgent(agent);
-
-      TaskDto taskDto = mappers.task.toDto(task);
-      AgentDto agentDto = mappers.agent.toDto(agent);
-      return new TaskAssignmentDto(taskDto, agentDto);
+      return assingTask(matchResult);
     });
+
     if (taskAssignmentDto != null) {
       submitTaskAssignment(taskAssignmentDto);
     }
   }
 
+  public TaskAssignmentDto assingTask(MatchResult matchResult) {
+    Agent agent = matchResult.agent;
+    Task task = matchResult.task;
+    // Assign
+    agent.setState(AgentState.busy);
+    task.setState(TaskState.assigned);
+    task.setAgent(agent);
+
+    TaskDto taskDto = mappers.task.toDto(task);
+    AgentDto agentDto = mappers.agent.toDto(agent);
+    return new TaskAssignmentDto(taskDto, agentDto);
+  }
+
   public void submitTaskAssignment(TaskAssignmentDto taskAssignmentDto) {
+    RetryPolicy retryPolicy = this.retryPolicy.copy();
+    retryPolicy.abortIf(obj -> {
+      try {
+        return db.transactionManager.execute(em -> {
+          Task task = db.task.get(em, taskAssignmentDto.getTask());
+          return task.getState() != TaskState.assigned;
+        });
+      } catch (CommsRouterException e) {
+        LOGGER.debug("Error retrieving Task: {}", taskAssignmentDto.getTask().getId());
+        return true;
+      }
+    });
     Failsafe.with(retryPolicy).with(threadPool)
         .onSuccess((ignored, executionContext) ->
             LOGGER.debug("Task {} assigned to agent {}",
@@ -226,12 +243,16 @@ public class TaskDispatcher {
             return null;
           }
 
-          Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
-          Fields.update(task::setPriority, task.getPriority(), matchedRoute.getPriority());
-          Fields.update(task::setQueuedTimeout, task.getQueuedTimeout(),matchedRoute.getTimeout());
-
+          task.setCurrentRoute(matchedRoute);
+          
+          if (matchedRoute.getPriority() != null) {
+            task.setPriority(matchedRoute.getPriority());
+          }
+          
           Date expirationDate = null;
           if (matchedRoute.getTimeout() != null) {
+            task.setQueuedTimeout(matchedRoute.getTimeout());
+            
             if (matchedRoute.getTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
@@ -254,19 +275,11 @@ public class TaskDispatcher {
           }
           task.setExpirationDate(expirationDate);
           
-          if (matchedRoute.getQueueId() != null) {
-            RouterObjectId objectId = RouterObjectId.builder()
-                .setId(matchedRoute.getQueueId())
-                .setRouterId(task.getRouterId())
-                .build();
-            Queue queue = db.queue.get(em, objectId);
-            Fields.update(task::setQueue, task.getQueue(), queue);
-            if (!task.getQueue().getId().equals(matchedRoute.getQueueId())) {
-              task.setAgent(null);
-            }
+          if (matchedRoute.getQueue() != null) {
+            task.setQueue(matchedRoute.getQueue());
           }
-        }
           break;
+        }
         default:
           return null;
       }

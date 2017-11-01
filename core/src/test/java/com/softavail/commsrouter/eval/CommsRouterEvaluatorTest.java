@@ -8,6 +8,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
@@ -18,6 +19,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -116,7 +118,7 @@ public class CommsRouterEvaluatorTest {
     rule.setTag("rule1");
 
     Route route = new Route();
-    route.setQueueId("queue-id1");
+    route.setQueue(queue);
     route.setPriority(0L);
     route.setTimeout(300L);
     rule.getRoutes().add(route);
@@ -130,7 +132,7 @@ public class CommsRouterEvaluatorTest {
     route.setPriority(10L);
     rule.getRoutes().add(route);
 
-    queue.setRouterId("router-id");
+    queue.setRouter(new Router(new ApiObjectId("router-id")));
     queue.setId("queue-id1");
     queue.setPredicate(predicateOK2);
 
@@ -140,8 +142,8 @@ public class CommsRouterEvaluatorTest {
   public void tearDown() {}
 
   /**
-   * Test of evaluatePredicateByAttributes method, of class CommsRouterEvaluator.
-   * 
+   * Test of evaluate method, of class CommsRouterEvaluator.
+   *
    * @throws java.lang.Exception
    */
   @Test
@@ -201,61 +203,86 @@ public class CommsRouterEvaluatorTest {
 
     // check expressions by attributte
     expResult = true;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateOK1);
+    result = instance.evaluate(requirements, predicateOK1);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateOK2);
+    result = instance.evaluate(requirements, predicateOK2);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateOK3);
+    result = instance.evaluate(requirements, predicateOK3);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluatePredicateByAttributes(null, "1==1");
+    result = instance.evaluate(null, "1==1");
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.evaluate(requirements, "HAS(#{language}, 'en')");
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluatePredicateByAttributes(new AttributeGroupDto(), "2==3");
+    result = instance.evaluate(new AttributeGroupDto(), "2==3");
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluatePredicateByAttributes(requirements, null);
+    result = instance.evaluate(requirements, null);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed1);
+    result = instance.evaluate(requirements, predicateFailed1);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed2);
+    result = instance.evaluate(requirements, predicateFailed2);
     assertEquals(expResult, result);
-    
+
     try {
-      instance.evaluatePredicateByAttributes(requirements, "CONTAINS('Sto')");
+      instance.evaluate(requirements, "CONTAINS('Sto')");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
-    
+
     try {
-      instance.evaluatePredicateByAttributes(requirements, "HAS(100)");
+      instance.evaluate(requirements, "CONTAINS(#{nickname}, #Stone)");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
+
     try {
-      instance.evaluatePredicateByAttributes(requirements,
+      instance.evaluate(requirements,
           "HAS([false, 'true'], #{true}) && #{'true'}");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluatePredicateByAttributes(requirements, "IN(50)");
+      requirements.put("departments", new StringAttributeValueDto("sales; support"));
+      instance.evaluate(requirements, "HAS(#{departments}, 'sales')");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
     try {
-      instance.evaluatePredicateByAttributes(requirements,
+      instance.evaluate(requirements, "HAS(#{languages}, 100)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "IN(#{language}, 'en]')");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "IN(200, #{languages})");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements, "IN(50)");
+      assertTrue(false);
+    } catch (EvaluatorException ex) {
+    }
+    try {
+      instance.evaluate(requirements,
           "IN(#{false}, [true, 'true']) && #{'false'}");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     expResult = false;
-    result = instance.evaluatePredicateByAttributes(requirements, predicateFailed3);
+    result = instance.evaluate(requirements, predicateFailed3);
     assertEquals(expResult, result);
   }
 

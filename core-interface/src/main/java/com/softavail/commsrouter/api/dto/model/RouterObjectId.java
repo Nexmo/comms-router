@@ -1,7 +1,7 @@
 package com.softavail.commsrouter.api.dto.model;
 
 public class RouterObjectId extends ApiObjectId {
-  
+
   private String routerId;
 
   public RouterObjectId() {}
@@ -14,6 +14,11 @@ public class RouterObjectId extends ApiObjectId {
   public RouterObjectId(String id, String routerId) {
     super(id);
     setRouterId(routerId);
+  }
+
+  public RouterObjectId(String id, RouterObjectId sameRouterObjectId) {
+    super(id);
+    setRouterId(sameRouterObjectId.getRouterId());
   }
 
   public String getRouterId() {

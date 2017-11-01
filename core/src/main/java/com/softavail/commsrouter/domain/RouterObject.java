@@ -6,7 +6,9 @@
 package com.softavail.commsrouter.domain;
 
 import java.util.Objects;
-import javax.persistence.Column;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 
 /**
@@ -16,32 +18,32 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public class RouterObject extends ApiObject {
 
-  @Column(name = "router_id")
-  private String routerId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "router_id")
+  private Router router;
 
   public RouterObject() {}
 
   public RouterObject(RouterObject rhs) {
     super(rhs);
-    this.routerId = rhs.routerId;
+    this.router = rhs.router;
   }
 
-  public RouterObject(String id, String routerId) {
+  public RouterObject(String id) {
     super(id);
-    this.routerId = routerId;
   }
 
-  public String getRouterId() {
-    return routerId;
+  public Router getRouter() {
+    return router;
   }
 
-  public void setRouterId(String routerId) {
-    this.routerId = routerId;
+  public void setRouter(Router router) {
+    this.router = router;
   }
 
   @Override
   public String toString() {
-    return "" + getRouterId() + ":" + getId();
+    return getRouter().getId() + ":" + getId();
   }
 
   @Override
@@ -49,14 +51,14 @@ public class RouterObject extends ApiObject {
     boolean equals = super.equals(object);
     if (equals) {
       RouterObject routerObject = (RouterObject) object;
-      return Objects.equals(getRouterId(), routerObject.getRouterId());
+      return Objects.equals(getRouter(), routerObject.getRouter());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getId(), getRouterId(), getVersion(), getClass());
+    return Objects.hash(getId(), getRouter(), getVersion(), getClass());
   }
 
 }

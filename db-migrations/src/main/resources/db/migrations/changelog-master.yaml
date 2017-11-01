@@ -456,6 +456,56 @@ databaseChangeLog:
         tableName: route
 - changeSet:
     id: 1509013814357-30
+    author: ikrustev
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: queue_id
+        indexName: fkidx_route__queue
+        tableName: route
+- changeSet:
+    id: 1509013814357-31
+    author: ikrustev
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        indexName: fkidx_agent__router
+        tableName: agent
+- changeSet:
+    id: 1509013814357-32
+    author: ikrustev
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        indexName: fkidx_plan__router
+        tableName: plan
+- changeSet:
+    id: 1509013814357-33
+    author: ikrustev
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        indexName: fkidx_queue__router
+        tableName: queue
+- changeSet:
+    id: 1509013814357-34
+    author: ikrustev
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        indexName: fkidx_task__router
+        tableName: task
+- changeSet:
+    id: 1509013814357-35
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -469,7 +519,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: attribute_group
 - changeSet:
-    id: 1509013814357-31
+    id: 1509013814357-36
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -483,7 +533,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: route
 - changeSet:
-    id: 1509013814357-32
+    id: 1509013814357-37
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -497,13 +547,13 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: attribute_group
 - changeSet:
-    id: 1509013814357-33
-    author: mapuo (generated)
+    id: 1509013814357-38
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: agent_id
         baseTableName: task
-        constraintName: FK9w6soi9vd3ys91fmnd4xlx5os
+        constraintName: fk_task__agent
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
@@ -511,13 +561,13 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: agent
 - changeSet:
-    id: 1509013814357-34
-    author: mapuo (generated)
+    id: 1509013814357-39
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: capabilities_attribute_group_id
         baseTableName: agent
-        constraintName: FKc48ete3lfauerkuko5gise7xw
+        constraintName: fk_agent__capabilities__attribute_group
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
@@ -525,7 +575,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: attribute_group
 - changeSet:
-    id: 1509013814357-35
+    id: 1509013814357-40
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -539,7 +589,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: attribute_group
 - changeSet:
-    id: 1509013814357-36
+    id: 1509013814357-41
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -553,7 +603,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: plan
 - changeSet:
-    id: 1509013814357-37
+    id: 1509013814357-42
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -567,13 +617,13 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: route
 - changeSet:
-    id: 1509013814357-38
-    author: mapuo (generated)
+    id: 1509013814357-43
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: queue_id
         baseTableName: task
-        constraintName: FKhee0wu4107ncs84mq9968tbx2
+        constraintName: fk_task__queue
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
@@ -581,7 +631,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: queue
 - changeSet:
-    id: 1509013814357-39
+    id: 1509013814357-44
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -595,21 +645,35 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: plan
 - changeSet:
-    id: 1509013814357-40
-    author: mapuo (generated)
+    id: 1509013814357-45
+    author: ikrustev
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: queue_id
         baseTableName: agent_queue
-        constraintName: FKmf9qpp9pfneo67leq6uej5vhj
+        constraintName: fk_agent_queue__queue
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: CASCADE
+        onUpdate: CASCADE
         referencedColumnNames: id
         referencedTableName: queue
 - changeSet:
-    id: 1509013814357-41
+    id: 1509013814357-46
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: agent_id
+        baseTableName: agent_queue
+        constraintName: fk_agent_queue__agent
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: agent
+- changeSet:
+    id: 1509013814357-47
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -623,21 +687,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: rule
 - changeSet:
-    id: 1509013814357-42
-    author: mapuo (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: agent_id
-        baseTableName: agent_queue
-        constraintName: FKoqsbnajicmn8xqc85py0ph6ap
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: agent
-- changeSet:
-    id: 1509013814357-43
+    id: 1509013814357-48
     author: mapuo (generated)
     changes:
     - addForeignKeyConstraint:
@@ -650,6 +700,76 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: rule
+- changeSet:
+    id: 1509013814357-49
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: queue_id
+        baseTableName: route
+        constraintName: fk_route__queue
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: queue
+- changeSet:
+    id: 1509013814357-50
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: router_id
+        baseTableName: agent
+        constraintName: fk_agent__router
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: router
+- changeSet:
+    id: 1509013814357-51
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: router_id
+        baseTableName: plan
+        constraintName: fk_plan__router
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: router
+- changeSet:
+    id: 1509013814357-52
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: router_id
+        baseTableName: queue
+        constraintName: fk_queue__router
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: router
+- changeSet:
+    id: 1509013814357-53
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: router_id
+        baseTableName: task
+        constraintName: fk_task__router
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: router
 - changeSet:
     id: 1509090476157-1
     author: acho (generated)

@@ -24,6 +24,11 @@ public class DoubleAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
+  public String getValueAsString() {
+    return Double.toString(getValue());
+  }
+
+  @Override
   public void accept(AttributeValueVisitor visitor) throws IOException {
     visitor.handleDoubleValue(this);
   }

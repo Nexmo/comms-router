@@ -23,13 +23,13 @@ public class EvaluatorHelpers {
   public static final String VALIDATION_VARIABLE_VALUE =
       EvaluationConstants.SINGLE_QUOTE + "CREValidationValue_"
           + EvaluationConstants.BOOLEAN_STRING_TRUE + EvaluationConstants.SINGLE_QUOTE;
-  public final static char ARRAY_ITEMS_DELIMITER = ';';
+  public static final char ARRAY_ITEMS_DELIMITER = ';';
 
   public static String trimAndRemoveQuoteCharsIfNeed(final String input, final char quoteCharacter)
       throws FunctionException {
     String trimedValue = input.trim();
     if (trimedValue.charAt(0) == quoteCharacter
-        && trimedValue.charAt(trimedValue.length() - 1) == quoteCharacter) {
+        || trimedValue.charAt(trimedValue.length() - 1) == quoteCharacter) {
       trimedValue = FunctionHelper.trimAndRemoveQuoteChars(trimedValue, quoteCharacter);
     }
 
@@ -79,10 +79,10 @@ public class EvaluatorHelpers {
 
   public static String trySupportSingleArraysElement(String arrayItems) {
     String formatedExpression = arrayItems;
-      int index = formatedExpression.indexOf(openBracketCharacter, 0);
-      if (index >= 0) {
-          return arrayItems;
-      }
+    int index = formatedExpression.indexOf(openBracketCharacter, 0);
+    if (index >= 0) {
+      return arrayItems;
+    }
     index = formatedExpression.indexOf(EvaluatorHelpers.ARRAY_ITEMS_DELIMITER, 0);
     if (index >= 0) {
       return arrayItems;

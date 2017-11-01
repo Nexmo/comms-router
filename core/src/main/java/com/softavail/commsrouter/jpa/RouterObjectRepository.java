@@ -26,24 +26,26 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
 
   public ENTITYT get(EntityManager em, RouterObjectId routerObjectId) throws NotFoundException {
     ENTITYT entity = get(em, routerObjectId.getId());
-    if (entity != null && Objects.equals(entity.getRouterId(), routerObjectId.getRouterId())) {
+    if (entity != null
+        && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
       return entity;
     }
-    throw new NotFoundException(entityClass.getSimpleName() + ": " + routerObjectId + " not found");
+    throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectId + " not found");
   }
 
   @SuppressWarnings("unchecked")
   public List<ENTITYT> list(EntityManager em, String routerId) {
     return em
-        .createQuery(
-            "SELECT e FROM " + entityClass.getSimpleName() + " e WHERE e.routerId = :routerId")
+        .createQuery("SELECT e FROM " + entityClass.getSimpleName()
+            + " e JOIN e.router r WHERE r.id = :routerId")
         .setParameter("routerId", routerId).getResultList();
   }
 
   public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
     transactionManager.executeVoid((em) -> {
       ENTITYT entity = em.find(entityClass, routerObjectId.getId());
-      if (entity != null && Objects.equals(entity.getRouterId(), routerObjectId.getRouterId())) {
+      if (entity != null
+          && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
         em.remove(entity);
       }
     });

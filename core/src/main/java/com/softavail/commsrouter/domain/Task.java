@@ -84,7 +84,7 @@ public class Task extends RouterObject {
   public Task() {}
 
   public Task(RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+    super(objectId.getId());
   }
 
   public AttributeGroup getRequirements() {
@@ -195,6 +195,14 @@ public class Task extends RouterObject {
         .append(", callbackUrl = ").append(callbackUrl)
         .append("]");
     return sb.toString();
+  }
+
+  public void makeCompleted() {
+    setState(TaskState.completed);
+    setQueue(null);
+    setAgent(null);
+    setRule(null);
+    setCurrentRoute(null);
   }
 
 }

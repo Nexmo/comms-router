@@ -79,12 +79,13 @@ public class InFunction implements Function {
 
     String argumentTwo = (String) strings.get(1);
     try {
-      argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       if (isValidation) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentTwo);
         if (variable != null) {
           argumentTwo = variable;
         }
+      } else {
+        argumentTwo = EvaluatorHelpers.trySupportSingleArraysElement(argumentTwo);
       }
       String argumentOne = EvaluatorHelpers.trimAndRemoveQuoteCharsIfNeed((String) strings.get(0),
           evaluator.getQuoteCharacter());
@@ -107,8 +108,6 @@ public class InFunction implements Function {
         list.add(item);
       }
       result = (list.contains(argumentOne) ? 1 : 0);
-    } catch (FunctionException fe) {
-      throw new FunctionException(fe.getMessage(), fe);
     } catch (JSONException e) {
       throw new FunctionException(String.format("function %s() second argument is \"%s\": %s",
           getName(), argumentTwo, e.getMessage()));

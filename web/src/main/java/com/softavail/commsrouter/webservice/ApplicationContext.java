@@ -7,8 +7,8 @@ import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
-import com.softavail.commsrouter.webservice.config.Configuration;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
+import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -30,9 +30,11 @@ public class ApplicationContext {
   private final Client client;
   private final AppContext coreContext;
   private final ConfigurationImpl configuration;
+  private final ManifestConfigurationImpl manifest;
 
   public ApplicationContext(ServletContext servletContext) {
     configuration = new ConfigurationImpl(servletContext);
+    manifest = new ManifestConfigurationImpl(servletContext);
     client = createClient();
 
     JpaDbFacade db = new JpaDbFacade(configuration);
@@ -50,6 +52,14 @@ public class ApplicationContext {
 
   public AppContext getCoreContext() {
     return coreContext;
+  }
+
+  public ConfigurationImpl getConfiguration() {
+    return configuration;
+  }
+
+  public ManifestConfigurationImpl getManifest() {
+    return manifest;
   }
 
   private Client createClient() {

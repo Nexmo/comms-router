@@ -5,6 +5,7 @@
 
 package com.softavail.commsrouter.domain;
 
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.persistence.Id;
@@ -44,6 +45,10 @@ public class ApiObject implements Serializable {
 
   public void setVersion(Integer version) {
     this.version = version;
+  }
+
+  public ApiObjectId cloneApiObjectId() {
+    return new ApiObjectId(id);
   }
 
   @Override

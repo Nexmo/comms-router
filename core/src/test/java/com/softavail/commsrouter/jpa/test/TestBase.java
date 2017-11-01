@@ -209,20 +209,10 @@ public class TestBase {
     return args;
   }
 
-  public UpdatePlanArg newUpdatePlanArg(String description, String predicate, String queueId) {
-    // Creating test rules
-    RuleDto rule = new RuleDto();
-    rule.setPredicate(predicate);
-    RouteDto route = new RouteDto();
-    route.setQueueId(queueId);
-    rule.getRoutes().add(route);
-    rule.setTag("tag");
-    List<RuleDto> rules = new ArrayList<>();
-    rules.add(rule);
+  public UpdatePlanArg newUpdatePlanArg(String description) {
     // Creating test plan arguments
     UpdatePlanArg args = new UpdatePlanArg();
     args.setDescription(description);
-    args.setRules(rules);
     return args;
   }
 

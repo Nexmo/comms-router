@@ -11,7 +11,13 @@ package com.softavail.commsrouter.api.dto.model;
  */
 public enum TaskState {
 
-  waiting, assigned, completed;
+  waiting(true), assigned(false), completed(true);
+
+  private boolean deleteAllowed;
+
+  TaskState(boolean deleteAllowed) {
+    this.deleteAllowed = deleteAllowed;
+  }
 
   public boolean isWaiting() {
     return this == waiting;
@@ -23,6 +29,10 @@ public enum TaskState {
 
   public boolean isCompleted() {
     return this == completed;
+  }
+
+  public boolean isDeleteAllowed() {
+    return deleteAllowed;
   }
 
 }
