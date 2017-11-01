@@ -227,12 +227,13 @@
   (print(length (test-random :prefix (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
                     do (setf *update-policy* ()) (format t "."))))))
 
-(defun scan-bug(size)
-  (setf *policy* (make-hash-table :test #'equal))
+(defun scan-bug(size &key (reset t))
+  (when reset (setf *policy* (make-hash-table :test #'equal)))
   (time (loop for max-size = size then (let ((last (find-bug max-size)))
                                          (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
-                                         (if (< last max-size) (/ (- max-size last) 2)
-                                             max-size))
+                                         '(if (< last max-size) (floor (/ (+ max-size last) 2))
+                                             max-size)
+                                         )
            :repeat 100
            do (format t  "~%-------- max-size ~A" max-size)
              )) )
