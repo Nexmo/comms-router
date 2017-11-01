@@ -65,7 +65,7 @@ public class PTaskQueueTest {
                   .description("queue description").build());
   }
 
-    //@AfterEach
+  @AfterEach
   public void cleanup() {
     t.delete();
     p.delete();
@@ -74,24 +74,14 @@ public class PTaskQueueTest {
   }
 
   private void createPlan(String predicate) {
-    CreatePlanArg arg = new CreatePlanArg();
-    arg.setDescription("Rule with predicate " + predicate);
-    RuleDto rule = new RuleDto();
-    rule.setPredicate(predicate);
-    RouteDto route = new RouteDto();
-    route.setQueueId(state.get(CommsRouterResource.QUEUE));
-    route.setTimeout(1L);
-    RouteDto backupRoute = new RouteDto();
-    backupRoute.setQueueId(backupQueueId);
-
-    rule.setRoutes(Arrays.asList(route,backupRoute));
-    arg.setRules(Collections.singletonList(rule));
-
-    RouteDto defaultRoute = new RouteDto();
-    defaultRoute.setQueueId(defaultQueueId);
-
-    arg.setDefaultRoute(defaultRoute);
-    ApiObjectId id = p.create(arg);
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                          new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).timeout(1L).build(),
+                                                          new RouteDto.Builder(backupQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
   }
 
   private void createTask(AttributeGroupDto requirements) throws MalformedURLException {
@@ -111,9 +101,9 @@ public class PTaskQueueTest {
   @DisplayName("Add task with one attribute to queue.")
   public void addTaskOneAttribute() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("lang", new StringAttributeValueDto("en"));
-    addPlanTask(taskAttribs, "1==1");
+    addPlanTask(new AttributeGroupDto()
+                .withKeyValue("lang", new StringAttributeValueDto("en"))
+                , "1==1");
     assertThat(q.size(), is(1));
   }
 
@@ -121,9 +111,9 @@ public class PTaskQueueTest {
   @DisplayName("Add task with one attribute and predicate HAS with single item")
   public void addTaskHasOneItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "HAS([10],#{age})");
+    addPlanTask(new AttributeGroupDto()
+                .withKeyValue("age", new DoubleAttributeValueDto(20))
+                , "HAS([10],#{age})");
     assertThat(q.size(), is(0));
     state.put(CommsRouterResource.QUEUE,defaultQueueId);
     assertThat(q.size(), is(1));
@@ -133,9 +123,9 @@ public class PTaskQueueTest {
   @DisplayName("Add task with one attribute and predicate HAS with no items")
   public void addTaskHasNoItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "HAS([],#{age})");
+    addPlanTask(new AttributeGroupDto()
+                .withKeyValue("age", new DoubleAttributeValueDto(20))
+                , "HAS([],#{age})");
     assertThat(q.size(), is(0));
     state.put(CommsRouterResource.QUEUE,defaultQueueId);
     assertThat(q.size(), is(1));
@@ -145,9 +135,9 @@ public class PTaskQueueTest {
   @DisplayName("Add task with timed out queue")
   public void addTaskTimedoutQueue() throws MalformedURLException, InterruptedException {
     assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "HAS([20],#{age})");
+    addPlanTask(new AttributeGroupDto()
+                .withKeyValue("age", new DoubleAttributeValueDto(20))
+                , "HAS([20],#{age})");
     assertThat(q.size(), is(1));
     TimeUnit.SECONDS.sleep(2);
     assertThat(String.format("Router %s. Check task is not in the queue after the timeout.", state.get(CommsRouterResource.ROUTER)),

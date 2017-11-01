@@ -33,6 +33,8 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.RuleDto;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -49,6 +51,7 @@ public class AgentTest {
   private Queue q = new Queue(state);
   private Agent a = new Agent(state);
   private Task t = new Task(state);
+  private Plan p = new Plan(state);
 
   public void createRouter() {
     // best case
@@ -76,12 +79,11 @@ public class AgentTest {
       createQueue();
   }
 
-
-  @AfterEach
+    //@AfterEach
   public void cleanup() {
-    //a.delete();
-    //q.delete();
-    //r.delete();
+    a.delete();
+    q.delete();
+    r.delete();
   }
 
   @Test
@@ -146,7 +148,6 @@ public class AgentTest {
     completeTask();
     t.delete();
     a.setState(AgentState.offline);
-
   }
 
   @Test
@@ -338,6 +339,8 @@ public class AgentTest {
     resource = a.get();
     assertThat(String.format("Check that next agent takes care of the task and state (%s) to be busy.", resource.getState()),
                resource.getState(), is(AgentState.busy));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 
     t.delete();
   }
@@ -353,8 +356,6 @@ public class AgentTest {
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
                resource.getState(), is(AgentState.busy));
-
-
 
     ApiObjectId a2_id = a.create("en");
     assertThat(q.size(), is(0));
@@ -380,6 +381,8 @@ public class AgentTest {
                task.getState(), is(TaskState.assigned));
     assertThat(String.format("Check task is assigned to the latest (%s) agent.", task.getAgentId()),
                task.getAgentId(), is(a1_id.getId()));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 
     t.delete();
   }
@@ -464,6 +467,60 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(2);
 
     resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready when all tasks are completed.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+  }
+
+  @Test
+  @DisplayName("Three tasks with different priority.")
+  public void handleWithPriority() throws MalformedURLException, InterruptedException {
+    a.create("en");
+    p.create(new CreatePlanArg.Builder("priority 0")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(0L).build())
+             .build());
+    CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+    p.create(new CreatePlanArg.Builder("priority 5")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(5L).build())
+             .build());
+    CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+    p.create(new CreatePlanArg.Builder("priority 3")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(3L).build())
+             .build());
+    CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+
+    assertThat(q.size(), is(3));
+    a.setState(AgentState.ready);
+    TimeUnit.SECONDS.sleep(2);
+    assertThat(q.size(), is(2));
+    TaskDto task;
+    state.put(CommsRouterResource.TASK, task5.getId());
+    task = t.get();
+    assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    state.put(CommsRouterResource.TASK, task3.getId());
+    task = t.get();
+    assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    state.put(CommsRouterResource.TASK, task0.getId());
+    task = t.get();
+    assertThat(String.format("Check task with priority 0 is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be ready when all tasks are completed.", resource.getState()),
                resource.getState(), is(AgentState.ready));
   }

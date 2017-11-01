@@ -43,4 +43,27 @@ public class RuleDto implements Serializable {
     this.routes = routes;
   }
 
+  public static class Builder {
+    private RuleDto rule = new RuleDto();
+
+    public Builder(String predicate) {
+      rule.setPredicate(predicate);
+    }
+
+    public Builder routes(List<RouteDto> routes) {
+      rule.setRoutes(routes);
+      return this;
+    }
+
+    public Builder tag(String tag) {
+      rule.setTag(tag);
+      return this;
+    }
+
+    public RuleDto build() {
+      return rule;
+    }
+
+  }
+
 }
