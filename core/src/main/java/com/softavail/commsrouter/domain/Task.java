@@ -77,6 +77,10 @@ public class Task extends RouterObject {
   @JoinColumn(name = "current_route")
   private Route currentRoute;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "expiration_date")
+  private Date expirationDate;
+
   public Task() {}
 
   public Task(RouterObjectId objectId) {
@@ -173,6 +177,14 @@ public class Task extends RouterObject {
 
   public void setCurrentRoute(Route currentRoute) {
     this.currentRoute = currentRoute;
+  }
+
+  public Date getExpirationDate() {
+    return expirationDate;
+  }
+
+  public void setExpirationDate(Date expirationDate) {
+    this.expirationDate = expirationDate;
   }
 
   @Override

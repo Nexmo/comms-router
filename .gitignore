@@ -98,3 +98,4 @@ Servers/
 /demo-application/src/main/resources/*.pem
 
 **/liquibase.properties
+**/application.properties

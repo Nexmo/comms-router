@@ -32,8 +32,11 @@ import com.softavail.commsrouter.util.Uuid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import javax.persistence.EntityManager;
 
 /**
@@ -250,6 +253,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       task.setQueue(matchedRoute.getQueue());
       task.setPriority(matchedRoute.getPriority());
       task.setQueuedTimeout(matchedRoute.getTimeout());
+      
+      if (matchedRoute.getTimeout() > 0) {
+        task.setExpirationDate(new Date(
+            System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(matchedRoute.getTimeout())));
+      }
+      
       task.setCurrentRoute(matchedRoute);
 
     } else {

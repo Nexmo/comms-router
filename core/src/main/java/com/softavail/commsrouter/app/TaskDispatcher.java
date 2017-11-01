@@ -21,13 +21,18 @@ import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import com.softavail.commsrouter.jpa.result.TaskEnumerableResult;
 import com.softavail.commsrouter.util.Fields;
+
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,14 +41,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.EntityManager;
+
 /**
  * @author ikrustev
  */
 public class TaskDispatcher {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskDispatcher.class);
-
-  private static final Map<String, ScheduledFuture<?>> scheduledTaskTimers = new HashMap<>();
 
   private final JpaDbFacade db;
   private final EntityMappers mappers;
@@ -74,6 +79,7 @@ public class TaskDispatcher {
         .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
         .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
+    restartWaitingTaskTimers();
   }
 
   @SuppressWarnings("unchecked")
@@ -119,7 +125,7 @@ public class TaskDispatcher {
 
   public void dispatchTask(TaskDto taskDto) {
     process(taskDto.getQueueId());
-    startTaskTimer(taskDto);
+    setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
   }
 
   public void dispatchAgent(String agentId) {
@@ -187,26 +193,23 @@ public class TaskDispatcher {
         .run(() -> taskEventHandler.onTaskAssigned(taskAssignmentDto));
   }
 
-  private void startTaskTimer(TaskDto taskDto) {
+  private void setTaskExpirationTimeout(String taskId, Long seconds) {
 
-    LOGGER.debug("Starting wait timer for task {}", taskDto.getId());
+    LOGGER.debug("Set expiration timeout:{} for task:{}", seconds, taskId);
 
-    ScheduledFuture<?> timer = threadPool.schedule(
-        () -> onQueuedTaskTimeout(taskDto),
-        taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
-
-    scheduledTaskTimers.put(taskDto.getId(), timer);
+    threadPool.schedule(() -> {
+      onQueuedTaskTimeout(taskId);
+    }, seconds, TimeUnit.SECONDS);
   }
 
-  public void onQueuedTaskTimeout(TaskDto taskDto) {
+  private void onQueuedTaskTimeout(String taskId) {
 
     try {
-      LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskDto.getId());
-      scheduledTaskTimers.remove(taskDto.getId());
-      processTaskTimeout(taskDto.getId());
+      LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskId);
+      processTaskTimeout(taskId);
     } catch (RuntimeException | CommsRouterException ex) {
-      LOGGER.error("Exception while processing timeout for task {}: {}",
-          taskDto.getId(), ex, ex);
+      LOGGER.error("Exception while processing timeout for task {}: {}", 
+          taskId, ex);
     }
   }
 
@@ -231,22 +234,47 @@ public class TaskDispatcher {
             matchedRoute = getNextRoute(task.getRule(), task.getCurrentRoute().getId());
           } else {
             // default route
+            task.setExpirationDate(null);
             return null;
           }
 
           if (matchedRoute == null) {
+            task.setExpirationDate(null);
             return null;
           }
 
-          Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
+          task.setCurrentRoute(matchedRoute);
+          
           if (matchedRoute.getPriority() != null) {
-            Fields.update(
-                task::setPriority, task.getPriority(), matchedRoute.getPriority());
+            task.setPriority(matchedRoute.getPriority());
           }
+          
+          Date expirationDate = null;
           if (matchedRoute.getTimeout() != null) {
-            Fields.update(
-                task::setQueuedTimeout, task.getQueuedTimeout(), matchedRoute.getTimeout());
+            task.setQueuedTimeout(matchedRoute.getTimeout());
+            
+            if (matchedRoute.getTimeout() > 0) {
+              expirationDate =
+                  new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
+              LOGGER.trace("Next route, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getId());
+            } else {
+              LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
+            }
+          } else if (task.getQueuedTimeout() != null) {
+            if (task.getQueuedTimeout() > 0) {
+              expirationDate =
+                  new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
+              LOGGER.trace("Default, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getId());
+            } else {
+              LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
+            }
+          } else {
+            LOGGER.trace("None, clear expirationDate for task:{}", task.getId());
           }
+          task.setExpirationDate(expirationDate);
+          
           if (matchedRoute.getQueue() != null) {
             task.setQueue(matchedRoute.getQueue());
           }
@@ -259,7 +287,7 @@ public class TaskDispatcher {
     });
 
     if (taskDto != null) {
-      startTaskTimer(taskDto);
+      setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
     }
 
   }
@@ -284,4 +312,53 @@ public class TaskDispatcher {
     return null;
   }
 
+  private void restartWaitingTaskTimers() {
+    
+    threadPool.submit(() -> doRestartWaitingTaskTimers());
+  }
+
+  private void doRestartWaitingTaskTimers() {
+    LOGGER.debug("Restarting timers for waiting tasks at startup");
+
+    try {
+      TaskEnumerableResult enumResults = db.task.enumerableResultFilteredByWaitingState();
+      if (enumResults != null) {
+        while (enumResults.next()) {
+          List<Task> tasks = enumResults.get();
+          tasks.forEach(this::attachExpirationTimerToTask);
+        }
+      }
+    } catch (Exception ex) {
+      LOGGER.error("Can not restart timers for all waiting tasks!{}", ex.getMessage());
+      throw new RuntimeException("Can not restart timers for all waiting tasks!", ex);
+    }
+  }
+
+  private void attachExpirationTimerToTask(Task task) {
+
+    if (task.getExpirationDate() == null) {
+      LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getId());
+    } else {
+      long seconds = (task.getExpirationDate().getTime() - System.currentTimeMillis()) / 1000;
+      setTaskExpirationTimeout(task.getId(), seconds);
+    }
+  }
+
+  public static class Configuration {
+
+    private static final Configuration DEFAULT =
+        new Configuration(10, 2, 60, 500);
+
+    public final int threadPoolSize;
+    public final int backOffDelay;
+    public final int backOffMaxDelay;
+    public final int jitter;
+
+    public Configuration(int threadPoolSize, int backOffDelay, int backOffMaxDelay, int jitter) {
+      this.threadPoolSize = threadPoolSize;
+      this.backOffDelay = backOffDelay;
+      this.backOffMaxDelay = backOffMaxDelay;
+      this.jitter = jitter;
+    }
+  }
 }
