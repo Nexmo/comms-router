@@ -48,13 +48,4 @@ public class Fields {
     }
     consumer.accept(newValue);
   }
-
-  /**
-   * Updates a database filed with NULL value
-   * @param consumer Performs this operation on the given consumer.
-   * @param oldValue The old value for the field
-   */
-  public static <T> void nullify(Consumer<T> consumer, T oldValue) {
-    consumer.accept(null);
-  }
 }

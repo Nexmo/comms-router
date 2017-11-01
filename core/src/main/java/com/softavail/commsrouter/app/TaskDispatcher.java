@@ -51,8 +51,6 @@ public class TaskDispatcher {
 
   private static final Logger LOGGER = LogManager.getLogger(TaskDispatcher.class);
 
-  private static final Map<String, ScheduledFuture<?>> scheduledTaskTimers = new HashMap<>();
-
   private final JpaDbFacade db;
   private final EntityMappers mappers;
   private final TaskEventHandler taskEventHandler;
@@ -127,7 +125,7 @@ public class TaskDispatcher {
 
   public void dispatchTask(TaskDto taskDto) {
     process(taskDto.getQueueId());
-    startTaskTimer(taskDto);
+    setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
   }
 
   public void dispatchAgent(String agentId) {
@@ -178,15 +176,13 @@ public class TaskDispatcher {
         .run(() -> taskEventHandler.onTaskAssigned(taskAssignmentDto));
   }
 
-  private void startTaskTimer(TaskDto taskDto) {
+  private void setTaskExpirationTimeout(String taskId, Long seconds) {
 
-    LOGGER.debug("Starting wait timer for task {}", taskDto.getId());
+    LOGGER.debug("Set expiration timeout:{} for task:{}", seconds, taskId);
 
-    ScheduledFuture<?> timer = threadPool.schedule(() -> {
-      onQueuedTaskTimeout(taskDto.getId());
-    }, taskDto.getQueuedTimeout(), TimeUnit.SECONDS);
-
-    scheduledTaskTimers.put(taskDto.getId(), timer);
+    threadPool.schedule(() -> {
+      onQueuedTaskTimeout(taskId);
+    }, seconds, TimeUnit.SECONDS);
   }
 
   private void onQueuedTaskTimeout(String taskId) {
@@ -221,48 +217,42 @@ public class TaskDispatcher {
             matchedRoute = getNextRoute(task.getRule(), task.getCurrentRoute().getId());
           } else {
             // default route
-            Fields.nullify(task::setExpirationDate, task.getExpirationDate());
+            task.setExpirationDate(null);
             return null;
           }
 
           if (matchedRoute == null) {
-            Fields.nullify(task::setExpirationDate, task.getExpirationDate());
+            task.setExpirationDate(null);
             return null;
           }
 
           Fields.update(task::setCurrentRoute, task.getCurrentRoute(), matchedRoute);
+          Fields.update(task::setPriority, task.getPriority(), matchedRoute.getPriority());
+          Fields.update(task::setQueuedTimeout, task.getQueuedTimeout(),matchedRoute.getTimeout());
 
-          if (matchedRoute.getPriority() != null) {
-            Fields.update(
-                task::setPriority, task.getPriority(), matchedRoute.getPriority());
-          }
-          
+          Date expirationDate = null;
           if (matchedRoute.getTimeout() != null) {
-            Fields.update(task::setQueuedTimeout, task.getQueuedTimeout(),
-                matchedRoute.getTimeout());
-
             if (matchedRoute.getTimeout() > 0) {
-              Date expirationDate =
+              expirationDate =
                   new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
               LOGGER.trace("Next route, update expirationDate:{} for task:{} ", expirationDate,
                   task.getId());
-              Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
             } else {
               LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
-              Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             }
-          } else {
-            if (task.getQueuedTimeout() != null && task.getQueuedTimeout() > 0) {
-              Date expirationDate =
+          } else if (task.getQueuedTimeout() != null) {
+            if (task.getQueuedTimeout() > 0) {
+              expirationDate =
                   new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
               LOGGER.trace("Default, update expirationDate:{} for task:{} ", expirationDate,
                   task.getId());
-              Fields.update(task::setExpirationDate, task.getExpirationDate(), expirationDate);
             } else {
               LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
-              Fields.nullify(task::setExpirationDate, task.getExpirationDate());
             }
+          } else {
+            LOGGER.trace("None, clear expirationDate for task:{}", task.getId());
           }
+          task.setExpirationDate(expirationDate);
           
           if (matchedRoute.getQueueId() != null) {
             RouterObjectId objectId = RouterObjectId.builder()
@@ -272,7 +262,7 @@ public class TaskDispatcher {
             Queue queue = db.queue.get(em, objectId);
             Fields.update(task::setQueue, task.getQueue(), queue);
             if (!task.getQueue().getId().equals(matchedRoute.getQueueId())) {
-              Fields.update(task::setAgent, task.getAgent(), null);
+              task.setAgent(null);
             }
           }
         }
@@ -284,7 +274,7 @@ public class TaskDispatcher {
     });
 
     if (taskDto != null) {
-      startTaskTimer(taskDto);
+      setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
     }
 
   }
@@ -336,14 +326,8 @@ public class TaskDispatcher {
     if (task.getExpirationDate() == null) {
       LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getId());
     } else {
-
-      long timeout = task.getExpirationDate().getTime() - System.currentTimeMillis();
-
-      LOGGER.debug("Attaching expiration timer with delay:{}ms for task:{}", 
-          timeout, task.getId());
-      ScheduledFuture<?> timer = threadPool.schedule(() -> {
-        onQueuedTaskTimeout(task.getId());
-      }, timeout, TimeUnit.MILLISECONDS);
+      long seconds = (task.getExpirationDate().getTime() - System.currentTimeMillis()) / 1000;
+      setTaskExpirationTimeout(task.getId(), seconds);
     }
   }
 

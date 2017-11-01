@@ -11,7 +11,9 @@ import javax.persistence.Query;
 public abstract class EnumeratableResult<T> implements AutoCloseable {
 
   protected JpaTransactionManager transactionManager;
-  protected int maxResults = 1000;
+  //TODO: Make maxResults 1000 when a sequental id is introduced in task table
+  // and change the db query to reflect sequental numbers in order to process each waiting task 
+  protected int maxResults = 1000000;
   protected List<T> currentRow;
   
   private int offset = 0;
