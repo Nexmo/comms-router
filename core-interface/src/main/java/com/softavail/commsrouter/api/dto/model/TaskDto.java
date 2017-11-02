@@ -28,6 +28,7 @@ public class TaskDto extends RouterObjectId {
   private Long queuedTimeout;
   private Long routeId;
   private Long ruleId;
+  private String tag;
 
   public TaskDto() {}
 
@@ -145,6 +146,14 @@ public class TaskDto extends RouterObjectId {
 
   public void setRouteId(Long routeId) {
     this.routeId = routeId;
+  }
+
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   @Override

@@ -780,3 +780,23 @@ databaseChangeLog:
             name: expiration_date
             type: TIMESTAMP(3)
         tableName: task
+- changeSet:
+    id: 1509628260000-1
+    author: acho (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: tag
+            type: VARCHAR(255)
+        tableName: task
+- changeSet:
+    id: 1509628260000-2
+    author: acho (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: tag
+        indexName: task_tag_index
+        tableName: task

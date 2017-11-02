@@ -204,7 +204,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     task.setCallbackUrl(createArg.getCallbackUrl().toString());
     task.setRequirements(app.entityMapper.attributes.fromDto(createArg.getRequirements()));
     task.setUserContext(app.entityMapper.attributes.fromDto(createArg.getUserContext()));
-
+    task.setTag(createArg.getTag());
+    
     em.persist(task);
 
     String queueId = task.getQueue().getId();

@@ -19,6 +19,7 @@ public class CreateTaskArg {
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private URL callbackUrl;
+  private String tag;
 
   public String getQueueId() {
     return queueId;
@@ -58,6 +59,14 @@ public class CreateTaskArg {
 
   public void setCallbackUrl(URL callbackUrl) {
     this.callbackUrl = callbackUrl;
+  }
+
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   public static class Builder {

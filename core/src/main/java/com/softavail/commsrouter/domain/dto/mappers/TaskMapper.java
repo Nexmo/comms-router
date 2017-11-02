@@ -33,6 +33,7 @@ public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
     dto.setCreateDate(jpa.getCreateDate());
     dto.setUpdateDate(jpa.getUpdateDate());
     dto.setQueuedTimeout(jpa.getQueuedTimeout());
+    dto.setTag(jpa.getTag());
     if (jpa.getRule() != null) {
       dto.setRuleId(jpa.getRule().getId());
     }
