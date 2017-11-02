@@ -30,4 +30,8 @@ public interface TaskService
 
   void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
       throws CommsRouterException;
+
+  TaskDto getByTag(String routerId, String tag)
+      throws CommsRouterException;
+
 }

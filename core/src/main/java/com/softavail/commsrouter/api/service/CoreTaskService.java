@@ -74,6 +74,16 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   @Override
+  public TaskDto getByTag(String routerId, String tag)
+      throws CommsRouterException {
+
+    return app.db.transactionManager.execute((em) -> {
+      Task entity = app.db.task.getByTag(em, routerId, tag);
+      return entityMapper.toDto(entity);
+    });
+  }
+
+  @Override
   public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
