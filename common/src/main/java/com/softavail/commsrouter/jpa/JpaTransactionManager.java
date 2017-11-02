@@ -64,7 +64,7 @@ public class JpaTransactionManager {
               org.hibernate.exception.ConstraintViolationException.class;
           Optional<Throwable> throwable = Throwables.getCausalChain(ex).stream()
               .filter((hibernateConstraint)::isInstance)
-              .findFirst().map(Throwable::getCause);
+              .findFirst();
 
           if (throwable.isPresent()) {
             org.hibernate.exception.ConstraintViolationException hibernateException =
