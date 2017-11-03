@@ -64,13 +64,8 @@ public class AgentTest {
   }
 
   public void createQueue() {
-    String description = "queue description";
-    String predicate = "1==1";
-    CreateQueueArg queueArg = new CreateQueueArg();
-    queueArg.setDescription(description);
-    queueArg.setPredicate(predicate);
     q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectId id = q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
   }
 
   @BeforeEach
@@ -498,6 +493,60 @@ public class AgentTest {
     a.setState(AgentState.ready);
     TimeUnit.SECONDS.sleep(2);
     assertThat(q.size(), is(2));
+    TaskDto task;
+    state.put(CommsRouterResource.TASK, task5.getId());
+    task = t.get();
+    assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    state.put(CommsRouterResource.TASK, task3.getId());
+    task = t.get();
+    assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    state.put(CommsRouterResource.TASK, task0.getId());
+    task = t.get();
+    assertThat(String.format("Check task with priority 0 is assigned (%s).", task.getState()),
+               task.getState(), is(TaskState.assigned));
+    t.setState(TaskState.completed);
+    TimeUnit.SECONDS.sleep(2);
+
+    AgentDto resource = a.get();
+    assertThat(String.format("Check agent state (%s) to be ready when all tasks are completed.", resource.getState()),
+               resource.getState(), is(AgentState.ready));
+  }
+
+  @Test
+  @DisplayName("Three tasks two queues with different priority.")
+  public void handleWithPriorityTwoQueues() throws MalformedURLException, InterruptedException {
+    a.create("en");
+    q.create(new CreateQueueArg.Builder().description("queue priority 0").predicate("1==1").build());
+    p.create(new CreatePlanArg.Builder("priority 0")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(0L).build())
+             .build());
+    CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+    q.create(new CreateQueueArg.Builder().description("queue priority 5").predicate("1==1").build());
+    p.create(new CreatePlanArg.Builder("priority 5")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(5L).build())
+             .build());
+    CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+    q.create(new CreateQueueArg.Builder().description("queue priority 3").predicate("1==1").build());
+    p.create(new CreatePlanArg.Builder("priority 3")
+             .defaultRoute(new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(3L).build())
+             .build());
+    CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .callback(new URL("http://example.com"))
+                                            .build());
+    a.setState(AgentState.ready);
+    TimeUnit.SECONDS.sleep(2);
     TaskDto task;
     state.put(CommsRouterResource.TASK, task5.getId());
     task = t.get();
