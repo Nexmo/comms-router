@@ -63,16 +63,23 @@ public class AttributesMapper {
 
     jpa.getAttributes().stream().forEach(jpaAttribute -> {
       String name = jpaAttribute.getName();
+      AttributeValueDto attrValue;
       JpaAttributeValueType valueType = getJpaAttributeValueType(jpaAttribute);
       switch (valueType) {
         case STRING:
-          attributesMap.put(name, new StringAttributeValueDto(jpaAttribute.getStringValue()));
+          attrValue = new StringAttributeValueDto(jpaAttribute.getStringValue());
+          attrValue.setScalar(jpaAttribute.isScalarValue());
+          attributesMap.put(name, attrValue);
           break;
         case DOUBLE:
-          attributesMap.put(name, new DoubleAttributeValueDto(jpaAttribute.getDoubleValue()));
+          attrValue = new DoubleAttributeValueDto(jpaAttribute.getDoubleValue());
+          attrValue.setScalar(jpaAttribute.isScalarValue());
+          attributesMap.put(name, attrValue);
           break;
         case BOOLEAN:
-          attributesMap.put(name, new BooleanAttributeValueDto(jpaAttribute.getBooleanValue()));
+          attrValue = new BooleanAttributeValueDto(jpaAttribute.getBooleanValue());
+          attrValue.setScalar(jpaAttribute.isScalarValue());
+          attributesMap.put(name, attrValue);
           break;
         default:
           throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
@@ -85,7 +92,58 @@ public class AttributesMapper {
       Iterator<AttributeValueDto> iterator = value.iterator();
       AttributeValueDto firstValue = iterator.next();
       if (value.size() == 1) {
-        dto.put(key, firstValue);
+        if (firstValue.isScalar()) {
+          dto.put(key, firstValue);
+        } else {
+          try {
+            firstValue.accept(new AttributeValueVisitor() {
+              @Override
+              public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+                ArrayOfBooleansAttributeValueDto arrayValue =
+                    new ArrayOfBooleansAttributeValueDto();
+                arrayValue.add(value.getValue());
+                dto.put(key, arrayValue);
+              }
+
+              @Override
+              public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+                ArrayOfDoublesAttributeValueDto arrayValue = new ArrayOfDoublesAttributeValueDto();
+                arrayValue.add(value.getValue());
+                dto.put(key, arrayValue);
+              }
+
+              @Override
+              public void handleStringValue(StringAttributeValueDto value) throws IOException {
+                ArrayOfStringsAttributeValueDto arrayValue = new ArrayOfStringsAttributeValueDto();
+                arrayValue.add(value.getValue());
+                dto.put(key, arrayValue);
+              }
+
+              @Override
+              public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+                  throws IOException {
+                throw new RuntimeException(
+                    "Unexpected string array value for " + key + " in " + jpa.getId());
+              }
+
+              @Override
+              public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+                  throws IOException {
+                throw new RuntimeException(
+                    "Unexpected double array value for " + key + " in " + jpa.getId());
+              }
+
+              @Override
+              public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
+                  throws IOException {
+                throw new RuntimeException(
+                    "Unexpected boolean array value for " + key + " in " + jpa.getId());
+              }
+            });
+          } catch (IOException ex) {
+            throw new RuntimeException("Unexpected exception while processing attibute values", ex);
+          }
+        }
       } else {
         // value collections in this multimap view are always non-empty, so here we have more than
         // one element
@@ -240,17 +298,17 @@ public class AttributesMapper {
         value.accept(new AttributeValueVisitor() {
           @Override
           public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-            jpa.add(key, value.getValue());
+            jpa.add(key, value.getValue(), true);
           }
 
           @Override
           public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-            jpa.add(key, value.getValue());
+            jpa.add(key, value.getValue(), true);
           }
 
           @Override
           public void handleStringValue(StringAttributeValueDto value) throws IOException {
-            jpa.add(key, value.getValue());
+            jpa.add(key, value.getValue(), true);
           }
 
           @Override
@@ -258,7 +316,7 @@ public class AttributesMapper {
               throws IOException {
             List<String> elements = value.getValue();
             elements.forEach(element -> {
-              jpa.add(key, element);
+              jpa.add(key, element, false);
             });
           }
 
@@ -267,7 +325,7 @@ public class AttributesMapper {
               throws IOException {
             List<Double> elements = value.getValue();
             elements.forEach(element -> {
-              jpa.add(key, element);
+              jpa.add(key, element, false);
             });
           }
 
@@ -276,7 +334,7 @@ public class AttributesMapper {
               throws IOException {
             List<Boolean> elements = value.getValue();
             elements.forEach(element -> {
-              jpa.add(key, element);
+              jpa.add(key, element, false);
             });
           }
         });

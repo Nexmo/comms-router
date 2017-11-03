@@ -17,6 +17,10 @@ public abstract class ArrayAttributeValueDto<ELEMENT> extends AttributeValueDto 
 
   private List<ELEMENT> value = new ArrayList<>();
 
+  public ArrayAttributeValueDto() {
+    setScalar(false);
+  }
+
   public List<ELEMENT> getValue() {
     return value;
   }

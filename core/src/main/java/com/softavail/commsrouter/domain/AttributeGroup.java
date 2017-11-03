@@ -47,26 +47,29 @@ public class AttributeGroup implements Serializable {
     this.attributes = attributes;
   }
 
-  public void add(String name, Double value) {
+  public void add(String name, Double value, Boolean scalarValue) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
     attribute.setDoubleValue(value);
+    attribute.setScalarValue(scalarValue);
     attribute.setAttributeGroup(this);
     attributes.add(attribute);
   }
 
-  public void add(String name, String value) {
+  public void add(String name, String value, Boolean scalarValue) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
     attribute.setStringValue(value);
+    attribute.setScalarValue(scalarValue);
     attribute.setAttributeGroup(this);
     attributes.add(attribute);
   }
 
-  public void add(String name, Boolean value) {
+  public void add(String name, Boolean value, Boolean scalarValue) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
     attribute.setBooleanValue(value);
+    attribute.setScalarValue(scalarValue);
     attribute.setAttributeGroup(this);
     attributes.add(attribute);
   }

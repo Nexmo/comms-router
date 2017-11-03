@@ -149,7 +149,7 @@ public class TestBase {
   public CreateAgentArg newCreateAgentArg(String address) {
     // Creating test attributeGroup and attributes
     AttributeGroup aGroup = new AttributeGroup();
-    aGroup.add("name", "value");
+    aGroup.add("name", "value", true);
     aGroup.setId(5L);
     AttributesMapper mapper = new AttributesMapper();
     AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
@@ -163,7 +163,7 @@ public class TestBase {
   public UpdateAgentArg newUpdateAgentArg(String address, AgentState status) {
     // Creating test attributeGroup and attributes
     AttributeGroup aGroup = new AttributeGroup();
-    aGroup.add("name", "value");
+    aGroup.add("name", "value", true);
     aGroup.setId(5L);
     AttributesMapper mapper = new AttributesMapper();
     AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
@@ -256,7 +256,7 @@ public class TestBase {
 
   public UpdateTaskContext newUpdateTaskContext() {
     AttributeGroup aGroup = new AttributeGroup();
-    aGroup.add("name", "value");
+    aGroup.add("name", "value", true);
     aGroup.setId(5L);
     AttributesMapper mapper = new AttributesMapper();
     AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
