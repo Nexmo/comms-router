@@ -78,7 +78,8 @@ public class Agent extends RouterObject {
 
   public void setState(AgentState state) {
     this.state = state;
-    if (state == AgentState.busy) {
+    if (state == AgentState.busy
+        || state == AgentState.ready) {
       updateLastTimeAtBusyState();
     }
   }
