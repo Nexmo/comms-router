@@ -24,15 +24,11 @@
                                                            ("predicate" qpredicate))))
                           (check-and (has-json) (has-key "id"))))
          (plan-id (js-val "id")
-                  (tstep "Create new plan"
-                         (tapply (http-post (list "/routers" router-id "plans")
-                                            (jsown:new-js
-                                              ("rules" (list
-                                                        (jsown:new-js ("tag" "test-rule")
-                                                                      ("predicate" tpredicate)
-                                                                      ("queueId" queue-id))))
-                                              ("description" "plan description"))))
-                         (check-and (has-json) (has-key "id"))))
+                  (eplan-new :router-id router-id
+                             :queue-id queue-id
+                             :default-queue-id queue-id
+                             :predicate tpredicate :description "plan description"
+                             :checks (check-and (has-json) (has-key "id") (publish-id :plan))))
          (task-id (js-val "id")
                   (tand
                    (tstep "Show created plan"
@@ -126,7 +122,6 @@
                                  (tapply (http-post (list "/routers" router-id "tasks")
                                                     (jsown:new-js ("callbackUrl" "http://localhost:8080")
                                                                   ("requirements" (jsown:new-js ("key" t)))
-                                                                  ("priority" 100)
                                                                   ("queueId" queue-id)
                                                                   ("planId" :null))))
                                  (check-and (has-json) (has-key "id")))))
@@ -193,10 +188,6 @@
                                                                                            ("string" "string"))))
   (tand
    (setup-rqpt :qpredicate qpredicate :tpredicate tpredicate :task-req task-req
-               :fn (process-two-tasks))
-   (setup-rqt :qpredicate qpredicate
-              :fn (process-two-tasks))
-   (setup-rqpt :qpredicate qpredicate :tpredicate tpredicate :task-req task-req
                :fn (process-one-task))
    (setup-rqt :qpredicate qpredicate
               :fn (process-one-task)) ) )
@@ -210,17 +201,22 @@
             (tlet((agent-id (js-val "id") #'first
                             (eagent-all :router-id router-id)))
               (tand
-               (eagent-del :router-id router-id :agent-id agent-id)
+               (eagent-del :router-id router-id :id agent-id)
                (etask-all :router-id router-id)) ) ) )) )
+
 (defun test-set-unavailable()
   (tlet ((router-id (js-val "id") (erouter-new))
          (queue-id (js-val "id") (equeue-new :router-id router-id))
          (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/not-existing-page"))
          (agent-id (js-val "id") (eagent-new :router-id router-id)))
     (tand
-     (eagent-set :state "ready")
-     (twait (eagent :id agent-id :checks (has-kv "state" "unavailable")))
-     (eagent-set :description "Restore agent to working state" :state "ready") )) )
+     (eagent-set  :router-id router-id :id agent-id :state "ready")
+     (twait (etask :router-id router-id :id task-id :checks (check-and (has-kv "state" "assigned")
+                                                                       (has-kv "agentId" agent-id))))
+     (etask-set   :router-id router-id :id task-id  :state "waiting")
+     (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "unavailable")))
+     (eagent-set :router-id router-id :id agent-id :description "Restore agent to working state" :state "ready")
+     (twait (eagent :description "Canceled task gets to the same agent":router-id router-id :id agent-id :checks (has-kv "state" "busy"))))))
 
 (defun test-task-ordering()
   (tlet ((router-id (js-val "id") (erouter-new))
@@ -257,8 +253,6 @@
        (etask-set :state "completed"
                   :id task2-id
                   :router-id router-id) ))))
-
-
 
 (defun test-set-context(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
   (tlet ((task-id (js-val "id")

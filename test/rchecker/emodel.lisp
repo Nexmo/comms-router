@@ -1,39 +1,44 @@
 (in-package :rchecker)
-(defun action(name precondition action)
-  (list precondition action name))
+(defun action(name precondition action update-model)
+  (list precondition
+        #'(lambda(model)
+            (let* ((res (funcall(funcall action model)))
+                   (new-model (if (second res)
+                                  (funcall update-model res (copy-tree (jsown:extend-js model
+                                                                         ("result" (second res)))))
+                                  model)))
+              (format t "~%~A executed - ~S" name res)
+              (list res new-model)))
+        name))
 
 (defparameter *tasks*
   (list
    (action "create agent"
-    (for
-     (fnot (fhas-key "agents"))
-     (fand (fhas-kv "agents" 2 #'(lambda(js-val val)(< (length js-val) val)))))
-    #'(lambda(model)(let ((res (funcall (eagent-new))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model)
-                                      ("agents" (list* (jsown:extend-js (first res)
-                                                         ("state" "offline")
-                                                         ("lastTimeAtBusyState" (- 157690185 (get-internal-real-time) ))) ;;
-                                                       (when (jsown:keyp model "agents")
-                                                         (jsown:val model "agents")))))
-                                    model)))))
+           (for
+            (fnot (fhas-key "agents"))
+            (fand (fhas-kv "agents" 2 #'(lambda(js-val val)(< (length js-val) val)))))
+           #'(lambda(model)(eagent-new :router-id (jsown:val model "router")))
+           #'(lambda(res model)
+               (jsown:extend-js (copy-tree model)
+                 ("agents" (list* (jsown:extend-js (jsown:new-js ("id" (ref-new "agent" :value (jsown:val (first res) "id"))))
+                                    ("state" "offline")
+                                    ("lastTimeAtBusyState" (ref-new "agent-time" :value (get-internal-real-time)))) ;;
+                                  (when (jsown:keyp model "agents")
+                                    (jsown:val model "agents")))))))
 
    (action "select last agent"
            (fand (fhas-key "agents")
                  (fhas-kv "agents" 0 #'(lambda(js-val val)(> (length js-val) val))))
-           #'(lambda(model)(let ((res (funcall (tstep-result "Select the latest agent." 0 t "Select the latest agent." nil))))
-                             (list res (if (second res)
-                                           (jsown:extend-js (copy-tree model) ("selected-agent" 0))
-                                           model)))))
+           #'(lambda(model)(tstep-result "Select the latest agent." 0 t "Select the latest agent." nil))
+           #'(lambda(res model)(jsown:extend-js (copy-tree model) ("selected-agent" 0))))
+
    (action "select next agent"
            (fand (fhas-key "agents")
                  (fhas-key "selected-agent")
                  (fcompare-keys "selected-agent" "agents" #'(lambda(selected items)(< (1+ selected) (length items)))))
-           #'(lambda(model)(let* ((next (1+ (jsown:val model "selected-agent")))
-                                  (res (funcall (tstep-result "Select previous agent" next t "Select previous agent" nil))))
-                             (list res (if (second res)
-                                           (jsown:extend-js (copy-tree model) ("selected-agent" next))
-                                           model)))))
+           #'(lambda(model)(tstep-result "Select previous agent" (1+ (jsown:val model "selected-agent")) t "Select previous agent" nil))
+           #'(lambda(res model)(let* ((next (1+ (jsown:val model "selected-agent"))))
+                                 (jsown:extend-js (copy-tree model) ("selected-agent" next)))))
 
    (action "set-agent ready if there are waiting tasks"
            (fand
@@ -48,20 +53,24 @@
            #'(lambda(model)
                (let* ((selected (jsown:val model "selected-agent"))
                       (agents (jsown:val model "agents"))
+                      (agent (nth selected agents)))
+                 (eagent-set :router-id (jsown:val model "router")
+                             :id (ref-id "agent" agent) :state "ready")))
+           #'(lambda(res model)
+               (let* ((selected (jsown:val model "selected-agent"))
+                      (agents (jsown:val model "agents"))
                       (tasks (jsown:val model "tasks"))
                       (agent (nth selected agents))
                       (task-position (position-if (fhas-kv "state" "waiting" #'equal) tasks :from-end t))
-                      (task (nth task-position tasks))
-                      (res (funcall (eagent-set :id (jsown:val agent "id") :state "ready"))))
-                 (list res (if (second res)
-                               (jsown:extend-js (copy-tree model)
-                                 ("agents" (set-nth selected (copy-tree agents)
-                                                    (jsown::extend-js agent ("state" "busy")
-                                                                      ) ))
-                                 ("tasks" (set-nth task-position (copy-tree tasks)
-                                                   (jsown::extend-js task ("state" "assigned")
-                                                                     ("agent-id" (jsown:val agent "id"))))))
-                               model)))))
+                      (task (nth task-position tasks)))
+                 (jsown:extend-js (copy-tree model)
+                   ("agents" (set-nth selected (copy-tree agents)
+                                      (jsown::extend-js agent
+                                        ("state" "busy") ) ))
+                   ("tasks" (set-nth task-position (copy-tree tasks)
+                                     (jsown::extend-js task
+                                       ("state" "assigned")
+                                       ("agent-id" (jsown:val agent "id")))))))))
 
    (action "set-agent ready if there are no waiting tasks"
            (fand
@@ -79,27 +88,31 @@
            #'(lambda(model)
                (let* ((selected (jsown:val model "selected-agent"))
                       (agents (jsown:val model "agents"))
-                      (agent (nth selected agents))
-                      (res (funcall (eagent-set :id (jsown:val agent "id") :state "ready"))))
-                 (list res (if (second res)
-                               (jsown:extend-js (copy-tree model)
-                                 ("agents" (set-nth selected (copy-tree agents)
-                                                    (jsown::extend-js agent
-                                                      ("state" "ready")
-                                                      ("lastTimeAtBusyState" (- 157690185 (get-internal-real-time) )))
-
-                                                    )) )
-                               model)))) )
+                      (agent (nth selected agents)))
+                 (eagent-set :id (ref-id "agent" agent)
+                             :state "ready"
+                             :router-id (jsown:val model "router"))))
+           #'(lambda(res model)
+               (let* ((selected (jsown:val model "selected-agent"))
+                      (agents (jsown:val model "agents"))
+                      (agent (nth selected agents)) )
+                 (jsown:extend-js (copy-tree model)
+                   ("agents" (set-nth selected (copy-tree agents)
+                                      (jsown::extend-js agent
+                                        ("state" "ready")
+                                        ("lastTimeAtBusyState" (ref-set "agent-time" agent (get-internal-real-time))))))))))
 
    (action "check agent state"
            (fhas-key "selected-agent")
            #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
                                   (agents (jsown:val model "agents"))
-                                  (agent (nth selected agents))
-                                  (res (funcall (twait
-                                                 (eagent :id (jsown:val agent "id") :checks (has-kv "state" (jsown:val agent "state")))
-                                                 :timeout 10))))
-                             (list res model))))
+                                  (agent (nth selected agents)))
+                             (twait
+                              (eagent :id (ref-id "agent" agent)
+                                      :checks (has-kv "state" (jsown:val agent "state"))
+                                      :router-id (jsown:val model "router"))
+                              :timeout 10)))
+           #'(lambda(res model)model))
 
    (action "delete agent"
            (fand
@@ -108,16 +121,19 @@
                   (fnot (fhas-kv "state" "busy" #'equal))))
            #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
                                   (agents (jsown:val model "agents"))
-                                  (agent (nth selected agents))
-                                  (res (funcall (twait (eagent-del :id (jsown:val agent "id"))
-                                                       :timeout 10))))
-                             (list res (if (second res)
-                                           (jsown:remkey (jsown:extend-js(copy-tree model)
-                                                           ("agents" (remove-nth selected (copy-tree agents))))
-                                                         "selected-agent")
-                                           model)))))
+                                  (agent (nth selected agents)))
+                             (twait (eagent-del :id (ref-id "agent" agent) :router-id (jsown:val model "router"))
+                                    :timeout 10)))
+           #'(lambda(res model)(let* ((selected (jsown:val model "selected-agent"))
+                                      (agents (jsown:val model "agents"))
+                                      (agent (nth selected agents)))
+                                 (ref-del "agent" (jsown:val agent "id"))
+                                 (ref-del "agent-time" (jsown:val agent "id"))
+                                 (jsown:remkey (jsown:extend-js(copy-tree model)
+                                                 ("agents" (remove-nth selected (copy-tree agents))))
+                                               "selected-agent"))))
 
-;; tasks
+   ;; tasks
    (action
     "create task when there are no ready agents"
     (fand
@@ -132,21 +148,27 @@
                                               (length (remove-if-not
                                                        (fhas-kv "state" "waiting" #'equal)
                                                        (jsown:val model "tasks")))
-                                              0))
-                           (res (funcall (tand (twait (equeue-size
-                                                       :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
-                                                       :checks (check-and (has-json) (has-key "size")
-                                                                          (has-kv "size" waiting-tasks))))
-                                               (etask-new :checks (check-and (has-json) (has-key "id")
-                                                                             (has-kv "queueTasks" waiting-tasks)))))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model)
-                                      ("tasks" (list* (jsown:extend-js
-                                                          (first res)
-                                                        ("state" "waiting") )
-                                                      (when (jsown:keyp model "tasks")
-                                                        (jsown:val model "tasks")))))
-                                    model)))) )
+                                              0)))
+                      (tand (twait (equeue-size :router-id (jsown:val model "router")
+                                                :id (jsown:val model "queue")
+                                                :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                                                :checks (check-and (has-json) (has-key "size")
+                                                                   (has-kv "size" waiting-tasks))))
+                            (etask-new :checks (check-and (has-json) (has-key "id")
+                                                          (has-kv "queueTasks" waiting-tasks))
+                                       :router-id (jsown:val model "router")
+                                       :queue-id (jsown:val model "queue")))))
+    #'(lambda(res model)(let* ((waiting-tasks (if (jsown:keyp model "tasks")
+                                              (length (remove-if-not
+                                                       (fhas-kv "state" "waiting" #'equal)
+                                                       (jsown:val model "tasks")))
+                                              0)) )
+                          (jsown:extend-js model
+                            ("tasks" (list* (jsown:extend-js
+                                                (jsown:new-js ("id" (ref-new "task" :value (jsown:val (first res) "id"))))
+                                              ("state" "waiting") )
+                                            (when (jsown:keyp model "tasks")
+                                              (jsown:val model "tasks"))))))))
 
    (action
     "create task when there are ready agents"
@@ -165,57 +187,62 @@
                                   0))
                (agents (jsown:val model "agents"))
                (agent (find-if (fhas-kv "state" "ready" #'equal)
-                               (sort  (copy-tree agents) #'> :key (js-val "lastTimeAtBusyState")) ))
-               (agent-pos (position-if (fhas-kv "id" (jsown:val agent "id") #'equal) agents))
-               (res (funcall (tand
-                              (twait (equeue-size
-                                      :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
-                                      :checks (check-and (has-json) (has-key "size")
-                                                         (has-kv "size" waiting-tasks))))
-                              (etask-new :checks (check-and (has-json) (has-key "id")
-                                                            (has-kv "queueTasks" waiting-tasks)))))))
-          (list res (if (second res)
-                        (jsown:extend-js (copy-tree model)
-                          ("tasks" (list* (jsown:extend-js
-                                              (first res)
-                                            ("state" "assigned")
-                                            ("agent-id" (jsown:val agent "id")))
-                                          (when (jsown:keyp model "tasks")
-                                            (jsown:val model "tasks"))))
-                          ("agents" (set-nth agent-pos (copy-tree agents)
-                                             (jsown::extend-js agent ("state" "busy")) )))
-                        model)))))
+                               (sort  (copy-tree agents) #'> :key #'(lambda(agent)(ref-id "agent-time" agent))) ))
+               (agent-pos (position-if (fhas-kv "id" (jsown:val agent "id") #'equal) agents)))
+          (tand
+           (twait (equeue-size
+                   :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                   :checks (check-and (has-json) (has-key "size")
+                                      (has-kv "size" waiting-tasks))
+                   :router-id (jsown:val model "router")
+                   :id (jsown:val model "queue")))
+           (etask-new :checks (check-and (has-json) (has-key "id")
+                                         (has-kv "queueTasks" waiting-tasks))
+                      :router-id (jsown:val model "router")
+                      :queue-id (jsown:val model "queue")))))
+    #'(lambda(res model)
+        (let* ((agents (jsown:val model "agents"))
+               (agent (find-if (fhas-kv "state" "ready" #'equal)
+                               (sort  (copy-tree agents) #'> :key #'(lambda(agent)(ref-id "agent-time" agent))) ))
+               (agent-pos (position-if (fhas-kv "id" (jsown:val agent "id") #'equal) agents)))
+          (jsown:extend-js (copy-tree model)
+            ("tasks" (list* (jsown:extend-js
+                                (jsown:new-js ("id" (ref-new "task" :value (jsown:val (first res) "id"))))
+                              ("state" "assigned")
+                              ("agent-id" (jsown:val agent "id")))
+                            (when (jsown:keyp model "tasks")
+                              (jsown:val model "tasks"))))
+            ("agents" (set-nth agent-pos (copy-tree agents)
+                               (jsown::extend-js agent ("state" "busy")) ))))))
 
    (action
     "select last task"
     (fand (fhas-key "tasks")
           (fhas-kv "tasks" 0 #'(lambda(js-val val)(> (length js-val) val))))
-    #'(lambda(model)(let ((res (funcall (tstep-result "Select the latest task." 0 t "Select the latest task." nil))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model) ("selected-task" 0))
-                                    model)))))
+    #'(lambda(model)(tstep-result "Select the latest task." 0 t "Select the latest task." nil))
+    #'(lambda(res model)(jsown:extend-js (copy-tree model) ("selected-task" 0))))
+
    (action
     "select next task"
     (fand (fhas-key "tasks")
           (fhas-key "selected-task")
           (fcompare-keys "selected-task" "tasks" #'(lambda(selected tasks)(< (1+ selected) (length tasks)))))
-    #'(lambda(model)(let* ((next (1+ (jsown:val model "selected-task")))
-                           (res (funcall (tstep-result "Select previous task." next t "Select the previous task." nil))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model) ("selected-task" next))
-                                    model)))))
+    #'(lambda(model)(let* ((next (1+ (jsown:val model "selected-task"))))
+                      (tstep-result "Select previous task." next t "Select the previous task." nil)))
+    #'(lambda(res model)(let* ((next (1+ (jsown:val model "selected-task"))))
+                          (jsown:extend-js (copy-tree model) ("selected-task" next)))))
 
    (action
     "check task state"
     (fhas-key "selected-task")
     #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                            (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks))
-                           (res (funcall (twait (etask :id (jsown:val task "id")
-                                                       :state (jsown:val task "state"))
-                                                :timeout 10))))
-                      (list res model)))
-    )
+                           (task (nth selected tasks)))
+                      (twait (etask :id (ref-id "task" task)
+                                    :state (jsown:val task "state")
+                                    :router-id (jsown:val model "router"))
+                             :timeout 10)))
+    #'(lambda(res model)model))
 
    (action
     "complete task when there are no waiting tasks"
@@ -226,25 +253,27 @@
                              (jsown:val model"tasks"))))
     #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                            (tasks (jsown:val model "tasks"))
+                           (task (nth selected tasks)))
+                      (etask-set :id (ref-id "task" task) :state "completed"
+                                 :router-id (jsown:val model "router"))))
+
+    #'(lambda(res model)(let* ((selected (jsown:val model "selected-task"))
+                           (tasks (jsown:val model "tasks"))
                            (task (nth selected tasks))
                            (agent-id (jsown:val task "agent-id"))
                            (agents (jsown:val model "agents"))
                            (agent-pos (position-if #'(lambda(agent) (equal (jsown:val agent "id") agent-id))
                                                    agents))
-                           (agent (nth agent-pos agents))
-                           (res (funcall (etask-set :id (jsown:val task "id")
-                                                    :state "completed"))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model)
-                                      ("agents" (set-nth agent-pos (copy-tree agents)
-                                                         (jsown::extend-js agent
-                                                           ("state" "ready")
-                                                           ("lastTimeAtBusyState" (get-internal-real-time)))
-                                                         ))
-                                      ("tasks" (set-nth selected (copy-tree tasks)
-                                                        (jsown::extend-js task ("state" "completed")
-                                                                          ("agent-id" ())))))
-                                    model)))) )
+                           (agent (nth agent-pos agents)))
+                      (jsown:extend-js (copy-tree model)
+                        ("agents" (set-nth agent-pos (copy-tree agents)
+                                           (jsown::extend-js agent
+                                             ("state" "ready")
+                                             ("lastTimeAtBusyState" (ref-new "agent-time" :value (get-internal-real-time))))
+                                           ))
+                        ("tasks" (set-nth selected (copy-tree tasks)
+                                          (jsown::extend-js task ("state" "completed")
+                                                            ("agent-id" ()))))))))
 
    (action
     "complete task when there are waiting tasks"
@@ -255,30 +284,30 @@
                             (jsown:val model"tasks"))))
     #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                            (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks))
-                           (task-position (position-if (fhas-kv "state" "waiting" #'equal) tasks :from-end t))
-                           (next-task (nth task-position tasks))
-                           (agent-id (jsown:val task "agent-id"))
-                           (agents (jsown:val model "agents"))
-                           (agent-pos (position-if #'(lambda(agent) (equal (jsown:val agent "id") agent-id))
-                                                   agents))
-                           (agent (nth agent-pos agents))
-                           (res (funcall (etask-set :id (jsown:val task "id")
-                                                    :state "completed"))))
-                      (list res (if (second res)
-                                    (jsown:extend-js (copy-tree model)
-                                      ("agents" (set-nth agent-pos (copy-tree agents)
-                                                         (jsown::extend-js agent
-                                                           ("state" "busy")
-                                                           ("lastTimeAtBusyState" (get-internal-real-time)))
-                                                         ))
-                                      ("tasks" (set-nth task-position
-                                                        (set-nth selected (copy-tree tasks)
-                                                                 (jsown::extend-js task ("state" "completed")
-                                                                                   ("agent-id" ())))
-                                                        (jsown::extend-js next-task ("state" "assigned")
-                                                                          ("agent-id" (jsown:val agent "id"))))))
-                                    model)))))
+                           (task (nth selected tasks)))
+                      (etask-set :id (ref-id "task" task) :state "completed"
+                                 :router-id (jsown:val model "router"))))
+    #'(lambda(res model)(let* ((selected (jsown:val model "selected-task"))
+                               (tasks (jsown:val model "tasks"))
+                               (task (nth selected tasks))
+                               (task-position (position-if (fhas-kv "state" "waiting" #'equal) tasks :from-end t))
+                               (next-task (nth task-position tasks))
+                               (agent-id (jsown:val task "agent-id"))
+                               (agents (jsown:val model "agents"))
+                               (agent-pos (position-if #'(lambda(agent) (equal (jsown:val agent "id") agent-id))
+                                                       agents))
+                               (agent (nth agent-pos agents)))
+                          (jsown:extend-js model
+                            ("agents" (set-nth agent-pos (copy-tree agents)
+                                               (jsown::extend-js agent
+                                                 ("state" "busy")
+                                                 ("lastTimeAtBusyState" (ref-new "agent-time" :value (get-internal-real-time))))))
+                            ("tasks" (set-nth task-position
+                                              (set-nth selected (copy-tree tasks)
+                                                       (jsown::extend-js task ("state" "completed")
+                                                                         ("agent-id" ())))
+                                              (jsown::extend-js next-task ("state" "assigned")
+                                                                ("agent-id" (jsown:val agent "id")))))))))
 
    (action
     "delete task"
@@ -288,9 +317,13 @@
                                        (fhas-kv "state" "waiting" #'equal))) )
     #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
                            (tasks (jsown:val model "tasks"))
-                           (res (funcall (etask-del :id (jsown:val (nth selected tasks) "id")))))
-                      (list res (if (second res)
-                                    (jsown:remkey (jsown:extend-js(copy-tree model)
-                                                    ("tasks" (remove-nth selected (copy-tree tasks))))
-                                                  "selected-task")
-                                    model)))))))
+                           (task (nth selected tasks)))
+                      (etask-del :id (ref-id "task" task)
+                                 :router-id (jsown:val model "router"))))
+    #'(lambda(res model) (let* ((selected (jsown:val model "selected-task"))
+                                (tasks (jsown:val model "tasks"))
+                                (task (nth selected tasks)))
+                           (ref-del "task" (jsown:val task "id"))
+                           (jsown:remkey (jsown:extend-js(copy-tree model)
+                                           ("tasks" (remove-nth selected (copy-tree tasks))))
+                                         "selected-task"))))))

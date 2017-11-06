@@ -8,8 +8,8 @@
     (UIOP:run-program "python -m json.tool" :ignore-error-status t :input f :output '(:string :stripped t)))
   str)
 
-(defun exec-shell(cmd)
-  (multiple-value-bind (res err code)(UIOP:run-program cmd :ignore-error-status t :input nil :output '(:string :stripped t) :error-output '(:string :stripped t))
+(defun exec-shell(cmd &optional (input nil))
+  (multiple-value-bind (res err code)(UIOP:run-program cmd :ignore-error-status t :input input :output '(:string :stripped t) :error-output '(:string :stripped t))
     (format nil "~A~A"res err)))
 
 (defun cmd-curl(url method headers body)
