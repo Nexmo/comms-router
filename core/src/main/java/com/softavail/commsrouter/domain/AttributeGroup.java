@@ -47,28 +47,8 @@ public class AttributeGroup implements Serializable {
     this.attributes = attributes;
   }
 
-  public Attribute createAttribute(String name, String value) {
-    Attribute attribute = new Attribute();
-    attribute.setName(name);
-    attribute.setStringValue(value);
-    attribute.setAttributeGroup(this);
-    return attribute;
-  }
-
-  public Attribute createAttribute(String name, Boolean value) {
-    Attribute attribute = new Attribute();
-    attribute.setName(name);
-    attribute.setBooleanValue(value);
-    attribute.setAttributeGroup(this);
-    return attribute;
-  }
-
-  public Attribute createAttribute(String name, Double value) {
-    Attribute attribute = new Attribute();
-    attribute.setName(name);
-    attribute.setDoubleValue(value);
-    attribute.setAttributeGroup(this);
-    return attribute;
+  public void add(String name, Double value) {
+    attributes.add(createAttribute(name, value));
   }
 
   public void add(String name, String value) {
@@ -79,8 +59,10 @@ public class AttributeGroup implements Serializable {
     attributes.add(createAttribute(name, value));
   }
 
-  public void add(String name, Double value) {
-    attributes.add(createAttribute(name, value));
+  public void addArrayItem(String name, Double value) {
+    Attribute attribute = createAttribute(name, value);
+    attribute.setIsScalar(Boolean.FALSE);
+    attributes.add(attribute);
   }
 
   public void addArrayItem(String name, String value) {
@@ -95,11 +77,28 @@ public class AttributeGroup implements Serializable {
     attributes.add(attribute);
   }
 
-  public void addArrayItem(String name, Double value) {
-    Attribute attribute = createAttribute(name, value);
-    attribute.setIsScalar(Boolean.FALSE);
-    attributes.add(attribute);
+  private Attribute createAttribute(String name, Double value) {
+    Attribute attribute = new Attribute();
+    attribute.setName(name);
+    attribute.setDoubleValue(value);
+    attribute.setAttributeGroup(this);
+    return attribute;
   }
 
+  private Attribute createAttribute(String name, String value) {
+    Attribute attribute = new Attribute();
+    attribute.setName(name);
+    attribute.setStringValue(value);
+    attribute.setAttributeGroup(this);
+    return attribute;
+  }
+
+  private Attribute createAttribute(String name, Boolean value) {
+    Attribute attribute = new Attribute();
+    attribute.setName(name);
+    attribute.setBooleanValue(value);
+    attribute.setAttributeGroup(this);
+    return attribute;
+  }
 
 }
