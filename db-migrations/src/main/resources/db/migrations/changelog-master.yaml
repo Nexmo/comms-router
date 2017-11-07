@@ -790,6 +790,6 @@ databaseChangeLog:
             defaultValueBoolean: true
             constraints:
               nullable: false
-            name: scalar_value
+            name: is_scalar
             type: BOOLEAN
         tableName: attribute

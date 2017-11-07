@@ -18,8 +18,6 @@ import java.io.IOException;
 @JsonSerialize(using = AttributeValueSerializer.class)
 public abstract class AttributeValueDto {
 
-  private Boolean scalar = true;
-
   @Override
   public String toString() {
     return getValueAsString();
@@ -29,13 +27,5 @@ public abstract class AttributeValueDto {
   public abstract String getValueAsString();
 
   public abstract void accept(AttributeValueVisitor visitor) throws IOException;
-
-  public Boolean isScalar() {
-    return scalar;
-  }
-
-  public void setScalar(Boolean scalar) {
-    this.scalar = scalar;
-  }
 
 }

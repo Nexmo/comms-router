@@ -47,8 +47,8 @@ public class Attribute implements Serializable {
   @Column(name = "boolean_value")
   private Boolean booleanValue;
 
-  @Column(name = "scalar_value", columnDefinition = "boolean default true", nullable = false)
-  private Boolean scalarValue = true;
+  @Column(name = "is_scalar", columnDefinition = "boolean default true", nullable = false)
+  private Boolean isScalar = true;
 
   public Long getId() {
     return id;
@@ -98,12 +98,12 @@ public class Attribute implements Serializable {
     this.booleanValue = booleanValue;
   }
 
-  public Boolean isScalarValue() {
-    return scalarValue;
+  public Boolean isScalar() {
+    return isScalar;
   }
 
-  public void setScalarValue(Boolean scalarValue) {
-    this.scalarValue = scalarValue;
+  public void setIsScalar(Boolean isScalar) {
+    this.isScalar = isScalar;
   }
 
   public static class Builder {

@@ -40,35 +40,17 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
     av.accept(new AttributeValueVisitor() {
       @Override
       public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-        if (value.isScalar()) {
-          gen.writeBoolean(value.getValue());
-        } else {
-          gen.writeStartArray();
-          gen.writeBoolean(value.getValue());
-          gen.writeEndArray();
-        }
+        gen.writeBoolean(value.getValue());
       }
 
       @Override
       public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-        if (value.isScalar()) {
-          gen.writeNumber(value.getValue());
-        } else {
-          gen.writeStartArray();
-          gen.writeNumber(value.getValue());
-          gen.writeEndArray();
-        }
+        gen.writeNumber(value.getValue());
       }
 
       @Override
       public void handleStringValue(StringAttributeValueDto value) throws IOException {
-        if (value.isScalar()) {
-          gen.writeString(value.getValue());
-        } else {
-          gen.writeStartArray();
-          gen.writeString(value.getValue());
-          gen.writeEndArray();
-        }
+        gen.writeString(value.getValue());
       }
 
       @Override

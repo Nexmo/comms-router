@@ -47,31 +47,59 @@ public class AttributeGroup implements Serializable {
     this.attributes = attributes;
   }
 
-  public void add(String name, Double value, Boolean scalarValue) {
-    Attribute attribute = new Attribute();
-    attribute.setName(name);
-    attribute.setDoubleValue(value);
-    attribute.setScalarValue(scalarValue);
-    attribute.setAttributeGroup(this);
-    attributes.add(attribute);
-  }
-
-  public void add(String name, String value, Boolean scalarValue) {
+  public Attribute createAttribute(String name, String value) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
     attribute.setStringValue(value);
-    attribute.setScalarValue(scalarValue);
     attribute.setAttributeGroup(this);
-    attributes.add(attribute);
+    return attribute;
   }
 
-  public void add(String name, Boolean value, Boolean scalarValue) {
+  public Attribute createAttribute(String name, Boolean value) {
     Attribute attribute = new Attribute();
     attribute.setName(name);
     attribute.setBooleanValue(value);
-    attribute.setScalarValue(scalarValue);
     attribute.setAttributeGroup(this);
+    return attribute;
+  }
+
+  public Attribute createAttribute(String name, Double value) {
+    Attribute attribute = new Attribute();
+    attribute.setName(name);
+    attribute.setDoubleValue(value);
+    attribute.setAttributeGroup(this);
+    return attribute;
+  }
+
+  public void add(String name, String value) {
+    attributes.add(createAttribute(name, value));
+  }
+
+  public void add(String name, Boolean value) {
+    attributes.add(createAttribute(name, value));
+  }
+
+  public void add(String name, Double value) {
+    attributes.add(createAttribute(name, value));
+  }
+
+  public void addArrayItem(String name, String value) {
+    Attribute attribute = createAttribute(name, value);
+    attribute.setIsScalar(Boolean.FALSE);
     attributes.add(attribute);
   }
+
+  public void addArrayItem(String name, Boolean value) {
+    Attribute attribute = createAttribute(name, value);
+    attribute.setIsScalar(Boolean.FALSE);
+    attributes.add(attribute);
+  }
+
+  public void addArrayItem(String name, Double value) {
+    Attribute attribute = createAttribute(name, value);
+    attribute.setIsScalar(Boolean.FALSE);
+    attributes.add(attribute);
+  }
+
 
 }
