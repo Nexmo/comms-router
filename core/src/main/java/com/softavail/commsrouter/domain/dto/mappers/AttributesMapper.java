@@ -12,7 +12,6 @@ import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttribut
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -69,27 +68,21 @@ public class AttributesMapper {
       switch (valueType) {
         case STRING:
           if (jpaAttribute.isScalar()) {
-            AttributeValueDto attrValue =
-                new StringAttributeValueDto(jpaAttribute.getStringValue());
-            dto.put(name, attrValue);
+            dto.put(name, new StringAttributeValueDto(jpaAttribute.getStringValue()));
           } else {
             stringAttributesMap.put(name, jpaAttribute.getStringValue());
           }
           break;
         case DOUBLE:
           if (jpaAttribute.isScalar()) {
-            AttributeValueDto attrValue =
-                new DoubleAttributeValueDto(jpaAttribute.getDoubleValue());
-            dto.put(name, attrValue);
+            dto.put(name, new DoubleAttributeValueDto(jpaAttribute.getDoubleValue()));
           } else {
             doubleAttributesMap.put(name, jpaAttribute.getDoubleValue());
           }
           break;
         case BOOLEAN:
           if (jpaAttribute.isScalar()) {
-            AttributeValueDto attrValue =
-                new BooleanAttributeValueDto(jpaAttribute.getBooleanValue());
-            dto.put(name, attrValue);
+            dto.put(name, new BooleanAttributeValueDto(jpaAttribute.getBooleanValue()));
           } else {
             throw new RuntimeException(
                 "Unexpected boolean array value for " + name + " in " + jpa.getId());
