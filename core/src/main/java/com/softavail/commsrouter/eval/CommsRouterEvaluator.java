@@ -203,13 +203,27 @@ public class CommsRouterEvaluator {
           AttributesMapper.getJpaAttributeValueType(jpaAttribute);
       switch (valueType) {
         case STRING:
-          attributesMap.put(name, jpaAttribute.getStringValue());
+          if (jpaAttribute.isScalar()) {
+            evaluator.putVariable(name, String.format("'%s'", jpaAttribute.getStringValue()));
+          } else {
+            attributesMap.put(name, jpaAttribute.getStringValue());
+          }
           break;
         case DOUBLE:
-          attributesMap.put(name, jpaAttribute.getDoubleValue());
+          if (jpaAttribute.isScalar()) {
+            evaluator.putVariable(name, jpaAttribute.getDoubleValue().toString());
+          } else {
+            attributesMap.put(name, jpaAttribute.getDoubleValue());
+          }
           break;
         case BOOLEAN:
-          attributesMap.put(name, jpaAttribute.getBooleanValue());
+          if (jpaAttribute.isScalar()) {
+            evaluator.putVariable(name,
+                jpaAttribute.getBooleanValue() ? EvaluationConstants.BOOLEAN_STRING_TRUE
+                    : EvaluationConstants.BOOLEAN_STRING_FALSE);
+          } else {
+            attributesMap.put(name, jpaAttribute.getBooleanValue());
+          }
           break;
         default:
           LOGGER.error("Unexpected attribute value type={}, name={}", valueType,
@@ -219,33 +233,19 @@ public class CommsRouterEvaluator {
     });
 
     attributesMap.asMap().forEach((key, value) -> {
-      if (value.size() == 1) {
-        Object variable = value.iterator().next();
-        if (variable instanceof Double) {
-          evaluator.putVariable(key, ((Double) variable).toString());
-        } else if (variable instanceof Boolean) {
-          evaluator.putVariable(key, (Boolean) variable ? EvaluationConstants.BOOLEAN_STRING_TRUE
-                : EvaluationConstants.BOOLEAN_STRING_FALSE);
+      Iterator<Object> iterator = value.iterator();
+      String strValue = EvaluatorHelpers.openBracketCharacter;
+      boolean firstItem = true;
+      while (iterator.hasNext()) {
+        if (!firstItem) {
+          strValue += EvaluatorHelpers.ARRAY_ITEMS_DELIMITER;
         } else {
-          evaluator.putVariable(key, String.format("'%s'", variable));
+          firstItem = false;
         }
-      } else {
-        // value collections in this multimap view are always non-empty, so here we have more than
-        // one element
-        Iterator<Object> iterator = value.iterator();
-        String strValue = EvaluatorHelpers.openBracketCharacter;
-        boolean firstItem = true;
-        while (iterator.hasNext()) {
-          if (!firstItem) {
-            strValue += EvaluatorHelpers.ARRAY_ITEMS_DELIMITER;
-          } else {
-            firstItem = false;
-          }
-          strValue += iterator.next();
-        }
-        strValue += EvaluatorHelpers.closeBracketCharacter;
-        evaluator.putVariable(key, String.format("'%s'", strValue));
+        strValue += iterator.next();
       }
+      strValue += EvaluatorHelpers.closeBracketCharacter;
+      evaluator.putVariable(key, String.format("'%s'", strValue));
     });
   }
 
