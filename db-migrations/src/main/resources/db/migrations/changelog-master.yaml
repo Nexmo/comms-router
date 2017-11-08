@@ -780,3 +780,16 @@ databaseChangeLog:
             name: expiration_date
             type: TIMESTAMP(3)
         tableName: task
+- changeSet:
+    id: 1509629260000-1
+    author: ergun
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueBoolean: true
+            constraints:
+              nullable: false
+            name: is_scalar
+            type: BOOLEAN
+        tableName: attribute
