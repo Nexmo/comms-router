@@ -41,4 +41,27 @@ public class RouteDto implements Serializable {
     this.timeout = timeout;
   }
 
+  public static class Builder{
+    private RouteDto route = new RouteDto();
+
+    public Builder(String queueId) {
+      route.setQueueId(queueId);
+    }
+
+    public Builder priority(Long priority) {
+      route.setPriority(priority);
+      return this;
+    }
+
+    public Builder timeout(Long timeout) {
+      route.setTimeout(timeout);
+      return this;
+    }
+
+    public RouteDto build() {
+      return route;
+    }
+
+  }
+
 }

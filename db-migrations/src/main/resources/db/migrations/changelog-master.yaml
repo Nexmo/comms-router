@@ -770,3 +770,26 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: router
+- changeSet:
+    id: 1509090476157-1
+    author: acho (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: expiration_date
+            type: TIMESTAMP(3)
+        tableName: task
+- changeSet:
+    id: 1509629260000-1
+    author: ergun
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueBoolean: true
+            constraints:
+              nullable: false
+            name: is_scalar
+            type: BOOLEAN
+        tableName: attribute

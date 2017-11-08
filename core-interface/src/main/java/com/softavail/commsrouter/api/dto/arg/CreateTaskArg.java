@@ -60,4 +60,26 @@ public class CreateTaskArg {
     this.callbackUrl = callbackUrl;
   }
 
+  public static class Builder {
+    private CreateTaskArg arg = new CreateTaskArg();
+
+    public Builder() {
+    }
+
+    public Builder callback(URL url) {
+      arg.setCallbackUrl(url);
+      return this;
+    }
+
+    public Builder requirements(AttributeGroupDto requirements) {
+      arg.setRequirements(requirements);
+      return this;
+    }
+
+    public CreateTaskArg build() {
+      return arg;
+    }
+
+  }
+
 }

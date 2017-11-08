@@ -211,10 +211,10 @@ public class JpaPlayground implements AutoCloseable {
               RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build());
           Agent agent = new Agent();
           AttributeGroup capabilities = new AttributeGroup();
-          capabilities.add("language", "en");
-          capabilities.add("language", "es");
-          capabilities.add("favorite_numbers", 42D);
-          capabilities.add("favorite_numbers", 24D);
+          capabilities.addArrayItem("language", "en");
+          capabilities.addArrayItem("language", "es");
+          capabilities.addArrayItem("favorite_numbers", 42D);
+          capabilities.addArrayItem("favorite_numbers", 24D);
           capabilities.add("is_supervisor", true);
           agent.setCapabilities(capabilities);
           agent.setState(AgentState.ready);

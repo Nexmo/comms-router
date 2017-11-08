@@ -186,23 +186,25 @@
                                (and (member (first prefix) (mapcar #'third available) :test #'equal)
                                     (first prefix))
                                (funcall selector available))))
-
+              (format t "~%Selected:~A"selected)
               (if selected
-                (let*((name (print selected))
+                (let*((name selected)
                       (step-result (funcall (second (find selected available :test #'equal
                                                           :key #'third))
                                             (copy-tree model)))
                       (result (first step-result))
                       (new-model (second step-result))
                       (new-path (list* (cons name result) path)))
-                  (format t "~%Processing ~A" name)
+                  ;;(format t "~%Processing ~A" name)
                   (cond
-                    ((null (second result)) new-path) ;;error detected
+                    ((null (second result)) (progn ;;(funcall selector (list (list #'identity #'identity "bug-detected")))
+                                                   new-path)) ;;error detected
                     (t (generate-sample :prefix (rest prefix)
                                         :model new-model
                                         :tasks tasks
                                         :path new-path
-                                        :size size))))
+                                        :size size
+                                        :selector selector))))
                 (format t "~%invalid path")))
             (progn (format t "~%Deadend reached!")) ) ) ))
 
@@ -217,27 +219,23 @@
           (format t "~%Pass"))
         (progn
           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-          (mapcar #'first res)
-          )
-       ) ) )
-
+          (mapcar #'first res) ) ) ) )
 
 (defun find-bug (size )
   (setf *update-policy* ())
   (print(length (test-random :prefix (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
                     do (setf *update-policy* ()) (format t "."))))))
 
-(defun scan-bug(size)
-  (setf *policy* (make-hash-table :test #'equal))
+(defun scan-bug(size &key (reset t))
+  (when reset (setf *policy* (make-hash-table :test #'equal)))
   (time (loop for max-size = size then (let ((last (find-bug max-size)))
-                                         (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
-                                         (if (< last max-size) (/ (- max-size last) 2)
-                                             max-size))
+                                         (loop for x from 1 to 10 do (mapcar #'funcall *update-policy*))
+                                         (if (< last max-size) (floor (/ (+ max-size last) 2))
+                                             max-size)
+                                         )
            :repeat 100
            do (format t  "~%-------- max-size ~A" max-size)
              )) )
-
-
 
 (defun reduce-test(candidates)
   (when candidates
@@ -253,24 +251,3 @@
           (if reduced
               (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
               (list* candidate (reduce-test (rest candidates))) ))))))
-
-;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))
-;;   (if (null test-case)
-;;       'pass
-;;       (let*((available (remove-if-not #'(lambda(task)(funcall (first task))) tasks))
-;;             (selected (first test-case))
-;;             (result (funcall (second (nth selected available))))
-;;             (new-path (list* (cons selected result) path)))
-;;         (cond
-;;           ((null (second result)) new-path);;error detected
-;;           (t (replay-sample :tasks tasks :path new-path :test-case (rest test-case))) )) ) )
-
-
-;; (defun test-case(list)
-;;   (clear-events)
-;;   (let ((res (replay-sample :tasks *tasks* :test-case list)))
-;;     (if (equal res 'pass)
-;;         'pass
-;;         (progn
-;;           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-;;           res ) ) ) )

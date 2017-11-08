@@ -51,5 +51,27 @@ public class CreatePlanArg {
     this.defaultRoute = defaultRoute;
   }
 
+  public static class Builder{
+    private CreatePlanArg planArg = new CreatePlanArg();
+
+    public Builder(String description) {
+      planArg.setDescription(description);
+    }
+
+    public Builder rules(List<RuleDto> rules) {
+      planArg.setRules(rules);
+      return this;
+    }
+
+    public Builder defaultRoute(RouteDto defaultRoute) {
+      planArg.setDefaultRoute(defaultRoute);
+      return this;
+    }
+
+    public CreatePlanArg build() {
+      return planArg;
+    }
+
+  }
 
 }

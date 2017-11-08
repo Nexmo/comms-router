@@ -39,6 +39,7 @@
           <configuration>
             <useFile>false</useFile>
             <trimStackTrace>true</trimStackTrace>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
           </configuration>
         </plugin>
       </plugins>

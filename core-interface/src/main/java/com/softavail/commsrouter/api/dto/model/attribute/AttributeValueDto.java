@@ -24,7 +24,8 @@ public abstract class AttributeValueDto {
   }
 
 
-  public abstract String getValueAsString();  
+  public abstract String getValueAsString();
+
   public abstract void accept(AttributeValueVisitor visitor) throws IOException;
 
 }
