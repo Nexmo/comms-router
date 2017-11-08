@@ -5,13 +5,12 @@
 
 package com.softavail.commsrouter.domain.dto.mappers;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -22,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -59,9 +57,6 @@ public class AttributesMapper {
     }
 
     AttributeGroupDto dto = new AttributeGroupDto();
-    ListMultimap<String, String> stringAttributesMap = ArrayListMultimap.create();
-    ListMultimap<String, Double> doubleAttributesMap = ArrayListMultimap.create();
-
     jpa.getAttributes().stream().forEach(jpaAttribute -> {
       String name = jpaAttribute.getName();
       JpaAttributeValueType valueType = getJpaAttributeValueType(jpaAttribute);
@@ -70,14 +65,24 @@ public class AttributesMapper {
           if (jpaAttribute.isScalar()) {
             dto.put(name, new StringAttributeValueDto(jpaAttribute.getStringValue()));
           } else {
-            stringAttributesMap.put(name, jpaAttribute.getStringValue());
+            AttributeValueDto arrayValue = dto.get(name);
+            if (arrayValue == null) {
+              arrayValue = new ArrayOfStringsAttributeValueDto();
+              dto.put(name, arrayValue);
+            }
+            ((ArrayOfStringsAttributeValueDto) arrayValue).add(jpaAttribute.getStringValue());
           }
           break;
         case DOUBLE:
           if (jpaAttribute.isScalar()) {
             dto.put(name, new DoubleAttributeValueDto(jpaAttribute.getDoubleValue()));
           } else {
-            doubleAttributesMap.put(name, jpaAttribute.getDoubleValue());
+            AttributeValueDto arrayValue = dto.get(name);
+            if (arrayValue == null) {
+              arrayValue = new ArrayOfDoublesAttributeValueDto();
+              dto.put(name, arrayValue);
+            }
+            ((ArrayOfDoublesAttributeValueDto) arrayValue).add(jpaAttribute.getDoubleValue());
           }
           break;
         case BOOLEAN:
@@ -92,24 +97,6 @@ public class AttributesMapper {
           throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
               + "in " + jpa.getId());
       }
-    });
-
-    stringAttributesMap.asMap().forEach((key, value) -> {
-      ArrayOfStringsAttributeValueDto arrayValue = new ArrayOfStringsAttributeValueDto();
-      Iterator<String> iterator = value.iterator();
-      while (iterator.hasNext()) {
-        arrayValue.add(iterator.next());
-      }
-      dto.put(key, arrayValue);
-    });
-    
-    doubleAttributesMap.asMap().forEach((key, value) -> {
-      ArrayOfDoublesAttributeValueDto arrayValue = new ArrayOfDoublesAttributeValueDto();
-      Iterator<Double> iterator = value.iterator();
-      while (iterator.hasNext()) {
-        arrayValue.add(iterator.next());
-      }
-      dto.put(key, arrayValue);
     });
 
     return dto;
