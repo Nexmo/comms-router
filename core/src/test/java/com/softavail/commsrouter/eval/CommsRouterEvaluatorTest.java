@@ -88,16 +88,16 @@ public class CommsRouterEvaluatorTest {
     requirementsJpa.add("boolTrue", true);
     requirementsJpa.add("boolFalse", false);
 
-    requirementsJpa.add("languages", "en");
-    requirementsJpa.add("languages", "es");
-    requirementsJpa.add("languages", "fr");
+    requirementsJpa.addArrayItem("languages", "en");
+    requirementsJpa.addArrayItem("languages", "es");
+    requirementsJpa.addArrayItem("languages", "fr");
 
-    requirementsJpa.add("prices", 20D);
-    requirementsJpa.add("prices", 30D);
-    requirementsJpa.add("prices", 50D);
+    requirementsJpa.addArrayItem("prices", 20D);
+    requirementsJpa.addArrayItem("prices", 30D);
+    requirementsJpa.addArrayItem("prices", 50D);
 
-    requirementsJpa.add("allowedBools", true);
-    requirementsJpa.add("allowedBools", false);
+    requirementsJpa.addArrayItem("allowedBools", true);
+    requirementsJpa.addArrayItem("allowedBools", false);
   }
 
   @After
