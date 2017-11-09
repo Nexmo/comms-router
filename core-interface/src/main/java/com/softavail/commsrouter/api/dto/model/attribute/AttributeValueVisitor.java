@@ -23,6 +23,4 @@ public interface AttributeValueVisitor {
 
   void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException;
 
-  void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value) throws IOException;
-
 }

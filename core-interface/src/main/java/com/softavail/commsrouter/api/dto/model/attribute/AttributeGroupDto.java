@@ -52,10 +52,6 @@ public class AttributeGroupDto extends HashMap<String, AttributeValueDto> {
     get(ArrayOfDoublesAttributeValueDto.class, name).add(value);
   }
 
-  public void addToArray(String name, Boolean value) {
-    get(ArrayOfBooleansAttributeValueDto.class, name).add(value);
-  }
-
   public <T extends ArrayAttributeValueDto> T get(Class<T> c, String name) {
     T t = c.cast(get(name));
     if (t != null) {

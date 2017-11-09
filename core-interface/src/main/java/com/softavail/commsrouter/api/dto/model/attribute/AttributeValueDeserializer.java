@@ -68,9 +68,6 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
                 case STRING:
                   arrayValue = new ArrayOfStringsAttributeValueDto();
                   break;
-                case BOOLEAN:
-                  arrayValue = new ArrayOfBooleansAttributeValueDto();
-                  break;
                 case NUMBER:
                   arrayValue = new ArrayOfDoublesAttributeValueDto();
                   break;
@@ -88,9 +85,6 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
             switch (arrayElemType) {
               case STRING:
                 ((ArrayOfStringsAttributeValueDto) arrayValue).add(node.asText());
-                break;
-              case BOOLEAN:
-                ((ArrayOfBooleansAttributeValueDto) arrayValue).add(node.asBoolean());
                 break;
               case NUMBER:
                 ((ArrayOfDoublesAttributeValueDto) arrayValue).add(node.asDouble());

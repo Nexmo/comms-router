@@ -72,17 +72,6 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
         }
         gen.writeEndArray();
       }
-
-      @Override
-      public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
-          throws IOException {
-        gen.writeStartArray();
-        for (Object object : value.getValue()) {
-          gen.writeObject(object);
-        }
-        gen.writeEndArray();
-      }
-
     });
   }
 
