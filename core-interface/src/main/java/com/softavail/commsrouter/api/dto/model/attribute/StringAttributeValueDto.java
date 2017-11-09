@@ -30,7 +30,7 @@ public class StringAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
-  public String getValueAsString() {
+  public String toString() {
     return value;
   }
 

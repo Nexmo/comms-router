@@ -30,7 +30,7 @@ public class BooleanAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
-  public String getValueAsString() {
+  public String toString() {
     return getValue().toString();
   }
 

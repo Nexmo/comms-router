@@ -18,14 +18,6 @@ import java.io.IOException;
 @JsonSerialize(using = AttributeValueSerializer.class)
 public abstract class AttributeValueDto {
 
-  @Override
-  public String toString() {
-    return getValueAsString();
-  }
-
-
-  public abstract String getValueAsString();
-
   public abstract void accept(AttributeValueVisitor visitor) throws IOException;
 
 }
