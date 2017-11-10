@@ -81,10 +81,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
-    long millis = System.currentTimeMillis();
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
     evaluator.isValidExpression(createArg.getPredicate());
-    LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
 
     Router router = getRouter(em, objectId);
     Queue queue = new Queue(objectId);
@@ -103,7 +101,6 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
     int attachedAgentsCount = 0;
     long millis = System.currentTimeMillis();
-    evaluator.initEvaluator(queue.getPredicate());
     List<Agent> agents = app.db.agent.list(em, queue.getRouter().getId());
     for (Agent agent : agents) {
       try {
@@ -155,10 +152,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
 
-    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
-    long millis = System.currentTimeMillis();
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
     evaluator.isValidExpression(predicate);
-    LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
 
     queue.setPredicate(predicate);
     queue.getAgents().clear();

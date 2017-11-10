@@ -86,8 +86,11 @@ public class CommsRouterEvaluator {
       throw new EvaluatorException("Expression cannot be NULL or empty.");
     }
 
+    long millis = System.currentTimeMillis();
     initValidatorEvaluator(expression);
     validationEvaluator.isValid();
+    LOGGER.trace("Predicate expression validation time is: {}",
+        (System.currentTimeMillis() - millis));
   }
 
   /**
