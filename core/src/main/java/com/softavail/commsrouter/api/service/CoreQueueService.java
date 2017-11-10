@@ -31,6 +31,7 @@ import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -71,9 +72,6 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    long millis = System.currentTimeMillis();
-    app.evaluator.isValidExpression(createArg.getPredicate());
-    LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.delete(em, objectId.getId());
       return doCreate(em, createArg, objectId);
@@ -83,8 +81,9 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     long millis = System.currentTimeMillis();
-    app.evaluator.isValidExpression(createArg.getPredicate());
+    evaluator.isValidExpression(createArg.getPredicate());
     LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
 
     Router router = getRouter(em, objectId);
@@ -92,22 +91,23 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     queue.setRouter(router);
     queue.setDescription(createArg.getDescription());
     queue.setPredicate(createArg.getPredicate());
-    attachAgents(em, queue, true);
+    attachAgents(em, queue, evaluator, true);
     em.persist(queue);
     return queue.cloneApiObjectId();
   }
 
-  private void attachAgents(EntityManager em, Queue queue, boolean isNewQueue) {
+  private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
+      boolean isNewQueue) {
 
     LOGGER.info("Queue {}: attaching agents...", queue.getId());
 
     int attachedAgentsCount = 0;
     long millis = System.currentTimeMillis();
-    app.evaluator.initEvaluator(queue.getPredicate());
+    evaluator.initEvaluator(queue.getPredicate());
     List<Agent> agents = app.db.agent.list(em, queue.getRouter().getId());
     for (Agent agent : agents) {
       try {
-        if (app.evaluator.evaluateJpa(agent.getCapabilities())) {
+        if (evaluator.evaluateJpa(agent.getCapabilities())) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
           ++attachedAgentsCount;
@@ -155,13 +155,14 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
 
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     long millis = System.currentTimeMillis();
-    app.evaluator.isValidExpression(predicate);
+    evaluator.isValidExpression(predicate);
     LOGGER.trace("New queue predicate check time is: {}", (System.currentTimeMillis() - millis));
 
     queue.setPredicate(predicate);
     queue.getAgents().clear();
-    attachAgents(em, queue, false);
+    attachAgents(em, queue, evaluator, false);
   }
 
   @Override

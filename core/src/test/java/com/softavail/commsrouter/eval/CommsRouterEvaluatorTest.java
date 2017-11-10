@@ -102,7 +102,8 @@ public class CommsRouterEvaluatorTest {
   @Test
   public void testEvaluate() throws Exception {
     System.out.println("evaluate");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
+    CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+    CommsRouterEvaluator instance = ef.provide(null);
 
     // validation should be failed cases
     try {
@@ -251,7 +252,9 @@ public class CommsRouterEvaluatorTest {
   @Test
   public void testEvaluateJpa() throws Exception {
     System.out.println("evaluateJpa");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
+    CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+    CommsRouterEvaluator instance = ef.provide(null);
+
     Boolean expResult = true;
     Boolean result = instance.initEvaluator(predicateOK1).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);

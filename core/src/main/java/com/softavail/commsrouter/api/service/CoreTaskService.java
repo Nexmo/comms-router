@@ -38,6 +38,7 @@ import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Uuid;
 
 import org.apache.logging.log4j.LogManager;
@@ -162,14 +163,15 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule) {
+  private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule,
+      CommsRouterEvaluator evaluator) {
     if (rule != null) {
       if (rule.getRoutes().isEmpty()) {
         return null;
       }
 
       try {
-        if (app.evaluator.initEvaluator(rule.getPredicate()).evaluate(attributesGroup)) {
+        if (evaluator.evaluate(attributesGroup)) {
           LOGGER.info("Task {}: matched rule {} tag {}", taskId, rule.getId(), rule.getTag());
           return rule.getRoutes().get(0);
         }
@@ -239,9 +241,11 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
       Route matchedRoute = null;
+      CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule);
+        evaluator.initEvaluator(rule.getPredicate());
+        matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule, evaluator);
         if (matchedRoute != null) {
           task.setRule(rule);
           break;
