@@ -47,14 +47,17 @@
                         (reduce #'(lambda(current action)
                                     (destructuring-bind (max-action max-u) current
                                       (let ((u (u (next-state model action))))
+                                        (format t "~%~A -> ~A" action u)
                                         (if (> u max-u)
                                             (list action u)
                                             current))))
                                 available :initial-value (list "none" -1))))
-                 (selected (if prefer prefer
-                               (if (> (random 10) 3)
-                                   (alexandria:random-elt available)
-                                   best))))
+                 (selected (progn
+                             (if prefer prefer
+                                 (if (> (random 10) 8)
+                                     (alexandria:random-elt available)
+                                     best))
+                             best)))
 
             (setf previous-state (copy-tree model)
                   previous-action selected
@@ -101,7 +104,7 @@
                (list (1+ (first model)) (second model))))))
 
 (setf *update-policy* nil)
-(setf *policy* nil)
+
 
 (setf *map* (make-hash-table :test #'equal))
 (setf *utility* (make-hash-table :test #'equal))
@@ -114,7 +117,7 @@
                                  (generate-sample :prefix prefix :model (jsown:new-js ("router" router-id) ("queue" queue-id))
                                                   :size (if prefix (length prefix) size) :selector (rl-policy-selector) :tasks tasks))
                     :if (and (listp x) x) :return x)))
-  (loop for (new-u err) = (multiple-value-list (value-iteration :utility *utility*  :gamma 0.8)) :while (> err 0.001)
+  (loop for (new-u err) = (multiple-value-list (value-iteration :utility *utility*  :gamma 0.8)) :while (> err (* 0.001 (/ (1-0.8) 0.8)))
      do (setf *utility* new-u)))
 
 (defun value-iteration(&key(utility *utility*) (gamma 0.8))

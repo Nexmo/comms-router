@@ -254,6 +254,53 @@
                   :id task2-id
                   :router-id router-id) ))))
 
+(defun test-task-ordering1()
+  (tlet ((router-id (js-val "id") (erouter-new))
+         (queue-id (js-val "id") (equeue-new :router-id router-id))
+         (agent-id (js-val "id") (eagent-new :router-id router-id))
+         (agent-ready (eagent-set :id agent-id :state "ready"
+                                  :router-id router-id))
+         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (agent1-id (js-val "id") (eagent-new :router-id router-id))
+         (agent1-ready (eagent-set :id agent1-id :state "ready"
+                                   :router-id router-id))
+         (task1-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+    (tand
+     (etask-set :id task1-id :router-id router-id :state "completed")
+     (twait (eagent :router-id router-id :id agent1-id :checks (has-kv "state" "ready")))
+     (etask-set :id task-id :router-id router-id :state "completed")
+     (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "ready")))
+     (tlet ((task2-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+       (tand
+        (twait (etask :description "Check that task handled not by agent that just has completed task, but the other one."
+                      :router-id router-id
+                      :id task2-id
+                      :checks (has-kv "state" "assigned")))
+        (etask :description "Check that task handled not by agent that just has completed task, but the other one."
+               :router-id router-id
+               :id task2-id
+               :checks (has-kv "agentId" agent1-id)))))))
+
+(defun test-task-ordering2()
+  (tlet ((router-id (js-val "id") (erouter-new))
+         (queue-id (js-val "id") (equeue-new :router-id router-id))
+         (agent-id (js-val "id") (eagent-new :router-id router-id))
+         (agent-ready (eagent-set :id agent-id :state "ready"
+                                  :router-id router-id))
+         (agent1-id (js-val "id") (eagent-new :router-id router-id))
+         (agent1-ready (eagent-set :id agent1-id :state "ready"
+                                   :router-id router-id))
+         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+    (tand
+     (twait (etask :description "Wait state to be assigned."
+                   :router-id router-id
+                   :id task-id
+                   :checks (has-kv "state" "assigned")))
+     (etask :description "Check that task is handled first created agent."
+            :router-id router-id
+            :id task-id
+            :checks (has-kv "agentId" agent-id)))))
+
 (defun test-set-context(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
   (tlet ((task-id (js-val "id")
                   (tstep "Create task"
@@ -284,25 +331,26 @@
             :delay 3 :timeout timeout)
      (tstep "Ensure that there where no errors on handling task by checking userContext.result."
             (tapply (http-get "/routers" router-id "tasks" task-id "user_context" "result"))
-            (is-equal "true")))) ) )
+            (is-equal "true"))))))
 
-(defun test-push-tasks (&key (tasks 10) (agents 1)
+(defun test-push-tasks (&key (tasks 10)(queues 1) (agents 1)
                           (push (push-a-task :host "localhost")))
   #'(lambda()
       (router-new)
-      (queue-new)
-      (loop :repeat agents do
-         (agent-new)
-         (agent-set) )
 
-      (let ((result (remove-if
-                     #'second
-                     (lparallel:pmapcar
-                      #'(lambda(n)(funcall (funcall push)))
-                      (loop :repeat tasks :collect 1) ))))
-        (mapcar #'print-log result) )
-      )
-  )
+      (let* ((q-ids (mapcar (js-val "id")
+                            (lparallel:pmapcar #'(lambda(i) (queue-new))
+                                               (loop :repeat queues :collect 1)) ))
+             (agent-ids (lparallel:pmapcar #'(lambda(i) (agent-new ))
+                                           (loop :repeat agents :collect 1)))
+             (agent-ready (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "id") :state "ready"))
+                                             agent-ids))
+             (result (remove-if
+                      #'second
+                      (lparallel:pmapcar
+                       #'(lambda(n)(funcall (funcall push  :queue-id (alexandria:random-elt q-ids))))
+                       (loop :repeat tasks :collect 1) ))))
+        (mapcar #'print-log result)) ) )
 
 (defun test-all(&key (tests (list (test-task-ordering)
                                   (test-set-unavailable)
@@ -318,8 +366,35 @@
 
 (defun delete-completed-tasks()
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
+
 (defun setup-demo()
   (router-put :id "router-1")
   (queue-put :id "demo-queue")
-  (agent-put :id "r8AzfepLFqVfUGU7wgQOo6")
-)
+  (agent-put :id "r8AzfepLFqVfUGU7wgQOo6"))
+
+(defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
+  (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
+
+(defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
+  #'(lambda()
+      (router-new)
+
+      (let* ((q-ids (mapcar (js-val "id")
+                            (lparallel:pmapcar #'(lambda(i) (queue-new))
+                                               (loop :repeat queues :collect 1)) ))
+             (agent-ids (lparallel:pmapcar #'(lambda(i) (agent-new ))
+                                           (loop :repeat agents :collect 1)))
+             (result (time(remove-if
+                           #'second
+                           (lparallel:pmapcar
+                            #'(lambda(n)(funcall (etask-new
+                                                  :queue-id (alexandria:random-elt q-ids)
+                                                  :callback-url (format nil "http://localhost:4343/task?router=fbjFl8BWnmnuM8TXtWolI6&sleep=~A"
+                                                                        handle-time))))
+                            (loop :repeat tasks :collect 1) ))))
+             (agent-ready (time (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "id") :state "ready"))
+                                                   agent-ids))) )
+        (time (loop for queue = (lparallel:pevery #'(lambda(id) (zerop (jsown:val (queue-size :id id) "size")))
+                                                  (mapcar (js-val "id") (queue-all)))
+                 :while (not queue)  do (sleep 1)))
+        (mapcar #'print-log result)) ) )

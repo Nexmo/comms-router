@@ -2,8 +2,8 @@
 
 (defun tapply(request)
   #'(lambda()
-      (list (apply (funcall *endpoint* #'cmd-curl) (funcall request))
-            (apply (funcall *endpoint* #'transport) (funcall request)))))
+      (list (apply (funcall *endpoint* (cmd-curl)) (funcall request))
+            (apply (funcall *endpoint* (transport-drakma)) (funcall request)))))
 ;;; queue
 (defun equeue-new (&key (router-id (get-event :router))
                      (description "description")
@@ -210,3 +210,9 @@
                                                 ("priority" priority)
                                                 ("timeout" timeout))))))
          checks))
+
+(defun eplan-del(&key (router-id (get-event :router))
+                   (id (get-event :plan)))
+  (tstep (format nil "Delete plan with id ~A." id)
+         (tapply (http-del "/routers" router-id "plans" id))
+         (is-equal "")))

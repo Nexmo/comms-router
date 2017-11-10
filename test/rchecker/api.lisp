@@ -25,7 +25,7 @@
 (defun get-id(&optional (prefix "tr")) (format nil "~A-~{~A~}~A~A" prefix (subseq (multiple-value-list (decode-universal-time (get-universal-time))) 0 4) (subseq (string (gensym))1) (random 1000)))
 
 (defun tr-step(request check events)
-  (let ((js (apply (funcall *endpoint* #'transport) (funcall request))))
+  (let ((js (apply (funcall *endpoint* (transport-drakma)) (funcall request))))
     (when (funcall check js)
       (funcall events js))
     js))
@@ -34,6 +34,45 @@
   (tr-step (http-get "/swagger.json")
            (constantly t)
            #'identity))
+
+(defvar *unix-epoch-difference*
+  (encode-universal-time 0 0 0 1 1 1970 0))
+
+(defun universal-to-unix-time (universal-time)
+  (- universal-time *unix-epoch-difference*))
+
+(defun unix-to-universal-time (unix-time)
+  (+ unix-time *unix-epoch-difference*))
+
+(defun get-unix-time ()
+  (universal-to-unix-time (get-universal-time)))
+
+(defun time-to-str(scg-time)
+  (if (numberp scg-time) (multiple-value-bind (second minute hour date month year day-of-week dst-p tz)
+                             (decode-universal-time (unix-to-universal-time (floor (/ scg-time 1000))))
+                           (format nil "~2,'0d:~2,'0d:~2,'0d ~d/~2,'0d/~d (GMT~@d)"
+                                   hour
+                                   minute
+                                   second
+                                   month
+                                   date
+                                   year
+                                   (- tz)))
+      scg-time))
+
+(defun decode-date-kv(kv)
+  (cond
+    ((or (search "date" (first kv))
+         (search "time" (first kv))
+         (search "lastTimeAtBusyState" (first kv))) (list* (first kv) (time-to-str (rest kv))))
+    (t (list* (first kv) (decode-dates (rest kv))))))
+
+(defun decode-dates(l)
+  (cond
+    ((null l) l)
+    ((not (listp l)) l)
+    ((equal (first l) :obj) (list* :obj (mapcar #'decode-date-kv (rest l))))
+    (t (list* (decode-dates (first l)) (decode-dates (rest l))))))
 
 (defun router-all()
   (tr-step (http-get "/routers")
@@ -67,8 +106,8 @@
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :router))) )
 ;;; agent
-(defun agent-all(&key (router-id (get-event :router)) )
-  (tr-step (http-get "/routers" router-id "agents")
+(defun agent-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1))
+  (tr-step (http-get "/routers" router-id (format nil "agents?per_page=~A&page_num=~A" per-page page-number))
            #'(lambda(js) (and (listp js) (funcall (contains "id") (first js))))
            #'(lambda(js) (funcall (fire-event :agent) (jsown:val (first js) "id")))))
 
@@ -147,15 +186,16 @@
                                                                 ("priority" priority)
                                                                 ("timeout" timeout)))
                                                         next-route)))))
+                  (default-route (jsown:new-js
+                                   ("queueId" queue-id)
+                                   ("priority" 0)
+                                   ("timeout" 360000)))
                   (description "description"))
   (tr-step (http-post (list "/routers" router-id "plans")
                       (jsown:new-js
                         ("rules" rules)
                         ("description" description)
-                        ("defaultRoute" (jsown:new-js
-                                          ("queueId" queue-id)
-                                          ("priority" 0)
-                                          ("timeout" 360000)))))
+                        ("defaultRoute" default-route)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :plan) (jsown:val js "id")))))
 
@@ -198,8 +238,8 @@
            #'(lambda(js) (clear-event :plan))))
 
 ;;; queue
-(defun queue-all(&key (router-id (get-event :router)) )
-  (tr-step (http-get "/routers" router-id "queues")
+(defun queue-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1) )
+  (tr-step (http-get "/routers" router-id (format nil "queues?per_page=~A&page_num=~A" per-page page-number))
            #'(lambda(js) (and (listp js) (funcall (contains "id") (first js))))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val (first js) "id")))))
 
@@ -325,9 +365,11 @@
 (defun ptask-new(&key (router-id (get-event :router))
                    (requirements (jsown:new-js))
                    (callback-url (format nil "http://192.168.1.171:8787/?task="))
+                   (context (jsown:new-js ("key" "value")))
                    (plan-id (get-event :plan)))
   (task-new :router-id router-id
             :requirements requirements
             :callback-url callback-url
             :queue-id :null
+            :context context
             :plan-id plan-id))
