@@ -74,9 +74,8 @@ public class AttributesMapper {
           }
           break;
         case BOOLEAN:
-          if (jpaAttribute.isScalar()) {
-            dto.add(name, jpaAttribute.getBooleanValue());
-          }
+          dto.add(name, jpaAttribute.getBooleanValue());
+          assert jpaAttribute.isScalar();
           break;
         default:
           throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
