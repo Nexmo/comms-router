@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -109,13 +108,6 @@ public class CommsRouterEvaluator {
 
           @Override
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-              throws IOException {
-            evaluator.putVariable(key, String.format("'%s'",
-                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
-          }
-
-          @Override
-          public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
               throws IOException {
             evaluator.putVariable(key, String.format("'%s'",
                 value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));

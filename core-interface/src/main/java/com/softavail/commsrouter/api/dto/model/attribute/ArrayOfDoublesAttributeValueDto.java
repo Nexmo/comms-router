@@ -8,7 +8,7 @@ import java.io.IOException;
 public class ArrayOfDoublesAttributeValueDto extends ArrayAttributeValueDto<Double> {
 
   @Override
-  public String getValueAsString() {
+  public String toString() {
     return getValue().toString();
   }
 

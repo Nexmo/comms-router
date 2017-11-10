@@ -6,7 +6,6 @@
 package com.softavail.commsrouter.domain.dto.mappers;
 
 
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -75,11 +74,8 @@ public class AttributesMapper {
           }
           break;
         case BOOLEAN:
-          if (jpaAttribute.isScalar()) {
-            dto.add(name, jpaAttribute.getBooleanValue());
-          } else {
-            dto.addToArray(name, jpaAttribute.getBooleanValue());
-          }
+          dto.add(name, jpaAttribute.getBooleanValue());
+          assert jpaAttribute.isScalar();
           break;
         default:
           throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
@@ -129,15 +125,6 @@ public class AttributesMapper {
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
             List<Double> elements = value.getValue();
-            elements.forEach(element -> {
-              jpa.addArrayItem(key, element);
-            });
-          }
-
-          @Override
-          public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
-              throws IOException {
-            List<Boolean> elements = value.getValue();
             elements.forEach(element -> {
               jpa.addArrayItem(key, element);
             });

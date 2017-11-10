@@ -14,7 +14,7 @@ import java.io.IOException;
 public class ArrayOfStringsAttributeValueDto extends ArrayAttributeValueDto<String> {
 
   @Override
-  public String getValueAsString() {
+  public String toString() {
     return getValue().toString();
   }
 

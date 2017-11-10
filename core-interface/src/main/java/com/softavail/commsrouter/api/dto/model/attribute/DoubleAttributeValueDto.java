@@ -24,7 +24,7 @@ public class DoubleAttributeValueDto extends AttributeValueDto {
   }
 
   @Override
-  public String getValueAsString() {
+  public String toString() {
     return Double.toString(getValue());
   }
 

@@ -39,7 +39,6 @@ import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -1068,13 +1067,6 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
             throws IOException {
           // TODO Auto-generated method stub
 
-        }
-
-        @Override
-        public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
-            throws IOException {
-          // TODO Auto-generated method stub
-          
         }
       });
     } catch (IOException e) {
