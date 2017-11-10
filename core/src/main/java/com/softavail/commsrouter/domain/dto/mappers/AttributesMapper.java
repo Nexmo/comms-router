@@ -1,16 +1,25 @@
-/*
- * To change this license header, choose License Headers in Project Properties. To change this
- * template file, choose Tools | Templates and open the template in the editor.
+/* 
+ * Copyright 2017 SoftAvail Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.softavail.commsrouter.domain.dto.mappers;
 
 
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -63,35 +72,21 @@ public class AttributesMapper {
       switch (valueType) {
         case STRING:
           if (jpaAttribute.isScalar()) {
-            dto.put(name, new StringAttributeValueDto(jpaAttribute.getStringValue()));
+            dto.add(name, jpaAttribute.getStringValue());
           } else {
-            AttributeValueDto arrayValue = dto.get(name);
-            if (arrayValue == null) {
-              arrayValue = new ArrayOfStringsAttributeValueDto();
-              dto.put(name, arrayValue);
-            }
-            ((ArrayOfStringsAttributeValueDto) arrayValue).add(jpaAttribute.getStringValue());
+            dto.addToArray(name, jpaAttribute.getStringValue());
           }
           break;
         case DOUBLE:
           if (jpaAttribute.isScalar()) {
-            dto.put(name, new DoubleAttributeValueDto(jpaAttribute.getDoubleValue()));
+            dto.add(name, jpaAttribute.getDoubleValue());
           } else {
-            AttributeValueDto arrayValue = dto.get(name);
-            if (arrayValue == null) {
-              arrayValue = new ArrayOfDoublesAttributeValueDto();
-              dto.put(name, arrayValue);
-            }
-            ((ArrayOfDoublesAttributeValueDto) arrayValue).add(jpaAttribute.getDoubleValue());
+            dto.addToArray(name, jpaAttribute.getDoubleValue());
           }
           break;
         case BOOLEAN:
-          if (jpaAttribute.isScalar()) {
-            dto.put(name, new BooleanAttributeValueDto(jpaAttribute.getBooleanValue()));
-          } else {
-            throw new RuntimeException(
-                "Unexpected boolean array value for " + name + " in " + jpa.getId());
-          }
+          dto.add(name, jpaAttribute.getBooleanValue());
+          assert jpaAttribute.isScalar();
           break;
         default:
           throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
@@ -141,15 +136,6 @@ public class AttributesMapper {
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
               throws IOException {
             List<Double> elements = value.getValue();
-            elements.forEach(element -> {
-              jpa.addArrayItem(key, element);
-            });
-          }
-
-          @Override
-          public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
-              throws IOException {
-            List<Boolean> elements = value.getValue();
             elements.forEach(element -> {
               jpa.addArrayItem(key, element);
             });

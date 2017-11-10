@@ -1,6 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties. To change this
- * template file, choose Tools | Templates and open the template in the editor.
+/* 
+ * Copyright 2017 SoftAvail Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.softavail.commsrouter.eval;
@@ -8,7 +19,6 @@ package com.softavail.commsrouter.eval;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -35,7 +45,7 @@ import java.util.Set;
 
 /**
  *
- * @author ergyunsyuleyman
+ * @author Ergyun Syuleyman
  */
 public class CommsRouterEvaluator {
 
@@ -109,7 +119,8 @@ public class CommsRouterEvaluator {
    * @return true - if match success
    * @throws CommsRouterException .
    */
-  public Boolean evaluateJpa(AttributeGroup attributesGroup) throws CommsRouterException {
+  public Boolean evaluateJpa(AttributeGroup attributesGroup)
+      throws CommsRouterException, RuntimeException {
     if (evaluator == null) {
       throw new EvaluatorException("Predicate evaluator is not initialized with expression value. "
           + "Please call 'initEvaluator(String predicate)' first.");
@@ -168,13 +179,6 @@ public class CommsRouterEvaluator {
             evaluator.putVariable(key, String.format("'%s'",
                 value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
           }
-
-          @Override
-          public void handleArrayOfBooleansValue(ArrayOfBooleansAttributeValueDto value)
-              throws IOException {
-            evaluator.putVariable(key, String.format("'%s'",
-                value.getValue().toString().replace(',', EvaluatorHelpers.ARRAY_ITEMS_DELIMITER)));
-          }
         });
 
       } catch (IOException ex) {
@@ -184,7 +188,8 @@ public class CommsRouterEvaluator {
     });
   }
 
-  private void setEvaluatorJpaAttributeVariables(AttributeGroup attributesGroup) {
+  private void setEvaluatorJpaAttributeVariables(AttributeGroup attributesGroup)
+      throws RuntimeException {
     evaluator.clearVariables();
     if (attributesGroup == null) {
       LOGGER.warn("Missing attributes for matching to predicate");
@@ -222,7 +227,8 @@ public class CommsRouterEvaluator {
                 jpaAttribute.getBooleanValue() ? EvaluationConstants.BOOLEAN_STRING_TRUE
                     : EvaluationConstants.BOOLEAN_STRING_FALSE);
           } else {
-            attributesMap.put(name, jpaAttribute.getBooleanValue());
+            throw new RuntimeException(
+                "Evaluator: Unexpected array of booleans for attribute" + name);
           }
           break;
         default:

@@ -5,7 +5,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -23,7 +22,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author ergyunsyuleyman
+ * @author Ergyun Syuleyman
  */
 public class CommsRouterEvaluatorTest {
 
@@ -75,11 +74,6 @@ public class CommsRouterEvaluatorTest {
     prices.add(30D);
     prices.add(50D);
     requirements.put("prices", prices);
-    ArrayOfBooleansAttributeValueDto allowedBools = new ArrayOfBooleansAttributeValueDto();
-    allowedBools.add(true);
-    allowedBools.add(false);
-    requirements.put("allowedBools", allowedBools);
-    
 
     requirementsJpa.add("language", "en");
     requirementsJpa.add("nickname", "The Stone");
@@ -95,9 +89,6 @@ public class CommsRouterEvaluatorTest {
     requirementsJpa.addArrayItem("prices", 20D);
     requirementsJpa.addArrayItem("prices", 30D);
     requirementsJpa.addArrayItem("prices", 50D);
-
-    requirementsJpa.addArrayItem("allowedBools", true);
-    requirementsJpa.addArrayItem("allowedBools", false);
   }
 
   @After
@@ -112,8 +103,7 @@ public class CommsRouterEvaluatorTest {
   public void testEvaluate() throws Exception {
     System.out.println("evaluate");
     CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    Boolean result = true;
+
     // validation should be failed cases
     try {
       instance.isValidExpression(null);
@@ -164,8 +154,8 @@ public class CommsRouterEvaluatorTest {
     }
 
     // check expressions by attributte
-    expResult = true;
-    result = instance.initEvaluator(predicateOK1).evaluate(requirements);
+    Boolean expResult = true;
+    Boolean result = instance.initEvaluator(predicateOK1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
     result = instance.initEvaluator(predicateOK2).evaluate(requirements);
@@ -289,6 +279,16 @@ public class CommsRouterEvaluatorTest {
     expResult = false;
     result = instance.initEvaluator(predicateFailed2).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
+
+    // validation should be failed cases
+    try {
+      requirementsJpa.addArrayItem("allowedBools", true);
+      requirementsJpa.addArrayItem("allowedBools", false);
+      instance.initEvaluator(predicateOK1).evaluateJpa(requirementsJpa);
+      assertTrue(false);
+    } catch (EvaluatorException | RuntimeException ex) {
+    }
+
   }
 
 }
