@@ -87,14 +87,16 @@ public class Agent extends Resource {
         .then().statusCode(204);
   }
 
-  public AgentDto get() {
-    String id = state().get(CommsRouterResource.AGENT);
+  public AgentDto get(String id) {
     return given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("queueId", id)
         .when().get("/routers/{routerId}/agents/{queueId}")
         .then().statusCode(200).body("id", equalTo(id))
         .extract().as(AgentDto.class);
+  }
+  public AgentDto get() {
+    return get(state().get(CommsRouterResource.AGENT));
   }
 
   public void update(UpdateAgentArg args) {
