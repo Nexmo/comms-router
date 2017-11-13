@@ -1,4 +1,4 @@
-<!--   
+<!--
   Copyright 2017 SoftAvail, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,24 +11,23 @@
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
-  limitations under the License.   
+  limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <artifactId>comms-router-master</artifactId>
     <groupId>com.softavail.comms-router</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.9.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>comms-router-core</artifactId>
   <packaging>jar</packaging>
 
   <name>Comms Router Core</name>
+
   <licenses>
     <license>
       <name>Apache License 2.0</name>
@@ -36,11 +35,15 @@
     </license>
   </licenses>
 
+  <properties>
+    <netbeans.hint.license>apache20</netbeans.hint.license>
+  </properties>
+
   <dependencies>
     <dependency>
-      <groupId>com.softavail.comms-router</groupId>
-      <artifactId>common</artifactId>
+      <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
+      <artifactId>common</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -89,7 +92,4 @@
       <artifactId>commons-dbcp2</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <netbeans.hint.license>apache20</netbeans.hint.license>
-  </properties>
 </project>

@@ -1,33 +1,61 @@
+/*
+ * Copyright 2017 SoftAvail, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.softavail.api.test;
 
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
-import org.junit.jupiter.api.Test;
-import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
-import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
+import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
-import java.util.HashMap;
-import java.net.URL;
-import java.net.MalformedURLException;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterDto;
-import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.PlanDto;
+import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
+import com.softavail.commsrouter.api.dto.model.RouterDto;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
 
 /**
  * Unit test for simple App.
  */
 public class AppTest {
 
+  @BeforeAll
+  public static void beforeAll() throws Exception {
+    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
+  }
+
   @Test
+  @SuppressWarnings("unchecked")
   public void crudRouter() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
@@ -42,6 +70,7 @@ public class AppTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void crdQueue() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
@@ -59,6 +88,7 @@ public class AppTest {
   }
 
   //@Test // fail when rules is null
+  @SuppressWarnings("unchecked")
   public void crdPlan() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
@@ -81,6 +111,7 @@ public class AppTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void crdAgent() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
@@ -98,6 +129,7 @@ public class AppTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void crdTask() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
