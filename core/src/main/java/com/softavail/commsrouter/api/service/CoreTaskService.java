@@ -265,9 +265,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       task.setPriority(matchedRoute.getPriority());
       task.setQueuedTimeout(matchedRoute.getTimeout());
       
-      if (matchedRoute.getTimeout() > 0) {
+      if (task.getQueuedTimeout() > 0) {
         task.setExpirationDate(new Date(
-            System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(matchedRoute.getTimeout())));
+            System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(task.getQueuedTimeout())));
       }
       
       task.setCurrentRoute(matchedRoute);
