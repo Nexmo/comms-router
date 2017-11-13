@@ -22,19 +22,21 @@
   <parent>
     <artifactId>comms-router-master</artifactId>
     <groupId>com.softavail.comms-router</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>db-migrations</artifactId>
   <packaging>pom</packaging>
 
   <name>Comms Router DB Migrations</name>
+
   <licenses>
     <license>
       <name>Apache License 2.0</name>
       <url>http://opensource.org/licenses/Apache-2.0</url>
     </license>
   </licenses>
+
   <properties>
     <netbeans.hint.license>apache20</netbeans.hint.license>
   </properties>
@@ -69,5 +71,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

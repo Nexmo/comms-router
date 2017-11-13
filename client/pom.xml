@@ -22,19 +22,24 @@
   <parent>
     <groupId>com.softavail.comms-router</groupId>
     <artifactId>comms-router-master</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>client</artifactId>
   <packaging>jar</packaging>
 
   <name>Comms Router Client</name>
+
   <licenses>
     <license>
       <name>Apache License 2.0</name>
       <url>http://opensource.org/licenses/Apache-2.0</url>
     </license>
   </licenses>
+
+  <properties>
+    <netbeans.hint.license>apache20</netbeans.hint.license>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -71,7 +76,4 @@
       <artifactId>wiremock</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <netbeans.hint.license>apache20</netbeans.hint.license>
-  </properties>
 </project>
