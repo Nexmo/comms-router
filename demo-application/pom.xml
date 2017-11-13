@@ -29,9 +29,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.softavail.comms-router</groupId>
+      <groupId>${project.groupId}</groupId>
+      <version>${project.version}</version>
       <artifactId>client</artifactId>
-      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

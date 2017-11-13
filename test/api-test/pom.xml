@@ -61,9 +61,9 @@
       <version>0.9.12</version>
     </dependency>
     <dependency>
-      <groupId>com.softavail.comms-router</groupId>
+      <groupId>${project.groupId}</groupId>
+      <version>${project.version}</version>
       <artifactId>client</artifactId>
-      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
