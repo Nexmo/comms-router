@@ -45,7 +45,7 @@
     <dependency>
       <groupId>com.softavail.comms-router</groupId>
       <artifactId>comms-router-core</artifactId>
-      <version>${project.version}</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

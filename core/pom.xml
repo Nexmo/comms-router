@@ -45,7 +45,7 @@
     <dependency>
       <groupId>com.softavail.comms-router</groupId>
       <artifactId>common</artifactId>
-      <version>${project.version}</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
