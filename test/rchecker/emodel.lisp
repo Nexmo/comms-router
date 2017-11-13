@@ -10,25 +10,6 @@
               (format t "~%~A executed - ~S" name res)
               (list res new-model)))
         name))
-;; bind for model
-(defun mbind(mfn p-mfn)
-  #'(lambda(model)
-      (funcall (funcall p-mfn (funcall mfn model)) model)))
-
-(defmacro mlet(vars &body body)
-  `(mbind ,(second (first vars))
-          #'(lambda(,(first (first vars)))
-               #'(lambda(model)
-                   ,(if (rest vars)
-                        `(mlet ,(rest vars) ,@body)
-                        `(progn ,@body))))))
-
-(defun mselected(index list)
-  #'(lambda(m)
-      (let* ((selected (jsown:val model index))
-             (plans (jsown:val model list))
-             (plan (nth selected plans)))
-        plan)))
 
 (defun select-actions(index list)
   (list (action (format nil "select last of ~A" list)
@@ -165,12 +146,11 @@
                   (fnot (for
                          (fhas-kv "state" "ready" #'equal)
                          (fhas-kv "state" "busy" #'equal)))))
-           #'(lambda(model)
-               (let* ((selected (jsown:val model "selected-agent"))
-                      (agents (jsown:val model "agents"))
-                      (agent (nth selected agents)))
-                 (eagent-set :router-id (jsown:val model "router")
-                             :id (jsown:val agent "id") :state "ready")))
+           (mlet((agent-id (js-val "id") (js-selected "selected-agent" "agents"))
+                 (router-id (js-val "router")))
+             (eagent-set :id agent-id :state "ready"
+                         :router-id router-id))
+
            #'(lambda(res model)
                (let* ((selected (jsown:val model "selected-agent"))
                       (agents (jsown:val model "agents"))
@@ -200,13 +180,10 @@
               (fand (fhas-key "tasks")
                     #'(lambda(model) (not(some (fhas-kv "state" "waiting" #'equal)
                                                (jsown:val model"tasks"))))))))
-           #'(lambda(model)
-               (let* ((selected (jsown:val model "selected-agent"))
-                      (agents (jsown:val model "agents"))
-                      (agent (nth selected agents)))
-                 (eagent-set :id (jsown:val agent "id")
-                             :state "ready"
-                             :router-id (jsown:val model "router"))))
+           (mlet ((agent-id (js-val "id") (js-selected "selected-agent" "agents"))
+                  (router-id (js-val "router")))
+             (eagent-set :id agent-id :state "ready"
+                         :router-id router-id))
            #'(lambda(res model)
                (let* ((selected (jsown:val model "selected-agent"))
                       (agents (jsown:val model "agents"))
@@ -219,14 +196,14 @@
 
    (action "check agent state"
            (fhas-key "selected-agent")
-           #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
-                                  (agents (jsown:val model "agents"))
-                                  (agent (nth selected agents)))
-                             (twait
-                              (eagent :id (jsown:val agent "id")
-                                      :checks (has-kv "state" (jsown:val agent "state"))
-                                      :router-id (jsown:val model "router"))
-                              :timeout 10)))
+           (mlet((agent-id (js-val "id") (js-selected "selected-agent" "agents"))
+                 (agent-state (js-val "state") (js-selected "selected-agent" "agents"))
+                 (router-id (js-val "router")))
+             (twait
+              (eagent :id agent-id
+                      :checks (has-kv "state" agent-state)
+                      :router-id router-id)
+              :timeout 10))
            #'(lambda(res model)model))
 
    (action "delete agent"
@@ -234,11 +211,10 @@
             (fhas-key "selected-agent")
             (fnth "selected-agent" "agents"
                   (fnot (fhas-kv "state" "busy" #'equal))))
-           #'(lambda(model)(let* ((selected (jsown:val model "selected-agent"))
-                                  (agents (jsown:val model "agents"))
-                                  (agent (nth selected agents)))
-                             (twait (eagent-del :id (jsown:val agent "id") :router-id (jsown:val model "router"))
-                                    :timeout 10)))
+           (mlet((agent-id (js-val "id") (js-selected "selected-agent" "agents"))
+                 (router-id (js-val "router")))
+             (twait (eagent-del :id agent-id :router-id router-id)
+                    :timeout 10))
            #'(lambda(res model)(let* ((selected (jsown:val model "selected-agent"))
                                       (agents (jsown:val model "agents"))
                                       (agent (nth selected agents)))
@@ -258,20 +234,22 @@
       (fnot (fhas-key "agents"))
       (fand (fhas-key "agents") #'(lambda(model) (every #'(lambda(task)(not (equal (jsown:val task "state") "ready")))
                                                         (jsown:val model "agents"))))))
-    #'(lambda(model)(let* ((waiting-tasks (if (jsown:keyp model "tasks")
-                                              (length (remove-if-not
-                                                       (fhas-kv "state" "waiting" #'equal)
-                                                       (jsown:val model "tasks")))
-                                              0)))
-                      (tand (twait (equeue-size :router-id (jsown:val model "router")
-                                                :id (jsown:val model "queue")
-                                                :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
-                                                :checks (check-and (has-json) (has-key "size")
-                                                                   (has-kv "size" waiting-tasks))))
-                            (etask-new :checks (check-and (has-json) (has-key "id")
-                                                          (has-kv "queueTasks" waiting-tasks))
-                                       :router-id (jsown:val model "router")
-                                       :queue-id (jsown:val model "queue")))))
+    (mlet ((router-id (js-val "router"))
+           (queue-id (js-val "queue")))
+      (let((waiting-tasks (if (jsown:keyp model "tasks")
+                              (length (remove-if-not
+                                       (fhas-kv "state" "waiting" #'equal)
+                                       (jsown:val model "tasks")))
+                              0)))
+        (tand (twait (equeue-size :id queue-id
+                                  :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                                  :checks (check-and (has-json) (has-key "size")
+                                                     (has-kv "size" waiting-tasks))
+                                  :router-id router-id))
+              (etask-new :checks (check-and (has-json) (has-key "id")
+                                            (has-kv "queueTasks" waiting-tasks))
+                         :router-id router-id
+                         :queue-id queue-id)) ) )
     #'(lambda(res model)(let* ((waiting-tasks (if (jsown:keyp model "tasks")
                                               (length (remove-if-not
                                                        (fhas-kv "state" "waiting" #'equal)
@@ -292,28 +270,28 @@
       (fand (fhas-kv "tasks" 5 #'(lambda(js-val val)(< (length js-val) val)))))
      (fand (fhas-key "agents") #'(lambda(model) (some (fhas-kv "state" "ready" #'equal)
                                                       (jsown:val model "agents")))))
-    #'(lambda(model)
-        (let* ((waiting-tasks (if (jsown:keyp model "tasks")
-                                  (length (remove-if-not
-                                           (fhas-kv "state" "waiting"
-                                                    #'equal)
-                                           (jsown:val model "tasks")))
-                                  0))
-               (agents (jsown:val model "agents"))
-               (agent (find-if (fhas-kv "state" "ready" #'equal)
-                               (sort  (copy-tree agents) #'> :key #'(lambda(agent)(jsown:val agent "lastTimeAtBusyState"))) ))
-               (agent-pos (position-if (fhas-kv "id" (jsown:val agent "id") #'equal) agents)))
-          (tand
-           (twait (equeue-size
-                   :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
-                   :checks (check-and (has-json) (has-key "size")
-                                      (has-kv "size" waiting-tasks))
-                   :router-id (jsown:val model "router")
-                   :id (jsown:val model "queue")))
-           (etask-new :checks (check-and (has-json) (has-key "id")
-                                         (has-kv "queueTasks" waiting-tasks))
-                      :router-id (jsown:val model "router")
-                      :queue-id (jsown:val model "queue")))))
+    (mlet ((router-id (js-val "router"))
+           (queue-id (js-val "queue"))
+           (agents (js-val "agents")))
+      (let*((waiting-tasks (if (jsown:keyp model "tasks")
+                               (length (remove-if-not
+                                        (fhas-kv "state" "waiting"
+                                                 #'equal)
+                                        (jsown:val model "tasks")))
+                               0))
+            (agent (find-if (fhas-kv "state" "ready" #'equal)
+                            (sort  (copy-tree agents) #'> :key #'(lambda(agent)(jsown:val agent "lastTimeAtBusyState"))) ))
+            (agent-pos (position-if (fhas-kv "id" (jsown:val agent "id") #'equal) agents)))
+        (tand
+         (twait (equeue-size :id queue-id
+                             :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
+                             :checks (check-and (has-json) (has-key "size")
+                                                (has-kv "size" waiting-tasks))
+                             :router-id router-id ))
+         (etask-new :checks (check-and (has-json) (has-key "id")
+                                       (has-kv "queueTasks" waiting-tasks))
+                    :router-id router-id
+                    :queue-id queue-id)) ))
 
     #'(lambda(res model)
         (let* ((agents (jsown:val model "agents"))
@@ -333,13 +311,12 @@
    (action
     "check task state"
     (fhas-key "selected-task")
-    #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
-                           (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks)))
-                      (twait (etask :id (jsown:val task "id")
-                                    :state (jsown:val task "state")
-                                    :router-id (jsown:val model "router"))
-                             :timeout 10)))
+    (mlet ((router-id (js-val "router"))
+           (task (js-selected "selected-task" "tasks")))
+      (twait (etask :id (jsown:val task "id")
+                    :state (jsown:val task "state")
+                    :router-id router-id)
+             :timeout 10))
     #'(lambda(res model)model))
 
    (action
@@ -349,12 +326,10 @@
      (fnth "selected-task" "tasks" (fhas-kv "state" "assigned" #'equal))
      #'(lambda(model) (every (fnot (fhas-kv "state" "waiting" #'equal))
                              (jsown:val model"tasks"))))
-    #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
-                           (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks)))
-                      (etask-set :id (jsown:val task "id") :state "completed"
-                                 :router-id (jsown:val model "router"))))
-
+    (mlet ((task-id (js-val "id") (js-selected "selected-task" "tasks"))
+           (router-id (js-val "router")))
+      (etask-set :id task-id :state "completed"
+                 :router-id router-id) )
     #'(lambda(res model)(let* ((selected (jsown:val model "selected-task"))
                            (tasks (jsown:val model "tasks"))
                            (task (nth selected tasks))
@@ -380,11 +355,11 @@
      (fnth "selected-task" "tasks" (fhas-kv "state" "assigned" #'equal))
      #'(lambda(model) (some (fhas-kv "state" "waiting" #'equal)
                             (jsown:val model"tasks"))))
-    #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
-                           (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks)))
-                      (etask-set :id (jsown:val task "id") :state "completed"
-                                 :router-id (jsown:val model "router"))))
+
+    (mlet ((task-id (js-val "id") (js-selected "selected-task" "tasks"))
+           (router-id (js-val "router")))
+      (etask-set :id task-id :state "completed"
+                 :router-id router-id) )
     #'(lambda(res model)(let* ((selected (jsown:val model "selected-task"))
                                (tasks (jsown:val model "tasks"))
                                (task (nth selected tasks))
@@ -413,11 +388,11 @@
      (fhas-key "selected-task")
      (fnth "selected-task" "tasks" (for(fhas-kv "state" "completed" #'equal)
                                        (fhas-kv "state" "waiting" #'equal))) )
-    #'(lambda(model)(let* ((selected (jsown:val model "selected-task"))
-                           (tasks (jsown:val model "tasks"))
-                           (task (nth selected tasks)))
-                      (etask-del :id (jsown:val task "id")
-                                 :router-id (jsown:val model "router"))))
+    (mlet ((task-id (js-val "id") (js-selected "selected-task" "tasks"))
+           (router-id (js-val "router")))
+      (etask-del :id task-id
+                 :router-id router-id) )
+
     #'(lambda(res model) (let* ((selected (jsown:val model "selected-task"))
                                 (tasks (jsown:val model "tasks"))
                                 (task (nth selected tasks)))
