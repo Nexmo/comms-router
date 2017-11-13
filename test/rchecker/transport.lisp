@@ -18,17 +18,18 @@
 
 (defun drakma-client()
   #'(lambda(url method headers body)
-      (flexi-streams:octets-to-string
-       (drakma:http-request
-        url :method method
-        ;;:accept "application/json"
-        :content-type (first(rest(assoc "Content-type" headers :test #'equal)))
-        :additional-headers (mapcar #'(lambda(h)(cons (first h) (second h)))
-                                    (remove-if #'(lambda(h)(member (first h)
-                                                                   '("Content-type")
-                                                                   :test #'equal))
-                                               headers) )
-        :content body))))
+      (let ((res (drakma:http-request
+                  url :method method
+                  ;;:accept "application/json"
+                  :content-type (first(rest(assoc "Content-type" headers :test #'equal)))
+                  :additional-headers (mapcar #'(lambda(h)(cons (first h) (second h)))
+                                              (remove-if #'(lambda(h)(member (first h)
+                                                                             '("Content-type")
+                                                                             :test #'equal))
+                                                         headers) )
+                  :content body)))
+        (if (stringp res) res
+            (babel:octets-to-string res ) )) ))
 
 (defun content-json(fn)
   #'(lambda (url method headers body)

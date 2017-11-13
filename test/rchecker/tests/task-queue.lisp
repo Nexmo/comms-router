@@ -352,7 +352,21 @@
                        (loop :repeat tasks :collect 1) ))))
         (mapcar #'print-log result)) ) )
 
+(defun test-plan-and-task()
+  (tlet ((default-queue-id (js-val "id")
+                   (equeue-new))
+         (plan-id (js-val "id")
+                  (eplan-new
+                   :rules (list (jsown:new-js ("tag" :null)
+                                              ("predicate" "HAS([10],#{age})")
+                                              ("routes" (list  ))))
+                   :default-route (jsown:new-js
+                                    ("queueId" default-queue-id)))))
+    (etask-new :queue-id :null :plan-id plan-id)))
+
 (defun test-all(&key (tests (list (test-task-ordering)
+                                  (test-task-ordering1)
+                                  (test-task-ordering2)
                                   (test-set-unavailable)
                                   (test-delete-agent)
                                   (test-set-context)

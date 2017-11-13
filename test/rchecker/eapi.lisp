@@ -106,7 +106,7 @@
                    (queue-id (get-event :queue))
                    (plan-id :null)
                    (checks (check-and (has-json) (has-key "id") (publish-id :task))))
-  (tstep (format nil "Create new task to queue ~A and context ~A." queue-id (jsown:to-json context))
+  (tstep (format nil "Create new task to queue ~A, plan ~A and context ~A." queue-id plan-id (jsown:to-json context))
          (tapply (http-post (list "/routers" router-id "tasks")
                             (jsown:new-js
                               ("callbackUrl" callback-url)
@@ -199,16 +199,17 @@
                                                                  ("timeout" timeout)))
                                                          next-route)))))
                    (description "description")
+                   (default-route (jsown:new-js
+                                    ("queueId" default-queue-id)
+                                    ("priority" 0)
+                                    ("timeout" 360000)))
                    (checks (check-and (has-json) (has-key "id"))))
   (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
          (tapply (http-post (list "/routers" router-id "plans")
                             (jsown:new-js
                               ("rules" rules)
                               ("description" description)
-                              ("defaultRoute" (jsown:new-js
-                                                ("queueId" default-queue-id)
-                                                ("priority" priority)
-                                                ("timeout" timeout))))))
+                              ("defaultRoute" default-route))))
          checks))
 
 (defun eplan-del(&key (router-id (get-event :router))

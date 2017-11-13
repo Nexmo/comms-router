@@ -187,7 +187,7 @@
                                                                 ("timeout" timeout)))
                                                         next-route)))))
                   (default-route (jsown:new-js
-                                   ("queueId" queue-id)
+                                   ("queueId" default-queue-id)
                                    ("priority" 0)
                                    ("timeout" 360000)))
                   (description "description"))
