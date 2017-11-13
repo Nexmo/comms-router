@@ -43,6 +43,7 @@
 
   <scm>
     <connection>scm:git:git://github.com/Nexmo/comms-router.git</connection>
+    <developerConnection>scm:git:git://github.com/Nexmo/comms-router.git</developerConnection>
   </scm>
 
   <modules>
