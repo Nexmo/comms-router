@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,6 +79,11 @@ public class CreateTaskArg {
 
     public Builder callback(URL url) {
       arg.setCallbackUrl(url);
+      return this;
+    }
+
+    public Builder queue(String queueId) {
+      arg.setQueueId(queueId);
       return this;
     }
 

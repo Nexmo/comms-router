@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,4 +33,21 @@ public class UpdateTaskArg {
     this.state = state;
   }
 
+  public static class Builder {
+    private UpdateTaskArg arg = new UpdateTaskArg();
+
+    public Builder(){
+        ;
+    }
+
+    public Builder state(TaskState state) {
+      arg.setState(state);
+      return this;
+    }
+
+    public UpdateTaskArg build() {
+      return arg;
+    }
+
+  }
 }

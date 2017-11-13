@@ -28,12 +28,8 @@ import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
-import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouteDto;
+import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import org.junit.jupiter.api.Assumptions;
@@ -43,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import com.softavail.commsrouter.api.dto.model.TaskState;
 
 /**
  * Unit test for simple App.
@@ -144,11 +141,13 @@ public class AppTest {
     TaskDto resource = t.get();
     assertThat(resource.getRequirements(), nullValue());
     assertThat(t.list(), hasItems(hasProperty("id", is(id.getId()))));
-    // t.replace(new CreateTaskArg());
-    // t.update(new CreateTaskArg());
+    t.replace(new CreateTaskArg.Builder()
+              .callback(new URL ("http://localhost:8080"))
+              .queue(queueId.getId())
+              .build());
+    t.update(new UpdateTaskArg.Builder().state(TaskState.completed).build());
     t.delete();
     q.delete();
-    t.delete();
     r.delete();
   }
 
