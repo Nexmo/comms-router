@@ -43,7 +43,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
-      <artifactId>common</artifactId>
+      <artifactId>comms-router-common</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

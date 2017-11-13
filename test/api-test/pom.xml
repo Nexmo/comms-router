@@ -63,7 +63,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
-      <artifactId>client</artifactId>
+      <artifactId>comms-router-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

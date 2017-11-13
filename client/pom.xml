@@ -23,7 +23,7 @@
     <version>0.9.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>client</artifactId>
+  <artifactId>comms-router-client</artifactId>
   <packaging>jar</packaging>
 
   <name>Comms Router Client</name>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
-      <artifactId>core-interface</artifactId>
+      <artifactId>comms-router-core-interface</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>

@@ -23,7 +23,7 @@
     <version>0.9.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>common</artifactId>
+  <artifactId>comms-router-common</artifactId>
   <packaging>jar</packaging>
 
   <name>Comms Router Common</name>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
-      <artifactId>core-interface</artifactId>
+      <artifactId>comms-router-core-interface</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
