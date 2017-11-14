@@ -36,7 +36,7 @@ public class UpdateTaskArg {
   public static class Builder {
     private UpdateTaskArg arg = new UpdateTaskArg();
 
-    public Builder(){
+    public Builder() {
         ;
     }
 

@@ -40,6 +40,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import com.softavail.commsrouter.api.dto.model.TaskState;
+import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.QueueDto;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
+import com.softavail.commsrouter.api.dto.model.PlanDto;
+import com.softavail.commsrouter.api.dto.model.AgentDto;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 
 /**
  * Unit test for simple App.
