@@ -40,7 +40,7 @@ import java.util.HashMap;
 /**
  * Unit test for simple App.
  */
-public class RouterTest {
+public class BaseRouterTest {
 
   @BeforeAll
   public static void beforeAll() throws Exception {
