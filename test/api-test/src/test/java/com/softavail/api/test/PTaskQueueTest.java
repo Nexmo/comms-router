@@ -58,6 +58,12 @@ public class PTaskQueueTest {
   private String defaultQueueId;
   private String backupQueueId;
   private String mainQueueId;
+
+  @BeforeAll
+  public static void beforeAll() throws Exception {
+    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
+  }
+
   @BeforeEach
   public void createRouterAndQueue() {
     CreateRouterArg routerArg = new CreateRouterArg();
