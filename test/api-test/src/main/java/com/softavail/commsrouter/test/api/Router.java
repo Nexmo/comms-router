@@ -15,7 +15,7 @@
  *
  */
 
-package com.softavail.api.test;
+package com.softavail.commsrouter.test.api;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;

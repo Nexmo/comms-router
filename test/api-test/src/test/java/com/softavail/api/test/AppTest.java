@@ -17,6 +17,12 @@
 
 package com.softavail.api.test;
 
+import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.Plan;
+import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Agent;
+import com.softavail.commsrouter.test.api.Task;
+import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
