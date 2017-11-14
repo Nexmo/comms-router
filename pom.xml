@@ -19,7 +19,7 @@
 
   <groupId>com.softavail.comms-router</groupId>
   <artifactId>comms-router-master</artifactId>
-  <version>0.9.3-SNAPSHOT</version>
+  <version>0.9.3</version>
   <packaging>pom</packaging>
 
   <name>Comms Router</name>
@@ -42,7 +42,7 @@
   <scm>
     <connection>scm:git:https://github.com/Nexmo/comms-router.git</connection>
     <developerConnection>scm:git:https://github.com/Nexmo/comms-router.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>comms-router-0.9.3</tag>
   </scm>
 
   <modules>
