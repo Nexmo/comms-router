@@ -69,13 +69,17 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   }
 
   @GET
+  @Path("byTag")
   @ApiOperation(value = "Get resource by Tag", notes = "Returns resource by the given Tag")
-  public TaskDto getByTag(@QueryParam("tag") String tag)
+  public Response getByTag(@QueryParam("tag") String tag)
       throws CommsRouterException {
 
     LOGGER.debug("Getting by Tag {}", tag);
 
-    return taskService.getByTag(routerId, tag);
+    TaskDto taskDto = taskService.getByTag(routerId, tag);
+
+    return Response.ok(taskDto, MediaType.APPLICATION_JSON_TYPE)
+        .build();
   }
 
   @POST
