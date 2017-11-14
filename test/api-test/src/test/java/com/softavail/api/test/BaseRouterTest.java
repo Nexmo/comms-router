@@ -111,7 +111,6 @@ public class BaseRouterTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void replaceRouterRouterResourcesAreThere() {
     // replace existing router and check that Queue is here after the replacement
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
