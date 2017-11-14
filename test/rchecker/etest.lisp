@@ -86,6 +86,40 @@
                            `(tlet ,(rest vars) ,@body)
                            `(progn ,@body) ) ) ) ))
 
+;; bind for model
+(defun mbind(mfn p-mfn)
+  #'(lambda(model)
+      (funcall (funcall p-mfn (funcall mfn model)) model)))
+
+(defmacro mlet(vars &body body)
+  `(mbind ,(second (first vars))
+          #'(lambda(,(first (first vars)))
+              #'(lambda(model)
+                  ,(if (rest vars)
+                       `(mlet ,(rest vars) ,@body)
+                       `(progn ,@body))))))
+
+(defmacro mlet(vars &body body)
+  `(mbind ,(first (last (first vars)) )
+          ,(if (butlast(subseq (first vars) 1))
+              `(compose
+                #'(lambda(,(first (first vars)))
+                    ,(if (rest vars)
+                         `(mlet ,(rest vars) ,@body)
+                         `(progn ,@body)))
+                ,@(butlast(subseq (first vars) 1)))
+              `#'(lambda(,(first (first vars)))
+                   ,(if (rest vars)
+                        `(mlet ,(rest vars) ,@body)
+                        `#'(lambda(model)
+                             ,@body))
+                  )
+              )
+          ))
+
+
+
+;;
 (defun print-log(result &optional indent)
   (destructuring-bind (result check log)result
     (format t "~{~%---------------~{~%Description:~A~%Result:~:[FAIL~;pass~]~%Request:~A~%Response:~A~%~{Checks:~A~%~}~}~}" log)
@@ -260,4 +294,4 @@
         (let((reduced (remove-if #'null all)))
           (if reduced
               (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
-              (list* candidate (reduce-test (rest candidates))) ))))))
+              (list* candidate (reduce-test (rest candidates)))))))))

@@ -15,7 +15,7 @@
  *
  */
 
-package com.softavail.api.test;
+package com.softavail.commsrouter.test.api;
 
 public enum CommsRouterResource {
   ROUTER,

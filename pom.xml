@@ -19,7 +19,7 @@
 
   <groupId>com.softavail.comms-router</groupId>
   <artifactId>comms-router-master</artifactId>
-  <version>0.9.2-SNAPSHOT</version>
+  <version>0.9.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Comms Router</name>
@@ -444,5 +444,13 @@
       <artifactId>log4j-api</artifactId>
     </dependency>
   </dependencies>
+
+  <distributionManagement>
+    <repository>
+        <id>internal.repo</id>
+        <name>Temporary Staging Repository</name>
+        <url>file://${project.build.directory}/mvn-repo</url>
+    </repository>
+  </distributionManagement>
 
 </project>

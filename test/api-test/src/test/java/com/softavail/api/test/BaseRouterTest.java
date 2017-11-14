@@ -17,6 +17,9 @@
 
 package com.softavail.api.test;
 
+import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
@@ -37,7 +40,7 @@ import java.util.HashMap;
 /**
  * Unit test for simple App.
  */
-public class RouterTest {
+public class BaseRouterTest {
 
   @BeforeAll
   public static void beforeAll() throws Exception {
@@ -108,7 +111,6 @@ public class RouterTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void replaceRouterRouterResourcesAreThere() {
     // replace existing router and check that Queue is here after the replacement
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();

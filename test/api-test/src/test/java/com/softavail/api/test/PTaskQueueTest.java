@@ -17,6 +17,11 @@
 
 package com.softavail.api.test;
 
+import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.Plan;
+import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Task;
+import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -57,6 +62,7 @@ public class PTaskQueueTest {
   private Task t = new Task(state);
   private String defaultQueueId;
   private String backupQueueId;
+  private String mainQueueId;
 
   @BeforeAll
   public static void beforeAll() throws Exception {
@@ -85,12 +91,13 @@ public class PTaskQueueTest {
         .description("backup queue description").build())
         .getId();
 
-    id = q.create(new CreateQueueArg.Builder()
-        .predicate(predicate)
-        .description("queue description").build());
+    mainQueueId = q.create(new CreateQueueArg.Builder()
+                  .predicate(predicate)
+                  .description("queue description").build())
+        .getId();
   }
 
-  @AfterEach
+    //@AfterEach
   public void cleanup() {
     t.delete();
     p.delete();
@@ -98,28 +105,20 @@ public class PTaskQueueTest {
     r.delete();
   }
 
-  private void createPlan(String predicate) {
-    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
-        .rules(Collections.singletonList(new RuleDto.Builder(predicate)
-            .routes(Arrays.asList(
-                new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).timeout(1L).build(),
-                new RouteDto.Builder(backupQueueId).build()))
-            .build()))
-        .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
-        .build());
-  }
-
-  private void createTask(AttributeGroupDto requirements) throws MalformedURLException {
-    CreateTaskArg arg = new CreateTaskArg();
-    arg.setCallbackUrl(new URL("http://example.com"));
-    arg.setRequirements(requirements);
-    t.createWithPlan(arg);
-  }
-
   private void addPlanTask(AttributeGroupDto requirements, String predicate)
       throws MalformedURLException {
-    createPlan(predicate);
-    createTask(requirements);
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+               .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                .routes(Arrays.asList(
+                                                            new RouteDto.Builder(mainQueueId).timeout(1L).build(),
+                                                            new RouteDto.Builder(backupQueueId).build()))
+                                                .build()))
+               .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+               .build());
+    t.createWithPlan(new CreateTaskArg.Builder()
+                     .callback(new URL("http://localhost:8080"))
+                     .requirements(requirements)
+                     .build() );
   }
 
   @Test

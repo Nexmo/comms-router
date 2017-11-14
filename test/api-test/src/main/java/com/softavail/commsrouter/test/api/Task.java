@@ -15,7 +15,7 @@
  *
  */
 
-package com.softavail.api.test;
+package com.softavail.commsrouter.test.api;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -56,13 +56,13 @@ public class Task extends Resource {
   }
 
   public CreatedTaskDto replace(CreateTaskArg args) {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String id = state().get(CommsRouterResource.TASK);
     CreatedTaskDto oid = given()
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("taskId", id)
         .body(args)
-        .when().put("/routers/{routerId}/tasks/{queueId}")
+        .when().put("/routers/{routerId}/tasks/{taskId}")
         .then().statusCode(201)
         .extract()
         .as(CreatedTaskDto.class);
@@ -115,8 +115,8 @@ public class Task extends Resource {
     String id = state().get(CommsRouterResource.TASK);
     given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().delete("/routers/{routerId}/tasks/{queueId}")
+        .pathParam("taskId", id)
+        .when().delete("/routers/{routerId}/tasks/{taskId}")
         .then().statusCode(204);
   }
 

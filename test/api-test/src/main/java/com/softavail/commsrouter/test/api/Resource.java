@@ -15,7 +15,7 @@
  *
  */
 
-package com.softavail.api.test;
+package com.softavail.commsrouter.test.api;
 
 import io.restassured.RestAssured;
 

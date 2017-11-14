@@ -68,6 +68,10 @@
         (if check (funcall rcheck-fn descr)
             (list nil descr)))))
 
+(defun js-selected(key list)
+  "return nth element from json list where key and list are key in json object"
+  #'(lambda(json) (nth (jsown:val json key) (jsown:val json list))))
+
 (defun check-and(check-fn &rest checks)
   (if checks
       #'(lambda(json)
