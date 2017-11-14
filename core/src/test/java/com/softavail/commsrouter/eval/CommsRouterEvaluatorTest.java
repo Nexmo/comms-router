@@ -9,7 +9,6 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfBooleansAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -32,7 +31,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author ergyunsyuleyman
+ * @author Ergyun Syuleyman
  */
 public class CommsRouterEvaluatorTest {
   CreateTaskArg createTaskArg;
@@ -96,10 +95,7 @@ public class CommsRouterEvaluatorTest {
     prices.add(30D);
     prices.add(50D);
     requirements.put("prices", prices);
-    ArrayOfBooleansAttributeValueDto allowedBools = new ArrayOfBooleansAttributeValueDto();
-    allowedBools.add(true);
-    allowedBools.add(false);
-    requirements.put("allowedBools", allowedBools);
+
     createTaskArg.setRequirements(requirements);
     try {
       createTaskArg.setCallbackUrl(new URL("https://localhost:8084"));

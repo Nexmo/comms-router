@@ -2,8 +2,8 @@
 
 (defun tapply(request)
   #'(lambda()
-      (list (apply (funcall *endpoint* #'cmd-curl) (funcall request))
-            (apply (funcall *endpoint* #'transport) (funcall request)))))
+      (list (apply (funcall *endpoint* (cmd-curl)) (funcall request))
+            (apply (funcall *endpoint* (transport-drakma)) (funcall request)))))
 ;;; queue
 (defun equeue-new (&key (router-id (get-event :router))
                      (description "description")
@@ -136,7 +136,7 @@
 (defun etask-set(&key (router-id (get-event :router)) (id (get-event :task)) (state :null) )
   (tstep (format nil "Set task's state = ~A." state )
          (tapply (http-post (list "/routers" router-id "tasks" id)
-                            (jsown:new-js ("state" "completed") )))
+                            (jsown:new-js ("state" state) )))
          (is-equal "")))
 
 (defun etask-all(&key (router-id (get-event :router)))
@@ -181,4 +181,38 @@
                     (id (get-event :agent)))
   (tstep (format nil "Delete agent with id ~A." id)
          (tapply (http-del "/routers" router-id "agents" id))
+         (is-equal "")))
+;;;
+(defun eplan-new(&key (router-id (get-event :router))
+                   (queue-id (get-event :queue))
+                   (default-queue-id (get-event :queue))
+                   (predicate "1 ==1")
+                   (priority 0)
+                   (next-route nil)
+                   (timeout 3600)
+                   (rules (list (jsown:new-js ("tag" "test-rule")
+                                              ("predicate" predicate)
+                                              ("routes" (append
+                                                         (list (jsown:new-js
+                                                                 ("queueId" queue-id)
+                                                                 ("priority" priority)
+                                                                 ("timeout" timeout)))
+                                                         next-route)))))
+                   (description "description")
+                   (checks (check-and (has-json) (has-key "id"))))
+  (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
+         (tapply (http-post (list "/routers" router-id "plans")
+                            (jsown:new-js
+                              ("rules" rules)
+                              ("description" description)
+                              ("defaultRoute" (jsown:new-js
+                                                ("queueId" default-queue-id)
+                                                ("priority" priority)
+                                                ("timeout" timeout))))))
+         checks))
+
+(defun eplan-del(&key (router-id (get-event :router))
+                   (id (get-event :plan)))
+  (tstep (format nil "Delete plan with id ~A." id)
+         (tapply (http-del "/routers" router-id "plans" id))
          (is-equal "")))

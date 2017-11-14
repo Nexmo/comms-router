@@ -96,26 +96,6 @@
 (defun remove-char(pos string)
   (concatenate 'string (subseq string 0 pos) (subseq string (1+ pos))))
 
-(defun shrink-string (string fn)
-  (loop for x from 1 to (length string)
-     for small = (remove-char (1- x) string)
-     :if (funcall fn small) :collect small) )
-
-(defun shrink-some (string fn n)
-  (loop for x from 1 to n
-     for small = (remove-char (random n) string)
-     :if (funcall fn small) :collect small) )
-
-(defun find-smallest(candidates fn)
-  (when candidates
-    (let((smallest (shrink-string (first candidates) fn )))
-      (format t "~%~A->~A" (length (first candidates)) smallest)
-      (if smallest
-          (find-smallest (append smallest (rest candidates)) fn)
-          (if (rest candidates)
-              (find-smallest (rest candidates) fn)
-              (remove-if-not  fn candidates) ) )) ))
-
 (defun fand(check &rest checks)
   (if checks
       #'(lambda(js)
@@ -148,15 +128,42 @@
 (defun set-nth(n lst item)  (append (subseq lst 0 n) (list item) (subseq lst (1+ n) (length lst))))
 (defparameter *model* (jsown:new-js));; current model
 
+;;; external storage - in order to use id's instead of unique keys. This way
+;;; there will be not equal states that differ only by id value return from api under test
+(defparameter *mem* (make-hash-table :test #'equal))
+(defun ref-new(prefix &key (id 0) (value nil))
+  (unless value
+    (break))
+  (unless (gethash prefix *mem*)
+    (setf (gethash prefix *mem*) (make-hash-table :test #'equal)))
+  (if (not (gethash id (gethash prefix *mem*)))
+      (progn
+        (setf (gethash id (gethash prefix *mem*)) value)
+        id)
+      (ref-new prefix :id (1+ id) :value value)))
+(defun ref (prefix id)
+  (gethash id (gethash prefix *mem*)))
+
+(defun ref-id (prefix json)
+  (ref prefix (jsown:val json "id")) )
+
+(defun ref-set(prefix json value)
+  (setf (gethash (jsown:val json "id") (gethash prefix *mem*)) value)
+  (jsown:val json "id"))
+
+(defun ref-del (prefix id)
+  (remhash id (gethash prefix *mem*)))
+
+
 (defparameter *policy* (make-hash-table :test #'equal))
 (defparameter *update-policy* ())
 (defun policy-selector()
-  #'(lambda (available)
+  #'(lambda (available &key(prefer nil))
       (let* ((items (mapcar #'third available))
              (indexes (gethash (copy-tree items)
                               *policy*
                               (copy-tree items)))
-             (selected (alexandria:random-elt indexes)))
+             (selected (if prefer prefer (alexandria:random-elt indexes))))
         (setf (gethash items *policy*) indexes)
         (push #'(lambda()
                   (push selected (gethash items *policy*)))
@@ -164,17 +171,19 @@
         selected )))
 
 (defun simple-selector()
-  #'(lambda(ops)(alexandria:random-elt
-                 (mapcar #'third ops))) )
+  #'(lambda(ops &key(prefer nil))
+      (if prefer prefer
+        (alexandria:random-elt
+         (mapcar #'third ops)))) )
 
 (defun generate-sample(&key (model (jsown:new-js))
                          (tasks *tasks*)
                          (path ())
                          (size 100)
                          (prefix '())
-                         (selector (policy-selector)));
+                         (selector (rl-policy-selector)));
   (setf *model* (copy-tree model))
-  (format t "~%With model:~S" model)
+  (format t "~%With model:~S max=~A sofar ~A" model size (length path))
   (if (>= (print(length path)) size)  'pass
       (let ((available (remove-if-not
                         #'(lambda(task)(let ((res (funcall (first task) model)))
@@ -184,61 +193,59 @@
         (if available
             (let((selected (if prefix
                                (and (member (first prefix) (mapcar #'third available) :test #'equal)
-                                    (first prefix))
+                                    (funcall selector available :prefer (first prefix)))
                                (funcall selector available))))
-
+              (format t "~%Selected:~A"selected)
               (if selected
-                (let*((name (print selected))
+                (let*((name selected)
                       (step-result (funcall (second (find selected available :test #'equal
                                                           :key #'third))
                                             (copy-tree model)))
                       (result (first step-result))
                       (new-model (second step-result))
                       (new-path (list* (cons name result) path)))
-                  (format t "~%Processing ~A" name)
+                  ;;(format t "~%Processing ~A" name)
                   (cond
-                    ((null (second result)) new-path) ;;error detected
+                    ((null (second result)) (progn ;;(funcall selector (list))
+                                                   new-path)) ;;error detected
                     (t (generate-sample :prefix (rest prefix)
                                         :model new-model
                                         :tasks tasks
                                         :path new-path
-                                        :size size))))
+                                        :size size
+                                        :selector selector))))
                 (format t "~%invalid path")))
             (progn (format t "~%Deadend reached!")) ) ) ))
 
-
-(defun test-random(&key(prefix ()) (size (length prefix)))
-  (clear-events)
-  (router-new)
-  (queue-new)
-  (let ((res (generate-sample :tasks *tasks* :size size :prefix prefix)))
+(defun test-random(&key(prefix ()) (size (length prefix)) (selector (policy-selector)))
+  (let* ((router-id (jsown:val (router-new) "id"))
+         (queue-id (jsown:val (queue-new :router-id router-id) "id"))
+         (*mem* (make-hash-table :test #'equal))
+         (res (generate-sample :model (jsown:new-js ("router" router-id) ("queue" queue-id))
+                               :selector selector
+                               :tasks *tasks* :size size :prefix prefix)))
     (if (equal res 'pass)
         (progn
           (format t "~%Pass"))
         (progn
           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-          (mapcar #'first res)
-          )
-       ) ) )
+          (mapcar #'first res) ) ) ) )
 
-
-(defun find-bug (size )
+(defun find-bug (size &key (threads 1))
   (setf *update-policy* ())
-  (print(length (test-random :prefix (loop for x = (let((*standard-output* (make-broadcast-stream)))(test-random :size size)) :if x :return (print (reverse x))
+  (print(length (test-random :prefix (loop for x = (lparallel:psome #'(lambda(i)(let((*standard-output* (make-broadcast-stream)))
+                                                                                  (test-random :size size))) (loop :repeat threads :collect 1)) :if x :return (print (reverse x))
                     do (setf *update-policy* ()) (format t "."))))))
 
 (defun scan-bug(size &key (reset t))
   (when reset (setf *policy* (make-hash-table :test #'equal)))
   (time (loop for max-size = size then (let ((last (find-bug max-size)))
-                                         (loop for x from 1 to 3 do (mapcar #'funcall *update-policy*))
-                                         '(if (< last max-size) (floor (/ (+ max-size last) 2))
+                                         ;;(loop for x from 1 to 10 do (mapcar #'funcall *update-policy*))
+                                         (if (< last max-size) (floor (/ (+ max-size last) 2))
                                              max-size)
                                          )
            :repeat 100
-           do (format t  "~%-------- max-size ~A" max-size)
-             )) )
-
-
+           do (format t  "~%-------- max-size ~A" max-size) )) )
 
 (defun reduce-test(candidates)
   (when candidates
@@ -254,24 +261,3 @@
           (if reduced
               (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
               (list* candidate (reduce-test (rest candidates))) ))))))
-
-;; (defun replay-sample(&key (tasks *tasks*) (path ()) (test-case ()))
-;;   (if (null test-case)
-;;       'pass
-;;       (let*((available (remove-if-not #'(lambda(task)(funcall (first task))) tasks))
-;;             (selected (first test-case))
-;;             (result (funcall (second (nth selected available))))
-;;             (new-path (list* (cons selected result) path)))
-;;         (cond
-;;           ((null (second result)) new-path);;error detected
-;;           (t (replay-sample :tasks tasks :path new-path :test-case (rest test-case))) )) ) )
-
-
-;; (defun test-case(list)
-;;   (clear-events)
-;;   (let ((res (replay-sample :tasks *tasks* :test-case list)))
-;;     (if (equal res 'pass)
-;;         'pass
-;;         (progn
-;;           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
-;;           res ) ) ) )
