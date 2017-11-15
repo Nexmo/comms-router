@@ -290,31 +290,36 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    state.put(CommsRouterResource.AGENT, id2.getId());
+    state.put(CommsRouterResource.AGENT, id1.getId());
     AgentDto resource = a.get();
-    assertThat(String.format("Check the oldest agent state (%s) to be busy.", resource.getState()),
-        resource.getState(), is(AgentState.busy));
+    assertThat(String.format("First Agent1 is created after that Agent2. Check that fresh created task is handled by Agent1."
+                             , resource.getState())
+               , resource.getState()
+               , is(AgentState.busy));
 
     t.setState(TaskState.completed);
 
     assertThat(q.size(), is(0));
 
-    TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(1);
 
     resource = a.get();
     assertThat(String
-            .format("Check agent state (%s) to be ready after the task has been completed.",
-                resource.getState()),
-        resource.getState(), is(AgentState.ready));
+            .format("Check agent state (%s) to be ready after the task has been completed."
+                    , resource.getState())
+               , resource.getState()
+               , is(AgentState.ready));
 
     t.createQueueTask();
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    state.put(CommsRouterResource.AGENT, id2.getId());
+    state.put(CommsRouterResource.AGENT
+              , id2.getId());
 
-    assertThat("Check the oldest's agent state to be busy.",
-        a.get().getState(), is(AgentState.busy));
+    assertThat("Check the oldest's agent state to be busy."
+               , a.get().getState()
+               , is(AgentState.busy));
 
     t.setState(TaskState.completed);
     assertThat(q.size(), is(0));
