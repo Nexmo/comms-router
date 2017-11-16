@@ -27,32 +27,25 @@ import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.jpa.result.TaskEnumerableResult;
-import com.softavail.commsrouter.util.Fields;
-
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 
 /**
  * @author ikrustev
@@ -149,23 +142,25 @@ public class TaskDispatcher {
     });
   }
 
-  private void doDispatchAgent(String agentId) throws CommsRouterException {
+  private void doDispatchAgent(String agentId)
+      throws CommsRouterException {
 
-    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry((em) -> {
+    TaskAssignmentDto taskAssignmentDto =
+        db.transactionManager.executeWithLockRetry(em -> {
+          Router router = db.agent.get(em, agentId).getRouter();
+          em.lock(router, LockModeType.WRITE);
 
-      MatchResult matchResult = db.queue.findAssignmentForAgent(em, agentId);
-      if (matchResult == null) {
-        return null;
-      }
-      return assingTask(matchResult);
-    });
+          return db.queue.findAssignmentForAgent(em, agentId)
+              .map(this::assignTask)
+              .orElse(null);
+        });
 
     if (taskAssignmentDto != null) {
       submitTaskAssignment(taskAssignmentDto);
     }
   }
 
-  public TaskAssignmentDto assingTask(MatchResult matchResult) {
+  public TaskAssignmentDto assignTask(MatchResult matchResult) {
     Agent agent = matchResult.agent;
     Task task = matchResult.task;
     // Assign
@@ -219,8 +214,7 @@ public class TaskDispatcher {
       LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskId);
       processTaskTimeout(taskId);
     } catch (RuntimeException | CommsRouterException ex) {
-      LOGGER.error("Exception while processing timeout for task {}: {}", 
-          taskId, ex);
+      LOGGER.error("Exception while processing timeout for task {}: {}", taskId, ex);
     }
   }
 
@@ -255,20 +249,20 @@ public class TaskDispatcher {
           }
 
           task.setCurrentRoute(matchedRoute);
-          
+
           if (matchedRoute.getPriority() != null) {
             task.setPriority(matchedRoute.getPriority());
           }
-          
+
           Date expirationDate = null;
           if (matchedRoute.getTimeout() != null) {
             task.setQueuedTimeout(matchedRoute.getTimeout());
-            
+
             if (matchedRoute.getTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
-              LOGGER.trace("Next route, update expirationDate:{} for task:{} ", expirationDate,
-                  task.getId());
+              LOGGER.trace("Next route, update expirationDate:{} for task:{} ",
+                  expirationDate, task.getId());
             } else {
               LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
             }
@@ -276,8 +270,8 @@ public class TaskDispatcher {
             if (task.getQueuedTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
-              LOGGER.trace("Default, update expirationDate:{} for task:{} ", expirationDate,
-                  task.getId());
+              LOGGER.trace("Default, update expirationDate:{} for task:{} ",
+                  expirationDate, task.getId());
             } else {
               LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
             }
@@ -285,7 +279,7 @@ public class TaskDispatcher {
             LOGGER.trace("None, clear expirationDate for task:{}", task.getId());
           }
           task.setExpirationDate(expirationDate);
-          
+
           if (matchedRoute.getQueue() != null) {
             task.setQueue(matchedRoute.getQueue());
           }
@@ -324,8 +318,7 @@ public class TaskDispatcher {
   }
 
   private void restartWaitingTaskTimers() {
-    
-    threadPool.submit(() -> doRestartWaitingTaskTimers());
+    threadPool.submit(this::doRestartWaitingTaskTimers);
   }
 
   private void doRestartWaitingTaskTimers() {
