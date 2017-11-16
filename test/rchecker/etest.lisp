@@ -87,17 +87,18 @@
                            `(progn ,@body) ) ) ) ))
 
 ;; bind for model
+(defun mstep(step-fn)
+  #'(lambda(model)(funcall step-fn)))
 (defun mbind(mfn p-mfn)
   #'(lambda(model)
       (funcall (funcall p-mfn (funcall mfn model)) model)))
 
-(defmacro mlet(vars &body body)
-  `(mbind ,(second (first vars))
-          #'(lambda(,(first (first vars)))
-              #'(lambda(model)
-                  ,(if (rest vars)
-                       `(mlet ,(rest vars) ,@body)
-                       `(progn ,@body))))))
+(defun mand(mfn &rest mfns)
+  (if mfns
+      #'(lambda(m)
+          (funcall (apply #'mand mfns)
+                   (funcall mfn m)) )
+      mfn) )
 
 (defmacro mlet(vars &body body)
   `(mbind ,(first (last (first vars)) )
@@ -111,13 +112,7 @@
               `#'(lambda(,(first (first vars)))
                    ,(if (rest vars)
                         `(mlet ,(rest vars) ,@body)
-                        `#'(lambda(model)
-                             ,@body))
-                  )
-              )
-          ))
-
-
+                        `(progn ,@body))))))
 
 ;;
 (defun print-log(result &optional indent)
@@ -295,3 +290,6 @@
           (if reduced
               (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
               (list* candidate (reduce-test (rest candidates)))))))))
+(defun reduce-test(size &key (threads 10))
+  (loop for last = size then (let ((len (find-bug last :threads threads))) (if (zerop len) last len)) do
+       (format t "~%---------------------------------------- ~A ------------------------" last)))
