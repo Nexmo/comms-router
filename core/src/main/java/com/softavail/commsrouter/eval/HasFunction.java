@@ -40,10 +40,10 @@ import java.util.ArrayList;
  */
 public class HasFunction implements Function {
 
-  private boolean isValidation = false;
+  final private ExpressionEvaluator exprEvaluator;
 
-  public HasFunction(boolean isValidation) {
-    this.isValidation = isValidation;
+  public HasFunction(ExpressionEvaluator evaluator) {
+    this.exprEvaluator = evaluator;
   }
 
   /**
@@ -90,7 +90,7 @@ public class HasFunction implements Function {
 
     String argumentOne = (String) strings.get(0);
     try {
-      if (isValidation) {
+      if (exprEvaluator.isValidation()) {
         String variable = EvaluatorHelpers.validationTryReplaceArrayVariable(argumentOne);
         if (variable != null) {
           argumentOne = variable;

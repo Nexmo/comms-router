@@ -40,7 +40,7 @@ public class ExpressionEvaluator extends Evaluator {
       return replacedVariable;
     }
 
-    if (isValidation) {
+    if (isValidation()) {
       replacedVariable = EvaluatorHelpers.validationReplaceIfSingleVariable(expression,
           EvaluationConstants.BOOLEAN_STRING_TRUE);
       if (replacedVariable != null) {
@@ -60,16 +60,11 @@ public class ExpressionEvaluator extends Evaluator {
   }
 
   public void init(String predicate) {
-    init(predicate, false);
-  }
-
-  public void init(String predicate, boolean isValidation) {
-    this.isValidation = isValidation;
     setPredicate(predicate);
-    putFunction(new HasFunction(isValidation));
-    putFunction(new InFunction(isValidation));
+    putFunction(new HasFunction(this));
+    putFunction(new InFunction(this));
     putFunction(new ContainsFunction());
-    setVariableResolver(new CommsRouterVariableResolver(isValidation, this));
+    setVariableResolver(new CommsRouterVariableResolver(this));
   }
 
   public void setPredicate(String predicate) {
@@ -83,11 +78,22 @@ public class ExpressionEvaluator extends Evaluator {
     return predicateOrigin;
   }
 
-  public void isValid() throws EvaluatorException {
+
+  public boolean isValidation() {
+    return isValidation;
+  }
+
+  protected void setIsValidation(boolean isValidation) {
+    this.isValidation = isValidation;
+  }
+
+  public void validateImpl(final String expression) throws EvaluatorException {
     try {
-      evaluateImpl();
+      this.setIsValidation(true);
+      setPredicate(expression);
+      super.evaluate(predicate);
     } catch (EvaluationException ex) {
-      throw new EvaluatorException("Predicate \"" + predicateOrigin + "\" failed with error: "
+      throw new EvaluatorException("Predicate \"" + expression + "\" failed with error: "
           + EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
   }
@@ -97,7 +103,8 @@ public class ExpressionEvaluator extends Evaluator {
       return EvaluationConstants.BOOLEAN_STRING_FALSE;
     }
     
+    this.setIsValidation(false);
     return super.evaluate(predicate);
   }
-  
+
 }

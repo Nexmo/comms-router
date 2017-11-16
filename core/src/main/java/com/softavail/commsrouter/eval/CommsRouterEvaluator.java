@@ -50,11 +50,10 @@ import java.util.Set;
 public class CommsRouterEvaluator {
 
   private ExpressionEvaluator evaluator;
-  private ExpressionEvaluator validationEvaluator;
 
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluator.class);
 
-  public CommsRouterEvaluator initEvaluator(String predicate) {
+  public CommsRouterEvaluator init(String predicate) {
     if (evaluator == null) {
       evaluator = new ExpressionEvaluator();
       evaluator.init(predicate);
@@ -65,30 +64,18 @@ public class CommsRouterEvaluator {
     return this;
   }
 
-  protected CommsRouterEvaluator initValidatorEvaluator(String predicate) {
-    if (validationEvaluator == null) {
-      validationEvaluator = new ExpressionEvaluator();
-      validationEvaluator.init(predicate, true);
-    } else {
-      validationEvaluator.setPredicate(predicate);
-    }
-
-    return this;
-  }
-
   /**
    *
    * @param expression argument that will be check for valid expression or not
    * @throws EvaluatorException .
    */
-  public void isValidExpression(String expression) throws EvaluatorException {
+  public void validate(String expression) throws EvaluatorException {
     if (expression == null || expression.isEmpty()) {
       throw new EvaluatorException("Expression cannot be NULL or empty.");
     }
 
     long millis = System.currentTimeMillis();
-    initValidatorEvaluator(expression);
-    validationEvaluator.isValid();
+    evaluator.validateImpl(expression);
     LOGGER.trace("Predicate expression validation time is: {}",
         (System.currentTimeMillis() - millis));
   }
@@ -103,7 +90,7 @@ public class CommsRouterEvaluator {
   public Boolean evaluate(AttributeGroupDto attributesGroup) throws CommsRouterException {
     if (evaluator == null) {
       throw new EvaluatorException("Predicate evaluator is not initialized with expression value. "
-                  + "Please call 'initEvaluator(String predicate)' first.");
+          + "Please call 'init(String predicate)' first.");
     }
     setEvaluatorAttributeVariables(attributesGroup);
     if (evaluatePredicateToAttributes()) {
@@ -126,7 +113,7 @@ public class CommsRouterEvaluator {
       throws CommsRouterException, RuntimeException {
     if (evaluator == null) {
       throw new EvaluatorException("Predicate evaluator is not initialized with expression value. "
-          + "Please call 'initEvaluator(String predicate)' first.");
+          + "Please call 'init(String predicate)' first.");
     }
     setEvaluatorJpaAttributeVariables(attributesGroup);
     if (evaluatePredicateToAttributes()) {
@@ -258,8 +245,7 @@ public class CommsRouterEvaluator {
     });
   }
 
-  private Boolean evaluatePredicateToAttributes()
-      throws CommsRouterException {
+  private Boolean evaluatePredicateToAttributes() {
 
     try {
       String result = evaluator.evaluateImpl();
@@ -268,8 +254,8 @@ public class CommsRouterEvaluator {
     } catch (EvaluationException ex) {
       String throwException = "Evaluator expression failed with message: " + ex.getMessage();
       LOGGER.info(throwException);
-      throw new EvaluatorException(throwException, ex);
     }
+    return false;
   }
 
 }

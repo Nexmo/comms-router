@@ -164,7 +164,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule,
-      CommsRouterEvaluator evaluator) {
+      CommsRouterEvaluator evaluator) throws CommsRouterException {
     if (rule != null) {
       if (rule.getRoutes().isEmpty()) {
         return null;
@@ -178,6 +178,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       } catch (CommsRouterException ex) {
         LOGGER.error("Task {}: failure matching rule {} tag {}: {}", taskId, rule.getId(),
             rule.getTag(), ex, ex);
+        throw ex;
       }
 
       LOGGER.debug("Did not found any route info in the current rule: {}", rule);
@@ -230,7 +231,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
-      throws NotFoundException {
+      throws NotFoundException, CommsRouterException {
 
     Router router = getRouter(em, objectId);
     Task task = new Task(objectId);
@@ -244,7 +245,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        evaluator.initEvaluator(rule.getPredicate());
+        evaluator.init(rule.getPredicate());
         matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule, evaluator);
         if (matchedRoute != null) {
           task.setRule(rule);

@@ -27,7 +27,7 @@ public class CommsRouterEvaluatorFactory {
 
   public CommsRouterEvaluator provide(String predicate) {
     CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
-    evaluator.initEvaluator(predicate);
+    evaluator.init(predicate);
     LOGGER.debug(" *** Created evaluator and validator: {}", evaluator);
 
     return evaluator;

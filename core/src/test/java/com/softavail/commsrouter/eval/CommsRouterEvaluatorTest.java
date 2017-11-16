@@ -107,138 +107,113 @@ public class CommsRouterEvaluatorTest {
 
     // validation should be failed cases
     try {
-      instance.isValidExpression(null);
+      instance.validate(null);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance
-          .isValidExpression("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}");
+      instance.validate("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.isValidExpression("#{boolTrue} && #{price}>10 && #{$price}^10");
+      instance.validate("#{boolTrue} && #{price}>10 && #{$price}^10");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.isValidExpression("#{color}$'red'");
+      instance.validate("#{color}$'red'");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     // validation should be passed
     try {
-      instance.isValidExpression("true");
+      instance.validate("true");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
 
     try {
-      instance.isValidExpression(predicateOK3);
+      instance.validate(predicateOK3);
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      instance.isValidExpression("CONTAINS([10, 20, 30], 20)");
+      instance.validate("CONTAINS([10, 20, 30], 20)");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      instance.isValidExpression("IN('fr', ['en','fr'])");
+      instance.validate("IN('fr', ['en','fr'])");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
 
     // check expressions by attributte
     Boolean expResult = true;
-    Boolean result = instance.initEvaluator(predicateOK1).evaluate(requirements);
+    Boolean result = instance.init(predicateOK1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator(predicateOK2).evaluate(requirements);
+    result = instance.init(predicateOK2).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator(predicateOK3).evaluate(requirements);
+    result = instance.init(predicateOK3).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator("1==1").evaluate(null);
+    result = instance.init("1==1").evaluate(null);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator("HAS(#{language}, 'en')").evaluate(requirements);
+    result = instance.init("HAS(#{language}, 'en')").evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator("2==3").evaluate(new AttributeGroupDto());
+    result = instance.init("2==3").evaluate(new AttributeGroupDto());
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(null).evaluate(requirements);
+    result = instance.init(null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(predicateFailed1).evaluate(requirements);
+    result = instance.init(predicateFailed1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(predicateFailed2).evaluate(requirements);
+    result = instance.init(predicateFailed2).evaluate(requirements);
     assertEquals(expResult, result);
-
-    try {
-      instance.initEvaluator("CONTAINS('Sto')").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
-    try {
-      instance.initEvaluator("CONTAINS(#{nickname}, #Stone)").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
-    try {
-      instance.initEvaluator("HAS(100)").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("HAS([false, 'true'], #{true}) && #{'true'}").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      requirements.put("departments", new StringAttributeValueDto("sales; support"));
-      instance.initEvaluator("HAS(#{departments}, 'sales')").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("HAS(#{languages}, 100)").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("IN(#{language}, 'en]')").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("IN(200, #{languages})").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("IN(50)").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.initEvaluator("IN(#{false}, [true, 'true']) && #{'false'}").evaluate(requirements);
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
     expResult = false;
-    result = instance.initEvaluator(predicateFailed3).evaluate(requirements);
+    result = instance.init("CONTAINS('Sto')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("CONTAINS(#{nickname}, #Stone)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS(100)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS([false, 'true'], #{true}) && #{'true'}").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    requirements.put("departments", new StringAttributeValueDto("sales; support"));
+    result = instance.init("HAS(#{departments}, 'sales')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS(#{languages}, 100)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(#{language}, 'en]')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(200, #{languages})").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(50)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(#{false}, [true, 'true']) && #{'false'}").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init(predicateFailed3).evaluate(requirements);
     assertEquals(expResult, result);
   }
 
@@ -256,38 +231,38 @@ public class CommsRouterEvaluatorTest {
     CommsRouterEvaluator instance = ef.provide(null);
 
     Boolean expResult = true;
-    Boolean result = instance.initEvaluator(predicateOK1).evaluateJpa(requirementsJpa);
+    Boolean result = instance.init(predicateOK1).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator(predicateOK2).evaluateJpa(requirementsJpa);
+    result = instance.init(predicateOK2).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator(predicateOK3).evaluateJpa(requirementsJpa);
+    result = instance.init(predicateOK3).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator("1==1").evaluateJpa(null);
+    result = instance.init("1==1").evaluateJpa(null);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.initEvaluator("HAS(#{language}, 'en')").evaluateJpa(requirementsJpa);
+    result = instance.init("HAS(#{language}, 'en')").evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator("2==3").evaluateJpa(new AttributeGroup());
+    result = instance.init("2==3").evaluateJpa(new AttributeGroup());
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(null).evaluateJpa(requirementsJpa);
+    result = instance.init(null).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(predicateFailed1).evaluateJpa(requirementsJpa);
+    result = instance.init(predicateFailed1).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.initEvaluator(predicateFailed2).evaluateJpa(requirementsJpa);
+    result = instance.init(predicateFailed2).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
 
     // validation should be failed cases
     try {
       requirementsJpa.addArrayItem("allowedBools", true);
       requirementsJpa.addArrayItem("allowedBools", false);
-      instance.initEvaluator(predicateOK1).evaluateJpa(requirementsJpa);
+      instance.init(predicateOK1).evaluateJpa(requirementsJpa);
       assertTrue(false);
     } catch (EvaluatorException | RuntimeException ex) {
     }

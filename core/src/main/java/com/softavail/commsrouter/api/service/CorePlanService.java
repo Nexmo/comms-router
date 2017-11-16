@@ -88,7 +88,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     if (createArg.getRules() != null) {
       for (RuleDto rule : createArg.getRules()) {
-        evaluator.isValidExpression(rule.getPredicate());
+        evaluator.validate(rule.getPredicate());
       }
     }
 

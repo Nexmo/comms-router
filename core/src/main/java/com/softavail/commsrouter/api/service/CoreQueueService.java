@@ -24,6 +24,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
@@ -82,7 +83,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       throws CommsRouterException {
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
-    evaluator.isValidExpression(createArg.getPredicate());
+    evaluator.validate(createArg.getPredicate());
 
     Router router = getRouter(em, objectId);
     Queue queue = new Queue(objectId);
@@ -95,7 +96,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
-      boolean isNewQueue) {
+      boolean isNewQueue) throws CommsRouterException {
 
     LOGGER.info("Queue {}: attaching agents...", queue.getId());
 
@@ -119,6 +120,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       } catch (CommsRouterException | RuntimeException ex) {
         LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getId(), agent.getId(), ex,
             ex);
+        throw new EvaluatorException(ex.getMessage(), ex);
       }
     }
 
@@ -153,7 +155,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
-    evaluator.isValidExpression(predicate);
+    evaluator.validate(predicate);
 
     queue.setPredicate(predicate);
     queue.getAgents().clear();

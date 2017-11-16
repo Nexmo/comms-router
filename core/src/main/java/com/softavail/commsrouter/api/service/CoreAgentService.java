@@ -100,7 +100,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
-      boolean isNewAgent) {
+      boolean isNewAgent) throws CommsRouterException {
 
     LOGGER.info("Agent {}: attaching queues...", agent.getId());
 
@@ -108,7 +108,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getId())) {
       try {
-        if (evaluator.initEvaluator(queue.getPredicate()).evaluate(capabilities)) {
+        if (evaluator.init(queue.getPredicate()).evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
           ++attachedQueuesCount;
@@ -123,6 +123,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       } catch (CommsRouterException ex) {
         LOGGER.error("Agent {}: failure attaching queue {}: {}", agent.getId(), queue.getId(), ex,
             ex);
+        throw ex;
       }
     }
     LOGGER.info("Agent {}: queues attached: {}", agent.getId(), attachedQueuesCount);
@@ -210,8 +211,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return agentBecameAvailable;
   }
 
-  private void updateCapabilities(EntityManager em, Agent agent,
-      AttributeGroupDto newCapabilities) {
+  private void updateCapabilities(EntityManager em, Agent agent, AttributeGroupDto newCapabilities)
+      throws CommsRouterException {
 
     if (newCapabilities == null) {
       // no capabilities change requested
