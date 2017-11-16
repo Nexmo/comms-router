@@ -18,7 +18,7 @@ package com.softavail.commsrouter.app;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
+import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 
 /**
  * Created by @author mapuo on 17.10.17.
@@ -37,7 +38,6 @@ public class QueueProcessor {
 
   private final String queueId;
   private final JpaDbFacade db;
-  private final EntityMappers mappers;
   private final TaskDispatcher taskDispatcher;
   private final ScheduledThreadPoolExecutor threadPool;
   private final long processRetryDelaySeconds;
@@ -48,7 +48,6 @@ public class QueueProcessor {
   public QueueProcessor(
       String queueId,
       JpaDbFacade db,
-      EntityMappers mappers,
       TaskDispatcher taskDispatcher,
       ScheduledThreadPoolExecutor threadPool,
       long processRetryDelaySeconds,
@@ -56,7 +55,6 @@ public class QueueProcessor {
 
     this.queueId = queueId;
     this.db = db;
-    this.mappers = mappers;
     this.taskDispatcher = taskDispatcher;
     this.threadPool = threadPool;
     this.processRetryDelaySeconds = processRetryDelaySeconds;
@@ -119,7 +117,11 @@ public class QueueProcessor {
     for (; ; ) {
       Optional<TaskAssignmentDto> taskAssignmentDto;
       try {
-        taskAssignmentDto = db.transactionManager.executeWithLockRetry(this::getAssignment);
+        taskAssignmentDto = db.transactionManager.executeWithLockRetry(em -> {
+          Router router = db.queue.get(em, queueId).getRouter();
+          em.lock(router, LockModeType.WRITE);
+          return getAssignment(em);
+        });
       } catch (CommsRouterException | RuntimeException e) {
         // Failed to get assignment. Most probably DB is down, so let's try again a bit later.
         LOGGER.error("Queue processor {}: failure getting assignment: {}", e, e);
@@ -145,16 +147,13 @@ public class QueueProcessor {
   private Optional<TaskAssignmentDto> getAssignment(EntityManager em)
       throws CommsRouterException {
 
-    return db.queue.findAssignment(em, queueId).map(matchResult -> {
-          return taskDispatcher.assingTask(matchResult);
-    });
+    return db.queue.findAssignment(em, queueId).map(taskDispatcher::assignTask);
   }
 
   public static class Builder {
 
     private String queueId;
     private JpaDbFacade db;
-    private EntityMappers mappers;
     private TaskDispatcher taskDispatcher;
     private ScheduledThreadPoolExecutor threadPool;
     private long processRetryDelaySeconds;
@@ -167,11 +166,6 @@ public class QueueProcessor {
 
     public Builder setDb(JpaDbFacade db) {
       this.db = db;
-      return this;
-    }
-
-    public Builder setMappers(EntityMappers mappers) {
-      this.mappers = mappers;
       return this;
     }
 
@@ -196,7 +190,7 @@ public class QueueProcessor {
     }
 
     public QueueProcessor build() {
-      return new QueueProcessor(queueId, db, mappers, taskDispatcher, threadPool,
+      return new QueueProcessor(queueId, db, taskDispatcher, threadPool,
           processRetryDelaySeconds, stateChangeListener);
     }
   }
