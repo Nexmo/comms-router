@@ -21,7 +21,7 @@ import com.softavail.commsrouter.api.exception.CallbackException;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
+import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
 import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
@@ -54,12 +54,12 @@ public class ApplicationContext {
     client = createClient();
 
     JpaDbFacade db = new JpaDbFacade(configuration);
-    CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
+    CommsRouterEvaluatorFactory evaluatorFactory = new CommsRouterEvaluatorFactory();
     EntityMappers mappers = new EntityMappers();
     TaskDispatcher taskDispatcher =
         new TaskDispatcher(db, mappers, configuration, this::handleAssignment);
 
-    coreContext = new AppContext(db, evaluator, taskDispatcher, mappers);
+    coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers);
   }
 
   public Client getClient() {

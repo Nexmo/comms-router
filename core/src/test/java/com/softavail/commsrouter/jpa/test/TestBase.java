@@ -33,7 +33,7 @@ import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
+import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import org.junit.After;
 import org.junit.Before;
@@ -75,7 +75,7 @@ public class TestBase {
 
   @BeforeClass
   public static void setTestCoreQueueService() {
-    CommsRouterEvaluator ev = new CommsRouterEvaluator();
+    CommsRouterEvaluatorFactory evf = new CommsRouterEvaluatorFactory();
     JpaDbFacade db = new JpaDbFacade( "mnf-pu-test");
     TaskDispatcher td = new TaskDispatcher(db, null, new CoreConfiguration() {
       @Override
@@ -119,7 +119,7 @@ public class TestBase {
       }
     }, null);
     EntityMappers enm = new EntityMappers();
-    app = new AppContext(db, ev, td, enm);
+    app = new AppContext(db, evf, td, enm);
     // Instantiating all of the services
     queueService = new CoreQueueService(app);
     taskService = new CoreTaskService(app);

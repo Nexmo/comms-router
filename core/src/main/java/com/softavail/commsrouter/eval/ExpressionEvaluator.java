@@ -30,6 +30,8 @@ import net.sourceforge.jeval.Evaluator;
 public class ExpressionEvaluator extends Evaluator {
 
   private boolean isValidation = false;
+  private String predicate;
+  private String predicateOrigin;
 
   @Override
   public String replaceVariables(final String expression) throws EvaluationException {
@@ -38,7 +40,7 @@ public class ExpressionEvaluator extends Evaluator {
       return replacedVariable;
     }
 
-    if (isValidation) {
+    if (isValidation()) {
       replacedVariable = EvaluatorHelpers.validationReplaceIfSingleVariable(expression,
           EvaluationConstants.BOOLEAN_STRING_TRUE);
       if (replacedVariable != null) {
@@ -57,25 +59,52 @@ public class ExpressionEvaluator extends Evaluator {
     return super.replaceVariables(expression);
   }
 
-  public void init() {
-    init(false);
-  }
-
-  public void init(boolean isValidation) {
-    this.isValidation = isValidation;
-    putFunction(new HasFunction(isValidation));
-    putFunction(new InFunction(isValidation));
+  public void init(String predicate) {
+    setPredicate(predicate);
+    putFunction(new HasFunction(this));
+    putFunction(new InFunction(this));
     putFunction(new ContainsFunction());
-    setVariableResolver(new CommsRouterVariableResolver(isValidation, this));
+    setVariableResolver(new CommsRouterVariableResolver(this));
   }
 
-  public void isValidExpression(String expression) throws EvaluatorException {
+  public void setPredicate(String predicate) {
+    this.predicateOrigin = predicate;
+    if (predicate != null) {
+      this.predicate = EvaluatorHelpers.supportArraysInExpression(predicate);
+    }
+  }
+  
+  public String getPredicate() {
+    return predicateOrigin;
+  }
+
+
+  public boolean isValidation() {
+    return isValidation;
+  }
+
+  protected void setIsValidation(boolean isValidation) {
+    this.isValidation = isValidation;
+  }
+
+  public void validateImpl(final String expression) throws EvaluatorException {
     try {
-      String formatedExpression = EvaluatorHelpers.supportArraysInExpression(expression);
-      evaluate(formatedExpression);
+      this.setIsValidation(true);
+      setPredicate(expression);
+      super.evaluate(predicate);
     } catch (EvaluationException ex) {
       throw new EvaluatorException("Predicate \"" + expression + "\" failed with error: "
           + EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
   }
+
+  public String evaluateImpl() throws EvaluationException {
+    if (predicateOrigin == null || predicateOrigin.isEmpty()) {
+      return EvaluationConstants.BOOLEAN_STRING_FALSE;
+    }
+    
+    this.setIsValidation(false);
+    return super.evaluate(predicate);
+  }
+
 }

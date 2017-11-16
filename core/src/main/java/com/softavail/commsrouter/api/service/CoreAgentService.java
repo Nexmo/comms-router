@@ -32,6 +32,7 @@ import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -99,15 +100,15 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
-      boolean isNewAgent) {
+      boolean isNewAgent) throws CommsRouterException {
 
     LOGGER.info("Agent {}: attaching queues...", agent.getId());
 
     int attachedQueuesCount = 0;
-
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getId())) {
       try {
-        if (app.evaluator.evaluate(capabilities, queue.getPredicate())) {
+        if (evaluator.init(queue.getPredicate()).evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
           ++attachedQueuesCount;
@@ -122,6 +123,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       } catch (CommsRouterException ex) {
         LOGGER.error("Agent {}: failure attaching queue {}: {}", agent.getId(), queue.getId(), ex,
             ex);
+        throw ex;
       }
     }
     LOGGER.info("Agent {}: queues attached: {}", agent.getId(), attachedQueuesCount);
@@ -209,8 +211,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return agentBecameAvailable;
   }
 
-  private void updateCapabilities(EntityManager em, Agent agent,
-      AttributeGroupDto newCapabilities) {
+  private void updateCapabilities(EntityManager em, Agent agent, AttributeGroupDto newCapabilities)
+      throws CommsRouterException {
 
     if (newCapabilities == null) {
       // no capabilities change requested

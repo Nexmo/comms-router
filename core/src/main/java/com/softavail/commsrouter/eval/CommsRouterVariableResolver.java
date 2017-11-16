@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import net.sourceforge.jeval.Evaluator;
 import net.sourceforge.jeval.VariableResolver;
 import net.sourceforge.jeval.function.FunctionException;
 
@@ -26,11 +25,9 @@ import net.sourceforge.jeval.function.FunctionException;
  */
 public class CommsRouterVariableResolver implements VariableResolver {
 
-  private boolean isValidation = false;
-  private Evaluator evaluator;
+  final private ExpressionEvaluator evaluator;
 
-  public CommsRouterVariableResolver(boolean isValidation, Evaluator evaluator) {
-    this.isValidation = isValidation;
+  public CommsRouterVariableResolver(ExpressionEvaluator evaluator) {
     this.evaluator = evaluator;
   }
 
@@ -42,7 +39,7 @@ public class CommsRouterVariableResolver implements VariableResolver {
       return resolvedName;
     }
 
-    if (isValidation) {
+    if (evaluator.isValidation()) {
       evaluator.isValidName(variableName);
       variableName = EvaluatorHelpers.VALIDATION_VARIABLE_VALUE;
       return variableName;
