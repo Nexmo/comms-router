@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import com.softavail.commsrouter.test.api.Agent;
 
 /**
  * Unit test for simple App.
@@ -232,8 +233,8 @@ public class QueueTest {
     q.delete();
   }
 
-  //@Test
-  @DisplayName("queue should have task after replace")
+  @Test
+  @DisplayName("it should be allowed to replace queue with tasks")
   void queueWithTaskReplace() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
@@ -266,5 +267,40 @@ public class QueueTest {
     t.delete();
     q.delete();
   }
+
+  @Test
+  @DisplayName("it should not be allowed to replace queue with agents")
+  void queueWithAgentReplace() throws MalformedURLException {
+    String description = "queue description";
+    String predicate = "1==1";
+    CreateQueueArg queueArg = new CreateQueueArg();
+    queueArg.setDescription(description);
+    queueArg.setPredicate(predicate);
+    Queue q = new Queue(state);
+    ApiObjectId id = q.create(queueArg);
+
+    CreateTaskArg targ = new CreateTaskArg();
+    targ.setQueueId(state.get(CommsRouterResource.QUEUE));
+    targ.setCallbackUrl(new URL("http://example.com"));
+    Task t = new Task(state);
+    Agent a = new Agent(state);
+    a.create("en");
+    assertThat(q.size(), is(0));
+
+    queueArg.setDescription("qdescription");
+    queueArg.setPredicate("1==1");
+
+    id = q.replace(queueArg);
+    QueueDto queue = q.get();
+    assertThat(queue.getPredicate(), is("qdescription"));
+    assertThat(queue.getDescription(), is("2==2"));
+
+    assertThat(q.tasks(), hasSize(1));
+    assertThat(q.size(), is(1));
+
+    t.delete();
+    q.delete();
+  }
+
 
 }

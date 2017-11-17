@@ -54,14 +54,14 @@ public class Agent extends Resource {
     return Arrays.asList(routers);
   }
 
-  public ApiObjectId createWithId(CreateAgentArg args) {
+  public ApiObjectId replace(CreateAgentArg args) {
     String id = state().get(CommsRouterResource.AGENT);
     ApiObjectId oid = given()
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("agentId", id)
         .body(args)
-        .when().put("/routers/{routerId}/agents/{queueId}")
+        .when().put("/routers/{routerId}/agents/{agentId}")
         .then().statusCode(201)
         .extract()
         .as(ApiObjectId.class);
