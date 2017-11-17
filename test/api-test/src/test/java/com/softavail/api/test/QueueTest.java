@@ -24,6 +24,7 @@ import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
@@ -256,7 +257,9 @@ public class QueueTest {
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==1");
 
-    id = q.replace(queueArg);
+    q.replaceResponse(queueArg)
+        .statusCode(500)
+        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is("qdescription"));
     assertThat(queue.getDescription(), is("2==2"));
@@ -279,10 +282,6 @@ public class QueueTest {
     Queue q = new Queue(state);
     ApiObjectId id = q.create(queueArg);
 
-    CreateTaskArg targ = new CreateTaskArg();
-    targ.setQueueId(state.get(CommsRouterResource.QUEUE));
-    targ.setCallbackUrl(new URL("http://example.com"));
-    Task t = new Task(state);
     Agent a = new Agent(state);
     a.create("en");
     assertThat(q.size(), is(0));
@@ -290,16 +289,9 @@ public class QueueTest {
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==1");
 
-    id = q.replace(queueArg);
-    QueueDto queue = q.get();
-    assertThat(queue.getPredicate(), is("qdescription"));
-    assertThat(queue.getDescription(), is("2==2"));
-
-    assertThat(q.tasks(), hasSize(1));
-    assertThat(q.size(), is(1));
-
-    t.delete();
-    q.delete();
+    q.replaceResponse(queueArg)
+        .statusCode(500)
+        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'agent' that refer to it."));
   }
 
 
