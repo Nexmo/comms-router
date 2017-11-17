@@ -37,3 +37,4 @@
 
 (defvar *server* (make-instance 'hunchentoot:easy-acceptor :port 4343))
 (defun start-server()  (hunchentoot:start *server*))
+(defun stop-server()  (hunchentoot:stop *server*))
