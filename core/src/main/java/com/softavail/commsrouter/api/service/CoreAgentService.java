@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,8 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -55,25 +55,23 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public ApiObjectId create(CreateAgentArg createArg, String routerId)
+  public ApiObjectRef create(CreateAgentArg createArg, String routerRef)
       throws CommsRouterException {
 
-    RouterObjectId routerObjectId = RouterObjectId.builder()
-        .setId(Uuid.get())
-        .setRouterId(routerId)
-        .build();
+    RouterObjectRef routerObjectRef =
+        RouterObjectRef.builder().setRef(Uuid.get()).setRouterRef(routerRef).build();
 
     return app.db.transactionManager.execute((EntityManager em) -> {
-      return doCreate(em, createArg, routerObjectId);
+      return doCreate(em, createArg, routerObjectRef);
     });
   }
 
   @Override
-  public ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectRef create(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = em.find(Agent.class, objectId.getId());
+      Agent agent = em.find(Agent.class, objectRef.getRef());
       if (agent != null) {
         if (!agent.getState().isDeleteAllowed()) {
           throw new InvalidStateException(
@@ -81,36 +79,37 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
         }
         em.remove(agent);
       }
-      return doCreate(em, createArg, objectId);
+      return doCreate(em, createArg, objectRef);
     });
   }
 
-  private ApiObjectId doCreate(EntityManager em, CreateAgentArg createArg, RouterObjectId objectId)
+  private ApiObjectRef doCreate(EntityManager em, CreateAgentArg createArg,
+      RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    Router router = getRouter(em, objectId);
-    Agent agent = new Agent(objectId);
+    Router router = getRouter(em, objectRef);
+    Agent agent = new Agent(objectRef);
     agent.setRouter(router);
     agent.setAddress(createArg.getAddress());
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
     attachQueues(em, agent, createArg.getCapabilities(), true);
     em.persist(agent);
-    return agent.cloneApiObjectId();
+    return agent.cloneApiObjectRef();
   }
 
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
       boolean isNewAgent) throws CommsRouterException {
 
-    LOGGER.info("Agent {}: attaching queues...", agent.getId());
+    LOGGER.info("Agent {}: attaching queues...", agent.getRef());
 
     int attachedQueuesCount = 0;
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
-    for (Queue queue : app.db.queue.list(em, agent.getRouter().getId())) {
+    for (Queue queue : app.db.queue.list(em, agent.getRouter().getRef())) {
       try {
         if (evaluator.init(queue.getPredicate()).evaluate(capabilities)) {
 
-          LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
+          LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;
 
           if (isNewAgent || !queue.getAgents().contains(agent)) {
@@ -121,21 +120,21 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
           queue.getAgents().remove(agent);
         }
       } catch (CommsRouterException ex) {
-        LOGGER.error("Agent {}: failure attaching queue {}: {}", agent.getId(), queue.getId(), ex,
+        LOGGER.error("Agent {}: failure attaching queue {}: {}", agent.getRef(), queue.getRef(), ex,
             ex);
         throw ex;
       }
     }
-    LOGGER.info("Agent {}: queues attached: {}", agent.getId(), attachedQueuesCount);
+    LOGGER.info("Agent {}: queues attached: {}", agent.getRef(), attachedQueuesCount);
   }
 
   @Override
-  public void update(UpdateAgentArg updateArg, RouterObjectId objectId)
+  public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    boolean becameReady = updateAgent(updateArg, objectId);
+    boolean becameReady = updateAgent(updateArg, objectRef);
     if (becameReady) {
-      app.taskDispatcher.dispatchAgent(objectId.getId());
+      app.taskDispatcher.dispatchAgent(objectRef.getRef());
     }
 
   }
@@ -163,7 +162,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return false; // !keys.isEmpty();
   }
 
-  private boolean updateAgent(UpdateAgentArg updateArg, RouterObjectId objectId)
+  private boolean updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     if (updateArg.getState() == AgentState.busy
@@ -173,7 +172,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     }
 
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = app.db.agent.get(em, objectId.getId());
+      Agent agent = app.db.agent.get(em, objectRef.getRef());
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       updateCapabilities(em, agent, updateArg.getCapabilities());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
@@ -221,10 +220,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     if (capabilitiesAreEqual(newCapabilities,
         app.entityMapper.attributes.toDto(agent.getCapabilities()))) {
-      LOGGER.info("Agent {}: no capabilities change - will keep current queues", agent.getId());
+      LOGGER.info("Agent {}: no capabilities change - will keep current queues", agent.getRef());
       return;
     }
-    LOGGER.info("Agent {}: detaching all queues due to capabilities change", agent.getId());
+    LOGGER.info("Agent {}: detaching all queues due to capabilities change", agent.getRef());
 
     agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
     agent.getQueues().clear();
@@ -232,9 +231,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+  public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
     app.db.transactionManager.executeVoid((em) -> {
-      Agent agent = app.db.agent.get(em, routerObjectId);
+      Agent agent = app.db.agent.get(em, routerObjectRef);
       if (!agent.getState().isDeleteAllowed()) {
         throw new InvalidStateException(
             "Deleting agent in state " + agent.getState() + " not allowed");

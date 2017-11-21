@@ -16,32 +16,32 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-public class ApiObjectId {
+public class ApiObjectRef {
 
-  private String id;
+  private String ref;
 
-  public ApiObjectId() {}
+  public ApiObjectRef() {}
 
-  public ApiObjectId(String id) {
-    setId(id);
+  public ApiObjectRef(String id) {
+    setRef(id);
   }
 
-  public ApiObjectId(ApiObjectId rhs) {
-    setId(rhs.getId());
+  public ApiObjectRef(ApiObjectRef rhs) {
+    setRef(rhs.getRef());
   }
 
-  public String getId() {
-    return id;
+  public String getRef() {
+    return ref;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setRef(String ref) {
+    this.ref = ref;
   }
 
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("ApiObjectId{");
-    sb.append("id='").append(id).append('\'');
+    sb.append("id='").append(ref).append('\'');
     sb.append('}');
     return sb.toString();
   }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,8 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.AgentService;
@@ -67,13 +67,12 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       value = "Add new Agent",
       notes = "Add new Agent and associate it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class)})
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
   public Response create(CreateAgentArg agentArg) throws CommsRouterException {
 
     LOGGER.debug("Creating agent {}", agentArg);
 
-    ApiObjectId agent = agentService.create(agentArg, routerId);
+    ApiObjectRef agent = agentService.create(agentArg, routerRef);
 
     return createResponse(agent);
   }
@@ -84,8 +83,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       value = "Replace an existing Agent",
       notes = "If the agent with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Agent not found",
@@ -102,10 +100,10 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
 
     LOGGER.debug("Replacing agent: {}, with id: {}", agentArg, resourceId);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectRef =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectId agent = agentService.create(agentArg, objectId);
+    ApiObjectRef agent = agentService.create(agentArg, objectRef);
 
     return createResponse(agent);
   }
@@ -135,8 +133,8 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
 
     LOGGER.debug("Updating agent {}", agentArg);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectId =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
     agentService.update(agentArg, objectId);
   }

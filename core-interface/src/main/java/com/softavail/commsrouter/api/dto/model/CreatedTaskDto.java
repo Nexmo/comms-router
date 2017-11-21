@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 /**
  * Created by @author mapuo on 05.10.17.
  */
-public class CreatedTaskDto extends ApiObjectId {
+public class CreatedTaskDto extends ApiObjectRef {
 
   @JsonIgnore
   private String queueId;
@@ -30,9 +30,9 @@ public class CreatedTaskDto extends ApiObjectId {
 
   public CreatedTaskDto() {}
 
-  public CreatedTaskDto(ApiObjectId taskDto, String queueId, Long queueTasks) {
+  public CreatedTaskDto(ApiObjectRef taskDto, String queueRef, Long queueTasks) {
     super(taskDto);
-    this.queueId = queueId;
+    this.queueId = queueRef;
     this.queueTasks = queueTasks;
   }
 

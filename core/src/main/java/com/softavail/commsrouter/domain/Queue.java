@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +41,8 @@ public class Queue extends RouterObject {
 
   public Queue() {}
 
-  public Queue(RouterObjectId objectId) {
-    super(objectId.getId());
+  public Queue(RouterObjectRef objectRef) {
+    super(objectRef.getRef());
   }
 
   public String getPredicate() {

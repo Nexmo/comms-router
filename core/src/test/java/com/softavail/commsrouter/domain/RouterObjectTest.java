@@ -29,25 +29,25 @@ public class RouterObjectTest {
   public void setUp() throws Exception {
 
     routerR1 = new Router();
-    routerR1.setId("R1");
+    routerR1.setRef("R1");
 
     routerR2 = new Router();
-    routerR2.setId("R2");
+    routerR2.setRef("R2");
 
     planP1R1 = new Plan();
-    planP1R1.setId("P1");
+    planP1R1.setRef("P1");
     planP1R1.setRouter(routerR1);
 
     planP1R1new = new Plan();
-    planP1R1new.setId("P1");
+    planP1R1new.setRef("P1");
     planP1R1new.setRouter(routerR1);
 
     planP1R2 = new Plan();
-    planP1R2.setId("P1");
+    planP1R2.setRef("P1");
     planP1R2.setRouter(routerR2);
 
     task = new Task();
-    task.setId("P1");
+    task.setRef("P1");
     task.setRouter(routerR2);
   }
 

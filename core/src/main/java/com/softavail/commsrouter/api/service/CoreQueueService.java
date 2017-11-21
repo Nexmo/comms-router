@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
@@ -56,58 +56,57 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public ApiObjectId create(CreateQueueArg createArg, String routerId)
+  public ApiObjectRef create(CreateQueueArg createArg, String routerRef)
       throws CommsRouterException {
 
-    RouterObjectId routerObjectId = RouterObjectId.builder()
-        .setId(Uuid.get())
-        .setRouterId(routerId)
-        .build();
+    RouterObjectRef routerObjectRef =
+        RouterObjectRef.builder().setRef(Uuid.get()).setRouterRef(routerRef).build();
 
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, routerObjectId);
+      return doCreate(em, createArg, routerObjectRef);
     });
   }
 
   @Override
-  public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectRef create(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.delete(em, objectId.getId());
-      return doCreate(em, createArg, objectId);
+      app.db.queue.delete(em, objectRef.getRef());
+      return doCreate(em, createArg, objectRef);
     });
   }
 
-  private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
+  private ApiObjectRef doCreate(EntityManager em, CreateQueueArg createArg,
+      RouterObjectRef objectRef)
       throws CommsRouterException {
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
     evaluator.validate(createArg.getPredicate());
 
-    Router router = getRouter(em, objectId);
-    Queue queue = new Queue(objectId);
+    Router router = getRouter(em, objectRef);
+    Queue queue = new Queue(objectRef);
     queue.setRouter(router);
     queue.setDescription(createArg.getDescription());
     queue.setPredicate(createArg.getPredicate());
     attachAgents(em, queue, evaluator, true);
     em.persist(queue);
-    return queue.cloneApiObjectId();
+    return queue.cloneApiObjectRef();
   }
 
   private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
       boolean isNewQueue) throws CommsRouterException {
 
-    LOGGER.info("Queue {}: attaching agents...", queue.getId());
+    LOGGER.info("Queue {}: attaching agents...", queue.getRef());
 
     int attachedAgentsCount = 0;
     long millis = System.currentTimeMillis();
-    List<Agent> agents = app.db.agent.list(em, queue.getRouter().getId());
+    List<Agent> agents = app.db.agent.list(em, queue.getRouter().getRef());
     for (Agent agent : agents) {
       try {
         if (evaluator.evaluateJpa(agent.getCapabilities())) {
 
-          LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
+          LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedAgentsCount;
 
           if (isNewQueue || !agent.getQueues().contains(queue)) {
@@ -118,7 +117,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
           agent.getQueues().remove(queue);
         }
       } catch (CommsRouterException | RuntimeException ex) {
-        LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getId(), agent.getId(), ex,
+        LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getRef(), agent.getRef(), ex,
             ex);
         throw new EvaluatorException(ex.getMessage(), ex);
       }
@@ -126,15 +125,15 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
     LOGGER.trace("Evaluate all agents attributes to queue predicate takes : {}",
         (System.currentTimeMillis() - millis));
-    LOGGER.info("Queue {}: agents attached: {}", queue.getId(), attachedAgentsCount);
+    LOGGER.info("Queue {}: agents attached: {}", queue.getRef(), attachedAgentsCount);
   }
 
   @Override
-  public void update(UpdateQueueArg updateArg, RouterObjectId objectId)
+  public void update(UpdateQueueArg updateArg, RouterObjectRef objectId)
       throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Queue queue = app.db.queue.get(em, objectId.getId());
+      Queue queue = app.db.queue.get(em, objectId.getRef());
       updatePredicate(em, queue, updateArg.getPredicate());
       Fields.update(queue::setDescription, queue.getDescription(), updateArg.getDescription());
     });
@@ -149,10 +148,10 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
 
     if (queue.getPredicate().equals(predicate)) {
-      LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getId());
+      LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getRef());
       return;
     }
-    LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
+    LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getRef());
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
     evaluator.validate(predicate);
@@ -163,29 +162,28 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public long getQueueSize(RouterObjectId routerObjectId)
+  public long getQueueSize(RouterObjectRef routerObjectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.get(em, routerObjectId); // Check that queue exists
+      app.db.queue.get(em, routerObjectRef); // Check that queue exists
 
-      return app.db.queue.getQueueSize(em, routerObjectId.getId());
+      return app.db.queue.getQueueSize(em, routerObjectRef.getRef());
     });
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId)
+  public Collection<TaskDto> getTasks(RouterObjectRef routerObjectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.get(em, routerObjectId); // Check that queue exists
+      app.db.queue.get(em, routerObjectRef); // Check that queue exists
 
       String qlString = "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId "
           + "AND t.state = :state ORDER BY t.priority DESC";
 
-      List<Task> list = em.createQuery(qlString)
-          .setParameter("queueId", routerObjectId.getId())
+      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectRef.getRef())
           .setParameter("state", TaskState.waiting)
           .getResultList();
 
@@ -194,7 +192,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+  public void delete(RouterObjectRef routerObjectId) throws CommsRouterException {
     try {
       super.delete(routerObjectId);
     } catch (ReferenceIntegrityViolationException ex) {

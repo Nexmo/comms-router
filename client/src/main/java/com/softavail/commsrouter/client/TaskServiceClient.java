@@ -21,7 +21,7 @@ import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -72,14 +72,14 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId routerObjectId)
+  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
     return put(createArg, routerObjectId);
   }
 
   @Override
-  public void update(UpdateTaskArg updateArg, RouterObjectId routerObjectId)
+  public void update(UpdateTaskArg updateArg, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
     // post on resource, updates it with parameters provided
@@ -87,25 +87,25 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public void update(UpdateTaskContext taskContext, RouterObjectId routerObjectId)
+  public void update(UpdateTaskContext taskContext, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
-    putContext(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
+    putContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerId));
   }
 
   @Override
-  public void updateContext(UpdateTaskContext taskContext, RouterObjectId routerObjectId)
+  public void updateContext(UpdateTaskContext taskContext, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
-    postContext(taskContext, new RouterObjectId(routerObjectId.getId(), routerId));
+    postContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerId));
   }
 
   @Override
-  public TaskDto get(RouterObjectId routerObject)
+  public TaskDto get(RouterObjectRef routerObject)
       throws NotFoundException {
 
-    routerObject.setRouterId(routerId);
-    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+    routerObject.setRouterRef(routerId);
+    return getItem(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   @Override
@@ -119,17 +119,17 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public void delete(RouterObjectId routerObject) {
-    routerObject.setRouterId(routerId);
-    deleteRequest(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+  public void delete(RouterObjectRef routerObject) {
+    routerObject.setRouterRef(routerId);
+    deleteRequest(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   // POST over resource updates. Returns void
-  private void postContext(Object obj, RouterObjectId id) {
+  private void postContext(Object obj, RouterObjectRef id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .path("user_context")
-        .build(id.getRouterId(), id.getId());
+        .build(id.getRouterRef(), id.getRef());
 
     getClient()
         .target(uri)
@@ -137,11 +137,11 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected CreatedTaskDto putContext(Object obj, RouterObjectId id) {
+  protected CreatedTaskDto putContext(Object obj, RouterObjectRef id) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}")
         .path("user_context")
-        .build(id.getRouterId(), id.getId());
+        .build(id.getRouterRef(), id.getRef());
 
     return getClient()
         .target(uri)

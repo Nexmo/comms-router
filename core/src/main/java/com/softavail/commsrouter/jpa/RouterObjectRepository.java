@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.domain.RouterObject;
@@ -35,28 +35,28 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
     super(transactionManager);
   }
 
-  public ENTITYT get(EntityManager em, RouterObjectId routerObjectId) throws NotFoundException {
-    ENTITYT entity = get(em, routerObjectId.getId());
+  public ENTITYT get(EntityManager em, RouterObjectRef routerObjectRef) throws NotFoundException {
+    ENTITYT entity = get(em, routerObjectRef.getRef());
     if (entity != null
-        && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
+        && Objects.equals(entity.getRouter().getRef(), routerObjectRef.getRouterRef())) {
       return entity;
     }
-    throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectId + " not found");
+    throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectRef + " not found");
   }
 
   @SuppressWarnings("unchecked")
-  public List<ENTITYT> list(EntityManager em, String routerId) {
+  public List<ENTITYT> list(EntityManager em, String routerRef) {
     return em
         .createQuery("SELECT e FROM " + entityClass.getSimpleName()
-            + " e JOIN e.router r WHERE r.id = :routerId")
-        .setParameter("routerId", routerId).getResultList();
+            + " e JOIN e.router r WHERE r.ref = :routerRef")
+        .setParameter("routerRef", routerRef).getResultList();
   }
 
-  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
+  public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
     transactionManager.executeVoid((em) -> {
-      ENTITYT entity = em.find(entityClass, routerObjectId.getId());
+      ENTITYT entity = em.find(entityClass, routerObjectRef.getRef());
       if (entity != null
-          && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
+          && Objects.equals(entity.getRouter().getRef(), routerObjectRef.getRouterRef())) {
         em.remove(entity);
       }
     });

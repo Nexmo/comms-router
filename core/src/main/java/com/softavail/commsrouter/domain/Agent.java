@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,8 +63,8 @@ public class Agent extends RouterObject {
 
   public Agent() {}
 
-  public Agent(RouterObjectId objectId) {
-    super(objectId.getId());
+  public Agent(RouterObjectRef objectRef) {
+    super(objectRef.getRef());
   }
 
   public AttributeGroup getCapabilities() {

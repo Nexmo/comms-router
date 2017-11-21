@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 
@@ -35,15 +35,15 @@ public interface TaskService
   CreatedTaskDto create(CreateTaskArg createArg, String routerId)
       throws CommsRouterException;
 
-  CreatedTaskDto create(CreateTaskArg createArg, RouterObjectId objectId)
+  CreatedTaskDto create(CreateTaskArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateTaskArg updateArg, RouterObjectId objectId)
+  void update(UpdateTaskArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateTaskContext taskContext, RouterObjectId objectId)
+  void update(UpdateTaskContext taskContext, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void updateContext(UpdateTaskContext taskContext, RouterObjectId objectId)
+  void updateContext(UpdateTaskContext taskContext, RouterObjectRef objectRef)
       throws CommsRouterException;
 }

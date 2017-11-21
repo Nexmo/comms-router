@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,8 @@ package com.softavail.commsrouter.api.interfaces;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 /**
@@ -28,13 +28,12 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface AgentService extends RouterObjectService<AgentDto> {
 
-  ApiObjectId create(CreateAgentArg createArg, String routerId)
+  ApiObjectRef create(CreateAgentArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
+  ApiObjectRef create(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateAgentArg updateArg, RouterObjectId objectId)
-      throws CommsRouterException;
+  void update(UpdateAgentArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;
 
 }

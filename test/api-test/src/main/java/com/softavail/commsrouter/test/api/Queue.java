@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.not;
 
 import io.restassured.response.ValidatableResponse;
 
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -64,19 +64,19 @@ public class Queue extends Resource {
         .then();
   }
 
-  public ApiObjectId replace(CreateQueueArg args) {
+  public ApiObjectRef replace(CreateQueueArg args) {
       String id = state().get(CommsRouterResource.QUEUE);
-      ApiObjectId oid = replaceResponse(args)
+      ApiObjectRef oid = replaceResponse(args)
           .statusCode(201)
           .extract()
-          .as(ApiObjectId.class);
-    state().put(CommsRouterResource.QUEUE, oid.getId());
+          .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.QUEUE, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreateQueueArg args) {
+  public ApiObjectRef create(CreateQueueArg args) {
 
-    ApiObjectId oid = given()
+    ApiObjectRef oid = given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
@@ -85,8 +85,8 @@ public class Queue extends Resource {
         .statusCode(201)
         .body("id", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.QUEUE, id);
     return oid;
   }

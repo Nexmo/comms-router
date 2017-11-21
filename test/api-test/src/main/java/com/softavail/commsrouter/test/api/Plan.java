@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,9 +50,9 @@ public class Plan extends Resource {
     return Arrays.asList(routers);
   }
 
-  public ApiObjectId replace(CreatePlanArg args) {
+  public ApiObjectRef replace(CreatePlanArg args) {
     String id = state().get(CommsRouterResource.PLAN);
-    ApiObjectId oid = given()
+    ApiObjectRef oid = given()
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("queueId", id)
@@ -60,21 +60,21 @@ public class Plan extends Resource {
         .when().put("/routers/{routerId}/plans/{queueId}")
         .then().statusCode(201)
         .extract()
-        .as(ApiObjectId.class);
-    state().put(CommsRouterResource.PLAN, oid.getId());
+        .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.PLAN, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreatePlanArg args) {
-    ApiObjectId oid = given()
+  public ApiObjectRef create(CreatePlanArg args) {
+    ApiObjectRef oid = given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/plans")
         .then().statusCode(201).body("id", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.PLAN, id);
     return oid;
   }

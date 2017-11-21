@@ -29,7 +29,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
@@ -46,7 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import com.softavail.commsrouter.api.dto.model.TaskState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
@@ -68,10 +67,10 @@ public class AppTest {
   public void crudRouter() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
-    ApiObjectId id = r.create(new CreateRouterArg());
+    ApiObjectRef ref = r.create(new CreateRouterArg());
     RouterDto router = r.get();
     assertThat(router.getName(), nullValue());
-    assertThat(r.list(), hasItems(hasProperty("id", is(id.getId()))));
+    assertThat(r.list(), hasItems(hasProperty("id", is(ref.getRef()))));
     r.replace(new CreateRouterArg());
     r.update(new CreateRouterArg());
     r.delete();
@@ -86,10 +85,10 @@ public class AppTest {
     r.create(new CreateRouterArg());
 
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
+    ApiObjectRef ref = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
-    assertThat(q.list(), hasItems(hasProperty("id", is(id.getId()))));
+    assertThat(q.list(), hasItems(hasProperty("id", is(ref.getRef()))));
     q.replace(new CreateQueueArg.Builder().predicate("2==2").build());
     q.update(new CreateQueueArg.Builder().predicate("1==1").build());
     q.delete();
@@ -102,17 +101,17 @@ public class AppTest {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     Plan p = new Plan(state);
-    ApiObjectId id = r.create(new CreateRouterArg());
+    ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    ApiObjectId queueId = q.create(new CreateQueueArg.Builder().predicate("true").build());
+    ApiObjectRef queueRef = q.create(new CreateQueueArg.Builder().predicate("true").build());
     CreatePlanArg arg = new CreatePlanArg();
     RouteDto defaultRoute = new RouteDto();
-    defaultRoute.setQueueId(queueId.getId());
+    defaultRoute.setQueueId(queueRef.getRef());
     arg.setDefaultRoute(defaultRoute);
-    id = p.create(arg);
+    ref = p.create(arg);
     PlanDto resource = p.get();
     assertThat(resource.getDescription(), nullValue());
-    assertThat(p.list(), hasItems(hasProperty("id", is(id.getId()))));
+    assertThat(p.list(), hasItems(hasProperty("id", is(ref.getRef()))));
     p.replace(arg);
     p.update(arg);
     //p.delete(); Known issue
@@ -124,13 +123,13 @@ public class AppTest {
   public void crdAgent() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
-    ApiObjectId id = r.create(new CreateRouterArg());
+    ApiObjectRef ref = r.create(new CreateRouterArg());
     Agent a = new Agent(state);
     CreateAgentArg arg = new CreateAgentArg();
-    id = a.create(arg);
+    ref = a.create(arg);
     AgentDto resource = a.get();
     assertThat(resource.getCapabilities(), nullValue());
-    assertThat(a.list(), hasItems(hasProperty("id", is(id.getId()))));
+    assertThat(a.list(), hasItems(hasProperty("id", is(ref.getRef()))));
     a.replace(new CreateAgentArg());
     a.update(new UpdateAgentArg());
     a.delete();
@@ -142,21 +141,19 @@ public class AppTest {
   public void crdTask() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
-    ApiObjectId id = r.create(new CreateRouterArg());
+    ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    ApiObjectId queueId = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
+    ApiObjectRef queueRef = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
     Task t = new Task(state);
     CreateTaskArg arg = new CreateTaskArg();
     arg.setCallbackUrl(new URL("http://example.com"));
-    arg.setQueueId(queueId.getId());
-    id = t.create(arg);
+    arg.setQueueId(queueRef.getRef());
+    ref = t.create(arg);
     TaskDto resource = t.get();
     assertThat(resource.getRequirements(), nullValue());
-    assertThat(t.list(), hasItems(hasProperty("id", is(id.getId()))));
-    t.replace(new CreateTaskArg.Builder()
-              .callback(new URL ("http://localhost:8080"))
-              .queue(queueId.getId())
-              .build());
+    assertThat(t.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    t.replace(new CreateTaskArg.Builder().callback(new URL("http://localhost:8080"))
+        .queue(queueRef.getRef()).build());
     t.update(new UpdateTaskArg.Builder().state(TaskState.completed).build());
     t.delete();
     q.delete();

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,15 +23,15 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
  *
  * @author ikrustev
  */
-public class QueueDto extends RouterObjectId {
+public class QueueDto extends RouterObjectRef {
 
   private String description;
   private String predicate;
 
   public QueueDto() {}
 
-  public QueueDto(CreateQueueArg queueArg, RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+  public QueueDto(CreateQueueArg queueArg, RouterObjectRef objectRef) {
+    super(objectRef.getRef(), objectRef.getRouterRef());
     description = queueArg.getDescription();
     predicate = queueArg.getPredicate();
   }

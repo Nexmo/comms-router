@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
@@ -36,7 +36,7 @@ import javax.validation.ValidationException;
 /**
  * @author ikrustev
  */
-public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extends RouterObject>
+public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT extends RouterObject>
     implements RouterObjectService<DTOT> {
 
   protected final Class<DTOT> dtoEntityClass;
@@ -63,24 +63,24 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   }
 
   @Override
-  public DTOT get(RouterObjectId routerObjectId) throws CommsRouterException {
+  public DTOT get(RouterObjectRef routerObjectRef) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      ENTITYT entity = repository.get(em, routerObjectId);
+      ENTITYT entity = repository.get(em, routerObjectRef);
       return entityMapper.toDto(entity);
     });
   }
 
   @Override
-  public List<DTOT> list(String routerId) throws CommsRouterException {
+  public List<DTOT> list(String routerRef) throws CommsRouterException {
     return app.db.transactionManager.execute((em) -> {
-      List<ENTITYT> list = repository.list(em, routerId);
+      List<ENTITYT> list = repository.list(em, routerRef);
       return entityMapper.toDto(list);
     });
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public PaginatedList<DTOT> list(String routerId, int page, int perPage)
+  public PaginatedList<DTOT> list(String routerRef, int page, int perPage)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
@@ -90,8 +90,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
       String countString = "SELECT COUNT(e.id) FROM " + simpleName + " e "
           + "JOIN e.router r WHERE r.id = :routerId";
       long totalCount =
-          (long) em.createQuery(countString)
-              .setParameter("routerId", routerId)
+          (long) em.createQuery(countString).setParameter("routerId", routerRef)
               .getSingleResult();
 
       int startPosition = (page * perPage) - perPage;
@@ -101,8 +100,7 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
       }
 
       String qlString = "SELECT e FROM " + simpleName + " e JOIN e.router r WHERE r.id = :routerId";
-      List<ENTITYT> jpaResult = em.createQuery(qlString)
-          .setParameter("routerId", routerId)
+      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerId", routerRef)
           .setFirstResult(startPosition)
           .setMaxResults(perPage)
           .getResultList();
@@ -112,14 +110,14 @@ public class CoreRouterObjectService<DTOT extends RouterObjectId, ENTITYT extend
   }
 
   @Override
-  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
-    repository.delete(routerObjectId);
+  public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
+    repository.delete(routerObjectRef);
   }
 
-  protected Router getRouter(EntityManager em, RouterObjectId routerObjectId)
+  protected Router getRouter(EntityManager em, RouterObjectRef routerObjectRef)
       throws NotFoundException {
 
-    return app.db.router.get(em, routerObjectId.getRouterId());
+    return app.db.router.get(em, routerObjectRef.getRouterRef());
   }
 
 }

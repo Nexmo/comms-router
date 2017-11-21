@@ -30,7 +30,7 @@ import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import org.junit.jupiter.api.Assumptions;
@@ -59,7 +59,7 @@ public class BaseRouterTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
@@ -78,12 +78,12 @@ public class BaseRouterTest {
     routerArg.setDescription(description);
     routerArg.setName(name);
     state.put(CommsRouterResource.ROUTER, routerId);
-    ApiObjectId id = r.replace(routerArg);
+    ApiObjectRef ref = r.replace(routerArg);
 
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
-    assertThat(router.getId(), is(routerId));
+    assertThat(router.getRef(), is(routerId));
 
     r.delete();
   }
@@ -98,13 +98,13 @@ public class BaseRouterTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
-    ApiObjectId id1 = r.replace(new CreateRouterArg());// replace with null values
-    assertThat(id.getId(), is(id1.getId()));
+    ApiObjectRef ref1 = r.replace(new CreateRouterArg());// replace with null values
+    assertThat(ref.getRef(), is(ref1.getRef()));
     router = r.get();
     assertThat(router.getName(), nullValue());
     assertThat(router.getDescription(), nullValue());
@@ -122,13 +122,13 @@ public class BaseRouterTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
     Queue q = new Queue(state);
-    ApiObjectId qid = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
+    ApiObjectRef qRef = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
     r.replaceResponse(new CreateRouterArg())
         .statusCode(500)
@@ -136,7 +136,7 @@ public class BaseRouterTest {
     // check that queue is still there
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
-    assertThat(q.list(), hasItems(hasProperty("id", is(qid.getId()))));
+    assertThat(q.list(), hasItems(hasProperty("id", is(qRef.getRef()))));
 
     q.delete();
     r.delete();
@@ -152,7 +152,7 @@ public class BaseRouterTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
@@ -189,7 +189,7 @@ public class BaseRouterTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));

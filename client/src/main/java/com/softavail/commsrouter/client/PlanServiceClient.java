@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,9 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.PlanService;
@@ -34,18 +34,18 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
+public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectRef>
     implements PlanService {
 
   private final Client client;
   private final String endpoint;
-  private final String routerId;
+  private final String routerRef;
 
   @Inject
-  public PlanServiceClient(Client client, String endpoint, String routerId) {
+  public PlanServiceClient(Client client, String endpoint, String routerRef) {
     this.client = client;
     this.endpoint = endpoint;
-    this.routerId = routerId;
+    this.routerRef = routerRef;
   }
 
   @Override
@@ -63,10 +63,10 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
   }
 
   @Override
-  public PlanDto get(RouterObjectId routerObject)
+  public PlanDto get(RouterObjectRef routerObject)
       throws NotFoundException {
 
-    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+    return getItem(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   @Override
@@ -80,29 +80,29 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectId>
   }
 
   @Override
-  public void delete(RouterObjectId routerObject) {
-    routerObject.setRouterId(routerId);
-    deleteRequest(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+  public void delete(RouterObjectRef routerObject) {
+    routerObject.setRouterRef(routerRef);
+    deleteRequest(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, String id) {
+  public ApiObjectRef create(CreatePlanArg createArg, String ref) {
 
-    return post(createArg, id);
+    return post(createArg, ref);
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
+  public ApiObjectRef create(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    return put(createArg, objectId);
+    return put(createArg, objectRef);
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg, RouterObjectId id)
+  public void update(UpdatePlanArg updateArg, RouterObjectRef ref)
       throws NotFoundException {
 
-    post(updateArg, id);
+    post(updateArg, ref);
   }
 
 }

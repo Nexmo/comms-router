@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class AgentDto extends RouterObjectId {
+public class AgentDto extends RouterObjectRef {
 
   private AttributeGroupDto capabilities;
   private String address;

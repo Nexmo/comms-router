@@ -66,7 +66,7 @@ public class Task extends Resource {
         .then().statusCode(201)
         .extract()
         .as(CreatedTaskDto.class);
-    state().put(CommsRouterResource.TASK, oid.getId());
+    state().put(CommsRouterResource.TASK, oid.getRef());
     return oid;
   }
 
@@ -79,7 +79,7 @@ public class Task extends Resource {
         .body("id", not(isEmptyString())).and().body("queueTasks", isA(Integer.class))
         .extract()
         .as(CreatedTaskDto.class);
-    String id = oid.getId();
+    String id = oid.getRef();
     state().put(CommsRouterResource.TASK, id);
     return oid;
   }
@@ -106,7 +106,7 @@ public class Task extends Resource {
         .then().statusCode(201).body("id", not(isEmptyString()))
         .extract()
         .as(CreatedTaskDto.class);
-    String id = oid.getId();
+    String id = oid.getRef();
     state().put(CommsRouterResource.TASK, id);
     return oid;
   }

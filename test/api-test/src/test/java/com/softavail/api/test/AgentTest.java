@@ -35,7 +35,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -277,12 +277,12 @@ public class AgentTest {
   @DisplayName("Multiple agents compete for a task.")
   public void multipleAgentsPerTask() throws MalformedURLException, InterruptedException {
 
-    ApiObjectId id1 = a.create("en");
+    ApiObjectRef ref1 = a.create("en");
     assertThat(q.size(), is(0));
     a.setState(AgentState.ready);
     TimeUnit.SECONDS.sleep(1);
 
-    ApiObjectId id2 = a.create("en");
+    ApiObjectRef ref2 = a.create("en");
     assertThat(q.size(), is(0));
     a.setState(AgentState.ready);
 
@@ -290,7 +290,7 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    state.put(CommsRouterResource.AGENT, id1.getId());
+    state.put(CommsRouterResource.AGENT, ref1.getRef());
     AgentDto resource = a.get();
     assertThat(String.format("First Agent1 is created after that Agent2. Check that fresh created task is handled by Agent1."
                              , resource.getState())
@@ -314,8 +314,7 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    state.put(CommsRouterResource.AGENT
-              , id2.getId());
+    state.put(CommsRouterResource.AGENT, ref2.getRef());
 
     assertThat("Check the oldest's agent state to be busy."
                , a.get().getState()
@@ -339,18 +338,18 @@ public class AgentTest {
   @DisplayName("Multiple agents cancel task and go to the next.")
   public void multipleAgentsAndCancelTask() throws MalformedURLException, InterruptedException {
 
-    ApiObjectId id1 = a.create("en");
+    ApiObjectRef ref1 = a.create("en");
     a.setState(AgentState.ready);
     TimeUnit.SECONDS.sleep(1);
 
-    ApiObjectId id2 = a.create("en");
+    ApiObjectRef ref2 = a.create("en");
     a.setState(AgentState.ready);
 
     t.createQueueTask();
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    state.put(CommsRouterResource.AGENT, id1.getId());
+    state.put(CommsRouterResource.AGENT, ref1.getRef());
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
@@ -359,7 +358,7 @@ public class AgentTest {
     assertThat(q.size(), is(0));
 
     TimeUnit.SECONDS.sleep(1);
-    state.put(CommsRouterResource.AGENT, id2.getId());
+    state.put(CommsRouterResource.AGENT, ref2.getRef());
 
     resource = a.get();
     assertThat(String
@@ -377,19 +376,17 @@ public class AgentTest {
   public void multipleAgentsLastBusyStartsTask()
       throws MalformedURLException, InterruptedException {
 
-    ApiObjectId a1_id = a.create("en");
+    ApiObjectRef a1_ref = a.create("en");
     a.setState(AgentState.ready);
     CreatedTaskDto task1 = t.createQueueTask();
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
 
-    ApiObjectId a2_id = a.create("en");
+    ApiObjectRef a2_ref = a.create("en");
     assertThat(String.format("Router (%s): debug. a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER)
-        , a1_id.getId()
-        , a2_id.getId()),
-        a1_id.getId(), not(is(a2_id.getId())));
+        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), a1_ref.getRef(),
+        not(is(a2_ref.getRef())));
 
     a.setState(AgentState.ready);
     assertThat(q.size(), is(0));
@@ -400,21 +397,17 @@ public class AgentTest {
         resource.getState(), is(AgentState.busy));
     TaskDto task = t.get();
     assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER)
-        , a1_id.getId()
-        , a2_id.getId()),
-        task.getAgentId(), is(a2_id.getId()));
+        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentId(),
+        is(a2_ref.getRef()));
 
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 
-    state.put(CommsRouterResource.TASK, task1.getId());
+    state.put(CommsRouterResource.TASK, task1.getRef());
     task = t.get();
     assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER)
-        , a1_id.getId()
-        , a2_id.getId()),
-        task.getAgentId(), is(a1_id.getId()));
+        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentId(),
+        is(a1_ref.getRef()));
 
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
@@ -428,11 +421,9 @@ public class AgentTest {
         state.get(CommsRouterResource.ROUTER), task.getState()),
         task.getState(), is(TaskState.assigned));
 
-    assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER)
-        , a1_id.getId()
-        , a2_id.getId()),
-        task.getAgentId(), is(a2_id.getId()));
+    assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)",
+            state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()),
+        task.getAgentId(), is(a2_ref.getRef()));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 
@@ -443,7 +434,7 @@ public class AgentTest {
   @DisplayName("Two tasks in a row.")
   public void twoTaskInARow() throws MalformedURLException, InterruptedException {
 
-    ApiObjectId a1_id = a.create("en");
+    ApiObjectRef a1_ref = a.create("en");
     assertThat(q.size(), is(0));
     CreatedTaskDto task1 = t.createQueueTask();
     TimeUnit.SECONDS.sleep(2);
@@ -458,7 +449,7 @@ public class AgentTest {
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
 
-    state.put(CommsRouterResource.TASK, task1.getId());
+    state.put(CommsRouterResource.TASK, task1.getRef());
     TaskDto task = t.get();
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
@@ -470,7 +461,7 @@ public class AgentTest {
             .format("Check agent state (%s) to be busy with the second task.", resource.getState()),
         resource.getState(), is(AgentState.busy));
 
-    state.put(CommsRouterResource.TASK, task2.getId());
+    state.put(CommsRouterResource.TASK, task2.getRef());
     task = t.get();
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
@@ -489,7 +480,7 @@ public class AgentTest {
     CreatedTaskDto task1 = t.createQueueTask();
     TimeUnit.SECONDS.sleep(2);
 
-    ApiObjectId a1_id = a.create("en");
+    ApiObjectRef a1_ref = a.create("en");
     assertThat(q.size(), is(1));
     CreatedTaskDto task2 = t.createQueueTask();
     assertThat(q.size(), is(2));
@@ -502,7 +493,7 @@ public class AgentTest {
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
 
-    state.put(CommsRouterResource.TASK, task1.getId());
+    state.put(CommsRouterResource.TASK, task1.getRef());
     TaskDto task = t.get();
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
@@ -514,7 +505,7 @@ public class AgentTest {
             .format("Check agent state (%s) to be busy with the second task.", resource.getState()),
         resource.getState(), is(AgentState.busy));
 
-    state.put(CommsRouterResource.TASK, task2.getId());
+    state.put(CommsRouterResource.TASK, task2.getRef());
     task = t.get();
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
@@ -558,21 +549,21 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(2);
     assertThat(q.size(), is(2));
     TaskDto task;
-    state.put(CommsRouterResource.TASK, task5.getId());
+    state.put(CommsRouterResource.TASK, task5.getRef());
     task = t.get();
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);
 
-    state.put(CommsRouterResource.TASK, task3.getId());
+    state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();
     assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);
 
-    state.put(CommsRouterResource.TASK, task0.getId());
+    state.put(CommsRouterResource.TASK, task0.getRef());
     task = t.get();
     assertThat(String.format("Check task with priority 0 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
@@ -619,21 +610,21 @@ public class AgentTest {
     a.setState(AgentState.ready);
     TimeUnit.SECONDS.sleep(2);
     TaskDto task;
-    state.put(CommsRouterResource.TASK, task5.getId());
+    state.put(CommsRouterResource.TASK, task5.getRef());
     task = t.get();
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);
 
-    state.put(CommsRouterResource.TASK, task3.getId());
+    state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();
     assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);
 
-    state.put(CommsRouterResource.TASK, task0.getId());
+    state.put(CommsRouterResource.TASK, task0.getRef());
     task = t.get();
     assertThat(String.format("Check task with priority 0 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));

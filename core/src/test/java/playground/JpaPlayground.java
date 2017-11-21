@@ -8,8 +8,8 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
@@ -71,7 +71,7 @@ public class JpaPlayground implements AutoCloseable {
     db.close();
   }
 
-  private <ENTITYT extends ApiObjectId> void printList(List<ENTITYT> list) {
+  private <ENTITYT extends ApiObjectRef> void printList(List<ENTITYT> list) {
     list.stream().forEach(e -> System.out.println(e.getClass().getSimpleName() + ": " + e));
   }
 
@@ -88,31 +88,31 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
   }
 
-  private <DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
-      RouterObjectId routerObject, SERVICET service, VoidTransactionLogic transaction)
+  private <DTOENTITYT extends RouterObjectRef, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
+      RouterObjectRef routerObject, SERVICET service, VoidTransactionLogic transaction)
       throws CommsRouterException {
 
     System.out.println("testRouterObject:" + service.getDtoEntityClass().getSimpleName());
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
     service.delete(routerObject);
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
     db.transactionManager.execute(transaction);
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
   }
 
   static interface Creator {
     void run() throws CommsRouterException;
   }
 
-  private <DTOENTITYT extends RouterObjectId, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
-      RouterObjectId routerObject, SERVICET service, Creator creator) throws CommsRouterException {
+  private <DTOENTITYT extends RouterObjectRef, ENTITYT extends RouterObject, SERVICET extends CoreRouterObjectService<DTOENTITYT, ENTITYT>> void testRouterObject(
+      RouterObjectRef routerObject, SERVICET service, Creator creator) throws CommsRouterException {
 
     System.out.println("testRouterObject:" + service.getDtoEntityClass().getSimpleName());
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
     service.delete(routerObject);
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
     creator.run();
-    printList(service.list(routerObject.getRouterId()));
+    printList(service.list(routerObject.getRouterRef()));
   }
 
   private void go() throws InstantiationException, IllegalAccessException, NotFoundException,
@@ -120,49 +120,49 @@ public class JpaPlayground implements AutoCloseable {
 
     testRouter("router-id", routerService);
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id1").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id1").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouter(db.router.get(em, "router-id"));
-          queue.setId("queue-id1");
+          queue.setRef("queue-id1");
           em.persist(queue);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id2").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouter(db.router.get(em, "router-id"));
-          queue.setId("queue-id2");
+          queue.setRef("queue-id2");
           em.persist(queue);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-6").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-6").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouter(db.router.get(em, "router-id"));
-          queue.setId("queue-id-6");
+          queue.setRef("queue-id-6");
           queue.setPredicate("CONTAINS(language, 'es')");
           em.persist(queue);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("queue-id-5").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-5").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
           queue.setRouter(db.router.get(em, "router-id"));
-          queue.setId("queue-id-5");
+          queue.setRef("queue-id-5");
           queue.setPredicate("language == 'en'");
           em.persist(queue);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("plan-id").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("plan-id").build(),
         planService, (em) -> {
 
           Queue queue2 = db.queue.get(em,
-              RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build());
+              RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id2").build());
           Queue queue5 = db.queue.get(em,
-              RouterObjectId.builder().setRouterId("router-id").setId("queue-id-5").build());
+              RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-5").build());
           Queue queue6 = db.queue.get(em,
-              RouterObjectId.builder().setRouterId("router-id").setId("queue-id-6").build());
+              RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-6").build());
 
           Plan plan = new Plan();
           plan.setDescription("my plan");
@@ -197,18 +197,18 @@ public class JpaPlayground implements AutoCloseable {
           route.setQueue(queue5);
           plan.setDefaultRoute(route);
 
-          plan.setId("plan-id");
+          plan.setRef("plan-id");
           plan.setRouter(db.router.get(em, "router-id"));
 
           em.persist(plan);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("agent-id").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("agent-id").build(),
         agentService, (em) -> {
           Queue queue1 = db.queue.get(em,
-              RouterObjectId.builder().setRouterId("router-id").setId("queue-id1").build());
+              RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id1").build());
           Queue queue2 = db.queue.get(em,
-              RouterObjectId.builder().setRouterId("router-id").setId("queue-id2").build());
+              RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id2").build());
           Agent agent = new Agent();
           AttributeGroup capabilities = new AttributeGroup();
           capabilities.addArrayItem("language", "en");
@@ -220,12 +220,12 @@ public class JpaPlayground implements AutoCloseable {
           agent.setState(AgentState.ready);
           agent.getQueues().add(queue1);
           agent.getQueues().add(queue2);
-          agent.setId("agent-id");
+          agent.setRef("agent-id");
           agent.setRouter(db.router.get(em, "router-id"));
           em.persist(agent);
         });
 
-    testRouterObject(RouterObjectId.builder().setRouterId("router-id").setId("task-id").build(),
+    testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("task-id").build(),
         taskService, () -> {
           CreateTaskArg createTaskArg = new CreateTaskArg();
           AttributeGroupDto requrements = new AttributeGroupDto();
@@ -234,8 +234,8 @@ public class JpaPlayground implements AutoCloseable {
           requrements.put("price", new DoubleAttributeValueDto(42D));
           createTaskArg.setRequirements(requrements);
           createTaskArg.setQueueId("queue-id1");
-          RouterObjectId objectId =
-              RouterObjectId.builder().setId("task-id").setRouterId("router-id").build();
+          RouterObjectRef objectId =
+              RouterObjectRef.builder().setRef("task-id").setRouterRef("router-id").build();
           try {
             createTaskArg.setCallbackUrl(new URL("http://localhost"));
           } catch (MalformedURLException ex) {
@@ -250,8 +250,8 @@ public class JpaPlayground implements AutoCloseable {
     sleep();
     UpdateTaskArg updateTaskArg = new UpdateTaskArg();
     updateTaskArg.setState(TaskState.completed);
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId("task-id").setRouterId("router-id").build();
+    RouterObjectRef objectId =
+        RouterObjectRef.builder().setRef("task-id").setRouterRef("router-id").build();
     taskService.update(updateTaskArg, objectId);
     sleep();
   }

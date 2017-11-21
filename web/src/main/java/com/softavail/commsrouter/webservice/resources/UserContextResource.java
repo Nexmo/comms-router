@@ -17,7 +17,7 @@
 package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
@@ -52,9 +52,9 @@ public class UserContextResource {
   @Inject
   TaskService taskService;
 
-  private RouterObjectId routerObjectId;
+  private RouterObjectRef routerObjectId;
 
-  public void setRouterObject(RouterObjectId routerObjectId) {
+  public void setRouterObject(RouterObjectRef routerObjectId) {
     this.routerObjectId = routerObjectId;
   }
 

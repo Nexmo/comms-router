@@ -54,7 +54,7 @@ public class RouterObject extends ApiObject {
 
   @Override
   public String toString() {
-    return getRouter().getId() + ":" + getId();
+    return getRouter().getRef() + ":" + getRef();
   }
 
   @Override
@@ -69,7 +69,7 @@ public class RouterObject extends ApiObject {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getId(), getRouter(), getVersion(), getClass());
+    return Objects.hash(getRef(), getRouter(), getVersion(), getClass());
   }
 
 }

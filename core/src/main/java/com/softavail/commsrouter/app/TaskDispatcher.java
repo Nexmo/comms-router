@@ -91,9 +91,9 @@ public class TaskDispatcher {
     try {
       db.transactionManager.executeVoid(em ->
           db.router.list(em).stream()
-              .map(router -> db.queue.list(em, router.getId()))
+              .map(router -> db.queue.list(em, router.getRef()))
               .flatMap(Collection::stream)
-              .map(Queue::getId)
+              .map(Queue::getRef)
               .forEach(this::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
@@ -129,7 +129,7 @@ public class TaskDispatcher {
 
   public void dispatchTask(TaskDto taskDto) {
     process(taskDto.getQueueId());
-    setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
+    setTaskExpirationTimeout(taskDto.getRef(), taskDto.getQueuedTimeout());
   }
 
   public void dispatchAgent(String agentId) {
@@ -182,7 +182,7 @@ public class TaskDispatcher {
           return task.getState() != TaskState.assigned;
         });
       } catch (CommsRouterException e) {
-        LOGGER.debug("Error retrieving Task: {}", taskAssignmentDto.getTask().getId());
+        LOGGER.debug("Error retrieving Task: {}", taskAssignmentDto.getTask().getRef());
         return true;
       }
     });
@@ -262,21 +262,21 @@ public class TaskDispatcher {
               expirationDate =
                   new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
               LOGGER.trace("Next route, update expirationDate:{} for task:{} ",
-                  expirationDate, task.getId());
+                  expirationDate, task.getRef());
             } else {
-              LOGGER.trace("Next route, clear expirationDate for task:{}", task.getId());
+              LOGGER.trace("Next route, clear expirationDate for task:{}", task.getRef());
             }
           } else if (task.getQueuedTimeout() != null) {
             if (task.getQueuedTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
               LOGGER.trace("Default, update expirationDate:{} for task:{} ",
-                  expirationDate, task.getId());
+                  expirationDate, task.getRef());
             } else {
-              LOGGER.trace("Default, clear expirationDate for task:{}", task.getId());
+              LOGGER.trace("Default, clear expirationDate for task:{}", task.getRef());
             }
           } else {
-            LOGGER.trace("None, clear expirationDate for task:{}", task.getId());
+            LOGGER.trace("None, clear expirationDate for task:{}", task.getRef());
           }
           task.setExpirationDate(expirationDate);
 
@@ -292,7 +292,7 @@ public class TaskDispatcher {
     });
 
     if (taskDto != null) {
-      setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
+      setTaskExpirationTimeout(taskDto.getRef(), taskDto.getQueuedTimeout());
     }
 
   }
@@ -341,10 +341,10 @@ public class TaskDispatcher {
   private void attachExpirationTimerToTask(Task task) {
 
     if (task.getExpirationDate() == null) {
-      LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getId());
+      LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getRef());
     } else {
       long seconds = (task.getExpirationDate().getTime() - System.currentTimeMillis()) / 1000;
-      setTaskExpirationTimeout(task.getId(), seconds);
+      setTaskExpirationTimeout(task.getRef(), seconds);
     }
   }
 

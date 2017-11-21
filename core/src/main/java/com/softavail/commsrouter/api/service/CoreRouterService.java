@@ -18,7 +18,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterService;
@@ -40,22 +40,22 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public ApiObjectId create(CreateRouterArg createArg)
+  public ApiObjectRef create(CreateRouterArg createArg)
       throws CommsRouterException {
 
     return transactionManager.execute((em) -> {
-      ApiObjectId objectId = new ApiObjectId(Uuid.get());
+      ApiObjectRef objectId = new ApiObjectRef(Uuid.get());
       return doCreate(em, createArg, objectId);
     });
   }
 
   @Override
-  public ApiObjectId create(CreateRouterArg createArg, String routerId)
+  public ApiObjectRef create(CreateRouterArg createArg, String routerId)
       throws CommsRouterException {
 
     return transactionManager.execute((em) -> {
       repository.delete(em, routerId);
-      return doCreate(em, createArg, new ApiObjectId(routerId));
+      return doCreate(em, createArg, new ApiObjectRef(routerId));
     });
   }
 
@@ -70,7 +70,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     });
   }
 
-  private ApiObjectId doCreate(EntityManager em, CreateRouterArg createArg, ApiObjectId objectId)
+  private ApiObjectRef doCreate(EntityManager em, CreateRouterArg createArg, ApiObjectRef objectId)
       throws CommsRouterException {
 
     Router router = new Router(objectId);
@@ -80,7 +80,7 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     }
     em.persist(router);
     RouterDto routerDto = entityMapper.toDto(router);
-    return new ApiObjectId(routerDto);
+    return new ApiObjectRef(routerDto);
   }
 
 }

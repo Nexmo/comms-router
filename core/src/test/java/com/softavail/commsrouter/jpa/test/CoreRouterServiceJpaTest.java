@@ -6,7 +6,7 @@
 package com.softavail.commsrouter.jpa.test;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.util.List;
@@ -47,9 +47,9 @@ public class CoreRouterServiceJpaTest extends TestBase {
     @Test
     public void createTestOne() throws CommsRouterException {
         CreateRouterArg createArg = newCreateRouterArg("name_three", "description_three");
-        ApiObjectId newRouter = routerService.create(createArg);
+        ApiObjectRef newRouter = routerService.create(createArg);
         //Get the new router by ID
-        RouterDto router = routerService.get(newRouter.getId());
+        RouterDto router = routerService.get(newRouter.getRef());
         assertEquals("name_three", router.getName());
         assertEquals("description_three", router.getDescription());
     }
@@ -57,12 +57,12 @@ public class CoreRouterServiceJpaTest extends TestBase {
     //Testing the create method that also takes Id
     @Test
     public void createTestTwo() throws CommsRouterException {
-        ApiObjectId newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "03");
+        ApiObjectRef newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "03");
         //Get the new router by ID
-        RouterDto router = routerService.get(newRouter.getId());
+        RouterDto router = routerService.get(newRouter.getRef());
         assertEquals("name_three", router.getName());
         assertEquals("description_three", router.getDescription());
-        assertEquals("03", router.getId());
+        assertEquals("03", router.getRef());
     }
 
     //Testing the update method

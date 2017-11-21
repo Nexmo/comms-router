@@ -140,7 +140,7 @@ public class TestBase {
     Router r = new Router();
     r.setDescription(description);
     r.setName(name);
-    r.setId(id);
+    r.setRef(id);
     r.setVersion(1);
     em.persist(r);
     em.getTransaction().commit();

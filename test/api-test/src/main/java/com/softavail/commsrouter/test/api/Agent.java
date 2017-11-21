@@ -26,7 +26,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import org.apache.logging.log4j.LogManager;
@@ -54,9 +54,9 @@ public class Agent extends Resource {
     return Arrays.asList(routers);
   }
 
-  public ApiObjectId replace(CreateAgentArg args) {
+  public ApiObjectRef replace(CreateAgentArg args) {
     String id = state().get(CommsRouterResource.AGENT);
-    ApiObjectId oid = given()
+    ApiObjectRef oid = given()
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("agentId", id)
@@ -64,26 +64,26 @@ public class Agent extends Resource {
         .when().put("/routers/{routerId}/agents/{agentId}")
         .then().statusCode(201)
         .extract()
-        .as(ApiObjectId.class);
-    state().put(CommsRouterResource.AGENT, oid.getId());
+        .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.AGENT, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreateAgentArg args) {
-    ApiObjectId oid = given()
+  public ApiObjectRef create(CreateAgentArg args) {
+    ApiObjectRef oid = given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/agents")
         .then().statusCode(201).body("id", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.AGENT, id);
     return oid;
   }
 
-  public ApiObjectId create(String language) {
+  public ApiObjectRef create(String language) {
     CreateAgentArg arg = new CreateAgentArg();
     arg.setAddress("phonenumber");
     arg.setCapabilities(

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,9 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.misc.SizeDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
@@ -71,14 +71,13 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
       value = "Creates a new Queue",
       notes = "Creates a new Queue and associates it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class)})
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
   public Response create(CreateQueueArg createArg)
       throws CommsRouterException {
 
     LOGGER.debug("Creating Queue {}", createArg);
 
-    ApiObjectId queue = queueService.create(createArg, routerId);
+    ApiObjectRef queue = queueService.create(createArg, routerRef);
 
     return createResponse(queue);
   }
@@ -89,8 +88,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
       value = "Replace an existing Queue",
       notes = "If the queue with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Queue not found",
@@ -107,10 +105,10 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
 
     LOGGER.debug("Replacing queue: {}, with id: {}", createArg, resourceId);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectRef =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectId queue = queueService.create(createArg, objectId);
+    ApiObjectRef queue = queueService.create(createArg, objectRef);
 
     return createResponse(queue);
   }
@@ -141,8 +139,8 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
 
     LOGGER.debug("Updating Queue {}", updateArg);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectId =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
     queueService.update(updateArg, objectId);
   }
@@ -159,7 +157,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   public SizeDto count(@PathParam("resourceId") String resourceId)
       throws CommsRouterException {
 
-    long queueSize = queueService.getQueueSize(getRouterObjectId(resourceId));
+    long queueSize = queueService.getQueueSize(getRouterObjectRef(resourceId));
 
     return new SizeDto(queueSize);
   }
@@ -175,7 +173,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
   public Collection<TaskDto> getTasks(@PathParam("resourceId") String resourceId)
       throws CommsRouterException {
 
-    return queueService.getTasks(getRouterObjectId(resourceId));
+    return queueService.getTasks(getRouterObjectRef(resourceId));
   }
 
 }

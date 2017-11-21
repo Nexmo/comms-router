@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,59 +16,59 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-public class RouterObjectId extends ApiObjectId {
+public class RouterObjectRef extends ApiObjectRef {
 
-  private String routerId;
+  private String routerRef;
 
-  public RouterObjectId() {}
+  public RouterObjectRef() {}
 
-  public RouterObjectId(RouterObjectId rhs) {
+  public RouterObjectRef(RouterObjectRef rhs) {
     super(rhs);
-    setRouterId(rhs.routerId);
+    setRouterRef(rhs.routerRef);
   }
 
-  public RouterObjectId(String id, String routerId) {
-    super(id);
-    setRouterId(routerId);
+  public RouterObjectRef(String ref, String routerRef) {
+    super(ref);
+    setRouterRef(routerRef);
   }
 
-  public RouterObjectId(String id, RouterObjectId sameRouterObjectId) {
-    super(id);
-    setRouterId(sameRouterObjectId.getRouterId());
+  public RouterObjectRef(String ref, RouterObjectRef sameRouterObjectRef) {
+    super(ref);
+    setRouterRef(sameRouterObjectRef.getRouterRef());
   }
 
-  public String getRouterId() {
-    return routerId;
+  public String getRouterRef() {
+    return routerRef;
   }
 
-  public void setRouterId(String routerId) {
-    this.routerId = routerId;
+  public void setRouterRef(String routerRef) {
+    this.routerRef = routerRef;
   }
 
   @Override
   public String toString() {
-    return "" + getRouterId() + ":" + getId();
+    return "" + getRouterRef() + ":" + getRef();
   }
 
   public static class Builder {
 
-    private String id;
-    private String routerId;
+    private String ref;
+    private String routerRef;
 
     public Builder() {}
 
-    public Builder setId(String id) {
-      this.id = id;
+    public Builder setRef(String id) {
+      this.ref = id;
       return this;
     }
 
-    public Builder setRouterId(String routerId) {
-      this.routerId = routerId;
+    public Builder setRouterRef(String routerRef) {
+      this.routerRef = routerRef;
       return this;
     }
 
-    public RouterObjectId build() {
-      return new RouterObjectId(id, routerId);
+    public RouterObjectRef build() {
+      return new RouterObjectRef(ref, routerRef);
     }
 
   }

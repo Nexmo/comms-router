@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import java.util.Date;
  *
  * @author ikrustev
  */
-public class TaskDto extends RouterObjectId {
+public class TaskDto extends RouterObjectRef {
 
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
@@ -42,8 +42,8 @@ public class TaskDto extends RouterObjectId {
 
   public TaskDto() {}
 
-  public TaskDto(CreateTaskArg createArg, RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+  public TaskDto(CreateTaskArg createArg, RouterObjectRef objectRef) {
+    super(objectRef.getRef(), objectRef.getRouterRef());
     requirements = createArg.getRequirements();
     userContext = createArg.getUserContext();
     // ruleId = createArg.getPlanId();

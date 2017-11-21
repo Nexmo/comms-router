@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
@@ -60,23 +60,23 @@ public class Router extends Resource {
   }
 
 
-  public ApiObjectId replace(CreateRouterArg args) {
-    ApiObjectId oid = replaceResponse(args).statusCode(201)
+  public ApiObjectRef replace(CreateRouterArg args) {
+    ApiObjectRef oid = replaceResponse(args).statusCode(201)
         .extract()
-        .as(ApiObjectId.class);
-    state().put(CommsRouterResource.ROUTER, oid.getId());
+        .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.ROUTER, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreateRouterArg args) {
-    ApiObjectId oid = given()
+  public ApiObjectRef create(CreateRouterArg args) {
+    ApiObjectRef oid = given()
         .contentType("application/json")
         .body(args)
         .when().post("/routers")
         .then().statusCode(201).body("id", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.ROUTER, id);
     return oid;
   }

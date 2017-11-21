@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -66,7 +66,7 @@ public class QueueTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
   }
 
   @AfterEach
@@ -84,7 +84,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
@@ -103,11 +103,11 @@ public class QueueTest {
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
     state.put(CommsRouterResource.QUEUE, queueId);
-    ApiObjectId id = q.replace(queueArg);
+    ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-    assertThat(queue.getId(), is(queueId));
+    assertThat(queue.getRef(), is(queueId));
 
     q.delete();
   }
@@ -124,20 +124,20 @@ public class QueueTest {
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
     state.put(CommsRouterResource.QUEUE, queueId);
-    ApiObjectId id = q.replace(queueArg);
+    ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-    assertThat(queue.getId(), is(queueId));
+    assertThat(queue.getRef(), is(queueId));
 
     queueArg.setDescription("newDescription");
     queueArg.setPredicate("2==2");
 
-    id = q.replace(queueArg);
+    ref = q.replace(queueArg);
     queue = q.get();
     assertThat(queue.getPredicate(), is("2==2"));
     assertThat(queue.getDescription(), is("newDescription"));
-    assertThat(queue.getId(), is(queueId));
+    assertThat(queue.getRef(), is(queueId));
 
     q.delete();
   }
@@ -151,7 +151,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
@@ -192,7 +192,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
     assertThat(q.size(), is(0));
     q.delete();
   }
@@ -206,7 +206,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
     assertThat(q.size(), is(0));
     q.delete();
   }
@@ -220,7 +220,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
     targ.setQueueId(state.get(CommsRouterResource.QUEUE));
@@ -243,7 +243,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
     targ.setQueueId(state.get(CommsRouterResource.QUEUE));
@@ -280,7 +280,7 @@ public class QueueTest {
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    ApiObjectId id = q.create(queueArg);
+    ApiObjectRef ref = q.create(queueArg);
 
     Agent a = new Agent(state);
     a.create("en");
