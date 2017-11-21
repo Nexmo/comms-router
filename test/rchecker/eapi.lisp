@@ -87,6 +87,11 @@
                                                     ("description" description))))
          (check-and (has-json) (has-key "id") (publish-id :router))))
 
+(defun erouter-all (&key (checks (check-and (has-json))))
+  (tstep (format nil "List available routers.")
+         (tapply (http-get "/routers"))
+         checks))
+
 (defun erouter-put (&key (id (get-event :router)) (name "name") (description "description"))
   (tstep (format nil "Replace or create router.")
          (tapply (http-put (list "/routers" id) (jsown:new-js ("name" name)

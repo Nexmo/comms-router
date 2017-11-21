@@ -386,8 +386,12 @@
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
 
 (defun setup-demo()
-  (router-put :id "router-1")
-  (queue-put :id "demo-queue")
+  (router-put :id "router-ivr")
+  (queue-put :id "en-support-queue")
+  (queue-put :id "es-support-queue")
+  (queue-put :id "en-sales-queue")
+  (queue-put :id "es-sales-queue")
+
   (agent-put :id "r8AzfepLFqVfUGU7wgQOo6"))
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
@@ -417,25 +421,11 @@
         (mapcar #'print-log result)) ) )
 ;;(loop for a from 1 to 1 for start-time = (get-internal-real-time) for res = (funcall (test-performance :tasks 1000 :queues 25 :agents 1 :handle-time 1)) :collect (floor (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
 
-(defun complete-tasks(&key (tasks 20))
-  (let* ((routers-one (mapcar (js-val "id") (lparallel:pmapcar #'(lambda(i)(router-new)) (loop :repeat tasks :collect 1))))
-         (routers (append routers-one routers-one))
-         (queues (mapcar (js-val "id")(lparallel:pmapcar #'(lambda(router-id)(queue-new :router-id router-id)) routers)) )
-         (agents  (append (mapcar (js-val "id") (lparallel:pmapcar #'(lambda(router-id)(agent-new :router-id router-id)) routers))
-                          (mapcar (js-val "id") (lparallel:pmapcar #'(lambda(router-id)(agent-new :router-id router-id)) routers))))
-
-         (tasks  (append (mapcar (js-val "id")(lparallel:pmapcar #'(lambda(router-id queue-id) (task-new :router-id router-id :queue-id queue-id)) routers queues))
-                         (mapcar (js-val "id")(lparallel:pmapcar #'(lambda(router-id queue-id) (task-new :router-id router-id :queue-id queue-id)) routers queues))
-                         )
-    ))
-    (lparallel:pmapcar #'(lambda(router-id agent-id)(agent-set :id agent-id :state "ready" :router-id router-id)) routers agents)
-    (mapcar (js-val "state") (lparallel:pmapcar #'(lambda(router-id agent-id) (agent :id agent-id :router-id router-id)) routers agents))
-    (mapcar (js-val "state") (lparallel:pmapcar #'(lambda(router-id agent-id) (agent :id agent-id :router-id router-id)) routers agents))
-    (list (mapcar (js-val "state") (lparallel:pmapcar #'(lambda(router-id agent-id) (agent :id agent-id :router-id router-id)) routers agents))
-          (lparallel:pmapcar #'(lambda(router-id task-id) (task-set :id task-id :router-id router-id :state "completed")) routers tasks)
-          (mapcar (js-val "state") (lparallel:pmapcar #'(lambda(router-id agent-id) (agent :id agent-id :router-id router-id)) routers agents))
-        ;;  (length agents)
-          )
-
-     )
-)
+(defun complete-tasks(&key (try 3))
+  (tlet ((router-id (js-val "id")(erouter-new))
+         (queue-id (js-val "id") (equeue-new)))
+    (let ((res(lparallel:pmapcar #'funcall
+                                 (loop :repeat try :append (list (etask-new :callback-url "http://localhost:4343/task?sleep=0" :router-id router-id :queue-id queue-id)
+                                                                (tlet ((agent-id (eagent-new)))
+                                                                  (eagent-set :state "ready")))))))
+      (tstep-result (format nil "run in parallel") res (not(some #'null (mapcar #'second res)))  "run in parallel" nil (reduce #'append res)))))

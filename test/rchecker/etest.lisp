@@ -262,30 +262,30 @@
 
 (defun find-bug (size &key (threads 1))
   (setf *update-policy* ())
-  (let ((problem-cases (loop for x = (lparallel:pmapcar #'(lambda(i)(let((*standard-output* (make-broadcast-stream)))
-                                                                      (test-random :size size)))
-                                                        (loop :repeat threads :collect 1))
+  (let ((problem-cases (loop for x = (lparallel:pmapcar
+                                      #'(lambda(i)
+                                          (let*((res nil)
+                                                (str (with-output-to-string(s)
+                                                       (let((*standard-output* s))
+                                                         (setf res (test-random :size size))))))
+                                            (unless (null res)
+                                              (format t "~A" str))
+                                            res ))
+                                      (loop :repeat threads :collect 1))
                           :if (some (complement #'null) x )
-                          :return (print (mapcar #'reverse x))
+                          :return (let ((res (mapcar #'reverse x)))
+                                    (format t "~%Failed cases:~%")
+                                    (print (mapcar #'reverse x))
+                                    res)
                           do (setf *update-policy* ()) (format t "."))))
     (print(reduce #'min (print (remove-if #'zerop (mapcar #'length (lparallel:pmapcar #'(lambda(problem-case)(test-random :prefix problem-case))
                                                                                 problem-cases))))
                   :initial-value size)) ) )
 
-(defun reduce-test(candidates)
-  (when candidates
-    (let ((all ())
-          (candidate (first candidates)))
-      (destructuring-bind (list len) candidate
-        (format t "~%-------------------------")
-        (format t "~%--> Total:~A Current:~A ~{~S~^, ~}" (length candidates)(length list) list)
-        (format t "~%-------------------------")
-        (alexandria:map-combinations #'(lambda(steps) (push (reverse(test-random :prefix steps)) all)) list :length len)
-        (let((reduced (remove-if #'null all)))
-          (if reduced
-              (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
-              (list* candidate (reduce-test (rest candidates)))))))))
-
 (defun reduce-test(size &key (threads 10))
   (loop for last = size then (let ((len (find-bug last :threads threads))) (if (zerop len) last len)) do
        (format t "~%>---------------------------------------- ~A ------------------------" last)))
+
+'(loop :while (null (test-random :prefix '("create router" "create queue" "create task when there are no ready agents"
+                                           "create agent" "set-agent ready if there are waiting tasks"
+                                           "complete task when there are no waiting tasks"))))
