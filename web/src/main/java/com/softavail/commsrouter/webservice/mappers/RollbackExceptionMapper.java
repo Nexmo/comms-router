@@ -16,6 +16,7 @@
 
 package com.softavail.commsrouter.webservice.mappers;
 
+import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import javax.persistence.RollbackException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
@@ -28,6 +29,14 @@ public class RollbackExceptionMapper extends BaseExceptionMapper<RollbackExcepti
 
   public RollbackExceptionMapper() {
     super(Status.INTERNAL_SERVER_ERROR);
+  }
+
+  @Override
+  protected ExceptionPresentation getExceptionPresentation(RollbackException exception) {
+    if (exception.getCause() != null) {
+      return new ExceptionPresentation(exception.getCause());
+    }
+    return super.getExceptionPresentation(exception);
   }
 
 }
