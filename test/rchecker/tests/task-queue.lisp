@@ -389,11 +389,31 @@
   (tlet((router-id (js-val "id")(erouter-put :id "router-ivr")))
     (apply #'tand
      (append (mapcar #'(lambda(id)(equeue-put :id id :router-id router-id) )
-                           '("en-support" "es-support" "en-sales" "es-sales"))
+                           '("en-support" "es-support" "en-sales" "es-sales" "queue-ivr"))
              (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id) :capabilities (jsown:new-js ("language" (subseq id 2)))
                                                :router-id router-id)
                                         (eagent-set :id (first id) :state "ready":address :null :capabilities :null :router-id router-id)))
-                     '(("en-es-support" "12312377880" "en" "es") ("en-sales" "12017621651" "en") ("es-sales" "12017621652" "es") )) ) )   ) )
+                     '(("en-es-support" "12312377880" "en" "es") ("en-sales" "12017621651" "en") ("es-sales" "12017621652" "es") ))
+             (eplan-put :id "simple-menu"
+                        :default-queue-id "queue-ivr"
+                        :queue-id :null
+                        :rules (jsown:json-new ("rules"
+                                                 '((:OBJ ("tag" . "en-sales")
+                                                    ("predicate" . "#{language}=='en' && #{department}=='sales'")
+                                                    ("routes"
+                                                     (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 600))))
+                                                   (:OBJ ("tag" . "es-sales")
+                                                    ("predicate" . "#{language}=='es' && #{department}=='sales'")
+                                                    ("routes"
+                                                     (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 600))))
+                                                   (:OBJ ("tag" . "en-support")
+                                                    ("predicate" . "#{language}=='en' && #{department}=='support'")
+                                                    ("routes"
+                                                     (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 600))))
+                                                   (:OBJ ("tag" . "es-support")
+                                                    ("predicate" . "#{language}=='es' && #{department}=='support'")
+                                                    ("routes"
+                                                     (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 600)))))) )) ) ) ) )
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
