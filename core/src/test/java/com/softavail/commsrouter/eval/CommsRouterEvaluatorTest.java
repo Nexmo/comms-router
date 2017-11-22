@@ -2,13 +2,9 @@
  * To change this license header, choose License Headers in Project Properties. To change this
  * template file, choose Tools | Templates and open the template in the editor.
  */
+
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
-import com.softavail.commsrouter.api.dto.model.AgentState;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -16,12 +12,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDt
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.domain.Queue;
-import com.softavail.commsrouter.domain.Route;
-import com.softavail.commsrouter.domain.Router;
-import com.softavail.commsrouter.domain.Rule;
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.softavail.commsrouter.domain.AttributeGroup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,14 +25,9 @@ import static org.junit.Assert.*;
  * @author Ergyun Syuleyman
  */
 public class CommsRouterEvaluatorTest {
-  CreateTaskArg createTaskArg;
-  CreateAgentArg createAgentArg;
-  UpdateAgentArg updateAgentArg;
+
   AttributeGroupDto requirements;
-  Rule rule;
-  Queue queue;
-  String agentId;
-  String taskId;
+  AttributeGroup requirementsJpa;
   String predicateOK1;
   String predicateFailed1;
   String predicateOK2;
@@ -51,15 +37,8 @@ public class CommsRouterEvaluatorTest {
   EvaluatorHelpers evalHelper;
 
   public CommsRouterEvaluatorTest() {
-    createTaskArg = new CreateTaskArg();
-    createAgentArg = new CreateAgentArg();
-    updateAgentArg = new UpdateAgentArg();
     requirements = new AttributeGroupDto();
-
-    rule = new Rule();
-    queue = new Queue();
-    taskId = "task-id1";
-    agentId = "agent-id1";
+    requirementsJpa = new AttributeGroup();
     predicateOK1 =
         "#{language} == 'en' && IN(50, #{prices}) && #{price} > 10 && #{boolTrue} == true";
     predicateFailed1 = "#{language} == 'en' && !#{boolFalse} && #{price} > 100";
@@ -96,42 +75,20 @@ public class CommsRouterEvaluatorTest {
     prices.add(50D);
     requirements.put("prices", prices);
 
-    createTaskArg.setRequirements(requirements);
-    try {
-      createTaskArg.setCallbackUrl(new URL("https://localhost:8084"));
-    } catch (MalformedURLException ex) {
-      throw new RuntimeException("Bad URL");
-    }
+    requirementsJpa.add("language", "en");
+    requirementsJpa.add("nickname", "The Stone");
+    requirementsJpa.add("color", "red");
+    requirementsJpa.add("price", 42D);
+    requirementsJpa.add("boolTrue", true);
+    requirementsJpa.add("boolFalse", false);
 
-    createAgentArg.setAddress("sip:someone@somesip.pip");
-    createAgentArg.setCapabilities(requirements);
+    requirementsJpa.addArrayItem("languages", "en");
+    requirementsJpa.addArrayItem("languages", "es");
+    requirementsJpa.addArrayItem("languages", "fr");
 
-    updateAgentArg.setAddress("sip:someone2@somesip.pip");
-    updateAgentArg.setCapabilities(requirements);
-    updateAgentArg.setState(AgentState.ready);
-
-    rule.setPredicate(predicateOK1);
-    rule.setTag("rule1");
-
-    Route route = new Route();
-    route.setQueue(queue);
-    route.setPriority(0L);
-    route.setTimeout(300L);
-    rule.getRoutes().add(route);
-
-    route = new Route();
-    route.setPriority(6L);
-    route.setTimeout(600L);
-    rule.getRoutes().add(route);
-
-    route = new Route();
-    route.setPriority(10L);
-    rule.getRoutes().add(route);
-
-    queue.setRouter(new Router(new ApiObjectId("router-id")));
-    queue.setId("queue-id1");
-    queue.setPredicate(predicateOK2);
-
+    requirementsJpa.addArrayItem("prices", 20D);
+    requirementsJpa.addArrayItem("prices", 30D);
+    requirementsJpa.addArrayItem("prices", 50D);
   }
 
   @After
@@ -143,143 +100,173 @@ public class CommsRouterEvaluatorTest {
    * @throws java.lang.Exception
    */
   @Test
-  public void testEvaluatePredicateByAttributes() throws Exception {
-    System.out.println("evaluatePredicateByAttributes");
-    CommsRouterEvaluator instance = new CommsRouterEvaluator();
-    Boolean expResult = true;
-    Boolean result = true;
+  public void testEvaluate() throws Exception {
+    System.out.println("evaluate");
+    CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+    CommsRouterEvaluator instance = ef.provide(null);
+
     // validation should be failed cases
     try {
-      instance.isValidExpression(null);
+      instance.validate(null);
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance
-          .isValidExpression("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}");
+      instance.validate("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.isValidExpression("#{boolTrue} && #{price}>10 && #{$price}^10");
+      instance.validate("#{boolTrue} && #{price}>10 && #{$price}^10");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      instance.isValidExpression("#{color}$'red'");
+      instance.validate("#{color}$'red'");
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     // validation should be passed
     try {
-      instance.isValidExpression("true");
+      instance.validate("true");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
 
     try {
-      instance.isValidExpression(predicateOK3);
+      instance.validate(predicateOK3);
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      instance.isValidExpression("CONTAINS([10, 20, 30], 20)");
+      instance.validate("CONTAINS([10, 20, 30], 20)");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      instance.isValidExpression("IN('fr', ['en','fr'])");
+      instance.validate("IN('fr', ['en','fr'])");
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
 
     // check expressions by attributte
-    expResult = true;
-    result = instance.evaluate(requirements, predicateOK1);
+    Boolean expResult = true;
+    Boolean result = instance.init(predicateOK1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, predicateOK2);
+    result = instance.init(predicateOK2).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, predicateOK3);
+    result = instance.init(predicateOK3).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(null, "1==1");
+    result = instance.init("1==1").evaluate(null);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.evaluate(requirements, "HAS(#{language}, 'en')");
+    result = instance.init("HAS(#{language}, 'en')").evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(new AttributeGroupDto(), "2==3");
+    result = instance.init("2==3").evaluate(new AttributeGroupDto());
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, null);
+    result = instance.init(null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, predicateFailed1);
+    result = instance.init(predicateFailed1).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.evaluate(requirements, predicateFailed2);
+    result = instance.init(predicateFailed2).evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("CONTAINS('Sto')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("CONTAINS(#{nickname}, #Stone)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS(100)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS([false, 'true'], #{true}) && #{'true'}").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    requirements.put("departments", new StringAttributeValueDto("sales; support"));
+    result = instance.init("HAS(#{departments}, 'sales')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("HAS(#{languages}, 100)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(#{language}, 'en]')").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(200, #{languages})").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(50)").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("IN(#{false}, [true, 'true']) && #{'false'}").evaluate(requirements);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init(predicateFailed3).evaluate(requirements);
+    assertEquals(expResult, result);
+  }
+
+  
+  
+  /**
+   * Test of evaluateJpa method, of class CommsRouterEvaluator.
+   * 
+   * @throws java.lang.Exception
+   */
+  @Test
+  public void testEvaluateJpa() throws Exception {
+    System.out.println("evaluateJpa");
+    CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+    CommsRouterEvaluator instance = ef.provide(null);
+
+    Boolean expResult = true;
+    Boolean result = instance.init(predicateOK1).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.init(predicateOK2).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.init(predicateOK3).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.init("1==1").evaluateJpa(null);
+    assertEquals(expResult, result);
+    expResult = true;
+    result = instance.init("HAS(#{language}, 'en')").evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init("2==3").evaluateJpa(new AttributeGroup());
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init(null).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init(predicateFailed1).evaluateJpa(requirementsJpa);
+    assertEquals(expResult, result);
+    expResult = false;
+    result = instance.init(predicateFailed2).evaluateJpa(requirementsJpa);
     assertEquals(expResult, result);
 
+    // validation should be failed cases
     try {
-      instance.evaluate(requirements, "CONTAINS('Sto')");
+      requirementsJpa.addArrayItem("allowedBools", true);
+      requirementsJpa.addArrayItem("allowedBools", false);
+      instance.init(predicateOK1).evaluateJpa(requirementsJpa);
       assertTrue(false);
-    } catch (EvaluatorException ex) {
+    } catch (EvaluatorException | RuntimeException ex) {
     }
 
-    try {
-      instance.evaluate(requirements, "CONTAINS(#{nickname}, #Stone)");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
-    try {
-      instance.evaluate(requirements,
-          "HAS([false, 'true'], #{true}) && #{'true'}");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      requirements.put("departments", new StringAttributeValueDto("sales; support"));
-      instance.evaluate(requirements, "HAS(#{departments}, 'sales')");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.evaluate(requirements, "HAS(#{languages}, 100)");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.evaluate(requirements, "IN(#{language}, 'en]')");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.evaluate(requirements, "IN(200, #{languages})");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.evaluate(requirements, "IN(50)");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-    try {
-      instance.evaluate(requirements,
-          "IN(#{false}, [true, 'true']) && #{'false'}");
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
-    expResult = false;
-    result = instance.evaluate(requirements, predicateFailed3);
-    assertEquals(expResult, result);
   }
 
 }

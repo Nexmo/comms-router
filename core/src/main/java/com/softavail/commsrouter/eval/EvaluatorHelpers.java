@@ -27,8 +27,8 @@ import net.sourceforge.jeval.function.FunctionHelper;
  */
 public class EvaluatorHelpers {
 
-  private static String openBracketCharacter = "[";
-  private static String closeBracketCharacter = "]";
+  public static String openBracketCharacter = "[";
+  public static String closeBracketCharacter = "]";
   private static String[] illegalExpressionSymbols = {"=", "@", "#", "$", "^", "~", "`", "?", "\\"};
 
   public static final String VALIDATION_VARIABLE_VALUE =

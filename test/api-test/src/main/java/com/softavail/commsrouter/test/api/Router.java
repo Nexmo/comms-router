@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.not;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectId;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
+import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,14 +49,19 @@ public class Router extends Resource {
     return Arrays.asList(routers);
   }
 
-  public ApiObjectId replace(CreateRouterArg args) {
+  public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String id = state().get(CommsRouterResource.ROUTER);
-    ApiObjectId oid = given()
+    return given()
         .contentType("application/json")
         .pathParam("routerId", id)
         .body(args)
         .when().put("/routers/{routerId}")
-        .then().statusCode(201)
+        .then();
+  }
+
+
+  public ApiObjectId replace(CreateRouterArg args) {
+    ApiObjectId oid = replaceResponse(args).statusCode(201)
         .extract()
         .as(ApiObjectId.class);
     state().put(CommsRouterResource.ROUTER, oid.getId());

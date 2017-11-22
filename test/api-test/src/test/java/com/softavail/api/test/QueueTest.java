@@ -24,6 +24,7 @@ import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import com.softavail.commsrouter.test.api.Agent;
 
 /**
  * Unit test for simple App.
@@ -232,8 +234,8 @@ public class QueueTest {
     q.delete();
   }
 
-  //@Test
-  @DisplayName("queue should have task after replace")
+  @Test
+  @DisplayName("it should be allowed to replace queue with tasks")
   void queueWithTaskReplace() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
@@ -255,7 +257,9 @@ public class QueueTest {
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==1");
 
-    id = q.replace(queueArg);
+    q.replaceResponse(queueArg)
+        .statusCode(500)
+        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is("qdescription"));
     assertThat(queue.getDescription(), is("2==2"));
@@ -266,5 +270,29 @@ public class QueueTest {
     t.delete();
     q.delete();
   }
+
+  @Test
+  @DisplayName("it should not be allowed to replace queue with agents")
+  void queueWithAgentReplace() throws MalformedURLException {
+    String description = "queue description";
+    String predicate = "1==1";
+    CreateQueueArg queueArg = new CreateQueueArg();
+    queueArg.setDescription(description);
+    queueArg.setPredicate(predicate);
+    Queue q = new Queue(state);
+    ApiObjectId id = q.create(queueArg);
+
+    Agent a = new Agent(state);
+    a.create("en");
+    assertThat(q.size(), is(0));
+
+    queueArg.setDescription("qdescription");
+    queueArg.setPredicate("1==1");
+
+    q.replaceResponse(queueArg)
+        .statusCode(500)
+        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'agent' that refer to it."));
+  }
+
 
 }

@@ -62,7 +62,6 @@ public class QueueProcessorManager {
       queueProcessor = new QueueProcessor.Builder()
           .setQueueId(queueId)
           .setDb(db)
-          .setMappers(mappers)
           .setTaskDispatcher(taskDispatcher)
           .setThreadPool(threadPool)
           .setProcessRetryDelaySeconds(configuration.getQueueProcessRetryDelay())

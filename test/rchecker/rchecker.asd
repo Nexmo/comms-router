@@ -17,5 +17,6 @@
                (:file "rchecker")
                (:file "eapi")
                (:file "etest")
+               (:file "emodel")
                (:file "auto-complete")
                (:file "tests/task-queue")))

@@ -59,6 +59,34 @@
 (defun js-val (key)
   #'(lambda(json) (jsown:val json key)))
 
+(defun js-val-or (key &key default)
+  #'(lambda(json) (if (jsown:keyp json key)
+                      (jsown:val json key)
+                      default)))
+
+(defun js-remkey (key)
+  #'(lambda(json) (jsown:remkey (copy-tree json) key)))
+
+(defun js-extend (&rest kvals)
+  #'(lambda(json)
+      (let ((new-json (copy-tree json)))
+        (loop for (k v) in kvals do
+             (setf (jsown:val new-json k) v) )
+        new-json)))
+
+(defun js-push (key value)
+  #'(lambda(json)
+      (let ((new-json (copy-tree json)))
+        (jsown:extend-js new-json
+          (key (list* value
+                      (when (jsown:keyp new-json key)
+                        (jsown:val new-json key)))))
+        new-json)))
+
+(defun js-selected(key list)
+  "return nth element from json list where key and list are key in json object"
+  #'(lambda(json) (nth (jsown:val json key) (jsown:val json list))))
+
 (defun check-result(check descr)
   #'(lambda(json)(list check descr)))
 
@@ -68,9 +96,6 @@
         (if check (funcall rcheck-fn descr)
             (list nil descr)))))
 
-(defun js-selected(key list)
-  "return nth element from json list where key and list are key in json object"
-  #'(lambda(json) (nth (jsown:val json key) (jsown:val json list))))
 
 (defun check-and(check-fn &rest checks)
   (if checks

@@ -32,7 +32,7 @@ import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.RouterObject;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
+import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.jpa.VoidTransactionLogic;
 
@@ -50,12 +50,12 @@ public class JpaPlayground implements AutoCloseable {
 
   private final JpaDbFacade db = new JpaDbFacade();
   private final EntityMappers entityMapper = new EntityMappers();
-  private final CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
+  private final CommsRouterEvaluatorFactory evaluatorFactory = new CommsRouterEvaluatorFactory();
   private final TaskDispatcher taskDispatcher = new TaskDispatcher(db, entityMapper, (assignment) -> {
     System.out
         .println("Task: " + assignment.getTask() + " assigned to Agent: " + assignment.getAgent());
   });
-  private final AppContext app = new AppContext(db, evaluator, taskDispatcher, entityMapper);
+  private final AppContext app = new AppContext(db, evaluatorFactory, taskDispatcher, entityMapper);
   private final CoreRouterService routerService = new CoreRouterService(app);
   private final CoreQueueService queueService = new CoreQueueService(app);
   private final CoreTaskService taskService = new CoreTaskService(app);

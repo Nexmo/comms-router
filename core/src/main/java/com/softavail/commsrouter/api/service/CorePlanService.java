@@ -27,6 +27,7 @@ import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -84,9 +85,10 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
     }
 
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     if (createArg.getRules() != null) {
       for (RuleDto rule : createArg.getRules()) {
-        app.evaluator.isValidExpression(rule.getPredicate());
+        evaluator.validate(rule.getPredicate());
       }
     }
 

@@ -38,6 +38,7 @@ import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Uuid;
 
 import org.apache.logging.log4j.LogManager;
@@ -172,20 +173,22 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule) {
+  private Route getMatchedRoute(String taskId, AttributeGroupDto attributesGroup, Rule rule,
+      CommsRouterEvaluator evaluator) throws CommsRouterException {
     if (rule != null) {
       if (rule.getRoutes().isEmpty()) {
         return null;
       }
 
       try {
-        if (app.evaluator.evaluate(attributesGroup, rule.getPredicate())) {
+        if (evaluator.evaluate(attributesGroup)) {
           LOGGER.info("Task {}: matched rule {} tag {}", taskId, rule.getId(), rule.getTag());
           return rule.getRoutes().get(0);
         }
       } catch (CommsRouterException ex) {
         LOGGER.error("Task {}: failure matching rule {} tag {}: {}", taskId, rule.getId(),
             rule.getTag(), ex, ex);
+        throw ex;
       }
 
       LOGGER.debug("Did not found any route info in the current rule: {}", rule);
@@ -239,7 +242,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   private Task fromPlan(EntityManager em, CreateTaskArg createArg, RouterObjectId objectId)
-      throws NotFoundException {
+      throws NotFoundException, CommsRouterException {
 
     Router router = getRouter(em, objectId);
     Task task = new Task(objectId);
@@ -250,9 +253,11 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Plan plan = app.db.plan.get(em, RouterObjectId.builder().setId(createArg.getPlanId())
           .setRouterId(objectId.getRouterId()).build());
       Route matchedRoute = null;
+      CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule);
+        evaluator.init(rule.getPredicate());
+        matchedRoute = getMatchedRoute(task.getId(), createArg.getRequirements(), rule, evaluator);
         if (matchedRoute != null) {
           task.setRule(rule);
           break;

@@ -353,15 +353,18 @@
         (mapcar #'print-log result)) ) )
 
 (defun test-plan-and-task()
-  (tlet ((default-queue-id (js-val "id")
-                   (equeue-new))
+  (tlet ((router-id (js-val "id")
+                    (erouter-new))
+         (default-queue-id (js-val "id")
+                   (equeue-new :router-id router-id))
          (plan-id (js-val "id")
                   (eplan-new
                    :rules (list (jsown:new-js ("tag" :null)
                                               ("predicate" "HAS([10],#{age})")
                                               ("routes" (list  ))))
                    :default-route (jsown:new-js
-                                    ("queueId" default-queue-id)))))
+                                    ("queueId" default-queue-id))
+                   :router-id router-id)))
     (etask-new :queue-id :null :plan-id plan-id)))
 
 (defun test-all(&key (tests (list (test-task-ordering)
@@ -370,6 +373,7 @@
                                   (test-set-unavailable)
                                   (test-delete-agent)
                                   (test-set-context)
+                                  (test-plan-and-task)
                                   (test-complete-task))))
   (mapcar
    #'print-log
@@ -382,8 +386,12 @@
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
 
 (defun setup-demo()
-  (router-put :id "router-1")
-  (queue-put :id "demo-queue")
+  (router-put :id "router-ivr")
+  (queue-put :id "en-support-queue")
+  (queue-put :id "es-support-queue")
+  (queue-put :id "en-sales-queue")
+  (queue-put :id "es-sales-queue")
+
   (agent-put :id "r8AzfepLFqVfUGU7wgQOo6"))
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
@@ -392,7 +400,6 @@
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()
       (router-new)
-
       (let* ((q-ids (mapcar (js-val "id")
                             (lparallel:pmapcar #'(lambda(i) (queue-new))
                                                (loop :repeat queues :collect 1)) ))
@@ -412,3 +419,13 @@
                                                   (mapcar (js-val "id") (queue-all)))
                  :while (not queue)  do (sleep 1)))
         (mapcar #'print-log result)) ) )
+;;(loop for a from 1 to 1 for start-time = (get-internal-real-time) for res = (funcall (test-performance :tasks 1000 :queues 25 :agents 1 :handle-time 1)) :collect (floor (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
+
+(defun complete-tasks(&key (try 3))
+  (tlet ((router-id (js-val "id")(erouter-new))
+         (queue-id (js-val "id") (equeue-new)))
+    (let ((res(lparallel:pmapcar #'funcall
+                                 (loop :repeat try :append (list (etask-new :callback-url "http://localhost:4343/task?sleep=0" :router-id router-id :queue-id queue-id)
+                                                                (tlet ((agent-id (eagent-new)))
+                                                                  (eagent-set :state "ready")))))))
+      (tstep-result (format nil "run in parallel") res (not(some #'null (mapcar #'second res)))  "run in parallel" nil (reduce #'append res)))))

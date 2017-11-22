@@ -20,6 +20,8 @@ package com.softavail.api.test;
 import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Router;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
@@ -128,16 +130,14 @@ public class BaseRouterTest {
     Queue q = new Queue(state);
     ApiObjectId qid = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
-    ApiObjectId id1 = r.replace(new CreateRouterArg());// replace with null values
+    r.replaceResponse(new CreateRouterArg())
+        .statusCode(500)
+        .body("error.description", equalTo("Cannot delete or update 'router' as there is record in 'queue' that refer to it.") );// replace with null values
     // check that queue is still there
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
     assertThat(q.list(), hasItems(hasProperty("id", is(qid.getId()))));
 
-    assertThat(id.getId(), is(id1.getId()));
-    router = r.get();
-    assertThat(router.getName(), nullValue());
-    assertThat(router.getDescription(), nullValue());
     q.delete();
     r.delete();
   }

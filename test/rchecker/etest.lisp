@@ -87,17 +87,18 @@
                            `(progn ,@body) ) ) ) ))
 
 ;; bind for model
+(defun mstep(step-fn)
+  #'(lambda(model)(funcall step-fn)))
 (defun mbind(mfn p-mfn)
   #'(lambda(model)
       (funcall (funcall p-mfn (funcall mfn model)) model)))
 
-(defmacro mlet(vars &body body)
-  `(mbind ,(second (first vars))
-          #'(lambda(,(first (first vars)))
-              #'(lambda(model)
-                  ,(if (rest vars)
-                       `(mlet ,(rest vars) ,@body)
-                       `(progn ,@body))))))
+(defun mand(mfn &rest mfns)
+  (if mfns
+      #'(lambda(m)
+          (funcall (apply #'mand mfns)
+                   (funcall mfn m)) )
+      mfn) )
 
 (defmacro mlet(vars &body body)
   `(mbind ,(first (last (first vars)) )
@@ -111,13 +112,7 @@
               `#'(lambda(,(first (first vars)))
                    ,(if (rest vars)
                         `(mlet ,(rest vars) ,@body)
-                        `#'(lambda(model)
-                             ,@body))
-                  )
-              )
-          ))
-
-
+                        `(progn ,@body))))))
 
 ;;
 (defun print-log(result &optional indent)
@@ -267,31 +262,30 @@
 
 (defun find-bug (size &key (threads 1))
   (setf *update-policy* ())
-  (print(length (test-random :prefix (loop for x = (lparallel:psome #'(lambda(i)(let((*standard-output* (make-broadcast-stream)))
-                                                                                  (test-random :size size))) (loop :repeat threads :collect 1)) :if x :return (print (reverse x))
-                    do (setf *update-policy* ()) (format t "."))))))
+  (let ((problem-cases (loop for x = (lparallel:pmapcar
+                                      #'(lambda(i)
+                                          (let*((res nil)
+                                                (str (with-output-to-string(s)
+                                                       (let((*standard-output* s))
+                                                         (setf res (test-random :size size))))))
+                                            (unless (null res)
+                                              (format t "~A" str))
+                                            res ))
+                                      (loop :repeat threads :collect 1))
+                          :if (some (complement #'null) x )
+                          :return (let ((res (mapcar #'reverse x)))
+                                    (format t "~%Failed cases:~%")
+                                    (print (mapcar #'reverse x))
+                                    res)
+                          do (setf *update-policy* ()) (format t "."))))
+    (print(reduce #'min (print (remove-if #'zerop (mapcar #'length (lparallel:pmapcar #'(lambda(problem-case)(test-random :prefix problem-case))
+                                                                                problem-cases))))
+                  :initial-value size)) ) )
 
-(defun scan-bug(size &key (reset t))
-  (when reset (setf *policy* (make-hash-table :test #'equal)))
-  (time (loop for max-size = size then (let ((last (find-bug max-size)))
-                                         ;;(loop for x from 1 to 10 do (mapcar #'funcall *update-policy*))
-                                         (if (< last max-size) (floor (/ (+ max-size last) 2))
-                                             max-size)
-                                         )
-           :repeat 100
-           do (format t  "~%-------- max-size ~A" max-size) )) )
+(defun reduce-test(size &key (threads 10))
+  (loop for last = size then (let ((len (find-bug last :threads threads))) (if (zerop len) last len)) do
+       (format t "~%>---------------------------------------- ~A ------------------------" last)))
 
-(defun reduce-test(candidates)
-  (when candidates
-    (let ((all ())
-          (candidate (first candidates)))
-
-      (destructuring-bind (list len) candidate
-        (format t "~%-------------------------")
-        (format t "~%--> Total:~A Current:~A ~{~S~^, ~}" (length candidates)(length list) list)
-        (format t "~%-------------------------")
-        (alexandria:map-combinations #'(lambda(steps) (push (reverse(test-random :prefix steps)) all)) list :length len)
-        (let((reduced (remove-if #'null all)))
-          (if reduced
-              (reduce-test (append (mapcar #'(lambda(i)(list i (1- (length i))))reduced) (rest candidates)))
-              (list* candidate (reduce-test (rest candidates)))))))))
+'(loop :while (null (test-random :prefix '("create router" "create queue" "create task when there are no ready agents"
+                                           "create agent" "set-agent ready if there are waiting tasks"
+                                           "complete task when there are no waiting tasks"))))

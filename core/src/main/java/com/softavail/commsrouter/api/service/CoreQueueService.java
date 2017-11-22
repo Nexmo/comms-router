@@ -24,6 +24,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectId;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
@@ -31,12 +32,14 @@ import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
+import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
-import java.util.Collection;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 
@@ -79,28 +82,30 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private ApiObjectId doCreate(EntityManager em, CreateQueueArg createArg, RouterObjectId objectId)
       throws CommsRouterException {
 
-    app.evaluator.isValidExpression(createArg.getPredicate());
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
+    evaluator.validate(createArg.getPredicate());
 
     Router router = getRouter(em, objectId);
     Queue queue = new Queue(objectId);
     queue.setRouter(router);
     queue.setDescription(createArg.getDescription());
     queue.setPredicate(createArg.getPredicate());
-    attachAgents(em, queue, true);
+    attachAgents(em, queue, evaluator, true);
     em.persist(queue);
     return queue.cloneApiObjectId();
   }
 
-  private void attachAgents(EntityManager em, Queue queue, boolean isNewQueue) {
+  private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
+      boolean isNewQueue) throws CommsRouterException {
 
     LOGGER.info("Queue {}: attaching agents...", queue.getId());
 
     int attachedAgentsCount = 0;
-
-    for (Agent agent : app.db.agent.list(em, queue.getRouter().getId())) {
+    long millis = System.currentTimeMillis();
+    List<Agent> agents = app.db.agent.list(em, queue.getRouter().getId());
+    for (Agent agent : agents) {
       try {
-        if (app.evaluator.evaluate(app.entityMapper.attributes.toDto(agent.getCapabilities()),
-            queue.getPredicate())) {
+        if (evaluator.evaluateJpa(agent.getCapabilities())) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getId(), agent.getId());
           ++attachedAgentsCount;
@@ -112,11 +117,15 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
         } else if (!isNewQueue) {
           agent.getQueues().remove(queue);
         }
-      } catch (CommsRouterException ex) {
+      } catch (CommsRouterException | RuntimeException ex) {
         LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getId(), agent.getId(), ex,
             ex);
+        throw new EvaluatorException(ex.getMessage(), ex);
       }
     }
+
+    LOGGER.trace("Evaluate all agents attributes to queue predicate takes : {}",
+        (System.currentTimeMillis() - millis));
     LOGGER.info("Queue {}: agents attached: {}", queue.getId(), attachedAgentsCount);
   }
 
@@ -131,7 +140,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     });
   }
 
-  private void updatePredicate(EntityManager em, Queue queue, String predicate) {
+  private void updatePredicate(EntityManager em, Queue queue, String predicate)
+      throws CommsRouterException {
 
     if (predicate == null) {
       // no change requested
@@ -144,9 +154,12 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     }
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getId());
 
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
+    evaluator.validate(predicate);
+
     queue.setPredicate(predicate);
     queue.getAgents().clear();
-    attachAgents(em, queue, false);
+    attachAgents(em, queue, evaluator, false);
   }
 
   @Override

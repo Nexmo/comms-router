@@ -131,7 +131,7 @@ public class AppTest {
     AgentDto resource = a.get();
     assertThat(resource.getCapabilities(), nullValue());
     assertThat(a.list(), hasItems(hasProperty("id", is(id.getId()))));
-    a.createWithId(new CreateAgentArg());
+    a.replace(new CreateAgentArg());
     a.update(new UpdateAgentArg());
     a.delete();
     r.delete();
