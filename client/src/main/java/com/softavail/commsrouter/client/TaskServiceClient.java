@@ -113,6 +113,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
       throws CommsRouterException {
 
     URI uri = getApiUrl().clone()
+        .path("byTag")
         .queryParam("tag", tag)
         .build(routerId);
 
