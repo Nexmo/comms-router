@@ -53,9 +53,9 @@
                      (address "address")
                      (capabilities (jsown:new-js ("language" "en"))))
   (tstep (format nil "Replace or create agent.")
-         (http-put (list "/routers" router-id "agents" id) (jsown:new-js
-                                                             ("address" address)
-                                                             ("capabilities" capabilities)))
+         (tapply (http-put (list "/routers" router-id "agents" id) (jsown:new-js
+                                                              ("address" address)
+                                                              ("capabilities" capabilities))))
          (check-and (has-json) (has-key "id") (publish-id :agent))))
 
 (defun eagent-set (&key (router-id (get-event :router))
@@ -195,6 +195,7 @@
                    (priority 0)
                    (next-route nil)
                    (timeout 3600)
+                   (default-timeout 3600)
                    (rules (list (jsown:new-js ("tag" "test-rule")
                                               ("predicate" predicate)
                                               ("routes" (append
@@ -207,7 +208,7 @@
                    (default-route (jsown:new-js
                                     ("queueId" default-queue-id)
                                     ("priority" 0)
-                                    ("timeout" 360000)))
+                                    ("timeout" default-timeout)))
                    (checks (check-and (has-json) (has-key "id"))))
   (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
          (tapply (http-post (list "/routers" router-id "plans")

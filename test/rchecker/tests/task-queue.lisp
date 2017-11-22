@@ -386,13 +386,14 @@
   (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
 
 (defun setup-demo()
-  (router-put :id "router-ivr")
-  (queue-put :id "en-support-queue")
-  (queue-put :id "es-support-queue")
-  (queue-put :id "en-sales-queue")
-  (queue-put :id "es-sales-queue")
-
-  (agent-put :id "r8AzfepLFqVfUGU7wgQOo6"))
+  (tlet((router-id (js-val "id")(erouter-put :id "router-ivr")))
+    (apply #'tand
+     (append (mapcar #'(lambda(id)(equeue-put :id id :router-id router-id) )
+                           '("en-support" "es-support" "en-sales" "es-sales"))
+             (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id) :capabilities (jsown:new-js ("language" (subseq id 2)))
+                                               :router-id router-id)
+                                        (eagent-set :id (first id) :state "ready":address :null :capabilities :null :router-id router-id)))
+                     '(("en-es-support" "12312377880" "en" "es") ("en-sales" "12017621651" "en") ("es-sales" "12017621652" "es") )) ) )   ) )
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
