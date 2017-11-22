@@ -832,3 +832,23 @@ databaseChangeLog:
             name: tag
         indexName: task_tag_index
         tableName: task
+- changeSet:
+    id: 1510650694126-3
+    author: mapuo
+    changes:
+    - dropIndex:
+        indexName: task_tag_index
+        tableName: task
+- changeSet:
+    id: 1510650694126-4
+    author: mapuo
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        - column:
+            name: tag
+        indexName: task_tag_index
+        tableName: task
+        unique: true
