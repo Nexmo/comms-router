@@ -139,6 +139,14 @@
          (tapply (http-get "/routers" router-id "tasks" id ))
          checks))
 
+(defun etask-by-tag(&key (tag "unique-tag")
+                      (description (format nil "Check that there are tasks with the specified ~A tag." tag))
+                      (router-id (get-event :router))
+                      (checks (check-and (has-json))))
+  (tstep description
+         (tapply (http-get "/routers" router-id "tasks" (format nil "byTag?tag=~A" tag)))
+         checks))
+
 (defun etask-set(&key (router-id (get-event :router)) (id (get-event :task)) (state :null) )
   (tstep (format nil "Set task's state = ~A." state )
          (tapply (http-post (list "/routers" router-id "tasks" id)
