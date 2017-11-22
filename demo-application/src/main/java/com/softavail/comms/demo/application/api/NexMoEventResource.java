@@ -22,6 +22,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDt
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
 
@@ -103,6 +104,27 @@ public class NexMoEventResource {
   }
 
   private void handleCustomerCompletedCallEvent(NexmoCallEvent callEvent) {
+    String tag = callEvent.getUuid();
+    if (null != tag) {
+      TaskDto task = getTaskByTag(tag);
+      
+      if (null != task && null != task.getUserContext()) {
+        AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
+
+        if (null != uuidDto) {
+          String uuid = getStringFromAttributeValueDto(uuidDto);
+          if (null != uuid) {
+            hangupCall(uuid);
+          } else {
+            LOGGER.error("Cannot extract string from Dto");
+          }
+        } else {
+          LOGGER.warn("Cannot hangup agent's leg because \"agent_uuid\" is not available");
+        }
+      } else {
+        LOGGER.warn("No task or taskContext, cannot handle customer completed call event, ");
+      }
+    }
   }
 
   private void handleCustomerFailedCallEvent(NexmoCallEvent callEvent) {
@@ -125,17 +147,20 @@ public class NexMoEventResource {
     }
   }
 
-  private TaskDto getTask(String taskId) {
+  private TaskDto getTaskByTag(String tag) {
     TaskDto result = null;
     
+    if (null == tag) {
+      return null;
+    }
+    
     try {
-      LOGGER.trace("Get task: {}", taskId);
-      result = taskServiceClient.get(new RouterObjectId(taskId, configuration.getCommsRouterId()));
-    } catch (NotFoundException e) {
-      LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
-      e.printStackTrace();
+      LOGGER.trace("Get task by tag: {}", tag);
+      result = taskServiceClient.getByTag(configuration.getCommsRouterId(), tag);
+    } catch (CommsRouterException e) {
+      LOGGER.error("Failed to get task by tag with error: {}", e.getLocalizedMessage());
     } catch (Exception ex) {
-      LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
+      LOGGER.error("Failed to get task by tag with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
     

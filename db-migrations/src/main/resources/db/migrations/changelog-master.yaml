@@ -812,3 +812,23 @@ databaseChangeLog:
             name: is_scalar
             type: BOOLEAN
         tableName: attribute
+- changeSet:
+    id: 1510650694126-1
+    author: acho (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: tag
+            type: VARCHAR(255)
+        tableName: task
+- changeSet:
+    id: 1510650694126-2
+    author: acho (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: tag
+        indexName: task_tag_index
+        tableName: task

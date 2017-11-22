@@ -38,11 +38,13 @@ import org.apache.logging.log4j.Logger;
 import java.net.URL;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -80,6 +82,20 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
         .type(MediaType.APPLICATION_JSON_TYPE);
 
     return builder.build();
+  }
+
+  @GET
+  @Path("byTag")
+  @ApiOperation(value = "Get resource by Tag", notes = "Returns resource by the given Tag")
+  public Response getByTag(@QueryParam("tag") String tag)
+      throws CommsRouterException {
+
+    LOGGER.debug("Getting by Tag {}", tag);
+
+    TaskDto taskDto = taskService.getByTag(routerId, tag);
+
+    return Response.ok(taskDto, MediaType.APPLICATION_JSON_TYPE)
+        .build();
   }
 
   @POST

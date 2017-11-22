@@ -32,7 +32,7 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
 
   private Configuration configuration;
   
-  private HashMap<String, String> requirements;
+  private HashMap<String, String> parameters;
 
   private static final String KEY_STATE = "state";
   private static final String KEY_LANGUAGE = "language";
@@ -59,6 +59,9 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   private static final String DEPARTMENT_SALES = "sales";
   private static final String DEPARTMENT_SUPPORT = "support";
 
+  private static final String X_UUID = "x_customer_uuid";
+  private static final String CUSTOM_PARAM_PREFFIX = "x_";
+
   @Inject
   AnswerStrategyWithCallback nextStrategy;
   
@@ -83,10 +86,10 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
       return respondWithErrorTalkNcco();
     }
 
-    this.requirements = new HashMap<String, String>();
-    this.requirements.put("conversation_uuid", convUuid);
-    this.requirements.put("from", from);
-    this.requirements.put("to", to);
+    this.parameters = new HashMap<String, String>();
+    this.parameters.put("conversation_uuid", convUuid);
+    this.parameters.put("from", from);
+    this.parameters.put("to", to);
 
     // prompt language
     return respondByTransitionToPromptLanguage();
@@ -136,13 +139,19 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
 
   private String handlePromptLanguageResponse(JsonNode userInfo) {
     LOGGER.debug("handlePromptLanguageResponse");
+    
+    String uuid = parseStringParamFromUserInfo(userInfo, "uuid");
+    if (uuid != null) {
+      this.parameters.put(X_UUID, uuid);
+    }
+    
     String number = parseDtmfFromUserInfo(userInfo);
     if (number != null && number.equals("1")) {
       // Spanish
-      this.requirements.put(KEY_LANGUAGE, LANGUAGE_SPANISH);
+      this.parameters.put(KEY_LANGUAGE, LANGUAGE_SPANISH);
     } else {
       // English
-      this.requirements.put(KEY_LANGUAGE, LANGUAGE_ENGLISH);
+      this.parameters.put(KEY_LANGUAGE, LANGUAGE_ENGLISH);
     }
 
     return respondByTransitionToPromptDepartment(); 
@@ -150,15 +159,21 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   
   private String handlePromptDepartmentResponse(JsonNode userInfo) {
     LOGGER.debug("handlePromptDepartmentResponse");
+    
+    String uuid = parseStringParamFromUserInfo(userInfo, "uuid");
+    if (uuid != null) {
+      this.parameters.put(X_UUID, uuid);
+    }
+
     String number = parseDtmfFromUserInfo(userInfo);
     if (number != null && number.equals("1")) {
       // Sales
       LOGGER.debug("will set {}:{}", KEY_DEPARTMENT, DEPARTMENT_SALES);
-      this.requirements.put(KEY_DEPARTMENT, DEPARTMENT_SALES);
+      this.parameters.put(KEY_DEPARTMENT, DEPARTMENT_SALES);
     } else {
       // Support
       LOGGER.debug("will set {}:{}", KEY_DEPARTMENT, DEPARTMENT_SUPPORT);
-      this.requirements.put(KEY_DEPARTMENT, DEPARTMENT_SUPPORT);
+      this.parameters.put(KEY_DEPARTMENT, DEPARTMENT_SUPPORT);
     }
 
     return respondByTransitionToEnd(); 
@@ -168,8 +183,8 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     UriBuilder uriBuilder = UriBuilder.fromPath(getEventUrl())
         .queryParam(KEY_STATE, STATE_PROMPT_LANGUAGE);
     
-    this.requirements.keySet().forEach(key -> {
-      uriBuilder.queryParam(key, this.requirements.get(key));
+    this.parameters.keySet().forEach(key -> {
+      uriBuilder.queryParam(key, this.parameters.get(key));
     });
 
     URI uri = uriBuilder.build();
@@ -202,8 +217,8 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     UriBuilder uriBuilder = UriBuilder.fromPath(getEventUrl())
         .queryParam(KEY_STATE, STATE_PROMPT_DEPARTMENT);
 
-    this.requirements.keySet().forEach(key -> {
-      uriBuilder.queryParam(key, this.requirements.get(key));
+    this.parameters.keySet().forEach(key -> {
+      uriBuilder.queryParam(key, this.parameters.get(key));
     });
     
     URI uri = uriBuilder.build();
@@ -244,7 +259,9 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     String answer = null;
     
     try {
-      answer = nextStrategy.answerInboundCallWithParams(this.requirements);
+      Map<String, String> requirements = getRequirementsFromParameters();
+      Map<String, String> userContext = getUserContextFromParameters();
+      answer = nextStrategy.answerInboundCallWithParams(requirements, userContext);
     } catch (AnswerStrategyException e) {
       LOGGER.error("answerInboundCallWithParams rised: {}", e.getMessage());
     } catch (Exception ex) {
@@ -284,17 +301,30 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     return null;
   }
 
+  private String parseStringParamFromUserInfo(JsonNode userInfo, String paramName) {
+    if (null == userInfo || null == paramName) {
+      return null;
+    }
+    
+    if (userInfo.get(paramName).getNodeType() == JsonNodeType.STRING) {
+      String value = userInfo.get(paramName).asText();
+      return value;
+    }
+    
+    return null;
+  }
+
   private String getEventUrl() {
     return configuration.getNexmoCallbackBaseUrl() + "event_ivr";
   }
 
   private void setParameters(MultivaluedMap<String, String> parameters) {
-    this.requirements = new HashMap<String, String>();
+    this.parameters = new HashMap<String, String>();
     
     parameters.keySet().forEach(key -> {
       if (false == key.equals(KEY_STATE)) {
         String value = parameters.getFirst(key);
-        this.requirements.put(key, value);
+        this.parameters.put(key, value);
       }
     });
   }
@@ -302,11 +332,50 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   private boolean keyParameterHasValue(String key, String value) {
     boolean flagHas = false;
     
-    if (key != null && value != null && this.requirements != null) {
-      flagHas = this.requirements.get(key).equals(value);
+    if (key != null && value != null && this.parameters != null) {
+      flagHas = this.parameters.get(key).equals(value);
     }
     
     return flagHas;
   }
+
+  private Map<String, String> getRequirementsFromParameters() {
+    HashMap<String, String> requirements = null;
+
+    if (this.parameters != null) {
+
+      for (String key :parameters.keySet()) {
+        if (false == key.startsWith("x_")) {
+          // requirements
+          if (null == requirements) {
+            requirements = new HashMap<String, String>();
+          }
+          requirements.put(key, parameters.get(key));
+        }
+      }
+    }
+    
+    return requirements;
+  }
   
+  private Map<String, String> getUserContextFromParameters() {
+    HashMap<String, String> userContext = null;
+
+    if (this.parameters != null) {
+      for (String key :parameters.keySet()) {
+        if (key.startsWith(CUSTOM_PARAM_PREFFIX)) {
+          // user context
+          if (null == userContext) {
+            userContext = new HashMap<String, String>();
+          }
+
+          String pureKey = key.substring(CUSTOM_PARAM_PREFFIX.length());
+          userContext.put(pureKey, parameters.get(key));
+        }
+      }
+    }
+    
+    return userContext;
+  }
+
 }

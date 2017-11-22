@@ -109,6 +109,21 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
+  public TaskDto getByTag(String routerId, String tag)
+      throws CommsRouterException {
+
+    URI uri = getApiUrl().clone()
+        .path("byTag")
+        .queryParam("tag", tag)
+        .build(routerId);
+
+    return getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .get(TaskDto.class);
+  }
+
+  @Override
   public List<TaskDto> list(String routerId) {
     return getList(routerId);
   }
