@@ -54,6 +54,11 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   private static final String MSG_PROMPT_DEPARTMENT_ES =
       "Para Ventas, presione 1. Para soporte técnico, presione 2.";
 
+  private static final String MSG_SYSTEM_WAITING_EN =
+      "The system is waiting for your choice.";
+  private static final String MSG_SYSTEM_WAITING_ES =
+      "El sistema está esperando tu elección.";
+
   private static final String LANGUAGE_ENGLISH = "en";
   private static final String LANGUAGE_SPANISH = "es";
   private static final String DEPARTMENT_SALES = "sales";
@@ -159,12 +164,17 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
   
   private String handlePromptDepartmentResponse(JsonNode userInfo) {
     LOGGER.debug("handlePromptDepartmentResponse");
-    
+
+    Boolean timedOut = parseBooleanParamFromUserInfo(userInfo, "timed_out"); 
+    if (null != timedOut && timedOut == Boolean.TRUE) {
+      return respondByContinueToPromptDepartment();
+    }
+
     String uuid = parseStringParamFromUserInfo(userInfo, "uuid");
     if (uuid != null) {
       this.parameters.put(X_UUID, uuid);
-    }
-
+    } 
+    
     String number = parseDtmfFromUserInfo(userInfo);
     if (number != null && number.equals("1")) {
       // Sales
@@ -254,6 +264,48 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     return nccoResponse.toJson();
   }
 
+  private String respondByContinueToPromptDepartment() {
+
+    UriBuilder uriBuilder =
+        UriBuilder.fromPath(getEventUrl()).queryParam(KEY_STATE, STATE_PROMPT_DEPARTMENT);
+
+    this.parameters.keySet().forEach(key -> {
+      uriBuilder.queryParam(key, this.parameters.get(key));
+    });
+
+    URI uri = uriBuilder.build();
+    String eventUrl = uri.toString();
+
+    String message = null;
+    String voice = null;
+
+    if (keyParameterHasValue(KEY_LANGUAGE, LANGUAGE_SPANISH)) {
+      message = MSG_SYSTEM_WAITING_ES + " " + MSG_PROMPT_DEPARTMENT_ES;
+      voice = VOICE_SPANISH;
+    } else {
+      message = MSG_SYSTEM_WAITING_EN + " " + MSG_PROMPT_DEPARTMENT_EN;
+      voice = VOICE_ENGLISH;
+    }
+
+    TalkNcco department = new TalkNcco(message);
+    department.setVoiceName(voice);
+    department.setBargeIn(true);
+
+    InputNcco input = new InputNcco();
+    input.setEventUrl(eventUrl);
+    input.setMaxDigits(1);
+    input.setTimeOut(5);
+
+    // preparing a response
+    NccoResponseBuilder builder = new NccoResponseBuilder();
+    builder.appendNcco(department);
+    builder.appendNcco(input);
+
+    // respond
+    NccoResponse nccoResponse = builder.getValue();
+    return nccoResponse.toJson();
+  }
+    
   private String respondByTransitionToEnd() {
 
     String answer = null;
@@ -314,6 +366,20 @@ public class IvrStrategyWithSimpleFlow implements IvrStrategy {
     return null;
   }
 
+  private Boolean parseBooleanParamFromUserInfo(JsonNode userInfo, String paramName) {
+    if (null == userInfo || null == paramName) {
+      return null;
+    }
+    
+    if (userInfo.get(paramName).getNodeType() == JsonNodeType.BOOLEAN) {
+      
+      Boolean value = userInfo.get(paramName).asBoolean() ? Boolean.TRUE : Boolean.FALSE;
+      return value;
+    }
+    
+    return null;
+  }
+  
   private String getEventUrl() {
     return configuration.getNexmoCallbackBaseUrl() + "event_ivr";
   }
