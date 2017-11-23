@@ -215,7 +215,7 @@ public class QueueTest {
     ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
-    targ.setQueueId(state.get(CommsRouterResource.QUEUE));
+    targ.setQueueRef(state.get(CommsRouterResource.QUEUE));
     targ.setCallbackUrl(new URL("http://example.com"));
     Task t = new Task(state);
     assertThat(q.size(), is(0));
@@ -238,7 +238,7 @@ public class QueueTest {
     ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
-    targ.setQueueId(state.get(CommsRouterResource.QUEUE));
+    targ.setQueueRef(state.get(CommsRouterResource.QUEUE));
     targ.setCallbackUrl(new URL("http://example.com"));
     Task t = new Task(state);
     assertThat(q.size(), is(0));

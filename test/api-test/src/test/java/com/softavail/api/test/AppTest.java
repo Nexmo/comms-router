@@ -106,7 +106,7 @@ public class AppTest {
     ApiObjectRef queueRef = q.create(new CreateQueueArg.Builder().predicate("true").build());
     CreatePlanArg arg = new CreatePlanArg();
     RouteDto defaultRoute = new RouteDto();
-    defaultRoute.setQueueId(queueRef.getRef());
+    defaultRoute.setQueueRef(queueRef.getRef());
     arg.setDefaultRoute(defaultRoute);
     ref = p.create(arg);
     PlanDto resource = p.get();
@@ -147,7 +147,7 @@ public class AppTest {
     Task t = new Task(state);
     CreateTaskArg arg = new CreateTaskArg();
     arg.setCallbackUrl(new URL("http://example.com"));
-    arg.setQueueId(queueRef.getRef());
+    arg.setQueueRef(queueRef.getRef());
     ref = t.create(arg);
     TaskDto resource = t.get();
     assertThat(resource.getRequirements(), nullValue());

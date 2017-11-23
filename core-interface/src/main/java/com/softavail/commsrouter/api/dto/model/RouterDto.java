@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ public class RouterDto extends ApiObjectRef {
 
   @Override
   public String toString() {
-    return "Router: [" + "id=" + getRef() + "]";
+    return "Router: [" + "ref=" + getRef() + "]";
   }
 
 }

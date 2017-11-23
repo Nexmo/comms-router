@@ -94,7 +94,7 @@ public class TaskQueueTest {
     RuleDto rule = new RuleDto();
     rule.setPredicate(predicate);
     RouteDto route = new RouteDto();
-    route.setQueueId(state.get(CommsRouterResource.QUEUE));
+    route.setQueueRef(state.get(CommsRouterResource.QUEUE));
     rule.getRoutes().add(route);
     arg.setRules(Collections.singletonList(rule));
     arg.setDefaultRoute(route);

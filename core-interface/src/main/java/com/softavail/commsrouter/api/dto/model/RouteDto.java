@@ -24,16 +24,16 @@ import java.io.Serializable;
  */
 public class RouteDto implements Serializable {
 
-  private String queueId;
+  private String queueRef;
   private Long priority;
   private Long timeout;
 
-  public String getQueueId() {
-    return queueId;
+  public String getQueueRef() {
+    return queueRef;
   }
 
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
+  public void setQueueRef(String queueRef) {
+    this.queueRef = queueRef;
   }
 
   public Long getPriority() {
@@ -56,7 +56,7 @@ public class RouteDto implements Serializable {
     private RouteDto route = new RouteDto();
 
     public Builder(String queueId) {
-      route.setQueueId(queueId);
+      route.setQueueRef(queueId);
     }
 
     public Builder priority(Long priority) {

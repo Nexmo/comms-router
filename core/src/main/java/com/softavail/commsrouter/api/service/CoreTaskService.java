@@ -205,9 +205,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     Task task = new Task(objectId);
     task.setRouter(router);
 
-    if (createArg.getPlanId() != null) {
+    if (createArg.getPlanRef() != null) {
 
-      Plan plan = app.db.plan.get(em, RouterObjectRef.builder().setRef(createArg.getPlanId())
+      Plan plan = app.db.plan.get(em, RouterObjectRef.builder().setRef(createArg.getPlanRef())
           .setRouterRef(objectId.getRouterRef()).build());
       Route matchedRoute = null;
       CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
@@ -247,7 +247,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     } else {
 
-      Queue queue = app.db.queue.get(em, RouterObjectRef.builder().setRef(createArg.getQueueId())
+      Queue queue = app.db.queue.get(em, RouterObjectRef.builder().setRef(createArg.getQueueRef())
           .setRouterRef(objectId.getRouterRef()).build());
       task.setQueue(queue);
     }
@@ -263,12 +263,12 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throw new IllegalArgumentException("callbackUrl is required");
     }
 
-    if (createArg.getPlanId() == null && createArg.getQueueId() == null) {
+    if (createArg.getPlanRef() == null && createArg.getQueueRef() == null) {
       throw new IllegalArgumentException(
           "Missing required argument: please provide either planId or queueId");
     }
 
-    if (createArg.getPlanId() != null && createArg.getQueueId() != null) {
+    if (createArg.getPlanRef() != null && createArg.getQueueRef() != null) {
       throw new IllegalArgumentException("Provide either planId or queueId, but not both");
     }
 

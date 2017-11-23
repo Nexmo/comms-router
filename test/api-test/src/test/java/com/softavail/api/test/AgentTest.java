@@ -399,7 +399,7 @@ public class AgentTest {
         resource.getState(), is(AgentState.busy));
     TaskDto task = t.get();
     assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentId(),
+        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentRef(),
         is(a2_ref.getRef()));
 
     t.setState(TaskState.completed);
@@ -408,7 +408,7 @@ public class AgentTest {
     state.put(CommsRouterResource.TASK, task1.getRef());
     task = t.get();
     assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)"
-        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentId(),
+        , state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()), task.getAgentRef(),
         is(a1_ref.getRef()));
 
     t.setState(TaskState.completed);
@@ -425,7 +425,7 @@ public class AgentTest {
 
     assertThat(String.format("Router (%s): Check task is assigned to the latest agent.a1(%s) a2(%s)",
             state.get(CommsRouterResource.ROUTER), a1_ref.getRef(), a2_ref.getRef()),
-        task.getAgentId(), is(a2_ref.getRef()));
+        task.getAgentRef(), is(a2_ref.getRef()));
     t.setState(TaskState.completed);
     TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
 

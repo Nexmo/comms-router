@@ -45,7 +45,7 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
   private RouteDto toDto(Route jpa) {
     RouteDto dto = new RouteDto();
     if (jpa.getQueue() != null) {
-      dto.setQueueId(jpa.getQueue().getRef());
+      dto.setQueueRef(jpa.getQueue().getRef());
     }
     dto.setPriority(jpa.getPriority());
     dto.setTimeout(jpa.getTimeout());

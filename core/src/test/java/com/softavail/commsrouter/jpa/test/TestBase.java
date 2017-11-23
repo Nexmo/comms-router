@@ -196,7 +196,7 @@ public class TestBase {
     RuleDto rule = new RuleDto();
     rule.setPredicate(predicate);
     RouteDto route = new RouteDto();
-    route.setQueueId(queueId);
+    route.setQueueRef(queueId);
     rule.getRoutes().add(route);
     rule.setTag("tag");
     List<RuleDto> rules = new ArrayList<>();
@@ -236,13 +236,13 @@ public class TestBase {
       throws MalformedURLException {
     // Creating test task arguments
     CreateTaskArg args = new CreateTaskArg();
-    args.setQueueId(queueId);
+    args.setQueueRef(queueId);
     URL url = new URL(URL);
     AttributeGroupDto requirements = new AttributeGroupDto();
     args.setRequirements(requirements);
     args.setUserContext(requirements);
     args.setCallbackUrl(url);
-    args.setPlanId(planId);
+    args.setPlanRef(planId);
     return args;
   }
 

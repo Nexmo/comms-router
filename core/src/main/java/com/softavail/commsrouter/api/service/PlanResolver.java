@@ -79,9 +79,9 @@ class PlanResolver {
       throws NotFoundException {
 
     Route route = app.entityMapper.plan.fromDto(routeDto);
-    if (routeDto.getQueueId() != null) {
+    if (routeDto.getQueueRef() != null) {
       Queue queue =
-          app.db.queue.get(em, new RouterObjectRef(routeDto.getQueueId(), plan.getRouter().getRef()));
+          app.db.queue.get(em, new RouterObjectRef(routeDto.getQueueRef(), plan.getRouter().getRef()));
       route.setQueue(queue);
     }
     return route;

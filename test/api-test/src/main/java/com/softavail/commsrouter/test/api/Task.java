@@ -77,7 +77,7 @@ public class Task extends Resource {
     CreateTaskArg taskArg = new CreateTaskArg();
     taskArg.setCallbackUrl(url);
     taskArg.setRequirements(new AttributeGroupDto());
-    taskArg.setQueueId(state().get(CommsRouterResource.QUEUE));
+    taskArg.setQueueRef(state().get(CommsRouterResource.QUEUE));
     return create(taskArg);
   }
 
@@ -86,7 +86,7 @@ public class Task extends Resource {
   }
 
   public CreatedTaskDto createWithPlan(CreateTaskArg args) {
-    args.setPlanId(state().get(CommsRouterResource.PLAN));
+    args.setPlanRef(state().get(CommsRouterResource.PLAN));
     CreatedTaskDto oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args).when().post("/routers/{routerRef}/tasks").then().statusCode(201)

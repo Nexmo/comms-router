@@ -47,7 +47,7 @@ public class RouterObjectRef extends ApiObjectRef {
 
   @Override
   public String toString() {
-    return "" + getRouterRef() + ":" + getRef();
+    return getRouterRef() + ":" + getRef();
   }
 
   public static class Builder {

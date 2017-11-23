@@ -40,17 +40,11 @@ public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
     dto.setUserContext(attributesMapper.toDto(jpa.getUserContext()));
     dto.setState(jpa.getState());
     dto.setPriority(jpa.getPriority());
-    dto.setQueueId(getOptionalId(jpa.getQueue()));
-    dto.setAgentId(getOptionalId(jpa.getAgent()));
+    dto.setQueueRef(getOptionalId(jpa.getQueue()));
+    dto.setAgentRef(getOptionalId(jpa.getAgent()));
     dto.setCreateDate(jpa.getCreateDate());
     dto.setUpdateDate(jpa.getUpdateDate());
     dto.setQueuedTimeout(jpa.getQueuedTimeout());
-    if (jpa.getRule() != null) {
-      dto.setRuleId(jpa.getRule().getId());
-    }
-    if (jpa.getCurrentRoute() != null) {
-      dto.setRouteId(jpa.getCurrentRoute().getId());
-    }
     return dto;
   }
 

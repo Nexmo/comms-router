@@ -237,7 +237,7 @@ public class JpaPlayground implements AutoCloseable {
           requrements.put("color", new StringAttributeValueDto("red"));
           requrements.put("price", new DoubleAttributeValueDto(42D));
           createTaskArg.setRequirements(requrements);
-          createTaskArg.setQueueId("queue-id1");
+          createTaskArg.setQueueRef("queue-id1");
           RouterObjectRef objectId =
               RouterObjectRef.builder().setRef("task-id").setRouterRef("router-id").build();
           try {

@@ -938,9 +938,9 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         });
 
         taskReq.setRequirements(requirements);
-        taskReq.setPlanId(getPlanId());
+        taskReq.setPlanRef(getPlanId());
       } else {
-        taskReq.setQueueId(getQueueId());
+        taskReq.setQueueRef(getQueueId());
       }
 
       task = taskServiceClient.create(taskReq, getRouterId());

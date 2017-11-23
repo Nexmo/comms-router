@@ -90,7 +90,7 @@ public class TaskTest {
     arg.setCallbackUrl(new URL("http://example.com"));
     arg.setRequirements(new AttributeGroupDto()
         .withKeyValue("language", new StringAttributeValueDto("en")));
-    arg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.createWithPlan(arg);
     assertThat(q.size(), is(1));
   }
@@ -105,7 +105,7 @@ public class TaskTest {
     arg.setUserContext(
         new AttributeGroupDto().withKeyValue("key", new StringAttributeValueDto("Value")));
 
-    arg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.create(arg);
     assertThat(q.size(), is(1));
   }
