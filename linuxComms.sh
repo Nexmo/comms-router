@@ -10,7 +10,7 @@ fi
 
 echo
 
-echo Create a router, providing it’s ID:
+echo Create a router, providing it’s Ref ID:
 curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router
 
 echo
@@ -47,19 +47,19 @@ echo
 echo
 
 echo Create a plan.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueId":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueId":"queue-en"}}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueRef":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueRef":"queue-en"}}'
 
 echo
 echo
 
 echo Create tasks.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planId":"by-language","callbackUrl":'"\"$callback\""'}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planRef":"by-language","callbackUrl":'"\"$callback\""'}'
 
 echo
 echo
 
 echo In addition to using a plan to route tasks, the user accepts direct queue assignment by the user application:
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueId":"queue-en","callbackUrl":'"\"$callback\""'}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueRef":"queue-en","callbackUrl":'"\"$callback\""'}'
 
 echo
 echo

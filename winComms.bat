@@ -10,12 +10,12 @@ IF NOT [%1] == [] (
 )
 
 IF [%1] == [] (
-	SET /p callback= "Enter Callback Url: " 
+	SET /p callback= "Enter Callback Url: "
 )
 
 echo[
 
-echo Create a router, providing it's ID:
+echo Create a router, providing it's Ref ID:
 curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router
 
 echo[
@@ -52,19 +52,19 @@ echo[
 echo[
 
 echo Create a plan.
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H "Content-Type:application/json" -d "{\"description\":\"put your plan description\", \"rules\":[{\"tag\":\"spanish\",\"predicate\":\"#{language} == 'es'\", \"routes\":[{\"queueId\":\"queue-es\", \"priority\":3, \"timeout\":300}, {\"priority\":10, \"timeout\":800}]}], \"defaultRoute\":{\"queueId\":\"queue-en\"}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H "Content-Type:application/json" -d "{\"description\":\"put your plan description\", \"rules\":[{\"tag\":\"spanish\",\"predicate\":\"#{language} == 'es'\", \"routes\":[{\"queueRef\":\"queue-es\", \"priority\":3, \"timeout\":300}, {\"priority\":10, \"timeout\":800}]}], \"defaultRoute\":{\"queueRef\":\"queue-en\"}}"
 
 echo[
 echo[
 
 echo Create tasks.
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H "Content-Type:application/json" -d "{\"requirements\":{\"language\":\"es\"},\"planId\":\"by-language\",\"callbackUrl\":\"%callback%\"}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H "Content-Type:application/json" -d "{\"requirements\":{\"language\":\"es\"},\"planRef\":\"by-language\",\"callbackUrl\":\"%callback%\"}"
 
 echo[
 echo[
 
 echo In addition to using a plan to route tasks, the user accepts direct queue assignment by the user application.
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H "Content-Type:application/json" -d "{\"queueId\":\"queue-en\",\"callbackUrl\":\"%callback%\"}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H "Content-Type:application/json" -d "{\"queueRef\":\"queue-en\",\"callbackUrl\":\"%callback%\"}"
 
 echo[
 echo[
