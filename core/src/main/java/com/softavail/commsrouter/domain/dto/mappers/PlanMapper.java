@@ -35,7 +35,7 @@ public class PlanMapper extends RouterObjectEntityMapper<PlanDto, Plan> {
   @Override
   public PlanDto toDto(Plan jpa) {
     PlanDto dto = new PlanDto();
-    copyId(dto, jpa);
+    copyRef(dto, jpa);
     dto.setDescription(jpa.getDescription());
     dto.setRules(toDtoRules(jpa.getRules()));
     dto.setDefaultRoute(toDto(jpa.getDefaultRoute()));

@@ -103,7 +103,7 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
     RouterObjectRef objectRef =
         RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectRef plan = planService.create(createArg, objectRef);
+    ApiObjectRef plan = planService.replace(createArg, objectRef);
 
     return createResponse(plan);
   }

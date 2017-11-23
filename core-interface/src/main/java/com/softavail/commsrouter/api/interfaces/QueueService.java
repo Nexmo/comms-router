@@ -34,7 +34,7 @@ public interface QueueService extends RouterObjectService<QueueDto> {
   ApiObjectRef create(CreateQueueArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectRef create(CreateQueueArg createArg, RouterObjectRef objectRef)
+  ApiObjectRef replace(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
   void update(UpdateQueueArg updateArg, RouterObjectRef objectRef)

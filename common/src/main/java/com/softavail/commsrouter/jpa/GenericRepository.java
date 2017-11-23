@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ public class GenericRepository<ENTITYT> {
     return entityClass;
   }
 
-  public ENTITYT get(EntityManager em, String id) throws NotFoundException {
+  public ENTITYT get(EntityManager em, Long id) throws NotFoundException {
     ENTITYT jpaEntity = em.find(entityClass, id);
     if (jpaEntity == null) {
       throw new NotFoundException(entityClass.getSimpleName() + " " + id + " not found");
@@ -63,9 +63,7 @@ public class GenericRepository<ENTITYT> {
     return result;
   }
 
-  public void delete(EntityManager em, String id)
-      throws CommsRouterException {
-
+  public void delete(EntityManager em, Long id) throws CommsRouterException {
     ENTITYT entity = em.find(entityClass, id);
     if (entity != null) {
       em.remove(entity);

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.jpa.RouterRepository;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
@@ -35,8 +36,11 @@ import javax.persistence.EntityManager;
 public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
     implements RouterService {
 
+  private final RouterRepository routerRepository;
+
   public CoreRouterService(AppContext app) {
     super(app.db.transactionManager, app.db.router, app.entityMapper.router);
+    routerRepository = app.db.router;
   }
 
   @Override
@@ -50,21 +54,22 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public ApiObjectRef create(CreateRouterArg createArg, String routerId)
+  public ApiObjectRef replace(CreateRouterArg createArg, String ref)
       throws CommsRouterException {
 
     return transactionManager.execute((em) -> {
-      repository.delete(em, routerId);
-      return doCreate(em, createArg, new ApiObjectRef(routerId));
+      routerRepository.deleteByRef(em, ref);
+      em.flush();
+      return doCreate(em, createArg, new ApiObjectRef(ref));
     });
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, String routerId)
+  public void update(UpdateRouterArg updateArg, String routerRef)
       throws CommsRouterException {
 
     transactionManager.executeVoid((em) -> {
-      Router router = repository.get(em, routerId);
+      Router router = routerRepository.getByRef(em, routerRef);
       Fields.update(router::setName, router.getName(), updateArg.getName());
       Fields.update(router::setDescription, router.getDescription(), updateArg.getDescription());
     });
@@ -79,8 +84,22 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
       router.setDescription(createArg.getDescription());
     }
     em.persist(router);
-    RouterDto routerDto = entityMapper.toDto(router);
-    return new ApiObjectRef(routerDto);
+    return new ApiObjectRef(router.getId(), router.getRef());
+  }
+
+  @Override
+  public RouterDto get(String ref) throws CommsRouterException {
+    return transactionManager.execute((em) -> {
+      RouterDto dto = entityMapper.toDto(routerRepository.getByRef(em, ref));
+      return dto;
+    });
+  }
+
+  @Override
+  public void delete(String ref) throws CommsRouterException {
+    transactionManager.executeVoid((em) -> {
+      routerRepository.deleteByRef(em, ref);
+    });
   }
 
 }

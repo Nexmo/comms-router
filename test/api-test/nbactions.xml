@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Test Local Server</actionName>
+            <displayName>Test Local Server</displayName>
+            <goals>
+                <goal>test</goal>
+            </goals>
+            <properties>
+                <autHost>http://localhost:8080</autHost>
+            </properties>
+        </action>
+        
+    </actions>

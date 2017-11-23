@@ -136,7 +136,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     RouterObjectRef objectId = getRouterObjectRef(resourceId);
 
-    CreatedTaskDto task = taskService.create(taskArg, objectId);
+    CreatedTaskDto task = taskService.replace(taskArg, objectId);
 
     return createResponse(task);
   }

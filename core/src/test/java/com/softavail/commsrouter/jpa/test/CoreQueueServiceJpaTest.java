@@ -20,12 +20,12 @@ import org.junit.Test;
  */
 public class CoreQueueServiceJpaTest extends TestBase {
 
-  // Testing the create method
+  // Testing the replace method
   @Test
   public void createTest() throws CommsRouterException {
     RouterObjectRef id = new RouterObjectRef("", "01");
-    agentService.create(newCreateAgentArg("address_one"), id);
-    queueService.create(newCreateQueueArg("1==1", "description_one"), id);
+    agentService.replace(newCreateAgentArg("address_one"), id);
+    queueService.replace(newCreateQueueArg("1==1", "description_one"), id);
     QueueDto queue = queueService.get(id);
     assertEquals(queue.getDescription(), "description_one");
   }
@@ -34,8 +34,8 @@ public class CoreQueueServiceJpaTest extends TestBase {
   @Test
   public void updateTest() throws CommsRouterException {
     RouterObjectRef id = new RouterObjectRef("", "01");
-    agentService.create(newCreateAgentArg("address_one"), id);
-    queueService.create(newCreateQueueArg("1==1", "description_one"), id);
+    agentService.replace(newCreateAgentArg("address_one"), id);
+    queueService.replace(newCreateQueueArg("1==1", "description_one"), id);
     QueueDto queueBefore = queueService.get(id);
     // Updating
     queueService.update(newUpdateQueueArg("1==1", "description_two"), id);
@@ -47,8 +47,8 @@ public class CoreQueueServiceJpaTest extends TestBase {
   @Test
   public void getQueueSizeTest() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "description_one"), ref);
-    taskService.create(newCreateTaskArg(ref.getRef(), "https://test.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
+    taskService.replace(newCreateTaskArg(ref.getRef(), "https://test.com", null), ref);
     RouterObjectRef idd = new RouterObjectRef(queue.getRef(), "01");
     long size = queueService.getQueueSize(idd);
     assertEquals(size, 1);
@@ -58,8 +58,8 @@ public class CoreQueueServiceJpaTest extends TestBase {
   @Test
   public void getTasksTest() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "description_one"), ref);
-    taskService.create(newCreateTaskArg(ref.getRef(), "https://test.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
+    taskService.replace(newCreateTaskArg(ref.getRef(), "https://test.com", null), ref);
     RouterObjectRef idd = new RouterObjectRef(queue.getRef(), "01");
     Collection<TaskDto> tasks = queueService.getTasks(idd);
     assertEquals(tasks.size(), 1);

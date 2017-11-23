@@ -18,6 +18,8 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Version;
@@ -25,8 +27,10 @@ import javax.persistence.Version;
 @MappedSuperclass
 public class ApiObject implements Serializable {
 
-
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
   private String ref;
 
   @Version
@@ -40,6 +44,14 @@ public class ApiObject implements Serializable {
 
   public ApiObject(String ref) {
     this.ref = ref;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public String getRef() {
@@ -59,7 +71,7 @@ public class ApiObject implements Serializable {
   }
 
   public ApiObjectRef cloneApiObjectRef() {
-    return new ApiObjectRef(ref);
+    return new ApiObjectRef(id, ref);
   }
 
   @Override

@@ -35,7 +35,7 @@ public interface TaskService
   CreatedTaskDto create(CreateTaskArg createArg, String routerId)
       throws CommsRouterException;
 
-  CreatedTaskDto create(CreateTaskArg createArg, RouterObjectRef objectRef)
+  CreatedTaskDto replace(CreateTaskArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
   void update(UpdateTaskArg updateArg, RouterObjectRef objectRef)

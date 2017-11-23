@@ -1,17 +1,15 @@
 /*
  * Copyright 2017 SoftAvail, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  *
  */
 
@@ -112,6 +110,7 @@ public class BaseRouterTest {
     r.delete();
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void replaceRouterRouterResourcesAreThere() {
     // replace existing router and check that Queue is here after the replacement
@@ -130,13 +129,15 @@ public class BaseRouterTest {
     Queue q = new Queue(state);
     ApiObjectRef qRef = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
-    r.replaceResponse(new CreateRouterArg())
-        .statusCode(500)
-        .body("error.description", equalTo("Cannot delete or update 'router' as there is record in 'queue' that refer to it.") );// replace with null values
+    r.replaceResponse(new CreateRouterArg()).statusCode(500).body("error.description", equalTo(
+        "Cannot delete or update 'router' as there is record in 'queue' that refer to it."));// replace
+                                                                                             // with
+                                                                                             // null
+                                                                                             // values
     // check that queue is still there
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
-    assertThat(q.list(), hasItems(hasProperty("id", is(qRef.getRef()))));
+    assertThat(q.list(), hasItems(hasProperty("ref", is(qRef.getRef()))));
 
     q.delete();
     r.delete();

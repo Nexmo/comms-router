@@ -1,17 +1,15 @@
 /*
  * Copyright 2017 SoftAvail, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  *
  */
 
@@ -31,7 +29,6 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +43,7 @@ import com.softavail.commsrouter.test.api.Agent;
 /**
  * Unit test for simple App.
  */
-//@TestInstance(Lifecycle.PER_CLASS)
+// @TestInstance(Lifecycle.PER_CLASS)
 @DisplayName("Queue Test")
 public class QueueTest {
 
@@ -67,11 +64,6 @@ public class QueueTest {
     routerArg.setDescription(description);
     routerArg.setName(name);
     ApiObjectRef ref = r.create(routerArg);
-  }
-
-  @AfterEach
-  public void deleteRouter() {
-    r.delete();
   }
 
   @Test
@@ -97,17 +89,17 @@ public class QueueTest {
     // put request to not existing queue
     String description = "queue description";
     String predicate = "1==1";
-    String queueId = "Queue-id";
+    String queueRef = "Queue-ref";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    state.put(CommsRouterResource.QUEUE, queueId);
+    state.put(CommsRouterResource.QUEUE, queueRef);
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-    assertThat(queue.getRef(), is(queueId));
+    assertThat(queue.getRef(), is(queueRef));
 
     q.delete();
   }
@@ -118,17 +110,17 @@ public class QueueTest {
     // put request to not existing queue
     String description = "queue description";
     String predicate = "1==1";
-    String queueId = "Queue-id";
+    String queueRef = "Queue-id";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     Queue q = new Queue(state);
-    state.put(CommsRouterResource.QUEUE, queueId);
+    state.put(CommsRouterResource.QUEUE, queueRef);
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-    assertThat(queue.getRef(), is(queueId));
+    assertThat(queue.getRef(), is(queueRef));
 
     queueArg.setDescription("newDescription");
     queueArg.setPredicate("2==2");
@@ -137,7 +129,7 @@ public class QueueTest {
     queue = q.get();
     assertThat(queue.getPredicate(), is("2==2"));
     assertThat(queue.getDescription(), is("newDescription"));
-    assertThat(queue.getRef(), is(queueId));
+    assertThat(queue.getRef(), is(queueRef));
 
     q.delete();
   }
@@ -257,12 +249,11 @@ public class QueueTest {
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==1");
 
-    q.replaceResponse(queueArg)
-        .statusCode(500)
-        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
+    q.replaceResponse(queueArg).statusCode(500).body("error.description",
+        equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
     QueueDto queue = q.get();
-    assertThat(queue.getPredicate(), is("qdescription"));
-    assertThat(queue.getDescription(), is("2==2"));
+    assertThat(queue.getPredicate(), is(predicate));
+    assertThat(queue.getDescription(), is(description));
 
     assertThat(q.tasks(), hasSize(1));
     assertThat(q.size(), is(1));
@@ -287,12 +278,13 @@ public class QueueTest {
     assertThat(q.size(), is(0));
 
     queueArg.setDescription("qdescription");
-    queueArg.setPredicate("1==1");
+    queueArg.setPredicate("2==2");
 
-    q.replaceResponse(queueArg)
-        .statusCode(500)
-        .body("error.description", equalTo("Cannot delete or update 'queue' as there is record in 'agent' that refer to it."));
+    q.replaceResponse(queueArg).statusCode(201);
+    QueueDto queue = q.get();
+    assertThat(queue.getPredicate(), is("2==2"));
+    assertThat(queue.getDescription(), is("qdescription"));
+    assertThat(queue.getRef(), is(ref.getRef()));
   }
-
 
 }

@@ -18,23 +18,23 @@ import org.junit.Test;
  */
 public class CoreAgentServiceJpaTest extends TestBase {
 
-  // Testing the create method that takes a RouterObjectRef
+  // Testing the replace method that takes a RouterObjectRef
   @Test
   public void createTest() throws CommsRouterException {
     String routerRef = "router-ref";
-    routerService.create(newCreateRouterArg("router-name", ""), routerRef);
+    routerService.replace(newCreateRouterArg("router-name", ""), routerRef);
     RouterObjectRef ref = new RouterObjectRef("ref", routerRef);
-    queueService.create(newCreateQueueArg("1==1", "description_one"), ref);
-    agentService.create(newCreateAgentArg("address_one"), ref);
+    queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
+    agentService.replace(newCreateAgentArg("address_one"), ref);
     AgentDto agent = agentService.get(ref);
     assertEquals(agent.getAddress(), "address_one");
   }
 
-  // Testing the create method that takes a String routerId
+  // Testing the replace method that takes a String routerId
   @Test
   public void createTestTwo() throws CommsRouterException {
     String routerRef = "router-ref";
-    routerService.create(newCreateRouterArg("router-name", ""), routerRef);
+    routerService.replace(newCreateRouterArg("router-name", ""), routerRef);
     queueService.create(newCreateQueueArg("1==1", "description_one"), routerRef);
     agentService.create(newCreateAgentArg("address_one"), routerRef);
     List<AgentDto> agent = agentService.list(routerRef);
@@ -45,8 +45,8 @@ public class CoreAgentServiceJpaTest extends TestBase {
   @Test
   public void updateTest() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("aktyriskghsirol", "01");
-    queueService.create(newCreateQueueArg("1==1", "description_one"), ref);
-    agentService.create(newCreateAgentArg("address_one"), ref);
+    queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
+    agentService.replace(newCreateAgentArg("address_one"), ref);
     // Updating
     agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref);
     AgentDto agent = agentService.get(ref);
@@ -58,7 +58,7 @@ public class CoreAgentServiceJpaTest extends TestBase {
   @Test(expected = BadValueException.class)
   public void updateStateBusy() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    agentService.create(newCreateAgentArg("address_one"), ref); // offline
+    agentService.replace(newCreateAgentArg("address_one"), ref); // offline
     agentService.update(newUpdateAgentArg("address_two", AgentState.busy), ref); // can't be busy
   }
 
@@ -66,7 +66,7 @@ public class CoreAgentServiceJpaTest extends TestBase {
   @Test
   public void updateStateOffline() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    agentService.create(newCreateAgentArg("address_one"), ref); // offline
+    agentService.replace(newCreateAgentArg("address_one"), ref); // offline
     agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref); // ready
     agentService.update(newUpdateAgentArg("address_two", AgentState.offline), ref); // offline
     AgentDto agent = agentService.get(ref);

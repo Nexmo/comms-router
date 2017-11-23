@@ -1,17 +1,15 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.softavail.commsrouter.app;
@@ -77,11 +75,10 @@ public class TaskDispatcher {
     this.queueProcessorManager = QueueProcessorManager.getInstance();
     Integer backoffDelay = configuration.getBackoffDelay();
     Integer backoffDelayMax = configuration.getBackoffDelayMax();
-    this.retryPolicy = new RetryPolicy()
-        .retryOn(CallbackException.class)
-        .retryOn(RuntimeException.class)
-        .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
-        .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
+    this.retryPolicy =
+        new RetryPolicy().retryOn(CallbackException.class).retryOn(RuntimeException.class)
+            .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
+            .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
     restartWaitingTaskTimers();
   }
@@ -89,20 +86,16 @@ public class TaskDispatcher {
   @SuppressWarnings("unchecked")
   private void startQueueProcessors() {
     try {
-      db.transactionManager.executeVoid(em ->
-          db.router.list(em).stream()
-              .map(router -> db.queue.list(em, router.getRef()))
-              .flatMap(Collection::stream)
-              .map(Queue::getRef)
-              .forEach(this::process));
+      db.transactionManager.executeVoid(
+          em -> db.router.list(em).stream().map(router -> db.queue.list(em, router.getRef()))
+              .flatMap(Collection::stream).map(Queue::getId).forEach(this::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
   }
 
-  private void process(String queueId) {
-    queueProcessorManager
-        .processQueue(queueId, db, mappers, this, configuration, threadPool);
+  private void process(Long queueId) {
+    queueProcessorManager.processQueue(queueId, db, mappers, this, configuration, threadPool);
   }
 
   public void close() {
@@ -122,17 +115,16 @@ public class TaskDispatcher {
         }
       }
     } catch (InterruptedException ex) {
-      LOGGER.warn(
-          "Interrupted while waiting for the dispatcher thread pool to go shut down.");
+      LOGGER.warn("Interrupted while waiting for the dispatcher thread pool to go shut down.");
     }
   }
 
-  public void dispatchTask(TaskDto taskDto) {
-    process(taskDto.getQueueId());
-    setTaskExpirationTimeout(taskDto.getRef(), taskDto.getQueuedTimeout());
+  public void dispatchTask(TaskDispatchInfo dispatchInfo) {
+    process(dispatchInfo.getQueueId());
+    setTaskExpirationTimeout(dispatchInfo.getTaskId(), dispatchInfo.getQueuedTimeout());
   }
 
-  public void dispatchAgent(String agentId) {
+  public void dispatchAgent(Long agentId) {
     threadPool.submit(() -> {
       try {
         doDispatchAgent(agentId);
@@ -142,18 +134,14 @@ public class TaskDispatcher {
     });
   }
 
-  private void doDispatchAgent(String agentId)
-      throws CommsRouterException {
+  private void doDispatchAgent(Long agentId) throws CommsRouterException {
 
-    TaskAssignmentDto taskAssignmentDto =
-        db.transactionManager.executeWithLockRetry(em -> {
-          Router router = db.agent.get(em, agentId).getRouter();
-          em.lock(router, LockModeType.WRITE);
+    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry(em -> {
+      Router router = db.agent.get(em, agentId).getRouter();
+      em.lock(router, LockModeType.WRITE);
 
-          return db.queue.findAssignmentForAgent(em, agentId)
-              .map(this::assignTask)
-              .orElse(null);
-        });
+      return db.queue.findAssignmentForAgent(em, agentId).map(this::assignTask).orElse(null);
+    });
 
     if (taskAssignmentDto != null) {
       submitTaskAssignment(taskAssignmentDto);
@@ -187,19 +175,17 @@ public class TaskDispatcher {
       }
     });
     Failsafe.with(retryPolicy).with(threadPool)
-        .onSuccess((ignored, executionContext) ->
-            LOGGER.debug("Task {} assigned to agent {}",
-                taskAssignmentDto.getTask(), taskAssignmentDto.getAgent()))
-        .onRetry((result, failure, context) ->
-            LOGGER.warn("Retry assigning task {} to agent {}: {}, {}",
+        .onSuccess((ignored, executionContext) -> LOGGER.debug("Task {} assigned to agent {}",
+            taskAssignmentDto.getTask(), taskAssignmentDto.getAgent()))
+        .onRetry(
+            (result, failure, context) -> LOGGER.warn("Retry assigning task {} to agent {}: {}, {}",
                 taskAssignmentDto.getTask(), taskAssignmentDto.getAgent(), failure, context))
-        .onFailure((ignored, throwable) ->
-            LOGGER.error("Failure assigning task {} to agent {}: {}",
-                taskAssignmentDto.getTask(), taskAssignmentDto.getAgent(), throwable, throwable))
+        .onFailure((ignored, throwable) -> LOGGER.error("Failure assigning task {} to agent {}: {}",
+            taskAssignmentDto.getTask(), taskAssignmentDto.getAgent(), throwable, throwable))
         .run(() -> taskEventHandler.onTaskAssigned(taskAssignmentDto));
   }
 
-  private void setTaskExpirationTimeout(String taskId, Long seconds) {
+  private void setTaskExpirationTimeout(Long taskId, Long seconds) {
 
     LOGGER.debug("Set expiration timeout:{} for task:{}", seconds, taskId);
 
@@ -208,7 +194,7 @@ public class TaskDispatcher {
     }, seconds, TimeUnit.SECONDS);
   }
 
-  private void onQueuedTaskTimeout(String taskId) {
+  private void onQueuedTaskTimeout(Long taskId) {
 
     try {
       LOGGER.debug("onQueuedTaskTimeout(): Task with ID='{}' timed-out", taskId);
@@ -218,8 +204,7 @@ public class TaskDispatcher {
     }
   }
 
-  private void processTaskTimeout(String taskId)
-      throws CommsRouterException {
+  private void processTaskTimeout(Long taskId) throws CommsRouterException {
 
     TaskDto taskDto = db.transactionManager.execute((em) -> {
       Task task = db.task.get(em, taskId);
@@ -261,8 +246,8 @@ public class TaskDispatcher {
             if (matchedRoute.getTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + matchedRoute.getTimeout() * 1000);
-              LOGGER.trace("Next route, update expirationDate:{} for task:{} ",
-                  expirationDate, task.getRef());
+              LOGGER.trace("Next route, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getRef());
             } else {
               LOGGER.trace("Next route, clear expirationDate for task:{}", task.getRef());
             }
@@ -270,8 +255,8 @@ public class TaskDispatcher {
             if (task.getQueuedTimeout() > 0) {
               expirationDate =
                   new Date(System.currentTimeMillis() + task.getQueuedTimeout() * 1000);
-              LOGGER.trace("Default, update expirationDate:{} for task:{} ",
-                  expirationDate, task.getRef());
+              LOGGER.trace("Default, update expirationDate:{} for task:{} ", expirationDate,
+                  task.getRef());
             } else {
               LOGGER.trace("Default, clear expirationDate for task:{}", task.getRef());
             }
@@ -292,7 +277,7 @@ public class TaskDispatcher {
     });
 
     if (taskDto != null) {
-      setTaskExpirationTimeout(taskDto.getRef(), taskDto.getQueuedTimeout());
+      setTaskExpirationTimeout(taskDto.getId(), taskDto.getQueuedTimeout());
     }
 
   }
@@ -344,14 +329,13 @@ public class TaskDispatcher {
       LOGGER.trace("No expiration date, won't attach timer for task: {}", task.getRef());
     } else {
       long seconds = (task.getExpirationDate().getTime() - System.currentTimeMillis()) / 1000;
-      setTaskExpirationTimeout(task.getRef(), seconds);
+      setTaskExpirationTimeout(task.getId(), seconds);
     }
   }
 
   public static class Configuration {
 
-    private static final Configuration DEFAULT =
-        new Configuration(10, 2, 60, 500);
+    private static final Configuration DEFAULT = new Configuration(10, 2, 60, 500);
 
     public final int threadPoolSize;
     public final int backOffDelay;

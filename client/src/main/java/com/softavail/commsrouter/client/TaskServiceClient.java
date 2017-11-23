@@ -72,7 +72,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public CreatedTaskDto create(CreateTaskArg createArg, RouterObjectRef routerObjectId)
+  public CreatedTaskDto replace(CreateTaskArg createArg, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
     return put(createArg, routerObjectId);

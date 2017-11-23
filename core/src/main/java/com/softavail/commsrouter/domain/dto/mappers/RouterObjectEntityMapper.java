@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,8 @@ import com.softavail.commsrouter.domain.RouterObject;
 public abstract class RouterObjectEntityMapper<DTOENTITYT, JPAENTITYT>
     extends EntityMapper<DTOENTITYT, JPAENTITYT> {
 
-  protected void copyId(RouterObjectRef to, RouterObject from) {
+  protected void copyRef(RouterObjectRef to, RouterObject from) {
+    to.setId(from.getId());
     to.setRef(from.getRef());
     to.setRouterRef(from.getRouter().getRef());
   }

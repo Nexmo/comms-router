@@ -135,12 +135,12 @@ public class TestBase {
   }
 
   // Creates and adds a new router object to the DB
-  public static void createRouter(String name, String description, String id) {
+  public static void createRouter(String name, String description, String ref) {
     em.getTransaction().begin();
     Router r = new Router();
     r.setDescription(description);
     r.setName(name);
-    r.setRef(id);
+    r.setRef(ref);
     r.setVersion(1);
     em.persist(r);
     em.getTransaction().commit();

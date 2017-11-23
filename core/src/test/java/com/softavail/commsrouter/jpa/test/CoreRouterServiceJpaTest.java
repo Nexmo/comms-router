@@ -43,7 +43,7 @@ public class CoreRouterServiceJpaTest extends TestBase {
         assertEquals(1,routers.size());
     }
 
-    //Testing the create method
+    //Testing the replace method
     @Test
     public void createTestOne() throws CommsRouterException {
         CreateRouterArg createArg = newCreateRouterArg("name_three", "description_three");
@@ -54,10 +54,10 @@ public class CoreRouterServiceJpaTest extends TestBase {
         assertEquals("description_three", router.getDescription());
     }
 
-    //Testing the create method that also takes Id
+    //Testing the replace method that also takes Id
     @Test
     public void createTestTwo() throws CommsRouterException {
-        ApiObjectRef newRouter = routerService.create(newCreateRouterArg("name_three", "description_three"), "03");
+        ApiObjectRef newRouter = routerService.replace(newCreateRouterArg("name_three", "description_three"), "03");
         //Get the new router by ID
         RouterDto router = routerService.get(newRouter.getRef());
         assertEquals("name_three", router.getName());

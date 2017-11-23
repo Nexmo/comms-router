@@ -22,17 +22,17 @@ import org.junit.Test;
  */
 public class CoreTaskServiceJpaTest extends TestBase {
 
-  // Testing the create method that takes a RouterObjectRef
+  // Testing the replace method that takes a RouterObjectRef
   @Test
   public void createTest() throws MalformedURLException, CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), ref);
-    taskService.create(newCreateTaskArg(queue.getRef(), "https://test.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
+    taskService.replace(newCreateTaskArg(queue.getRef(), "https://test.com", null), ref);
     TaskDto task = taskService.get(ref);
     assertEquals(task.getCallbackUrl(), "https://test.com");
   }
 
-  // Testing the create method that takes a String routerId
+  // Testing the replace method that takes a String routerId
   @Test
   public void createTestTwo() throws MalformedURLException, CommsRouterException {
     ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), "01");
@@ -45,8 +45,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateTest() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), ref);
-    taskService.create(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
+    taskService.replace(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
     // Updating
     taskService.update(newUpdateTaskArg(2, TaskState.completed), ref);
     TaskDto task = taskService.get(ref);
@@ -57,8 +57,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateContextTest_one() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), ref);
-    taskService.create(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
+    taskService.replace(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
     UpdateTaskContext ctx = newUpdateTaskContext();
     TaskDto taskBefore = taskService.get(ref);
     // Updating
@@ -71,8 +71,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test
   public void updateContextTest_two() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), ref);
-    taskService.create(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
+    taskService.replace(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
     UpdateTaskContext ctx = newUpdateTaskContext();
     TaskDto taskBefore = taskService.get(ref);
     // Updating
@@ -85,8 +85,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   @Test(expected = BadValueException.class)
   public void exceptionTestTwo() throws MalformedURLException, CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
-    ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), ref);
-    taskService.create(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
+    ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
+    taskService.replace(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
     taskService.update(newUpdateTaskArg(2, TaskState.assigned), ref);
   }
 

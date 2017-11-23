@@ -31,7 +31,7 @@ public interface AgentService extends RouterObjectService<AgentDto> {
   ApiObjectRef create(CreateAgentArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectRef create(CreateAgentArg createArg, RouterObjectRef objectRef)
+  ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
   void update(UpdateAgentArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;

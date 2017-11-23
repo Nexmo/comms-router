@@ -34,7 +34,7 @@ public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
   @Override
   public AgentDto toDto(Agent jpa) {
     AgentDto dto = new AgentDto();
-    copyId(dto, jpa);
+    copyRef(dto, jpa);
     dto.setCapabilities(attributesMapper.toDto(jpa.getCapabilities()));
     dto.setAddress(jpa.getAddress());
     dto.setState(jpa.getState());

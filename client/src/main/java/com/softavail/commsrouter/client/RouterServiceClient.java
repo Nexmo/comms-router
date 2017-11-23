@@ -64,7 +64,7 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectR
   }
 
   @Override
-  public ApiObjectRef create(CreateRouterArg createArg, String routerRef)
+  public ApiObjectRef replace(CreateRouterArg createArg, String routerRef)
       throws CommsRouterException {
 
     return put(createArg, routerRef);

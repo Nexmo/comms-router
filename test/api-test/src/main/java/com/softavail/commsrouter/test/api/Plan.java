@@ -42,71 +42,53 @@ public class Plan extends Resource {
   }
 
   public List<PlanDto> list() {
-    PlanDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).when()
-        .get("/routers/{routerId}/plans")
+    PlanDto[] routers = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .when().get("/routers/{routerRef}/plans")
         .then().statusCode(200)
         .extract().as(PlanDto[].class);
     return Arrays.asList(routers);
   }
 
   public ApiObjectRef replace(CreatePlanArg args) {
-    String id = state().get(CommsRouterResource.PLAN);
+    String ref = state().get(CommsRouterResource.PLAN);
     ApiObjectRef oid = given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .body(args)
-        .when().put("/routers/{routerId}/plans/{queueId}")
-        .then().statusCode(201)
-        .extract()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .body(args).when().put("/routers/{routerRef}/plans/{ref}").then().statusCode(201).extract()
         .as(ApiObjectRef.class);
     state().put(CommsRouterResource.PLAN, oid.getRef());
     return oid;
   }
 
   public ApiObjectRef create(CreatePlanArg args) {
-    ApiObjectRef oid = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+    ApiObjectRef oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
-        .body(args)
-        .when().post("/routers/{routerId}/plans")
-        .then().statusCode(201).body("id", not(isEmptyString()))
-        .extract()
-        .as(ApiObjectRef.class);
+        .body(args).when().post("/routers/{routerRef}/plans").then().statusCode(201)
+        .body("ref", not(isEmptyString())).extract().as(ApiObjectRef.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.PLAN, id);
     return oid;
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.PLAN);
-    given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().delete("/routers/{routerId}/plans/{queueId}")
-        .then().statusCode(204);
+    String ref = state().get(CommsRouterResource.PLAN);
+    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/plans/{ref}").then().statusCode(204);
   }
 
   public PlanDto get() {
-    String id = state().get(CommsRouterResource.PLAN);
-    return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/plans/{queueId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(PlanDto.class);
+    String ref = state().get(CommsRouterResource.PLAN);
+    return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref).when().get("/routers/{routerRef}/plans/{ref}").then().statusCode(200)
+        .body("ref", equalTo(ref)).extract().as(PlanDto.class);
   }
 
   public void update(CreatePlanArg args) {
-    String id = state().get(CommsRouterResource.PLAN);
+    String ref = state().get(CommsRouterResource.PLAN);
     given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .body(args)
-        .when().post("/routers/{routerId}/plans/{queueId}")
-        .then().statusCode(204);
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .body(args).when().post("/routers/{routerRef}/plans/{ref}").then().statusCode(204);
   }
 
 }

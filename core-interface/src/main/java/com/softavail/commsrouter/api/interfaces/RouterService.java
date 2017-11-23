@@ -30,9 +30,13 @@ public interface RouterService extends ApiObjectService<RouterDto> {
   ApiObjectRef create(CreateRouterArg createArg)
       throws CommsRouterException;
 
-  ApiObjectRef create(CreateRouterArg createArg, String routerRef)      throws CommsRouterException;
+  ApiObjectRef replace(CreateRouterArg createArg, String routerRef) throws CommsRouterException;
 
   void update(UpdateRouterArg updateArg, String routerId)
       throws CommsRouterException;
+
+  RouterDto get(String ref) throws CommsRouterException;
+
+  void delete(String ref) throws CommsRouterException;
 
 }

@@ -22,7 +22,6 @@ import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.domain.RouterObject;
 
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.EntityManager;
 
 /**
@@ -36,12 +35,30 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
   }
 
   public ENTITYT get(EntityManager em, RouterObjectRef routerObjectRef) throws NotFoundException {
-    ENTITYT entity = get(em, routerObjectRef.getRef());
-    if (entity != null
-        && Objects.equals(entity.getRouter().getRef(), routerObjectRef.getRouterRef())) {
+    ENTITYT entity = getNoThrow(em, routerObjectRef);
+    if (entity != null) {
       return entity;
     }
     throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectRef + " not found");
+  }
+
+  @SuppressWarnings("unchecked")
+  public ENTITYT getNoThrow(EntityManager em, RouterObjectRef routerObjectRef)
+      throws NotFoundException {
+    String query = "SELECT e FROM " + entityClass.getSimpleName()
+        + " e JOIN e.router r WHERE r.ref = :routerRef AND e.ref = :ref";
+
+    List<ENTITYT> result =
+        em.createQuery(query).setParameter("routerRef", routerObjectRef.getRouterRef())
+            .setParameter("ref", routerObjectRef.getRef()).getResultList();
+
+    if (result.isEmpty()) {
+      return null;
+    }
+
+    assert result.size() == 1;
+
+    return result.get(0);
   }
 
   @SuppressWarnings("unchecked")
@@ -52,14 +69,13 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
         .setParameter("routerRef", routerRef).getResultList();
   }
 
-  public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
-    transactionManager.executeVoid((em) -> {
-      ENTITYT entity = em.find(entityClass, routerObjectRef.getRef());
-      if (entity != null
-          && Objects.equals(entity.getRouter().getRef(), routerObjectRef.getRouterRef())) {
-        em.remove(entity);
-      }
-    });
+  public void delete(EntityManager em, RouterObjectRef routerObjectRef)
+      throws CommsRouterException {
+
+    ENTITYT entity = getNoThrow(em, routerObjectRef);
+    if (entity != null) {
+      em.remove(entity);
+    }
   }
 
 }

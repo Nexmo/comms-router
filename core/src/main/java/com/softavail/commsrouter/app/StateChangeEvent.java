@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,11 @@ package com.softavail.commsrouter.app;
  */
 public class StateChangeEvent {
 
-  private final String queueId;
+  private final Long queueId;
   private final QueueProcessorState oldState;
   private final QueueProcessorState newState;
 
-  public StateChangeEvent(String queueId,
+  public StateChangeEvent(Long queueId,
       QueueProcessorState oldState, QueueProcessorState newState) {
 
     this.queueId = queueId;
@@ -33,7 +33,7 @@ public class StateChangeEvent {
     this.newState = newState;
   }
 
-  public String getQueueId() {
+  public Long getQueueId() {
     return queueId;
   }
 

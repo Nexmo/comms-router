@@ -169,7 +169,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     // Check answer time prediction
     if (task.getQueueTasks() < 1) {
-      // create regular task
+      // replace regular task
       return respondWithRegularTask(conversationName);
     }
 

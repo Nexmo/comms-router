@@ -7,6 +7,7 @@ package playground;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
+import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
@@ -83,7 +84,7 @@ public class JpaPlayground implements AutoCloseable {
     printList(service.list());
 
     CreateRouterArg createRouterArg = new CreateRouterArg();
-    service.create(createRouterArg, id);
+    service.replace(createRouterArg, id);
 
     printList(service.list());
   }
@@ -123,7 +124,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id1").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouter(db.router.get(em, "router-id"));
+          queue.setRouter(db.router.getByRef(em, "router-id"));
           queue.setRef("queue-id1");
           em.persist(queue);
         });
@@ -131,7 +132,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id2").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouter(db.router.get(em, "router-id"));
+          queue.setRouter(db.router.getByRef(em, "router-id"));
           queue.setRef("queue-id2");
           em.persist(queue);
         });
@@ -139,7 +140,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-6").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouter(db.router.get(em, "router-id"));
+          queue.setRouter(db.router.getByRef(em, "router-id"));
           queue.setRef("queue-id-6");
           queue.setPredicate("CONTAINS(language, 'es')");
           em.persist(queue);
@@ -148,7 +149,7 @@ public class JpaPlayground implements AutoCloseable {
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("queue-id-5").build(),
         queueService, (em) -> {
           Queue queue = new Queue();
-          queue.setRouter(db.router.get(em, "router-id"));
+          queue.setRouter(db.router.getByRef(em, "router-id"));
           queue.setRef("queue-id-5");
           queue.setPredicate("language == 'en'");
           em.persist(queue);
@@ -198,10 +199,12 @@ public class JpaPlayground implements AutoCloseable {
           plan.setDefaultRoute(route);
 
           plan.setRef("plan-id");
-          plan.setRouter(db.router.get(em, "router-id"));
+          plan.setRouter(db.router.getByRef(em, "router-id"));
 
           em.persist(plan);
         });
+
+    AgentDto agentDto = new AgentDto();
 
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("agent-id").build(),
         agentService, (em) -> {
@@ -221,8 +224,9 @@ public class JpaPlayground implements AutoCloseable {
           agent.getQueues().add(queue1);
           agent.getQueues().add(queue2);
           agent.setRef("agent-id");
-          agent.setRouter(db.router.get(em, "router-id"));
+          agent.setRouter(db.router.getByRef(em, "router-id"));
           em.persist(agent);
+          agentDto.setId(agent.getId());
         });
 
     testRouterObject(RouterObjectRef.builder().setRouterRef("router-id").setRef("task-id").build(),
@@ -241,12 +245,12 @@ public class JpaPlayground implements AutoCloseable {
           } catch (MalformedURLException ex) {
             throw new RuntimeException("Bad URL");
           }
-          taskService.create(createTaskArg, objectId);
+          taskService.replace(createTaskArg, objectId);
         });
 
     // taskDispatcher.dispatchTask("task-id");
     // sleep();
-    taskDispatcher.dispatchAgent("agent-id");
+    taskDispatcher.dispatchAgent(agentDto.getId());
     sleep();
     UpdateTaskArg updateTaskArg = new UpdateTaskArg();
     updateTaskArg.setState(TaskState.completed);

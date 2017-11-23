@@ -223,6 +223,7 @@ public class AgentTest {
     TimeUnit.SECONDS.sleep(1);
 
     a.setState(AgentState.ready);
+    TimeUnit.SECONDS.sleep(1);
 
     resource = a.get();
     assertThat(String
@@ -355,9 +356,9 @@ public class AgentTest {
         resource.getState(), is(AgentState.busy));
 
     t.setState(TaskState.waiting);
+    TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
-    TimeUnit.SECONDS.sleep(1);
     state.put(CommsRouterResource.AGENT, ref2.getRef());
 
     resource = a.get();
@@ -392,6 +393,7 @@ public class AgentTest {
     assertThat(q.size(), is(0));
 
     CreatedTaskDto task2 = t.createQueueTask();
+    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
     resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));

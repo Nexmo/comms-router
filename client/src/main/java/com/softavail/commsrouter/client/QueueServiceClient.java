@@ -96,7 +96,7 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef
   }
 
   @Override
-  public ApiObjectRef create(CreateQueueArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return put(createArg, objectRef);

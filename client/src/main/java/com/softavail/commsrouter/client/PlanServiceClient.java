@@ -92,7 +92,7 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectRef>
   }
 
   @Override
-  public ApiObjectRef create(CreatePlanArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return put(createArg, objectRef);

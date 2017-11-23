@@ -95,7 +95,7 @@ public class RouterResource {
       @ApiParam(value = "ID of the router to be searched") @PathParam("id") String id)
       throws CommsRouterException {
 
-    LOGGER.debug("Looking for router with id: {}", id);
+    LOGGER.debug("Looking for router with ref: {}", id);
 
     return routerService.get(id);
   }
@@ -175,9 +175,9 @@ public class RouterResource {
           required = true) CreateRouterArg routerArg)
       throws CommsRouterException {
 
-    LOGGER.debug("Replacing router: {}, with id: {}", routerArg, ref);
+    LOGGER.debug("Replacing router: {}, with ref: {}", routerArg, ref);
 
-    ApiObjectRef router = routerService.create(routerArg, ref);
+    ApiObjectRef router = routerService.replace(routerArg, ref);
 
     URI createLocation =
         UriBuilder.fromResource(this.getClass()).path("{ref}").build(router.getRef());

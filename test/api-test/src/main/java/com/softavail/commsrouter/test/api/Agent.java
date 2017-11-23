@@ -45,25 +45,18 @@ public class Agent extends Resource {
   }
 
   public List<AgentDto> list() {
-    AgentDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .when().get("/routers/{routerId}/agents")
-        .then().statusCode(200)
-        .extract()
+    AgentDto[] routers = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .when().get("/routers/{routerRef}/agents").then().statusCode(200)        .extract()
         .as(AgentDto[].class);
     return Arrays.asList(routers);
   }
 
   public ApiObjectRef replace(CreateAgentArg args) {
-    String id = state().get(CommsRouterResource.AGENT);
+    String ref = state().get(CommsRouterResource.AGENT);
     ApiObjectRef oid = given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("agentId", id)
-        .body(args)
-        .when().put("/routers/{routerId}/agents/{agentId}")
-        .then().statusCode(201)
-        .extract()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .body(args).when().put("/routers/{routerRef}/agents/{ref}").then().statusCode(201).extract()
         .as(ApiObjectRef.class);
     state().put(CommsRouterResource.AGENT, oid.getRef());
     return oid;
@@ -74,10 +67,8 @@ public class Agent extends Resource {
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
-        .when().post("/routers/{routerId}/agents")
-        .then().statusCode(201).body("id", not(isEmptyString()))
-        .extract()
-        .as(ApiObjectRef.class);
+        .when().post("/routers/{routerId}/agents").then().statusCode(201)
+        .body("ref", not(isEmptyString())).extract().as(ApiObjectRef.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.AGENT, id);
     return oid;
@@ -92,21 +83,15 @@ public class Agent extends Resource {
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.AGENT);
-    given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().delete("/routers/{routerId}/agents/{queueId}")
-        .then().statusCode(204);
+    String ref = state().get(CommsRouterResource.AGENT);
+    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/agents/{ref}").then().statusCode(204);
   }
 
-  public AgentDto get(String id) {
-    return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/agents/{queueId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(AgentDto.class);
+  public AgentDto get(String ref) {
+    return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref).when().get("/routers/{routerRef}/agents/{ref}").then()
+        .statusCode(200).body("ref", equalTo(ref)).extract().as(AgentDto.class);
   }
 
   public AgentDto get() {
@@ -114,14 +99,11 @@ public class Agent extends Resource {
   }
 
   public void update(UpdateAgentArg args) {
-    String id = state().get(CommsRouterResource.AGENT);
+    String ref = state().get(CommsRouterResource.AGENT);
     given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .body(args)
-        .when().post("/routers/{routerId}/agents/{queueId}")
-        .then().statusCode(204);
+        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .body(args).when().post("/routers/{routerId}/agents/{ref}").then().statusCode(204);
   }
 
   public void setState(AgentState state) {

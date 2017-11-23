@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.domain.dto.mappers;
 
 import com.softavail.commsrouter.api.dto.model.TaskDto;
+import com.softavail.commsrouter.app.TaskDispatchInfo;
 import com.softavail.commsrouter.domain.Task;
 
 /**
@@ -33,7 +34,7 @@ public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
 
   public TaskDto toDto(Task jpa) {
     TaskDto dto = new TaskDto();
-    copyId(dto, jpa);
+    copyRef(dto, jpa);
     dto.setCallbackUrl(jpa.getCallbackUrl());
     dto.setRequirements(attributesMapper.toDto(jpa.getRequirements()));
     dto.setUserContext(attributesMapper.toDto(jpa.getUserContext()));
@@ -51,6 +52,15 @@ public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
       dto.setRouteId(jpa.getCurrentRoute().getId());
     }
     return dto;
+  }
+
+  public TaskDispatchInfo toDispatchInfo(Task task) {
+    TaskDispatchInfo result = new TaskDispatchInfo();
+    result.setTaskId(task.getId());
+    result.setTaskRef(task.getRef());
+    result.setQueueId(task.getQueue().getId());
+    result.setQueuedTimeout(task.getQueuedTimeout());
+    return result;
   }
 
 }

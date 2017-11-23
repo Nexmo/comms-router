@@ -1,17 +1,15 @@
 /*
  * Copyright 2017 SoftAvail Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.softavail.commsrouter.api.service;
@@ -68,18 +66,18 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public ApiObjectRef create(CreateQueueArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.queue.delete(em, objectRef.getRef());
+      app.db.queue.delete(em, objectRef);
+      em.flush();
       return doCreate(em, createArg, objectRef);
     });
   }
 
   private ApiObjectRef doCreate(EntityManager em, CreateQueueArg createArg,
-      RouterObjectRef objectRef)
-      throws CommsRouterException {
+      RouterObjectRef objectRef) throws CommsRouterException {
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
     evaluator.validate(createArg.getPredicate());
@@ -133,7 +131,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Queue queue = app.db.queue.get(em, objectId.getRef());
+      Queue queue = app.db.queue.get(em, objectId);
       updatePredicate(em, queue, updateArg.getPredicate());
       Fields.update(queue::setDescription, queue.getDescription(), updateArg.getDescription());
     });
@@ -162,30 +160,30 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public long getQueueSize(RouterObjectRef routerObjectRef)
-      throws CommsRouterException {
+  public long getQueueSize(RouterObjectRef routerObjectRef) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectRef); // Check that queue exists
 
-      return app.db.queue.getQueueSize(em, routerObjectRef.getRef());
+      return app.db.queue.getQueueSize(em, routerObjectRef);
     });
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Collection<TaskDto> getTasks(RouterObjectRef routerObjectRef)
-      throws CommsRouterException {
+  public Collection<TaskDto> getTasks(RouterObjectRef routerObjectRef) throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
       app.db.queue.get(em, routerObjectRef); // Check that queue exists
 
-      String qlString = "SELECT t FROM Task t JOIN t.queue q WHERE q.id = :queueId "
+      String qlString = "SELECT t FROM Task t JOIN t.queue q JOIN q.router r "
+          + "WHERE r.ref = :routerRef AND q.ref = :queueRef "
           + "AND t.state = :state ORDER BY t.priority DESC";
 
-      List<Task> list = em.createQuery(qlString).setParameter("queueId", routerObjectRef.getRef())
-          .setParameter("state", TaskState.waiting)
-          .getResultList();
+      List<Task> list = em.createQuery(qlString)
+          .setParameter("routerRef", routerObjectRef.getRouterRef())
+          .setParameter("queueRef", routerObjectRef.getRef())
+          .setParameter("state", TaskState.waiting).getResultList();
 
       return app.entityMapper.task.toDto(list);
     });

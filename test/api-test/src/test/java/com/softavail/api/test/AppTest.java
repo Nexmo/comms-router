@@ -70,7 +70,7 @@ public class AppTest {
     ApiObjectRef ref = r.create(new CreateRouterArg());
     RouterDto router = r.get();
     assertThat(router.getName(), nullValue());
-    assertThat(r.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    assertThat(r.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     r.replace(new CreateRouterArg());
     r.update(new CreateRouterArg());
     r.delete();
@@ -88,7 +88,7 @@ public class AppTest {
     ApiObjectRef ref = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
-    assertThat(q.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    assertThat(q.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     q.replace(new CreateQueueArg.Builder().predicate("2==2").build());
     q.update(new CreateQueueArg.Builder().predicate("1==1").build());
     q.delete();
@@ -111,7 +111,7 @@ public class AppTest {
     ref = p.create(arg);
     PlanDto resource = p.get();
     assertThat(resource.getDescription(), nullValue());
-    assertThat(p.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    assertThat(p.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     p.replace(arg);
     p.update(arg);
     //p.delete(); Known issue
@@ -129,7 +129,7 @@ public class AppTest {
     ref = a.create(arg);
     AgentDto resource = a.get();
     assertThat(resource.getCapabilities(), nullValue());
-    assertThat(a.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    assertThat(a.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     a.replace(new CreateAgentArg());
     a.update(new UpdateAgentArg());
     a.delete();
@@ -151,7 +151,7 @@ public class AppTest {
     ref = t.create(arg);
     TaskDto resource = t.get();
     assertThat(resource.getRequirements(), nullValue());
-    assertThat(t.list(), hasItems(hasProperty("id", is(ref.getRef()))));
+    assertThat(t.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     t.replace(new CreateTaskArg.Builder().callback(new URL("http://localhost:8080"))
         .queue(queueRef.getRef()).build());
     t.update(new UpdateTaskArg.Builder().state(TaskState.completed).build());

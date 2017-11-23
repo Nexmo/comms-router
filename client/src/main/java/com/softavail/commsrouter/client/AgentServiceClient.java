@@ -70,7 +70,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef
   }
 
   @Override
-  public ApiObjectRef create(CreateAgentArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return put(createArg, objectRef);

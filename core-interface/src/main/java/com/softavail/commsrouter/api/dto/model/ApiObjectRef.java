@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,18 +16,39 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.xml.bind.annotation.XmlTransient;
+
 public class ApiObjectRef {
+
+  private Long id;
 
   private String ref;
 
   public ApiObjectRef() {}
 
-  public ApiObjectRef(String id) {
-    setRef(id);
+  public ApiObjectRef(String ref) {
+    setRef(ref);
+  }
+
+  public ApiObjectRef(Long id, String ref) {
+    setId(id);
+    setRef(ref);
   }
 
   public ApiObjectRef(ApiObjectRef rhs) {
+    setId(rhs.getId());
     setRef(rhs.getRef());
+  }
+
+  @XmlTransient
+  @JsonIgnore
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public String getRef() {
@@ -40,8 +61,8 @@ public class ApiObjectRef {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("ApiObjectId{");
-    sb.append("id='").append(ref).append('\'');
+    final StringBuilder sb = new StringBuilder("ApiObjectRef{");
+    sb.append("ref='").append(ref).append('\'');
     sb.append('}');
     return sb.toString();
   }

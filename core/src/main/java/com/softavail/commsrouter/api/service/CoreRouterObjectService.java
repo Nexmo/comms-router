@@ -88,10 +88,9 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
       String simpleName = entityClass.getSimpleName();
 
       String countString = "SELECT COUNT(e.id) FROM " + simpleName + " e "
-          + "JOIN e.router r WHERE r.id = :routerId";
+          + "JOIN e.router r WHERE r.ref = :routerRef";
       long totalCount =
-          (long) em.createQuery(countString).setParameter("routerId", routerRef)
-              .getSingleResult();
+          (long) em.createQuery(countString).setParameter("routerRef", routerRef).getSingleResult();
 
       int startPosition = (page * perPage) - perPage;
 
@@ -99,8 +98,9 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
         throw new ValidationException("{resource.list.max.page.number}");
       }
 
-      String qlString = "SELECT e FROM " + simpleName + " e JOIN e.router r WHERE r.id = :routerId";
-      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerId", routerRef)
+      String qlString =
+          "SELECT e FROM " + simpleName + " e JOIN e.router r WHERE r.ref = :routerRef";
+      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerRef", routerRef)
           .setFirstResult(startPosition)
           .setMaxResults(perPage)
           .getResultList();
@@ -111,13 +111,15 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
 
   @Override
   public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
-    repository.delete(routerObjectRef);
+    app.db.transactionManager.executeVoid((em) -> {
+      repository.delete(em, routerObjectRef);
+    });
   }
 
   protected Router getRouter(EntityManager em, RouterObjectRef routerObjectRef)
       throws NotFoundException {
 
-    return app.db.router.get(em, routerObjectRef.getRouterRef());
+    return app.db.router.getByRef(em, routerObjectRef.getRouterRef());
   }
 
 }

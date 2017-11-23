@@ -108,7 +108,7 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
     RouterObjectRef objectRef =
         RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectRef queue = queueService.create(createArg, objectRef);
+    ApiObjectRef queue = queueService.replace(createArg, objectRef);
 
     return createResponse(queue);
   }

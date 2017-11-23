@@ -67,17 +67,18 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   @Override
-  public ApiObjectRef create(CreateAgentArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = em.find(Agent.class, objectRef.getRef());
+      Agent agent = repository.getNoThrow(em, objectRef);
       if (agent != null) {
         if (!agent.getState().isDeleteAllowed()) {
           throw new InvalidStateException(
               "Replacing agent in state " + agent.getState() + " not allowed");
         }
         em.remove(agent);
+        em.flush();
       }
       return doCreate(em, createArg, objectRef);
     });
@@ -128,13 +129,32 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     LOGGER.info("Agent {}: queues attached: {}", agent.getRef(), attachedQueuesCount);
   }
 
+  private static class UpdateInfo {
+    private static Long agentId;
+    private static boolean becameReady;
+
+    public UpdateInfo(Long agentId, boolean becameReady) {
+      this.agentId = agentId;
+      this.becameReady = becameReady;
+    }
+
+    Long getAgentId() {
+      return agentId;
+    }
+
+    boolean agentBecameReady() {
+      return becameReady;
+    }
+
+  }
+
   @Override
   public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    boolean becameReady = updateAgent(updateArg, objectRef);
-    if (becameReady) {
-      app.taskDispatcher.dispatchAgent(objectRef.getRef());
+    UpdateInfo updateInfo = updateAgent(updateArg, objectRef);
+    if (updateInfo.agentBecameReady()) {
+      app.taskDispatcher.dispatchAgent(updateInfo.getAgentId());
     }
 
   }
@@ -162,7 +182,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return false; // !keys.isEmpty();
   }
 
-  private boolean updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
+  private UpdateInfo updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     if (updateArg.getState() == AgentState.busy
@@ -172,11 +192,11 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     }
 
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = app.db.agent.get(em, objectRef.getRef());
+      Agent agent = app.db.agent.get(em, objectRef);
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       updateCapabilities(em, agent, updateArg.getCapabilities());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
-      return agentBecameAvailable;
+      return new UpdateInfo(agent.getId(), agentBecameAvailable);
     });
   }
 

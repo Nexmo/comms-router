@@ -16,28 +16,18 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Created by @author mapuo on 05.10.17.
  */
 public class CreatedTaskDto extends ApiObjectRef {
 
-  @JsonIgnore
-  private String queueId;
-
   private Long queueTasks;
 
   public CreatedTaskDto() {}
 
-  public CreatedTaskDto(ApiObjectRef taskDto, String queueRef, Long queueTasks) {
-    super(taskDto);
-    this.queueId = queueRef;
+  public CreatedTaskDto(String taskRef, Long queueTasks) {
+    super(taskRef);
     this.queueTasks = queueTasks;
-  }
-
-  public String getQueueId() {
-    return queueId;
   }
 
   public Long getQueueTasks() {

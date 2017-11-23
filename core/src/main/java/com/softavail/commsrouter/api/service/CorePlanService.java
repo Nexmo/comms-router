@@ -54,11 +54,12 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   @Override
-  public ApiObjectRef create(CreatePlanArg createArg, RouterObjectRef objectRef)
+  public ApiObjectRef replace(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.plan.delete(em, objectRef.getRef());
+      app.db.plan.delete(em, objectRef);
+      em.flush();
       return doCreate(em, createArg, objectRef);
     });
   }
@@ -68,7 +69,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Plan plan = app.db.plan.get(em, objectRef.getRef());
+      Plan plan = app.db.plan.get(em, objectRef);
       PlanResolver planResolver = PlanResolver.create(app, em, plan);
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });

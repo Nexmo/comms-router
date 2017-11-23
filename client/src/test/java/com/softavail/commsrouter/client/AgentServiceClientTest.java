@@ -101,7 +101,7 @@ public class AgentServiceClientTest {
     CreateAgentArg createArg = new CreateAgentArg();
     createArg.setAddress("sip:someone@somesip.pip");
     ApiObjectRef apiObjectRef =
-        serviceClient.create(createArg, new RouterObjectRef(agentRef, routerRef));
+        serviceClient.replace(createArg, new RouterObjectRef(agentRef, routerRef));
 
     LOGGER.debug("apiObjectId: {}", apiObjectRef);
 

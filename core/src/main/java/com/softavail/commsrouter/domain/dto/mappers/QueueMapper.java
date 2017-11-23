@@ -27,7 +27,7 @@ public class QueueMapper extends RouterObjectEntityMapper<QueueDto, Queue> {
 
   public QueueDto toDto(Queue jpa) {
     QueueDto dto = new QueueDto();
-    copyId(dto, jpa);
+    copyRef(dto, jpa);
     dto.setDescription(jpa.getDescription());
     dto.setPredicate(jpa.getPredicate());
     return dto;

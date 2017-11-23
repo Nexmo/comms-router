@@ -103,7 +103,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
     RouterObjectRef objectRef =
         RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectRef agent = agentService.create(agentArg, objectRef);
+    ApiObjectRef agent = agentService.replace(agentArg, objectRef);
 
     return createResponse(agent);
   }

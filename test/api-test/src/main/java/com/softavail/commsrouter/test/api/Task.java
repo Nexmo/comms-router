@@ -47,37 +47,26 @@ public class Task extends Resource {
   }
 
   public List<TaskDto> list() {
-    TaskDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).when()
-        .get("/routers/{routerId}/tasks")
-        .then().statusCode(200)
-        .extract().as(TaskDto[].class);
+    TaskDto[] routers = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).when()
+            .get("/routers/{routerRef}/tasks").then().statusCode(200).extract().as(TaskDto[].class);
     return Arrays.asList(routers);
   }
 
   public CreatedTaskDto replace(CreateTaskArg args) {
-    String id = state().get(CommsRouterResource.TASK);
-    CreatedTaskDto oid = given()
-        .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("taskId", id)
-        .body(args)
-        .when().put("/routers/{routerId}/tasks/{taskId}")
-        .then().statusCode(201)
-        .extract()
+    String ref = state().get(CommsRouterResource.TASK);
+    CreatedTaskDto oid = given().contentType("application/json")
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .body(args).when().put("/routers/{routerRef}/tasks/{ref}").then().statusCode(201).extract()
         .as(CreatedTaskDto.class);
     state().put(CommsRouterResource.TASK, oid.getRef());
     return oid;
   }
 
   public CreatedTaskDto create(CreateTaskArg args) {
-    CreatedTaskDto oid = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+    CreatedTaskDto oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
-        .body(args)
-        .when().post("/routers/{routerId}/tasks").then().statusCode(201)
-        .body("id", not(isEmptyString())).and().body("queueTasks", isA(Integer.class))
-        .extract()
+        .body(args).when().post("/routers/{routerRef}/tasks").then().statusCode(201)
+        .body("ref", not(isEmptyString())).and().body("queueTasks", isA(Integer.class)).extract()
         .as(CreatedTaskDto.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.TASK, id);
@@ -98,46 +87,32 @@ public class Task extends Resource {
 
   public CreatedTaskDto createWithPlan(CreateTaskArg args) {
     args.setPlanId(state().get(CommsRouterResource.PLAN));
-    CreatedTaskDto oid = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+    CreatedTaskDto oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
-        .body(args)
-        .when().post("/routers/{routerId}/tasks")
-        .then().statusCode(201).body("id", not(isEmptyString()))
-        .extract()
-        .as(CreatedTaskDto.class);
+        .body(args).when().post("/routers/{routerRef}/tasks").then().statusCode(201)
+        .body("ref", not(isEmptyString())).extract().as(CreatedTaskDto.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.TASK, id);
     return oid;
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.TASK);
-    given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("taskId", id)
-        .when().delete("/routers/{routerId}/tasks/{taskId}")
-        .then().statusCode(204);
+    String ref = state().get(CommsRouterResource.TASK);
+    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/tasks/{ref}").then().statusCode(204);
   }
 
   public TaskDto get() {
-    String id = state().get(CommsRouterResource.TASK);
-    return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/tasks/{queueId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(TaskDto.class);
+    String ref = state().get(CommsRouterResource.TASK);
+    return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref).when().get("/routers/{routerRef}/tasks/{ref}").then().statusCode(200)
+        .body("ref", equalTo(ref)).extract().as(TaskDto.class);
   }
 
   public void update(UpdateTaskArg args) {
-    String id = state().get(CommsRouterResource.TASK);
-    given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .contentType("application/json")
-        .body(args)
-        .when().post("/routers/{routerId}/tasks/{queueId}")
+    String ref = state().get(CommsRouterResource.TASK);
+    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
+        .contentType("application/json").body(args).when().post("/routers/{routerRef}/tasks/{ref}")
         .then().statusCode(204);
   }
 
