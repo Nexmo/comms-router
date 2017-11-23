@@ -140,7 +140,8 @@
                    (capabilities (jsown:new-js ("language" "en"))))
   (tr-step (http-put (list "/routers" router-id "agents" id) (jsown:new-js
                                                                ("address" address)
-                                                               ("capabilities" capabilities)))
+                                                               ("capabilities" capabilities)
+                                                               ("state" state)))
            #'(lambda(js) (and (listp js) (funcall (contains "id") js)))
            #'(lambda(js) (funcall (fire-event :agent) (jsown:val js "id")))))
 (defun agent-set(&key (router-id (get-event :router))

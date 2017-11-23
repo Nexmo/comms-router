@@ -37,6 +37,7 @@ public class TaskDto extends RouterObjectRef {
   private Date createDate;
   private Date updateDate;
   private Long queuedTimeout;
+  private String tag;
 
   public TaskDto() {}
 
@@ -136,6 +137,14 @@ public class TaskDto extends RouterObjectRef {
 
   public void setQueuedTimeout(Long queuedTimeout) {
     this.queuedTimeout = queuedTimeout;
+  }
+
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   @Override

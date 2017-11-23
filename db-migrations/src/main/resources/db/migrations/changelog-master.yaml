@@ -847,3 +847,43 @@ databaseChangeLog:
             name: is_scalar
             type: BOOLEAN
         tableName: attribute
+- changeSet:
+    id: 1510650694126-1
+    author: acho (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: tag
+            type: VARCHAR(255)
+        tableName: task
+- changeSet:
+    id: 1510650694126-2
+    author: acho (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: tag
+        indexName: task_tag_index
+        tableName: task
+- changeSet:
+    id: 1510650694126-3
+    author: mapuo
+    changes:
+    - dropIndex:
+        indexName: task_tag_index
+        tableName: task
+- changeSet:
+    id: 1510650694126-4
+    author: mapuo
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: router_id
+        - column:
+            name: tag
+        indexName: task_tag_index
+        tableName: task
+        unique: true

@@ -49,6 +49,7 @@ public class GenericRepository<ENTITYT> {
   }
 
   public ENTITYT get(EntityManager em, Long id) throws NotFoundException {
+
     ENTITYT jpaEntity = em.find(entityClass, id);
     if (jpaEntity == null) {
       throw new NotFoundException(entityClass.getSimpleName() + " " + id + " not found");
@@ -56,7 +57,9 @@ public class GenericRepository<ENTITYT> {
     return jpaEntity;
   }
 
-  public List<ENTITYT> list(EntityManager em) throws CommsRouterException {
+  public List<ENTITYT> list(EntityManager em)
+      throws CommsRouterException {
+
     CriteriaQuery<ENTITYT> cq = em.getCriteriaBuilder().createQuery(entityClass);
     cq.select(cq.from(entityClass));
     List<ENTITYT> result = em.createQuery(cq).getResultList();

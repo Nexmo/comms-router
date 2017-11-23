@@ -380,6 +380,7 @@ public class AgentTest {
     ApiObjectRef a1_ref = a.create("en");
     a.setState(AgentState.ready);
     CreatedTaskDto task1 = t.createQueueTask();
+    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));

@@ -6,10 +6,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public interface AnswerStrategy {
 
-  public String answerInboundCallWithParams(Map<String, String> paramaters) 
+  public String answerInboundCallWithParams(Map<String, String> requirements, 
+      Map<String, String> userContext) 
       throws AnswerStrategyException;
   
-  public String answerInboundCall(String convUuid, String from, String to)
+  public String answerInboundCall(String convUuid, String from, String to, String tag)
       throws AnswerStrategyException;
   
   public String continueAnswerInboundCall(JsonNode userInfo, String taskId, String state)

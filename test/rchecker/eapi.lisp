@@ -53,9 +53,9 @@
                      (address "address")
                      (capabilities (jsown:new-js ("language" "en"))))
   (tstep (format nil "Replace or create agent.")
-         (http-put (list "/routers" router-id "agents" id) (jsown:new-js
-                                                             ("address" address)
-                                                             ("capabilities" capabilities)))
+         (tapply (http-put (list "/routers" router-id "agents" id) (jsown:new-js
+                                                              ("address" address)
+                                                              ("capabilities" capabilities))))
          (check-and (has-json) (has-key "id") (publish-id :agent))))
 
 (defun eagent-set (&key (router-id (get-event :router))
@@ -87,6 +87,11 @@
                                                     ("description" description))))
          (check-and (has-json) (has-key "id") (publish-id :router))))
 
+(defun erouter-all (&key (checks (check-and (has-json))))
+  (tstep (format nil "List available routers.")
+         (tapply (http-get "/routers"))
+         checks))
+
 (defun erouter-put (&key (id (get-event :router)) (name "name") (description "description"))
   (tstep (format nil "Replace or create router.")
          (tapply (http-put (list "/routers" id) (jsown:new-js ("name" name)
@@ -99,7 +104,7 @@
          (check-and (is-equal "") (remove-id :router))))
 ;;; task
 (defun etask-new(&key (router-id (get-event :router))
-
+                   (tag "unique-tag")
                    (requirements (jsown:new-js ("key" t)))
                    (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                    (context (jsown:new-js ("key" "value")))
@@ -109,6 +114,7 @@
   (tstep (format nil "Create new task to queue ~A, plan ~A and context ~A." queue-id plan-id (jsown:to-json context))
          (tapply (http-post (list "/routers" router-id "tasks")
                             (jsown:new-js
+                              ("tag" tag)
                               ("callbackUrl" callback-url)
                               ("userContext" context)
                               ("requirements" requirements)
@@ -131,6 +137,14 @@
                (checks (check-and (has-json) (has-kv "state" state))))
   (tstep description
          (tapply (http-get "/routers" router-id "tasks" id ))
+         checks))
+
+(defun etask-by-tag(&key (tag "unique-tag")
+                      (description (format nil "Check that there are tasks with the specified ~A tag." tag))
+                      (router-id (get-event :router))
+                      (checks (check-and (has-json))))
+  (tstep description
+         (tapply (http-get "/routers" router-id "tasks" (format nil "byTag?tag=~A" tag)))
          checks))
 
 (defun etask-set(&key (router-id (get-event :router)) (id (get-event :task)) (state :null) )
@@ -190,6 +204,7 @@
                    (priority 0)
                    (next-route nil)
                    (timeout 3600)
+                   (default-timeout 3600)
                    (rules (list (jsown:new-js ("tag" "test-rule")
                                               ("predicate" predicate)
                                               ("routes" (append
@@ -202,10 +217,40 @@
                    (default-route (jsown:new-js
                                     ("queueId" default-queue-id)
                                     ("priority" 0)
-                                    ("timeout" 360000)))
+                                    ("timeout" default-timeout)))
                    (checks (check-and (has-json) (has-key "id"))))
   (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
          (tapply (http-post (list "/routers" router-id "plans")
+                            (jsown:new-js
+                              ("rules" rules)
+                              ("description" description)
+                              ("defaultRoute" default-route))))
+         checks))
+(defun eplan-put(&key (router-id (get-event :router))
+                   (id (get-event :plan))
+                   (queue-id (get-event :queue))
+                   (default-queue-id (get-event :queue))
+                   (predicate "1 ==1")
+                   (priority 0)
+                   (next-route nil)
+                   (timeout 3600)
+                   (default-timeout 3600)
+                   (rules (list (jsown:new-js ("tag" "test-rule")
+                                              ("predicate" predicate)
+                                              ("routes" (append
+                                                         (list (jsown:new-js
+                                                                 ("queueId" queue-id)
+                                                                 ("priority" priority)
+                                                                 ("timeout" timeout)))
+                                                         next-route)))))
+                   (description "description")
+                   (default-route (jsown:new-js
+                                    ("queueId" default-queue-id)
+                                    ("priority" 0)
+                                    ("timeout" default-timeout)))
+                   (checks (check-and (has-json) (has-key "id"))))
+  (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
+         (tapply (http-put (list "/routers" router-id "plans" id)
                             (jsown:new-js
                               ("rules" rules)
                               ("description" description)

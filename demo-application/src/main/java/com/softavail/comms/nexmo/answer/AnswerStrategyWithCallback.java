@@ -109,7 +109,9 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private boolean withFeatureRecordName;
 
-  private Map<String, String> parameters;
+  private Map<String, String> requirements;
+  
+  private Map<String, String> userContext;
 
   @Inject
   AnswerStrategyWithCallback(
@@ -120,30 +122,38 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     this.configuration = configuration;
     this.nexMoService = nexMoService;
     this.withFeatureRecordName = false;
-    this.parameters = null;
+    this.requirements = null;
+    this.userContext = null;
   }
 
   @Override
-  public String answerInboundCallWithParams(Map<String, String> parameters)
+  public String answerInboundCallWithParams(
+      Map<String, String> requirements, Map<String, String> userContext) 
       throws AnswerStrategyException {
 
-    if (parameters == null) {
-      throw new AnswerStrategyException("Invalid argument: <parameters>");
+    if (requirements == null) {
+      throw new AnswerStrategyException("Invalid argument: <requirements>");
     }
 
-    String convUuid = parameters.get("conversation_uuid");
-    String from = parameters.get("from");
-    String to = parameters.get("to");
+    this.requirements = requirements;
+    this.userContext = userContext;
 
-    this.parameters = parameters;
-    LOGGER.debug("parameters: {}", parameters);
+    LOGGER.debug("requirements: {}", this.requirements);
+    LOGGER.debug("userContext: {}", this.userContext);
 
-    return answerInboundCall(convUuid, from, to);
+    String convUuid = requirements.get("conversation_uuid");
+    String from = requirements.get("from");
+    String to = requirements.get("to");
+    String tag = null;
+    if (userContext != null) {
+      tag = userContext.get("customer_uuid");
+    }
+    return answerInboundCall(convUuid, from, to, tag);
   }
 
   @Override
-  public String answerInboundCall(final String convUuid, final String from, final String to)
-      throws AnswerStrategyException {
+  public String answerInboundCall(final String convUuid, final String from, final String to,
+      String tag) throws AnswerStrategyException {
 
     LOGGER.debug("answerInboundCall");
 
@@ -161,7 +171,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     // Create task
     String conversationName = "conv-" + UUID.randomUUID().toString();
-    CreatedTaskDto task = createRegularTask(conversationName, from);
+    CreatedTaskDto task = createRegularTask(conversationName, from, tag);
 
     if (null == task) {
       return respondWithErrorTalkNcco();
@@ -476,12 +486,13 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     LOGGER.debug("respondWithRegularTask");
 
     try {
-      Ncco talkNcco = nccoFactory.nccoTalkWithRegularTaskGreeting(MESSAGE_REGULAR_TASK_GREETING);
-      Ncco convNcco = nccoFactory.nccoConversationWithRegularTask(convName, getMusicOnHoldUrl());
+      List<Ncco> list = nccoFactory.nccoListWithAnswerFromCustomerForRegularTask(
+          MESSAGE_REGULAR_TASK_GREETING, convName, getMusicOnHoldUrl());
 
       NccoResponseBuilder builder = new NccoResponseBuilder();
-      builder.appendNcco(talkNcco);
-      builder.appendNcco(convNcco);
+      list.forEach(ncco -> {
+        builder.appendNcco(ncco);
+      });
 
       NccoResponse nccoResponse = builder.getValue();
       return nccoResponse.toJson();
@@ -505,12 +516,13 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     try {
       String convName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
-      Ncco talkNcco = nccoFactory.nccoTalkWithRegularTaskGreeting(MESSAGE_REGULAR_TASK_GREETING);
-      Ncco convNcco = nccoFactory.nccoConversationWithRegularTask(convName, getMusicOnHoldUrl());
+      List<Ncco> list = nccoFactory.nccoListWithAnswerFromCustomerForRegularTask(
+          MESSAGE_REGULAR_TASK_GREETING, convName, getMusicOnHoldUrl());
 
       NccoResponseBuilder builder = new NccoResponseBuilder();
-      builder.appendNcco(talkNcco);
-      builder.appendNcco(convNcco);
+      list.forEach(ncco -> {
+        builder.appendNcco(ncco);
+      });
 
       NccoResponse nccoResponse = builder.getValue();
       return nccoResponse.toJson();
@@ -794,9 +806,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
 
-
         List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForRegularTask(
-            MESSAGE_REGULAR_TASK_GREETING, conversationName);
+            MESSAGE_REGULAR_TASK_GREETING, conversationName, getMusicOnHoldUrl());
 
         // preparing a response
         NccoResponseBuilder builder = new NccoResponseBuilder();
@@ -910,7 +921,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     return null;
   }
 
-  private CreatedTaskDto createRegularTask(String conversationName, String from) {
+  private CreatedTaskDto createRegularTask(String conversationName, String from, String tag) {
     CreatedTaskDto task = null;
 
     try {
@@ -925,20 +936,32 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       if (from != null && from.length() > 9 && Character.isDigit(from.charAt(1))) {
         userContext.put(KEY_NUMBER, new StringAttributeValueDto(from));
       }
+      // add userContext if any
+      if (this.userContext != null && this.userContext.size() > 0) {
+        LOGGER.trace("Will create task with userContext");
+
+        this.userContext.keySet().forEach(key -> {
+          String value = this.userContext.get(key);
+          userContext.put(key, new StringAttributeValueDto(value));
+        });
+      }
       taskReq.setUserContext(userContext);
 
       // add requirements if any
-      if (this.parameters != null && this.parameters.size() > 0) {
+      if (this.requirements != null && this.requirements.size() > 0) {
         LOGGER.trace("Will create task with requirements");
         AttributeGroupDto requirements = new AttributeGroupDto();
 
-        this.parameters.keySet().forEach(key -> {
-          String value = this.parameters.get(key);
+        this.requirements.keySet().forEach(key -> {
+          String value = this.requirements.get(key);
           requirements.put(key, new StringAttributeValueDto(value));
         });
 
         taskReq.setRequirements(requirements);
         taskReq.setPlanRef(getPlanId());
+        if (tag != null) {
+          taskReq.setTag(tag);
+        }
       } else {
         taskReq.setQueueRef(getQueueId());
       }
@@ -1156,5 +1179,4 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return flagOk;
   }
-
 }

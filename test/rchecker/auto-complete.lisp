@@ -14,8 +14,9 @@
   (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
     (hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
     (let* ((task-info (jsown:parse body))
-           (task-id (jsown:val (jsown:val task-info "task") "id"))
-           (router-id (jsown:val (jsown:val task-info "task") "routerId"))
+           (task (jsown:val task-info "task"))
+           (task-id (jsown:val task "id"))
+           (router-id (jsown:val task "routerId"))
            (delay (hunchentoot:parameter "sleep")))
 
       (sleep (parse-integer delay))

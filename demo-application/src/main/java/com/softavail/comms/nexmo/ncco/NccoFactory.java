@@ -84,18 +84,6 @@ public class NccoFactory {
     return ncco;
   }
 
-
-  public Ncco nccoConversationWithRegularTask(String conversationId,
-      String musicOnHoldUrl) {
-    
-    ConversationNccoEx ncco = new ConversationNccoEx(conversationId);
-    ncco.setMusicOnHoldUrl(musicOnHoldUrl);
-    ncco.setStartOnEnter(Boolean.FALSE);
-    ncco.setRecord(Boolean.FALSE);
-
-    return ncco;
-  }
-
   public List<Ncco> nccoListWithAnswerFromAgentForCallbackTask(
       String text, 
       String conversationId,
@@ -114,12 +102,16 @@ public class NccoFactory {
   
   public List<Ncco> nccoListWithAnswerFromAgentForRegularTask(
       String text, 
-      String conversationId) {
+      String conversationId,
+      String musicOnHoldUrl) {
 
     ConversationNccoEx conv = new ConversationNccoEx(conversationId);
     conv.setRecord(Boolean.FALSE);
-    conv.setEndOnExit(Boolean.TRUE);
-   
+    //conv.setMusicOnHoldUrl(musicOnHoldUrl); // for attendee
+
+    //conv.setStartOnEnter(Boolean.FALSE); // for attendee
+    conv.setEndOnExit(Boolean.TRUE); // for moderator
+
     ArrayList<Ncco> list = new ArrayList<Ncco>();
     list.add(new TalkNcco(text));
     list.add(conv);
@@ -137,6 +129,27 @@ public class NccoFactory {
     ConversationNccoEx conv = new ConversationNccoEx(conversationId);
     conv.setStartOnEnter(Boolean.FALSE);
     conv.setRecord(Boolean.FALSE);
+   
+    ArrayList<Ncco> list = new ArrayList<Ncco>();
+    list.add(talk);
+    list.add(conv);
+    
+    return list;
+  }
+
+  public List<Ncco> nccoListWithAnswerFromCustomerForRegularTask(
+      String text, 
+      String conversationId,
+      String musicOnHoldUrl) {
+
+    TalkNcco talk = new TalkNcco(text);
+
+    ConversationNccoEx conv = new ConversationNccoEx(conversationId);
+    conv.setRecord(Boolean.FALSE);
+    conv.setMusicOnHoldUrl(musicOnHoldUrl); // for attendee
+
+    conv.setStartOnEnter(Boolean.FALSE); // for attendee
+    //conv.setEndOnExit(Boolean.TRUE); // for moderator
    
     ArrayList<Ncco> list = new ArrayList<Ncco>();
     list.add(talk);

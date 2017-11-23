@@ -92,6 +92,9 @@ public class Task extends RouterObject {
   @Column(name = "expiration_date")
   private Date expirationDate;
 
+  @Column(name = "tag")
+  private String tag;
+
   public Task() {}
 
   public Task(RouterObjectRef objectId) {
@@ -196,6 +199,14 @@ public class Task extends RouterObject {
 
   public void setExpirationDate(Date expirationDate) {
     this.expirationDate = expirationDate;
+  }
+  
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   @Override
