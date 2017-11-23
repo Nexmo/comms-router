@@ -1,7 +1,6 @@
 (in-package #:rchecker)
 (setf lparallel:*kernel* (lparallel:make-kernel 10))
 
-;;; "rchecker" goes here. Hacks and glory await!
 (defun has-json()
   #'(lambda(json)
       (if (and (listp json) (not (null json)))

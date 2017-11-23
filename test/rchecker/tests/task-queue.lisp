@@ -383,37 +383,54 @@
      #'funcall tests))))
 
 (defun delete-completed-tasks()
-  (loop for task-all = (task-all) for task = (when (listp task-all)(first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
+  (loop for task-all = (task-all) for task = (when (listp task-all) (first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
+
+(defun delete-router()
+  (loop for x = (task-all) :until (equal x "[]") do (task-del))
+  (loop for x = (agent-all) :until (equal x "[]") do (agent-del))
+  (loop for x = (plan-all) :until (equal x "[]") do (plan-del))
+  (loop for x = (queue-all) :until (equal x "[]") do (queue-del))
+  )
 
 (defun setup-demo()
-  (tlet((router-id (js-val "id")(erouter-put :id "router-ivr")))
+  (tlet((router-id (js-val "id") (erouter-put :id "router-ivr")))
+
     (apply #'tand
-     (append (mapcar #'(lambda(id)(equeue-put :id id :router-id router-id) )
-                           '("en-support" "es-support" "en-sales" "es-sales" "queue-ivr"))
-             (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id) :capabilities (jsown:new-js ("language" (subseq id 2)))
+           (append (mapcar #'(lambda(id)(equeue-put :id (first id)
+                                                    :predicate (second id)
+                                                    :router-id router-id) )
+                     '(("en-support" "HAS(#{language},'en') && #{department}=='support'" )
+                       ("es-support" "HAS(#{language},'es') && #{department}=='support'")
+                       ("en-sales" "HAS(#{language},'en') && #{department}=='sales'")
+                       ("es-sales" "HAS(#{language},'es') && #{department}=='sales'")
+                       ("queue-ivr" "1==1")))
+             (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id)
+                                                    :capabilities (jsown:new-js ("language" (third id ))
+                                                                                ("department" (fourth id)))
                                                :router-id router-id)
                                         (eagent-set :id (first id) :state "ready":address :null :capabilities :null :router-id router-id)))
-                     '(("en-es-support" "12312377880" "en" "es") ("en-sales" "12017621651" "en") ("es-sales" "12017621652" "es") ))
-             (eplan-put :id "simple-menu"
-                        :default-queue-id "queue-ivr"
-                        :queue-id :null
-                        :rules (jsown:json-new ("rules"
-                                                 '((:OBJ ("tag" . "en-sales")
-                                                    ("predicate" . "#{language}=='en' && #{department}=='sales'")
-                                                    ("routes"
-                                                     (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 600))))
-                                                   (:OBJ ("tag" . "es-sales")
-                                                    ("predicate" . "#{language}=='es' && #{department}=='sales'")
-                                                    ("routes"
-                                                     (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 600))))
-                                                   (:OBJ ("tag" . "en-support")
-                                                    ("predicate" . "#{language}=='en' && #{department}=='support'")
-                                                    ("routes"
-                                                     (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 600))))
-                                                   (:OBJ ("tag" . "es-support")
-                                                    ("predicate" . "#{language}=='es' && #{department}=='support'")
-                                                    ("routes"
-                                                     (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 600)))))) )) ) ) ) )
+                     '(("en-es-support" "12312377880" ("en" "es") "support")
+                       ("en-sales" "12017621651" ("en") "sales")
+                       ("es-sales" "12017621652" ("es") "sales") ))
+             (list (eplan-put :id "simple-menu"
+                         :default-queue-id "queue-ivr"
+                         :queue-id :null
+                         :rules '((:OBJ ("tag" . "en-sales")
+                                   ("predicate" . "#{language}=='en' && #{department}=='sales'")
+                                   ("routes"
+                                    (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 600))))
+                                  (:OBJ ("tag" . "es-sales")
+                                   ("predicate" . "#{language}=='es' && #{department}=='sales'")
+                                   ("routes"
+                                    (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 600))))
+                                  (:OBJ ("tag" . "en-support")
+                                   ("predicate" . "#{language}=='en' && #{department}=='support'")
+                                   ("routes"
+                                    (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 600))))
+                                  (:OBJ ("tag" . "es-support")
+                                   ("predicate" . "#{language}=='es' && #{department}=='support'")
+                                   ("routes"
+                                    (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 600))))))) ) ) ) )
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))

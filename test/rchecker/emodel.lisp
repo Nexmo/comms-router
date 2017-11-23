@@ -11,24 +11,6 @@
               (format t "~%~A executed - ~S~%old model:~S~%new model: ~S" name res model new-model)
               (list res new-model)))
         name))
-
-(defun waiting-tasks(queue-id)
-  #'(lambda(tasks)
-      (remove-if-not
-       (fand (fhas-kv "state" "waiting" #'equal)
-             (fhas-kv "queue-id" queue-id #'equal))
-       tasks)))
-
-(defun del-resource(key list)
-  #'(lambda(res model)
-      (funcall
-       (mlet ((selected (js-val key))
-              (agents (js-val list)))
-         (mand (js-extend
-                (list list (remove-nth selected (copy-tree agents))))
-               (js-remkey key)))
-       model)))
-
 (defun select-actions(index list)
   (list (action (format nil "select last of ~A" list)
                 (fand (fhas-key list)
@@ -50,6 +32,24 @@
                     (funcall (mlet((next #'1+ (js-val index)))
                                (js-extend (list index next)))
                              model)))))
+
+(defun waiting-tasks(queue-id)
+  #'(lambda(tasks)
+      (remove-if-not
+       (fand (fhas-kv "state" "waiting" #'equal)
+             (fhas-kv "queue-id" queue-id #'equal))
+       tasks)))
+
+(defun del-resource(key list)
+  #'(lambda(res model)
+      (funcall
+       (mlet ((selected (js-val key))
+              (agents (js-val list)))
+         (mand (js-extend
+                (list list (remove-nth selected (copy-tree agents))))
+               (js-remkey key)))
+       model)))
+
 
 (defparameter *tasks*
   (append
