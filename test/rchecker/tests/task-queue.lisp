@@ -418,19 +418,19 @@
                          :rules '((:OBJ ("tag" . "en-sales")
                                    ("predicate" . "#{language}=='en' && #{department}=='sales'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 600))))
+                                    (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "es-sales")
                                    ("predicate" . "#{language}=='es' && #{department}=='sales'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 600))))
+                                    (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "en-support")
                                    ("predicate" . "#{language}=='en' && #{department}=='support'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 600))))
+                                    (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "es-support")
                                    ("predicate" . "#{language}=='es' && #{department}=='support'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 600))))))) ) ) ) )
+                                    (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 3600))))))) ) ) ) )
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))

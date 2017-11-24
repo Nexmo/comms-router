@@ -104,7 +104,7 @@
          (check-and (is-equal "") (remove-id :router))))
 ;;; task
 (defun etask-new(&key (router-id (get-event :router))
-                   (tag "unique-tag")
+                   (tag :null)
                    (requirements (jsown:new-js ("key" t)))
                    (callback-url (format nil "http://localhost:4343/task?router=~A&sleep=~A" router-id (random 2)))
                    (context (jsown:new-js ("key" "value")))
