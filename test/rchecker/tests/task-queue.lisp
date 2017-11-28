@@ -352,6 +352,54 @@
                        (loop :repeat tasks :collect 1) ))))
         (mapcar #'print-log result)) ) )
 
+
+(defun produce-task(&key (agents 30) (queue-id) (count 30) (delay 1) )
+  (let ((start-time (get-internal-real-time))
+        (last-count 0))
+    (setf *times* nil)
+    (router-new)
+    (queue-new)
+    (loop :repeat agents do
+       (agent-new)
+       (agent-set :state "ready"))
+    (loop do
+         (loop for start-time = (get-internal-real-time)
+            for (result status &rest rest) = (funcall  (etask-new :callback-url (format nil "http://localhost:4343/task?sleep=~A"  delay )))
+            :while (and status (< (jsown:val result "queueTasks") count)) do
+              (when *times*
+                (let ((all (mapcar #'- *times* (rest *times*)))
+                      (start-time (+ 120 (first (last *times*))))
+                      (end-time   (first *times*)))
+                  (format t "~%------ average =~F~%~A ~%~A count/min~%"
+                          (/(length *times*)
+                            (/(/ (- end-time start-time) internal-time-units-per-second) 60))
+                          'all
+                          (count-if #'(lambda(timestamp)(< (- (get-internal-real-time) timestamp) (* 60 internal-time-units-per-second)))
+                                    *times*)))
+                )
+              (if (> 0 (- (/ delay agents) (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
+                  (lparallel:pmapcar #'(lambda(i)(funcall  (etask-new :callback-url (format nil "http://localhost:4343/task?sleep=~A"  delay ))))
+                                     (loop :repeat 2))
+                  (sleep (- (/ delay agents) (/ (- (get-internal-real-time) start-time) internal-time-units-per-second) )))
+              )
+
+         (loop for (result status &rest) = (funcall (equeue-size)) :while (and status (>= (jsown:val result "size") count ))
+            do
+              (when *times*
+                (let ((all (mapcar #'- *times* (rest *times*)))
+                      (start-time (+ 120 (first (last *times*))))
+                      (end-time   (first *times*)))
+                  (format t "~%------ average =~F~%~A ~%~A count/min~%"
+                          (/(length *times*)
+                            (/(/ (- end-time start-time) internal-time-units-per-second) 60))
+                          'all
+                          (count-if #'(lambda(timestamp)(< (- (get-internal-real-time) timestamp) (* 60 internal-time-units-per-second)))
+                                    *times*))))
+              (sleep 1)
+              )))
+  )
+
+
 (defun test-plan-and-task()
   (tlet ((router-id (js-val "id")
                     (erouter-new))
@@ -434,6 +482,15 @@
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
+
+(defun delete-tasks()
+  (loop for tasks = (task-all) :while (not(equal tasks "[]")) do
+       (lparallel:pmapcar #'(lambda(task-id)(unless (equal (jsown:val (task :id task-id) "state") "completed")
+                                         (task-set :id task-id))
+
+                                   (task-del :id task-id) )
+                          (mapcar (js-val "id") tasks)))
+  )
 
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()

@@ -14,6 +14,7 @@
          (qtasks (mapcar #'(lambda(id) (rchecker::queue-tasks :id id :router-id "router-ivr" ))
                         (mapcar (rchecker::js-val "id") queues))))
     (with-html-output-to-string (*standard-output* nil :prologue t)
+      (:meta :http-equiv "refresh" :content 3)
       (:html
        (:head (:title "Comms router demo"))
        (:body
@@ -26,7 +27,7 @@
                         (:td  (str (jsown:val agent "state")))
                         (:td (:a :href
                                       (string
-                                       (format nil "/set-state?agent=~A&state=~A"
+                                       (format nil "set-state?agent=~A&state=~A"
                                                (jsown:val agent "id")
                                                (if (equal (jsown:val agent "state") "ready") "offline" "ready")))
                                       "toggle")))  ) ) )
@@ -46,12 +47,12 @@
                         (unless (equal tasks "[]")
                           (htm (:ul
                                 (loop for task in tasks do
-                                     (htm (:ul
-                                           (:li :title (str (jsown:to-json task)) "id: " (str  (jsown:val task "id")) )
-                                           (:li "requirements:" (str (jsown:to-json(jsown:val task "requirements"))))
-                                           (:li "state:" (str  (jsown:val task "state")))
-                                           (:li "userContext:" (str (jsown:to-json(jsown:val task "userContext"))))
-                                           (:pre (str (rchecker::format-json (jsown:to-json task)))))) ) )) ) )))) )))))
+                                     (htm (:li
+                                           (:ul
+                                            (:li :title (str (jsown:to-json task)) "id: " (str  (jsown:val task "id")) )
+                                            (:li "requirements:" (str (jsown:to-json(jsown:val task "requirements"))))
+                                            (:li "state:" (str  (jsown:val task "state")))
+                                            (:li "userContext:" (str (jsown:to-json(jsown:val task "userContext"))))))))))))))))))))
 
 (defvar *server* (make-instance 'hunchentoot:easy-acceptor :port 3000))
 
