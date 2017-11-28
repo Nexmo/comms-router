@@ -114,7 +114,8 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef
       throws NotFoundException {
 
     URI uri = getApiUrl().clone()
-        .path("{resourceId}").path("size")
+        .path("{resourceRef}")
+        .path("size")
         .build(routerObjectRef.getRouterRef(), routerObjectRef.getRef());
 
     return getClient()
@@ -129,8 +130,9 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef
       throws NotFoundException {
 
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .path("tasks").build(routerObjectId.getRouterRef(), routerObjectId.getRef());
+        .path("{resourceRef}")
+        .path("tasks")
+        .build(routerObjectId.getRouterRef(), routerObjectId.getRef());
 
     return getClient()
         .target(uri)

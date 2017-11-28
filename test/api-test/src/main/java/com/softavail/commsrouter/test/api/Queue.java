@@ -45,10 +45,11 @@ public class Queue extends Resource {
 
   public List<QueueDto> list() {
     QueueDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).when()
-        .get("/routers/{routerId}/queues")
+        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+        .when().get("/routers/{routerId}/queues")
         .then().statusCode(200)
-        .extract().as(QueueDto[].class);
+        .extract()
+        .as(QueueDto[].class);
     return Arrays.asList(routers);
   }
 
@@ -57,8 +58,11 @@ public class Queue extends Resource {
     String ref = state().get(CommsRouterResource.QUEUE);
     return given()
         .contentType("application/json")
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
-        .body(args).when().put("/routers/{routerRef}/queues/{ref}").then();
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .body(args)
+        .when().put("/routers/{routerRef}/queues/{ref}")
+        .then();
   }
 
   public ApiObjectRef replace(CreateQueueArg args) {
@@ -73,11 +77,12 @@ public class Queue extends Resource {
 
   public ApiObjectRef create(CreateQueueArg args) {
 
-    ApiObjectRef oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+    ApiObjectRef oid = given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
-        .body(args).when().post("/routers/{routerRef}/queues")
-        .then()
-        .statusCode(201)
+        .body(args)
+        .when().post("/routers/{routerRef}/queues")
+        .then().statusCode(201)
         .body("id", not(isEmptyString()))
         .extract()
         .as(ApiObjectRef.class);
@@ -88,15 +93,21 @@ public class Queue extends Resource {
 
   public void delete() {
     String ref = state().get(CommsRouterResource.QUEUE);
-    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
-        .when().delete("/routers/{routerRef}/queues/{ref}").then().statusCode(204);
+    given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/queues/{ref}")
+        .then().statusCode(204);
   }
 
   public QueueDto get() {
     String ref = state().get(CommsRouterResource.QUEUE);
-    return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .pathParam("ref", ref).when().get("/routers/{routerRef}/queues/{ref}").then()
-        .statusCode(200).body("ref", equalTo(ref)).extract().as(QueueDto.class);
+    return given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().get("/routers/{routerRef}/queues/{ref}")
+        .then().statusCode(200)
+        .body("ref", equalTo(ref)).extract().as(QueueDto.class);
   }
 
   public Integer size() {
@@ -108,9 +119,13 @@ public class Queue extends Resource {
 
   public List<TaskDto> tasks() {
     String ref = state().get(CommsRouterResource.QUEUE);
-    TaskDto[] qtasks = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .pathParam("ref", ref).when().get("/routers/{routerRef}/queues/{ref}/tasks").then()
-        .statusCode(200).extract().as(TaskDto[].class);
+    TaskDto[] qtasks = given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().get("/routers/{routerRef}/queues/{ref}/tasks")
+        .then().statusCode(200)
+        .extract()
+        .as(TaskDto[].class);
     return Arrays.asList(qtasks);
   }
 
@@ -118,7 +133,10 @@ public class Queue extends Resource {
     String ref = state().get(CommsRouterResource.QUEUE);
     given()
         .contentType("application/json")
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
-        .body(args).when().post("/routers/{routerRef}/queues/{ref}").then().statusCode(204);
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .body(args)
+        .when().post("/routers/{routerRef}/queues/{ref}")
+        .then().statusCode(204);
   }
 }

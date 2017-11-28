@@ -77,7 +77,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   // POST over resource updates. Returns void
   protected void post(Object obj, ApiObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}").build(ref.getRef());
+        .path("{resourceRef}")
+        .build(ref.getRef());
 
     getClient()
         .target(uri)
@@ -88,7 +89,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   // POST over resource updates. Returns void
   protected void post(Object obj, RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     getClient()
         .target(uri)
@@ -106,7 +108,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
 
   protected R put(Object obj, RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     return getClient()
         .target(uri)
@@ -178,7 +181,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
 
   protected void deleteRequest(RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     getClient()
         .target(uri)

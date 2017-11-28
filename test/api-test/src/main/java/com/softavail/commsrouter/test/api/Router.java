@@ -41,26 +41,41 @@ public class Router extends Resource {
   }
 
   public List<RouterDto> list() {
-    RouterDto[] routers =
-        given().when().get("/routers").then().statusCode(200).extract().as(RouterDto[].class);
+    RouterDto[] routers = given()
+        .when().get("/routers")
+        .then().statusCode(200)
+        .extract()
+        .as(RouterDto[].class);
     return Arrays.asList(routers);
   }
 
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    return given().contentType("application/json").pathParam("routerRef", routerRef).body(args)
-        .when().put("/routers/{routerRef}").then();
+    return given()
+        .contentType("application/json")
+        .pathParam("routerRef", routerRef).body(args)
+        .when().put("/routers/{routerRef}")
+        .then();
   }
 
   public ApiObjectRef replace(CreateRouterArg args) {
-    ApiObjectRef oid = replaceResponse(args).statusCode(201).extract().as(ApiObjectRef.class);
+    ApiObjectRef oid = replaceResponse(args)
+        .statusCode(201)
+        .extract()
+        .as(ApiObjectRef.class);
     state().put(CommsRouterResource.ROUTER, oid.getRef());
     return oid;
   }
 
   public ApiObjectRef create(CreateRouterArg args) {
-    ApiObjectRef oid = given().contentType("application/json").body(args).when().post("/routers")
-        .then().statusCode(201).body("ref", not(isEmptyString())).extract().as(ApiObjectRef.class);
+    ApiObjectRef oid = given()
+        .contentType("application/json")
+        .body(args)
+        .when().post("/routers")
+        .then().statusCode(201)
+        .body("ref", not(isEmptyString()))
+        .extract()
+        .as(ApiObjectRef.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.ROUTER, id);
     return oid;
@@ -68,20 +83,31 @@ public class Router extends Resource {
 
   public void delete() {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    given().pathParam("routerRef", routerRef).when().delete("/routers/{routerRef}").then()
-        .statusCode(204);
+    given()
+        .pathParam("routerRef", routerRef)
+        .when().delete("/routers/{routerRef}")
+        .then().statusCode(204);
   }
 
   public RouterDto get() {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    return given().pathParam("routerRef", routerRef).when().get("/routers/{routerRef}").then()
-        .statusCode(200).body("ref", equalTo(routerRef)).extract().as(RouterDto.class);
+    return given()
+        .pathParam("routerRef", routerRef)
+        .when().get("/routers/{routerRef}")
+        .then().statusCode(200)
+        .body("ref", equalTo(routerRef))
+        .extract()
+        .as(RouterDto.class);
   }
 
   public void update(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    given().contentType("application/json").pathParam("routerRef", routerRef).body(args).when()
-        .post("/routers/{routerRef}").then().statusCode(204);
+    given()
+        .contentType("application/json")
+        .pathParam("routerRef", routerRef)
+        .body(args)
+        .when().post("/routers/{routerRef}")
+        .then().statusCode(204);
   }
 
 }

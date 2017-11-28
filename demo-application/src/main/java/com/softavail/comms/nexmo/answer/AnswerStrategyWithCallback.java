@@ -110,7 +110,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   private boolean withFeatureRecordName;
 
   private Map<String, String> requirements;
-  
+
   private Map<String, String> userContext;
 
   @Inject
@@ -128,7 +128,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   @Override
   public String answerInboundCallWithParams(
-      Map<String, String> requirements, Map<String, String> userContext) 
+      Map<String, String> requirements, Map<String, String> userContext)
       throws AnswerStrategyException {
 
     if (requirements == null) {
@@ -1121,7 +1121,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
-          .queryParam("kind", "callback_customer").queryParam("taskId", taskRef)
+          .queryParam("kind", "callback_customer")
+          .queryParam("taskId", taskRef)
           .build();
 
       String answerUrl = uri.toString();
@@ -1133,8 +1134,9 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       URI evturi =
           UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
-          .queryParam("kind", "callback_customer").queryParam("taskId", taskRef)
-              .build();
+          .queryParam("kind", "callback_customer")
+          .queryParam("taskId", taskRef)
+          .build();
 
       String eventUrl = evturi.toString();
       callRequest.setEventUrl(eventUrl);

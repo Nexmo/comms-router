@@ -41,8 +41,10 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     String qlString = "SELECT COUNT(t.id) FROM Task t "
         + "JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
 
-    return (long) em.createQuery(qlString).setParameter("queueId", queueId)
-        .setParameter("state", TaskState.waiting).getSingleResult();
+    return (long) em.createQuery(qlString)
+        .setParameter("queueId", queueId)
+        .setParameter("state", TaskState.waiting)
+        .getSingleResult();
   }
 
   public long getQueueSize(EntityManager em, RouterObjectRef queueRef) throws CommsRouterException {
@@ -50,8 +52,10 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     String qlString = "SELECT COUNT(t.id) FROM Task t " + "JOIN t.queue q JOIN q.router r "
             + "WHERE r.ref = :routerRef AND q.ref = :queueRef AND t.state = :state";
 
-    return (long) em.createQuery(qlString).setParameter("routerRef", queueRef.getRouterRef())
-        .setParameter("queueRef", queueRef.getRef()).setParameter("state", TaskState.waiting)
+    return (long) em.createQuery(qlString)
+        .setParameter("routerRef", queueRef.getRouterRef())
+        .setParameter("queueRef", queueRef.getRef())
+        .setParameter("state", TaskState.waiting)
         .getSingleResult();
   }
 
@@ -64,9 +68,12 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
         + "WHERE t.state = :taskState AND a.state = :agentState AND q.id = :queueId "
         + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
 
-    List<MatchResult> result = em.createQuery(query).setParameter("taskState", TaskState.waiting)
-        .setParameter("agentState", AgentState.ready).setParameter("queueId", queueId)
-        .setMaxResults(1).getResultList();
+    List<MatchResult> result = em.createQuery(query)
+        .setParameter("taskState", TaskState.waiting)
+        .setParameter("agentState", AgentState.ready)
+        .setParameter("queueId", queueId)
+        .setMaxResults(1)
+        .getResultList();
 
     return result.stream().findFirst();
   }
@@ -80,9 +87,12 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
         + "WHERE t.state = :taskState AND a.state = :agentState AND a.id = :agentId "
         + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
 
-    List<MatchResult> result = em.createQuery(query).setParameter("taskState", TaskState.waiting)
-        .setParameter("agentState", AgentState.ready).setParameter("agentId", agentId)
-        .setMaxResults(1).getResultList();
+    List<MatchResult> result = em.createQuery(query)
+        .setParameter("taskState", TaskState.waiting)
+        .setParameter("agentState", AgentState.ready)
+        .setParameter("agentId", agentId)
+        .setMaxResults(1)
+        .getResultList();
 
     return result.stream().findFirst();
   }

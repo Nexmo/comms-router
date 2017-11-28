@@ -130,11 +130,12 @@ public class BaseRouterTest {
     Queue q = new Queue(state);
     ApiObjectRef qRef = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
-    r.replaceResponse(new CreateRouterArg()).statusCode(500).body("error.description", equalTo(
-        "Cannot delete or update 'router' as there is record in 'queue' that refer to it."));// replace
-                                                                                             // with
-                                                                                             // null
-                                                                                             // values
+    // replace with null values
+    r.replaceResponse(new CreateRouterArg())
+        .statusCode(500)
+        .body("error.description",
+                equalTo("Cannot delete or update 'router' as there is record in 'queue' that refer to it."));
+
     // check that queue is still there
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());

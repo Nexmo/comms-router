@@ -48,9 +48,10 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
     String query = "SELECT e FROM " + entityClass.getSimpleName()
         + " e JOIN e.router r WHERE r.ref = :routerRef AND e.ref = :ref";
 
-    List<ENTITYT> result =
-        em.createQuery(query).setParameter("routerRef", routerObjectRef.getRouterRef())
-            .setParameter("ref", routerObjectRef.getRef()).getResultList();
+    List<ENTITYT> result = em.createQuery(query)
+        .setParameter("routerRef", routerObjectRef.getRouterRef())
+        .setParameter("ref", routerObjectRef.getRef())
+        .getResultList();
 
     if (result.isEmpty()) {
       return null;
@@ -66,7 +67,8 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
     return em
         .createQuery("SELECT e FROM " + entityClass.getSimpleName()
             + " e JOIN e.router r WHERE r.ref = :routerRef")
-        .setParameter("routerRef", routerRef).getResultList();
+        .setParameter("routerRef", routerRef)
+        .getResultList();
   }
 
   public void delete(EntityManager em, RouterObjectRef routerObjectRef)

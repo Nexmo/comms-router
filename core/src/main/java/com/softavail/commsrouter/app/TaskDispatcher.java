@@ -77,10 +77,11 @@ public class TaskDispatcher {
     this.queueProcessorManager = QueueProcessorManager.getInstance();
     Integer backoffDelay = configuration.getBackoffDelay();
     Integer backoffDelayMax = configuration.getBackoffDelayMax();
-    this.retryPolicy =
-        new RetryPolicy().retryOn(CallbackException.class).retryOn(RuntimeException.class)
-            .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
-            .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
+    this.retryPolicy = new RetryPolicy()
+        .retryOn(CallbackException.class)
+        .retryOn(RuntimeException.class)
+        .withBackoff(backoffDelay, backoffDelayMax, TimeUnit.SECONDS)
+        .withJitter(configuration.getJitter(), TimeUnit.MILLISECONDS);
     startQueueProcessors();
     restartWaitingTaskTimers();
   }
@@ -88,9 +89,12 @@ public class TaskDispatcher {
   @SuppressWarnings("unchecked")
   private void startQueueProcessors() {
     try {
-      db.transactionManager.executeVoid(
-          em -> db.router.list(em).stream().map(router -> db.queue.list(em, router.getRef()))
-              .flatMap(Collection::stream).map(Queue::getId).forEach(this::process));
+      db.transactionManager.executeVoid(em ->
+          db.router.list(em).stream()
+              .map(router -> db.queue.list(em, router.getRef()))
+              .flatMap(Collection::stream)
+              .map(Queue::getId)
+              .forEach(this::process));
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
@@ -138,11 +142,14 @@ public class TaskDispatcher {
 
   private void doDispatchAgent(Long agentId) throws CommsRouterException {
 
-    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry(em -> {
-      Router router = db.agent.get(em, agentId).getRouter();
-      em.lock(router, LockModeType.WRITE);
+    TaskAssignmentDto taskAssignmentDto =
+        db.transactionManager.executeWithLockRetry(em -> {
+          Router router = db.agent.get(em, agentId).getRouter();
+          em.lock(router, LockModeType.WRITE);
 
-      return db.queue.findAssignmentForAgent(em, agentId).map(this::assignTask).orElse(null);
+      return db.queue.findAssignmentForAgent(em, agentId)
+          .map(this::assignTask)
+          .orElse(null);
     });
 
     if (taskAssignmentDto != null) {
