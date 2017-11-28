@@ -111,8 +111,8 @@
 
 (defun iterate-model(&key (prefix ()) (size 1000) (tasks *tasks*))
   ;;(setf *utility* (make-hash-table :test #'equal))
-  (print (length (loop for x = (let* ((router-id (jsown:val (router-new) "id"))
-                                      (queue-id (jsown:val (queue-new :router-id router-id) "id")) )
+  (print (length (loop for x = (let* ((router-id (jsown:val (router-new) "ref"))
+                                      (queue-id (jsown:val (queue-new :router-id router-id) "ref")) )
                                  (setf *mem* (make-hash-table :test #'equal))
                                  (generate-sample :prefix prefix :model (jsown:new-js ("router" router-id) ("queue" queue-id))
                                                   :size (if prefix (length prefix) size) :selector (rl-policy-selector) :tasks tasks))
