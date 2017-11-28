@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.not;
 
 import io.restassured.response.ValidatableResponse;
 
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -45,100 +45,98 @@ public class Queue extends Resource {
 
   public List<QueueDto> list() {
     QueueDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).when()
-        .get("/routers/{routerId}/queues")
+        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+        .when().get("/routers/{routerId}/queues")
         .then().statusCode(200)
-        .extract().as(QueueDto[].class);
+        .extract()
+        .as(QueueDto[].class);
     return Arrays.asList(routers);
   }
 
 
   public ValidatableResponse replaceResponse(CreateQueueArg args) {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String ref = state().get(CommsRouterResource.QUEUE);
     return given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
         .body(args)
-        .when().put("/routers/{routerId}/queues/{queueId}")
+        .when().put("/routers/{routerRef}/queues/{ref}")
         .then();
   }
 
-  public ApiObjectId replace(CreateQueueArg args) {
+  public ApiObjectRef replace(CreateQueueArg args) {
       String id = state().get(CommsRouterResource.QUEUE);
-      ApiObjectId oid = replaceResponse(args)
+      ApiObjectRef oid = replaceResponse(args)
           .statusCode(201)
           .extract()
-          .as(ApiObjectId.class);
-    state().put(CommsRouterResource.QUEUE, oid.getId());
+          .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.QUEUE, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreateQueueArg args) {
+  public ApiObjectRef create(CreateQueueArg args) {
 
-    ApiObjectId oid = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+    ApiObjectRef oid = given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
-        .when().post("/routers/{routerId}/queues")
-        .then()
-        .statusCode(201)
+        .when().post("/routers/{routerRef}/queues")
+        .then().statusCode(201)
         .body("id", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.QUEUE, id);
     return oid;
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String ref = state().get(CommsRouterResource.QUEUE);
     given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().delete("/routers/{routerId}/queues/{queueId}")
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/queues/{ref}")
         .then().statusCode(204);
   }
 
   public QueueDto get() {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String ref = state().get(CommsRouterResource.QUEUE);
     return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/queues/{queueId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(QueueDto.class);
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().get("/routers/{routerRef}/queues/{ref}")
+        .then().statusCode(200)
+        .body("ref", equalTo(ref)).extract().as(QueueDto.class);
   }
 
   public Integer size() {
-    String id = state().get(CommsRouterResource.QUEUE);
-    return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/queues/{queueId}/size")
-        .then().statusCode(200)
-        .extract().path("size");
+    String ref = state().get(CommsRouterResource.QUEUE);
+    return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref).when().get("/routers/{routerRef}/queues/{ref}/size").then()
+        .statusCode(200).extract().path("size");
   }
 
   public List<TaskDto> tasks() {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String ref = state().get(CommsRouterResource.QUEUE);
     TaskDto[] qtasks = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/queues/{queueId}/tasks")
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().get("/routers/{routerRef}/queues/{ref}/tasks")
         .then().statusCode(200)
-        .extract().as(TaskDto[].class);
+        .extract()
+        .as(TaskDto[].class);
     return Arrays.asList(qtasks);
   }
 
   public void update(CreateQueueArg args) {
-    String id = state().get(CommsRouterResource.QUEUE);
+    String ref = state().get(CommsRouterResource.QUEUE);
     given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
         .body(args)
-        .when().post("/routers/{routerId}/queues/{queueId}")
+        .when().post("/routers/{routerRef}/queues/{ref}")
         .then().statusCode(204);
   }
 }

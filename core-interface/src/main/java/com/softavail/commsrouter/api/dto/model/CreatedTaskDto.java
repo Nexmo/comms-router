@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,28 +16,18 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Created by @author mapuo on 05.10.17.
  */
-public class CreatedTaskDto extends ApiObjectId {
-
-  @JsonIgnore
-  private String queueId;
+public class CreatedTaskDto extends ApiObjectRef {
 
   private Long queueTasks;
 
   public CreatedTaskDto() {}
 
-  public CreatedTaskDto(ApiObjectId taskDto, String queueId, Long queueTasks) {
-    super(taskDto);
-    this.queueId = queueId;
+  public CreatedTaskDto(String taskRef, Long queueTasks) {
+    super(taskRef);
     this.queueTasks = queueTasks;
-  }
-
-  public String getQueueId() {
-    return queueId;
   }
 
   public Long getQueueTasks() {

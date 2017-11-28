@@ -28,12 +28,12 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class AgentDto extends RouterObjectId {
+public class AgentDto extends RouterObjectRef {
 
   private AttributeGroupDto capabilities;
   private String address;
   private AgentState state;
-  private List<String> queueIds;
+  private List<String> queueRefs;
   @JsonIgnore
   private Date lastTimeAtBusyState;
 
@@ -63,12 +63,12 @@ public class AgentDto extends RouterObjectId {
     this.state = state;
   }
 
-  public List<String> getQueueIds() {
-    return queueIds;
+  public List<String> getQueueRefs() {
+    return queueRefs;
   }
 
-  public void setQueueIds(List<String> queueIds) {
-    this.queueIds = queueIds;
+  public void setQueueRefs(List<String> queueRefs) {
+    this.queueRefs = queueRefs;
   }
 
   @JsonProperty(access = Access.READ_ONLY)

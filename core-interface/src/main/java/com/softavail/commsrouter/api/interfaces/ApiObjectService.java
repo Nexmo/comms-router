@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +25,6 @@ import java.util.List;
  */
 public interface ApiObjectService<ENTITYT> {
 
-  ENTITYT get(String id)
-      throws CommsRouterException;
-
-  List<ENTITYT> list()
-      throws CommsRouterException;
-
-  void delete(String id)
-      throws CommsRouterException;
+  List<ENTITYT> list() throws CommsRouterException;
 
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ package com.softavail.commsrouter.webservice.resources;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
@@ -92,7 +92,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     LOGGER.debug("Getting by Tag {}", tag);
 
-    TaskDto taskDto = taskService.getByTag(routerId, tag);
+    TaskDto taskDto = taskService.getByTag(routerRef, tag);
 
     return Response.ok(taskDto, MediaType.APPLICATION_JSON_TYPE)
         .build();
@@ -121,7 +121,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     LOGGER.debug("Creating Task: {}", taskArg);
 
-    CreatedTaskDto task = taskService.create(taskArg, routerId);
+    CreatedTaskDto task = taskService.create(taskArg, routerRef);
 
     return createResponse(task);
   }
@@ -150,9 +150,9 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
 
     LOGGER.debug("Replacing task: {}, with id: {}", taskArg, resourceId);
 
-    RouterObjectId objectId = getRouterObjectId(resourceId);
+    RouterObjectRef objectId = getRouterObjectRef(resourceId);
 
-    CreatedTaskDto task = taskService.create(taskArg, objectId);
+    CreatedTaskDto task = taskService.replace(taskArg, objectId);
 
     return createResponse(task);
   }
@@ -173,7 +173,7 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   public void update(@PathParam("resourceId") String resourceId, UpdateTaskArg taskArg)
       throws CommsRouterException {
 
-    RouterObjectId objectId = getRouterObjectId(resourceId);
+    RouterObjectRef objectId = getRouterObjectRef(resourceId);
 
     LOGGER.debug("Updating task: {}", taskArg);
 
@@ -185,9 +185,9 @@ public class TaskResource extends GenericRouterObjectResource<TaskDto> {
   @Path("{resourceId}/user_context")
   @ApiOperation(value = "/user_context", response = UserContextResource.class)
   public UserContextResource userContextResource(@PathParam("resourceId") String resourceId) {
-    LOGGER.debug("Router {} Task {} Context", routerId, resourceId);
+    LOGGER.debug("Router {} Task {} Context", routerRef, resourceId);
 
-    RouterObjectId routerObjectId = getRouterObjectId(resourceId);
+    RouterObjectRef routerObjectId = getRouterObjectRef(resourceId);
 
     UserContextResource resource = resourceContext.getResource(UserContextResource.class);
     resource.setRouterObject(routerObjectId);

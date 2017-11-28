@@ -11,7 +11,7 @@ import com.softavail.comms.nexmo.util.PhoneConverter;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
@@ -32,15 +32,12 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -61,14 +58,14 @@ public class CommsCallbackResource {
   @Inject
   TaskServiceClient taskServiceClient;
 
-  
+
   @POST
   public Response taskAssignmentAnswer(
       final TaskAssignmentDto taskAssignment) {
 
     LOGGER.debug("/comms_callback");
     if (null != taskAssignment) {
-      
+
       new Thread(new Runnable() {
         @Override
         public void run() {
@@ -76,7 +73,7 @@ public class CommsCallbackResource {
         }
       }).start();
     }
-    
+
     Response response = Response.ok().build();
     LOGGER.debug("/comms_callback response: {}", response);
     return response;
@@ -86,22 +83,22 @@ public class CommsCallbackResource {
 
     boolean flagOk = false;
     CallEvent callEvent = null;
-    
+
     try {
 
       String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
       String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
       Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
       Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
-      
+
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "regular_agent")
-          .queryParam("taskId", task.getId())
+          .queryParam("taskId", task.getRef())
           .build();
-      
+
       String answerUrl = uri.toString();
-      
+
       // prepare to start a call to the agent
       Call callRequest = new Call(epAgent, epFrom, answerUrl);
 
@@ -109,12 +106,12 @@ public class CommsCallbackResource {
       URI evturi = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "regular_agent")
-          .queryParam("taskId", task.getId())
+          .queryParam("taskId", task.getRef())
           .build();
 
       String eventUrl = evturi.toString();
       callRequest.setEventUrl(eventUrl);
-      
+
       // start a call to the agent
       LOGGER.debug("calling agent at: {}", epAgent.toLog());
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
@@ -122,7 +119,7 @@ public class CommsCallbackResource {
         LOGGER.debug("uuid: {}", callEvent.getUuid());
         flagOk = true;
       }
-      
+
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
       LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
@@ -139,17 +136,17 @@ public class CommsCallbackResource {
         UpdateTaskArg updateArg = new UpdateTaskArg();
         // TODO: we need failed state for a task
         updateArg.setState(TaskState.completed);
-        RouterObjectId taskObjectId =
-            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
-        taskServiceClient.update(updateArg, taskObjectId);
+        RouterObjectRef taskObjectRef =
+            new RouterObjectRef(task.getRef(), configuration.getCommsRouterId());
+        taskServiceClient.update(updateArg, taskObjectRef);
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        RouterObjectId taskObjectId =
-            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
+        RouterObjectRef taskObjectRef =
+            new RouterObjectRef(task.getRef(), configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.updateContext(updateCtx, taskObjectId);
+        taskServiceClient.updateContext(updateCtx, taskObjectRef);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -164,7 +161,7 @@ public class CommsCallbackResource {
 
     boolean flagOk = false;
     CallEvent callEvent = null;
-    
+
     try {
       // obtain agent's endpoint to be called
       String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
@@ -176,7 +173,7 @@ public class CommsCallbackResource {
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_agent")
-          .queryParam("taskId", task.getId())
+          .queryParam("taskId", task.getRef())
           .build();
 
       String answerUrl = uri.toString();
@@ -185,26 +182,26 @@ public class CommsCallbackResource {
       Call callRequest = new Call(epAgent, epFrom, answerUrl);
 
       // set event url
-      URI evturi = 
+      URI evturi =
           UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "callback_agent")
-          .queryParam("taskId", task.getId())
+          .queryParam("taskId", task.getRef())
           .build();
 
       String eventUrl = evturi.toString();
       callRequest.setEventUrl(eventUrl);
 
       // start a call to the agent
-      LOGGER.debug("calling agent at: {}, answ_url: {}, evt_url: {}", 
+      LOGGER.debug("calling agent at: {}, answ_url: {}, evt_url: {}",
           epAgent.toLog(), answerUrl, eventUrl);
-      
+
       callEvent = nexMoService.getVoiceClient().createCall(callRequest);
       if (callEvent != null && callEvent.getUuid() != null) {
         LOGGER.debug("uuid: {}", callEvent.getUuid());
         flagOk = true;
       }
-    
+
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
       LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
@@ -220,17 +217,17 @@ public class CommsCallbackResource {
         UpdateTaskArg updateArg = new UpdateTaskArg();
         // TODO: we need failed state for a task
         updateArg.setState(TaskState.completed);
-        RouterObjectId taskObjectId =
-            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
-        taskServiceClient.update(updateArg, taskObjectId);
+        RouterObjectRef taskObjectRef =
+            new RouterObjectRef(task.getRef(), configuration.getCommsRouterId());
+        taskServiceClient.update(updateArg, taskObjectRef);
       } else {
         AttributeGroupDto userContext = new AttributeGroupDto();
         UpdateTaskContext updateCtx = new UpdateTaskContext();
-        RouterObjectId taskObjectId =
-            new RouterObjectId(task.getId(), configuration.getCommsRouterId());
+        RouterObjectRef taskObjectRef =
+            new RouterObjectRef(task.getRef(), configuration.getCommsRouterId());
         userContext.put("agent_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.updateContext(updateCtx, taskObjectId);
+        taskServiceClient.updateContext(updateCtx, taskObjectRef);
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
@@ -242,138 +239,108 @@ public class CommsCallbackResource {
   }
 
   /*
-  @POST
-  @Path("/{taskId}")
-  public void oldtaskAnswer(
-      @PathParam("taskId") String taskId,
-      @QueryParam("callId") final String conversationId,
-      final TaskAssignmentDto taskAssignment) {
+   * @POST
+   *
+   * @Path("/{taskId}") public void oldtaskAnswer(
+   *
+   * @PathParam("taskId") String taskId,
+   *
+   * @QueryParam("callId") final String conversationId, final TaskAssignmentDto taskAssignment) {
+   *
+   * final AgentDto agent = taskAssignment.getAgent();
+   *
+   * LOGGER.debug("/comms_callback/{}", taskId); LOGGER.debug("agent: {}", agent);
+   *
+   * boolean wouldConnectAgent = true; NexMoConversation conversation = null;
+   *
+   * do { conversation = conversationService.getConversation(conversationId);
+   *
+   * if (null == conversation) { LOGGER.error("cannot find conversation with id {}",
+   * conversationId); wouldConnectAgent = false; break; }
+   *
+   * // obtain agent's endpoint to be called Endpoint epAgent =
+   * NexMoModelFactory.createEndpoint(agent.getAddress()); Endpoint epFrom =
+   * NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog()); String answerUrl
+   * = configuration.getNexmoCallbackBaseUrl() + "answer_outbound/" + conversation.getId(); //
+   * prepare to start a call to the agent Call callRequest = new Call(epAgent, epFrom, answerUrl);
+   * try {
+   *
+   * // start a call to the agent CallEvent callEvent =
+   * nexMoService.getVoiceClient().createCall(callRequest); if (callEvent != null &&
+   * callEvent.getUuid() != null && callEvent.getConversationUuid() != null && callEvent.getStatus()
+   * != null) { LOGGER.debug("calling agent with uuid:{}, conv_uuid: {}, status:{}",
+   * callEvent.getUuid(), callEvent.getConversationUuid(), callEvent.getStatus());
+   *
+   * NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
+   * callee.setDirection(NexMoCallDirection.OUTBOUND); callee.setStatus(NexMoCallStatus.STARTED);
+   *
+   * UpdateNexMoConversationArg updateArg = new
+   * UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING); updateArg.setAgent(callee);
+   * conversationService.updateConversation(conversationId, updateArg); } else { LOGGER.warn(
+   * "Could not call agent. NexMo voice client returned invalid callEvent"); wouldConnectAgent =
+   * false; } } catch (IOException | NexmoClientException e) { // Would not call agent. Mark the
+   * task as complete with error. LOGGER.error("Failed to make a call to agent with error: {}",
+   * e.getLocalizedMessage()); wouldConnectAgent = false; e.printStackTrace(); } catch (Exception
+   * ex) { // Would not call agent. Mark the task as complete with error. LOGGER.error(
+   * "Failed to make a call to agent with error: {}", ex.getLocalizedMessage()); wouldConnectAgent =
+   * false; ex.printStackTrace(); }
+   *
+   * } while (false);
+   *
+   * if (!wouldConnectAgent) {
+   *
+   * // reset the state of the conversation if (conversation != null) { UpdateNexMoConversationArg
+   * updateArg = new UpdateNexMoConversationArg(NexMoConversationStatus.STARTED);
+   * conversationService.updateConversation(conversation.getId(), updateArg); }
+   *
+   * UpdateTaskArg updateArg = new UpdateTaskArg(); updateArg.setState(TaskState.completed);
+   *
+   * try { RouterObjectRef taskObjectId = new RouterObjectRef(taskId,
+   * configuration.getCommsRouterId()); taskServiceClient.update(updateArg, taskObjectId); } catch
+   * (BadValueException | NotFoundException e1) { LOGGER.error(
+   * "Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
+   * e1.printStackTrace(); } catch (Exception e2) { LOGGER.error(
+   * "Failed to report task as completed with eror: {}", e2.getLocalizedMessage());
+   * e2.printStackTrace(); } } }
+   */
 
-    final AgentDto agent = taskAssignment.getAgent();
 
-    LOGGER.debug("/comms_callback/{}", taskId);
-    LOGGER.debug("agent: {}", agent);
-
-    boolean wouldConnectAgent = true;
-    NexMoConversation conversation = null;
-
-    do {
-      conversation = conversationService.getConversation(conversationId);
-
-      if (null == conversation) {
-        LOGGER.error("cannot find conversation with id {}", conversationId);
-        wouldConnectAgent = false;
-        break;
-      }
-
-      // obtain agent's endpoint to be called
-      Endpoint epAgent = NexMoModelFactory.createEndpoint(agent.getAddress());
-      Endpoint epFrom =
-          NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
-      String answerUrl =
-          configuration.getNexmoCallbackBaseUrl() + "answer_outbound/" + conversation.getId();
-      // prepare to start a call to the agent
-      Call callRequest = new Call(epAgent, epFrom, answerUrl);
-      try {
-
-        // start a call to the agent
-        CallEvent callEvent = nexMoService.getVoiceClient().createCall(callRequest);
-        if (callEvent != null && callEvent.getUuid() != null
-            && callEvent.getConversationUuid() != null && callEvent.getStatus() != null) {
-          LOGGER.debug("calling agent with uuid:{}, conv_uuid: {}, status:{}", 
-              callEvent.getUuid(),
-              callEvent.getConversationUuid(),
-              callEvent.getStatus());
-
-          NexMoCall callee = new NexMoCall(callEvent.getUuid(), callEvent.getConversationUuid());
-          callee.setDirection(NexMoCallDirection.OUTBOUND);
-          callee.setStatus(NexMoCallStatus.STARTED);
-
-          UpdateNexMoConversationArg updateArg =
-              new UpdateNexMoConversationArg(NexMoConversationStatus.CONNECTING);
-          updateArg.setAgent(callee);
-          conversationService.updateConversation(conversationId, updateArg);
-        } else {
-          LOGGER.warn("Could not call agent. NexMo voice client returned invalid callEvent");
-          wouldConnectAgent = false;
-        }
-      } catch (IOException | NexmoClientException e) {
-        // Would not call agent. Mark the task as complete with error.
-        LOGGER.error("Failed to make a call to agent with error: {}", e.getLocalizedMessage());
-        wouldConnectAgent = false;
-        e.printStackTrace();
-      } catch (Exception ex) {
-        // Would not call agent. Mark the task as complete with error.
-        LOGGER.error("Failed to make a call to agent with error: {}", ex.getLocalizedMessage());
-        wouldConnectAgent = false;
-        ex.printStackTrace();
-      }
-
-    } 
-    while (false);
-
-    if (!wouldConnectAgent) {
-
-      // reset the state of the conversation
-      if (conversation != null) {
-        UpdateNexMoConversationArg updateArg =
-            new UpdateNexMoConversationArg(NexMoConversationStatus.STARTED);
-        conversationService.updateConversation(conversation.getId(), updateArg);
-      }
-
-      UpdateTaskArg updateArg = new UpdateTaskArg();
-      updateArg.setState(TaskState.completed);
-
-      try {
-        RouterObjectId taskObjectId = new RouterObjectId(taskId, configuration.getCommsRouterId());
-        taskServiceClient.update(updateArg, taskObjectId);
-      } catch (BadValueException | NotFoundException e1) {
-        LOGGER.error("Failed to report task as completed with eror: {}", e1.getLocalizedMessage());
-        e1.printStackTrace();
-      } catch (Exception e2) {
-        LOGGER.error("Failed to report task as completed with eror: {}", e2.getLocalizedMessage());
-        e2.printStackTrace();
-      }
-    }
-  }*/
-
-  
   private String stringAttributeValueDto(AttributeValueDto valueDto) {
 
     if (null == valueDto) {
       return "";
     }
-    
+
     String stringValue = null;
     ArrayList<String> result = new ArrayList<String>();
-    
+
     try {
-      
+
       valueDto.accept( new AttributeValueVisitor() {
         @Override
         public void handleStringValue(StringAttributeValueDto value) throws IOException {
           result.add(value.getValue());
         }
-        
+
         @Override
         public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
             throws IOException {
           // TODO Auto-generated method stub
 
         }
-        
+
         @Override
         public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
             throws IOException {
@@ -384,11 +351,11 @@ public class CommsCallbackResource {
     } catch (IOException e) {
       LOGGER.error(e.getLocalizedMessage());
     }
-    
+
     if (result != null && result.size() > 0) {
       stringValue = result.get(0);
     }
-    
+
     return stringValue;
   }
 
@@ -403,17 +370,17 @@ public class CommsCallbackResource {
 
   private void doTaskAssignmentAnswer(
       final TaskAssignmentDto taskAssignment) {
-    
+
     LOGGER.debug("agent: {}", taskAssignment.getAgent());
     LOGGER.debug("task: {}", taskAssignment.getTask());
-    
+
     try {
       final TaskDto task = taskAssignment.getTask();
       if (null != task) {
         LOGGER.trace("Able to get task from taskAssignment");
         boolean isCallback = false;
-        AttributeGroupDto context = task.getUserContext(); 
-        
+        AttributeGroupDto context = task.getUserContext();
+
         if (null != context) {
           LOGGER.trace("Able to get task's userContext");
           String kind = attributeGroupDtogetString("kind", context);
@@ -425,10 +392,10 @@ public class CommsCallbackResource {
         }
 
         if (isCallback) {
-          LOGGER.debug("About to handle callback task:{}", task.getId());
+          LOGGER.debug("About to handle callback task:{}", task.getRef());
           handleCallbackTask(task, taskAssignment.getAgent());
         } else {
-          LOGGER.debug("About to handle regular task:{}", task.getId());
+          LOGGER.debug("About to handle regular task:{}", task.getRef());
           handleRegularTask(task, taskAssignment.getAgent());
         }
       } else {

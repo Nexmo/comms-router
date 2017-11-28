@@ -174,11 +174,11 @@
   (gethash id (gethash prefix *mem*)))
 
 (defun ref-id (prefix json)
-  (ref prefix (jsown:val json "id")) )
+  (ref prefix (jsown:val json "ref")) )
 
 (defun ref-set(prefix json value)
-  (setf (gethash (jsown:val json "id") (gethash prefix *mem*)) value)
-  (jsown:val json "id"))
+  (setf (gethash (jsown:val json "ref") (gethash prefix *mem*)) value)
+  (jsown:val json "ref"))
 
 (defun ref-del (prefix id)
   (remhash id (gethash prefix *mem*)))
@@ -247,8 +247,8 @@
             (progn (format t "~%Deadend reached!")) ) ) ))
 
 (defun test-random(&key(prefix ()) (size (length prefix)) (selector (policy-selector)))
-  (let* ((router-id (jsown:val (router-new) "id"))
-         (queue-id (jsown:val (queue-new :router-id router-id) "id"))
+  (let* ((router-id (jsown:val (router-new) "ref"))
+         (queue-id (jsown:val (queue-new :router-id router-id) "ref"))
          (*mem* (make-hash-table :test #'equal))
          (res (generate-sample :model (jsown:new-js ("router" router-id) ("queue" queue-id))
                                :selector selector

@@ -29,7 +29,7 @@ import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -70,14 +70,14 @@ public class TaskQueueTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
     routerArg.setName("router-name");
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
 
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription("queue description");
     queueArg.setPredicate(predicate);
     q = new Queue(state);
-    id = q.create(queueArg);
+    ref = q.create(queueArg);
   }
 
   @AfterEach
@@ -94,11 +94,11 @@ public class TaskQueueTest {
     RuleDto rule = new RuleDto();
     rule.setPredicate(predicate);
     RouteDto route = new RouteDto();
-    route.setQueueId(state.get(CommsRouterResource.QUEUE));
+    route.setQueueRef(state.get(CommsRouterResource.QUEUE));
     rule.getRoutes().add(route);
     arg.setRules(Collections.singletonList(rule));
     arg.setDefaultRoute(route);
-    ApiObjectId id = p.create(arg);
+    ApiObjectRef ref = p.create(arg);
   }
 
   private void createTask(AttributeGroupDto requirements) throws MalformedURLException {

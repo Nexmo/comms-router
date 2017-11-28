@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -34,8 +34,8 @@ public class Router extends ApiObject {
 
   public Router() {}
 
-  public Router(ApiObjectId objectId) {
-    super(objectId.getId());
+  public Router(ApiObjectRef objectId) {
+    super(objectId.getRef());
   }
 
   public String getName() {
@@ -56,7 +56,7 @@ public class Router extends ApiObject {
 
   @Override
   public String toString() {
-    return "Router: [" + "id=" + getId() + "]";
+    return "Router: [" + "ref=" + getRef() + "]";
   }
 
 }

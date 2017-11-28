@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.misc.SizeDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -40,18 +40,18 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 05.09.17.
  */
-public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
+public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef>
     implements QueueService {
 
   private final Client client;
   private final String endpoint;
-  private final String routerId;
+  private final String routerRef;
 
   @Inject
   public QueueServiceClient(Client client, String endpoint, String routerId) {
     this.client = client;
     this.endpoint = endpoint;
-    this.routerId = routerId;
+    this.routerRef = routerId;
   }
 
   @Override
@@ -66,15 +66,15 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
   }
 
   @Override
-  public QueueDto get(RouterObjectId routerObject)
+  public QueueDto get(RouterObjectRef routerObject)
       throws NotFoundException {
 
-    return getItem(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+    return getItem(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   @Override
-  public List<QueueDto> list(String routerId) {
-    return getList(routerId);
+  public List<QueueDto> list(String routerRef) {
+    return getList(routerRef);
   }
 
   @Override
@@ -83,40 +83,40 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
   }
 
   @Override
-  public void delete(RouterObjectId routerObject) {
-    routerObject.setRouterId(routerId);
-    super.deleteRequest(new RouterObjectId(routerObject.getId(), routerObject.getRouterId()));
+  public void delete(RouterObjectRef routerObject) {
+    routerObject.setRouterRef(routerRef);
+    super.deleteRequest(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
   @Override
-  public ApiObjectId create(CreateQueueArg createArg, String id)
+  public ApiObjectRef create(CreateQueueArg createArg, String ref)
       throws NotFoundException {
 
-    return post(createArg, id);
+    return post(createArg, ref);
   }
 
   @Override
-  public ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
+  public ApiObjectRef replace(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    return put(createArg, objectId);
+    return put(createArg, objectRef);
   }
 
   @Override
-  public void update(UpdateQueueArg updateArg, RouterObjectId id)
+  public void update(UpdateQueueArg updateArg, RouterObjectRef ref)
       throws NotFoundException {
 
-    post(updateArg, id);
+    post(updateArg, ref);
   }
 
   @Override
-  public long getQueueSize(RouterObjectId routerObjectId)
+  public long getQueueSize(RouterObjectRef routerObjectRef)
       throws NotFoundException {
 
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
+        .path("{resourceRef}")
         .path("size")
-        .build(routerObjectId.getRouterId(), routerObjectId.getId());
+        .build(routerObjectRef.getRouterRef(), routerObjectRef.getRef());
 
     return getClient()
         .target(uri)
@@ -126,13 +126,13 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectId>
   }
 
   @Override
-  public Collection<TaskDto> getTasks(RouterObjectId routerObjectId)
+  public Collection<TaskDto> getTasks(RouterObjectRef routerObjectId)
       throws NotFoundException {
 
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
+        .path("{resourceRef}")
         .path("tasks")
-        .build(routerObjectId.getRouterId(), routerObjectId.getId());
+        .build(routerObjectId.getRouterRef(), routerObjectId.getRef());
 
     return getClient()
         .target(uri)

@@ -17,7 +17,7 @@
 package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.model.RouteDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.app.AppContext;
@@ -79,9 +79,9 @@ class PlanResolver {
       throws NotFoundException {
 
     Route route = app.entityMapper.plan.fromDto(routeDto);
-    if (routeDto.getQueueId() != null) {
+    if (routeDto.getQueueRef() != null) {
       Queue queue =
-          app.db.queue.get(em, new RouterObjectId(routeDto.getQueueId(), plan.getRouter().getId()));
+          app.db.queue.get(em, new RouterObjectRef(routeDto.getQueueRef(), plan.getRouter().getRef()));
       route.setQueue(queue);
     }
     return route;

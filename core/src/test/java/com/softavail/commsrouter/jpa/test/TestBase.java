@@ -135,12 +135,12 @@ public class TestBase {
   }
 
   // Creates and adds a new router object to the DB
-  public static void createRouter(String name, String description, String id) {
+  public static void createRouter(String name, String description, String ref) {
     em.getTransaction().begin();
     Router r = new Router();
     r.setDescription(description);
     r.setName(name);
-    r.setId(id);
+    r.setRef(ref);
     r.setVersion(1);
     em.persist(r);
     em.getTransaction().commit();
@@ -196,7 +196,7 @@ public class TestBase {
     RuleDto rule = new RuleDto();
     rule.setPredicate(predicate);
     RouteDto route = new RouteDto();
-    route.setQueueId(queueId);
+    route.setQueueRef(queueId);
     rule.getRoutes().add(route);
     rule.setTag("tag");
     List<RuleDto> rules = new ArrayList<>();
@@ -236,13 +236,13 @@ public class TestBase {
       throws MalformedURLException {
     // Creating test task arguments
     CreateTaskArg args = new CreateTaskArg();
-    args.setQueueId(queueId);
+    args.setQueueRef(queueId);
     URL url = new URL(URL);
     AttributeGroupDto requirements = new AttributeGroupDto();
     args.setRequirements(requirements);
     args.setUserContext(requirements);
     args.setCallbackUrl(url);
-    args.setPlanId(planId);
+    args.setPlanRef(planId);
     return args;
   }
 

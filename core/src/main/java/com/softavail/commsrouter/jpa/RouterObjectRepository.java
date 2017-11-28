@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,12 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.domain.RouterObject;
 
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.EntityManager;
 
 /**
@@ -35,31 +34,50 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
     super(transactionManager);
   }
 
-  public ENTITYT get(EntityManager em, RouterObjectId routerObjectId) throws NotFoundException {
-    ENTITYT entity = get(em, routerObjectId.getId());
-    if (entity != null
-        && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
+  public ENTITYT get(EntityManager em, RouterObjectRef routerObjectRef) throws NotFoundException {
+    ENTITYT entity = getNoThrow(em, routerObjectRef);
+    if (entity != null) {
       return entity;
     }
-    throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectId + " not found");
+    throw new NotFoundException(entityClass.getSimpleName() + " " + routerObjectRef + " not found");
   }
 
   @SuppressWarnings("unchecked")
-  public List<ENTITYT> list(EntityManager em, String routerId) {
-    return em
-        .createQuery("SELECT e FROM " + entityClass.getSimpleName()
-            + " e JOIN e.router r WHERE r.id = :routerId")
-        .setParameter("routerId", routerId).getResultList();
+  public ENTITYT getNoThrow(EntityManager em, RouterObjectRef routerObjectRef)
+      throws NotFoundException {
+    String query = "SELECT e FROM " + entityClass.getSimpleName()
+        + " e JOIN e.router r WHERE r.ref = :routerRef AND e.ref = :ref";
+
+    List<ENTITYT> result = em.createQuery(query)
+        .setParameter("routerRef", routerObjectRef.getRouterRef())
+        .setParameter("ref", routerObjectRef.getRef())
+        .getResultList();
+
+    if (result.isEmpty()) {
+      return null;
+    }
+
+    assert result.size() == 1;
+
+    return result.get(0);
   }
 
-  public void delete(RouterObjectId routerObjectId) throws CommsRouterException {
-    transactionManager.executeVoid((em) -> {
-      ENTITYT entity = em.find(entityClass, routerObjectId.getId());
-      if (entity != null
-          && Objects.equals(entity.getRouter().getId(), routerObjectId.getRouterId())) {
-        em.remove(entity);
-      }
-    });
+  @SuppressWarnings("unchecked")
+  public List<ENTITYT> list(EntityManager em, String routerRef) {
+    return em
+        .createQuery("SELECT e FROM " + entityClass.getSimpleName()
+            + " e JOIN e.router r WHERE r.ref = :routerRef")
+        .setParameter("routerRef", routerRef)
+        .getResultList();
+  }
+
+  public void delete(EntityManager em, RouterObjectRef routerObjectRef)
+      throws CommsRouterException {
+
+    ENTITYT entity = getNoThrow(em, routerObjectRef);
+    if (entity != null) {
+      em.remove(entity);
+    }
   }
 
 }

@@ -3,14 +3,11 @@ package com.softavail.comms.nexmo.answer;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.logging.log4j.LogManager;
@@ -27,7 +24,6 @@ import com.nexmo.client.voice.ncco.TalkNcco;
 import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
 import com.softavail.comms.demo.application.factory.NexMoModelFactory;
-import com.softavail.comms.demo.application.model.ConversationNccoEx;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.ncco.NccoFactory;
@@ -36,7 +32,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
@@ -62,7 +58,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   private static final String KEY_CONV_NAME = "conv_name";
   private static final String KEY_KIND = "kind";
   private static final String KEY_RECORDING_URL = "recording_url";
-  
+
   private static final String STATE_PROMPT_CALLBACK = "prompt_callback";
   private static final String STATE_PROMPT_CALLERID = "prompt_callerid";
   private static final String STATE_GET_NUMBER = "get_number";
@@ -74,52 +70,52 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   private static final String INFORM_CALLBACK_MESSAGE =
       "We are experiencing a high call volume. "
       + "We will call you back when an agent becomes available.";
-  
-  private static final String PROMPT_CALLBACK_MESSAGE = 
+
+  private static final String PROMPT_CALLBACK_MESSAGE =
       "We are experiencing a high call volume. "
       + "If you want us to call you back when an agent becomes available, press 1 now. "
       + "You will not lose your place in the queue. To continue waiting, press 2";
 
-  private static final String PROMPT_CALLERID_MESSAGE = 
+  private static final String PROMPT_CALLERID_MESSAGE =
       "Is the best number we can reach you at %s? "
       + "To use this number, press 1 now. To give us another number, press 2 now.";
-  
-  private static final String GET_NUMBER_MESSAGE = 
+
+  private static final String GET_NUMBER_MESSAGE =
       "Please enter your call back number followed by # now.";
-  
+
   private static final String CONFIRM_NUMBER_MESSAGE =
       "If %s is the correct number, press 1 now, otherwise, press 2 now.";
-  
+
   private static final String PROMPT_RECORD_NAME_MESSAGE =
       "Please say your name followed by # after the beep";
 
   private static final String FINAL_MESSAGE =
       "Thank you. We will call you back when an agent is ready to handle your request";
-  
+
   private static final String ERROR_MESSAGE_CRATE_TASK = "Sorry we can't serve your request";
-  
+
   private static final String MESSAGE_REGULAR_TASK_GREETING = "Please wait while we connect you";
-  
-  private static final String MESSAGE_ASSIGNED_CALLBACK_TASK = 
+
+  private static final String MESSAGE_ASSIGNED_CALLBACK_TASK =
       "An agent become ready to handle your request. Please wait while we connect you";
-  
-  private NccoFactory nccoFactory = new NccoFactory(); 
-  
+
+  private NccoFactory nccoFactory = new NccoFactory();
+
   private TaskServiceClient taskServiceClient;
 
   private Configuration configuration;
-  
+
   private NexMoService nexMoService;
-  
+
   private boolean withFeatureRecordName;
-  
+
   private Map<String, String> requirements;
-  
+
   private Map<String, String> userContext;
-  
+
   @Inject
   AnswerStrategyWithCallback(
-      TaskServiceClient taskServiceClient, 
+      TaskServiceClient taskServiceClient,
       Configuration configuration,
       NexMoService nexMoService) {
     this.taskServiceClient =  taskServiceClient;
@@ -129,22 +125,22 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     this.requirements = null;
     this.userContext = null;
   }
-  
+
   @Override
   public String answerInboundCallWithParams(
-      Map<String, String> requirements, Map<String, String> userContext) 
+      Map<String, String> requirements, Map<String, String> userContext)
       throws AnswerStrategyException {
-    
+
     if (requirements == null) {
       throw new AnswerStrategyException("Invalid argument: <requirements>");
     }
-    
+
     this.requirements = requirements;
     this.userContext = userContext;
-    
+
     LOGGER.debug("requirements: {}", this.requirements);
     LOGGER.debug("userContext: {}", this.userContext);
-    
+
     String convUuid = requirements.get("conversation_uuid");
     String from = requirements.get("from");
     String to = requirements.get("to");
@@ -160,11 +156,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       String tag) throws AnswerStrategyException {
 
     LOGGER.debug("answerInboundCall");
-    
+
     if (null == convUuid) {
       throw new AnswerStrategyException("Missing param: <conversation_uuid>");
     }
-    
+
     if (null == from) {
       throw new AnswerStrategyException("Missing param: <from>");
     }
@@ -173,27 +169,27 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       throw new AnswerStrategyException("Missing param: <to>");
     }
 
-    // Create task 
+    // Create task
     String conversationName = "conv-" + UUID.randomUUID().toString();
     CreatedTaskDto task = createRegularTask(conversationName, from, tag);
 
     if (null == task) {
       return respondWithErrorTalkNcco();
     }
-    
+
     // Check answer time prediction
     if (task.getQueueTasks() < 1) {
-      // create regular task
+      // replace regular task
       return respondWithRegularTask(conversationName);
-    } 
-    
+    }
+
     if (task.getQueueTasks() < 3 ) {
       // prompt callback
-      return respondByTransitionToPromptCallback(task.getId());
+      return respondByTransitionToPromptCallback(task.getRef());
     }
 
     // continue callback
-    return respondWithCallbackTask(task.getId(), from);
+    return respondWithCallbackTask(task.getRef(), from);
   }
 
   @Override
@@ -213,19 +209,19 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       LOGGER.warn("Task does not have a context: {}", taskId);
       return respondWithErrorTalkNcco();
     }
-    
+
     // check if the task has been assigned during callback ivr
     if (task.getState() == TaskState.assigned) {
       return handleAssignedTask(task);
     }
-    
+
     String callbackState = stringAttributeValueDto(taskContext.get(KEY_STATE));
     LOGGER.trace("evt state: {}, task state: {}", state, callbackState);
-    
+
     // TODO: Check the state from task and from callback
-    
+
     String nccoResponse = null;
-    
+
     switch (callbackState) {
       case STATE_PROMPT_CALLBACK:
         nccoResponse = handlePromptCallbackResponse(userInfo, task);
@@ -250,7 +246,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null == nccoResponse) {
       throw new AnswerStrategyException("Could not build next ncco");
     }
-    
+
     return nccoResponse;
   }
 
@@ -258,7 +254,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
   public String answerOutboundCall(String kind, String taskId) throws AnswerStrategyException {
 
     String nccoResponse;
-    
+
     // Handle the answer
     if (kind != null && kind.equals("callback_agent")) {
       nccoResponse = handleOutboundAnswerFromAgentForCallbackTask(taskId);
@@ -288,14 +284,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null != action && action.equals("confirm_name")) {
       nccoResponse = handleOutboundPromptCustomerName(userInfo, task);
     }
-    
+
     if (null == nccoResponse) {
       throw new AnswerStrategyException("Could not build next ncco");
     }
-    
+
     return nccoResponse;
   }
-  
+
   private String handlePromptCallbackResponse(JsonNode userInfo, TaskDto task) {
     LOGGER.debug("handlePromptCallbackResponse");
     String response = "[]";// empty NCCO
@@ -321,7 +317,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     LOGGER.debug("handleAssignedTask");
 
     try {
-    
+
       if (task == null) {
         return respondWithErrorTalkNcco();
       }
@@ -335,26 +331,26 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       if (null == convName || convName.length() == 0) {
         return respondWithErrorTalkNcco();
       }
-      
-      // update task 
+
+      // update task
       AttributeGroupDto updContext = new AttributeGroupDto();
       updContext.put(KEY_STATE, new StringAttributeValueDto(STATE_ASSIGNED));
       updContext.put(KEY_KIND, new StringAttributeValueDto("callback"));
-      boolean taskUpdated = updateTaskContext(task.getId(), updContext);
+      boolean taskUpdated = updateTaskContext(task.getRef(), updContext);
       if (false == taskUpdated) {
         return respondWithErrorTalkNcco();
       }
-      
+
       // connect customer to the conversation
       List<Ncco> list = nccoFactory
           .nccoListWithAnswerFromCustomerForCallbackTask(MESSAGE_ASSIGNED_CALLBACK_TASK, convName);
 
-      // preparing a response    
+      // preparing a response
       NccoResponseBuilder builder = new NccoResponseBuilder();
       list.forEach(ncco -> {
         builder.appendNcco(ncco);
       });
-      
+
       // respond
       NccoResponse nccoResponse = builder.getValue();
       return nccoResponse.toJson();
@@ -364,7 +360,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return respondWithErrorTalkNcco();
   }
-  
+
   private String handlePromptCallerIdResponse(JsonNode userInfo, TaskDto task) {
     LOGGER.debug("handlePromptCallerIdResponse");
     String response = "[]";// empty NCCO
@@ -388,14 +384,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     String number = parseDtmfFromUserInfo(userInfo);
 
     if (number != null && number.length() > 9) {
-      response = respondByTransitionToConfirmNumber(task, number);      
+      response = respondByTransitionToConfirmNumber(task, number);
     } else {
       response = respondByTransitionToGetNumber(task, null);
     }
 
     return response;
   }
-  
+
   private String handleConfirmNumberResponse(JsonNode userInfo, TaskDto task) {
     LOGGER.debug("handleConfirmNumberResponse");
     String response = "[]";// empty NCCO
@@ -429,44 +425,44 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return respondByTransitionToEnd(task, taskContext);
   }
-  
+
   private String respondWithCallbackTask(String taskId, String callbackNumber) {
-    
+
     TaskDto task = getTask(taskId);
     if (null == task) {
       return respondWithErrorTalkNcco();
     }
-    
+
     //TODO: set task's kind to callback
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_KIND, new StringAttributeValueDto("cllback"));
-    
-    boolean updateTaskContextResult = updateTaskContext(task.getId(), taskContext);
+
+    boolean updateTaskContextResult = updateTaskContext(task.getRef(), taskContext);
     if (false == updateTaskContextResult) {
       return respondWithErrorTalkNcco();
     }
-    
+
     if (callbackNumber != null && callbackNumber.length() > 9
         && Character.isDigit(callbackNumber.charAt(1))) {
       return respondByTransitionToPromptCallerId(task, callbackNumber, INFORM_CALLBACK_MESSAGE);
     }
-    
+
     return respondByTransitionToGetNumber(task, INFORM_CALLBACK_MESSAGE);
   }
-  
+
   private String respondByTransitionToPromptCallback(String taskId) {
-    
+
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(STATE_PROMPT_CALLBACK));
-    
-    LOGGER.debug("will updateTaskContext with 'callback_state': {}", 
+
+    LOGGER.debug("will updateTaskContext with 'callback_state': {}",
         STATE_PROMPT_CALLBACK);
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
-    
+
     URI uri = UriBuilder.fromPath(getEventUrl())
         .queryParam("taskId", taskId)
         .queryParam(KEY_STATE, STATE_PROMPT_CALLBACK)
@@ -474,18 +470,18 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     String finalEventUrl = uri.toString();
     List<Ncco> list =
         nccoFactory.nccoListWithPromptCallback(PROMPT_CALLBACK_MESSAGE, finalEventUrl);
-    
-    // preparing a response    
+
+    // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-    
+
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-  
+
   private String respondWithRegularTask(String convName) {
     LOGGER.debug("respondWithRegularTask");
 
@@ -509,11 +505,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private String respondByTransitionToRegularTask(TaskDto task) {
     LOGGER.debug("respondByTransitionToRegularTask");
-    
+
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_KIND, new StringAttributeValueDto("regular"));
-    
-    boolean updateTaskContextResult = updateTaskContext(task.getId(), taskContext);
+
+    boolean updateTaskContextResult = updateTaskContext(task.getRef(), taskContext);
     if (false == updateTaskContextResult) {
       respondWithErrorTalkNcco();
     }
@@ -536,21 +532,21 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return respondWithErrorTalkNcco();
   }
-  
+
   private String respondByTransitionToPromptCallerId(TaskDto task, String callerId,
       String callbackText) {
     LOGGER.debug("respondByTransitionToPromptCallerId");
-    String taskId = task.getId();
+    String taskId = task.getRef();
     String state = STATE_PROMPT_CALLERID;
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
     taskContext.put(KEY_KIND, new StringAttributeValueDto("callback"));
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
-    
+
     URI uri = UriBuilder.fromPath(getEventUrl())
         .queryParam("taskId", taskId)
         .queryParam(KEY_STATE, state)
@@ -558,22 +554,22 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     String finalEventUrl = uri.toString();
     String machineReadableCallerId = PhoneConverter.machineReadable(callerId);
     String text = String.format(PROMPT_CALLERID_MESSAGE, machineReadableCallerId);
-    String finalText = null; 
+    String finalText = null;
 
     if (callbackText != null && callbackText.length() > 0) {
       finalText = new StringBuilder().append(callbackText).append(text).toString();
     } else {
       finalText = text;
     }
-    
+
     List<Ncco> list = nccoFactory.nccoListWithPromptCallerId(finalText, finalEventUrl);
-    
-    // preparing a response    
+
+    // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-    
+
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
@@ -581,23 +577,23 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private String respondByTransitionToGetNumber(TaskDto task, String callbackText) {
     LOGGER.debug("respondByTransitionToGetNumber");
-    String taskId = task.getId();
+    String taskId = task.getRef();
     String state = STATE_GET_NUMBER;
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
     taskContext.put(KEY_KIND, new StringAttributeValueDto("callback"));
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
-    
+
     URI uri = UriBuilder.fromPath(getEventUrl())
         .queryParam("taskId", taskId)
         .queryParam(KEY_STATE, state)
         .build();
     String finalEventUrl = uri.toString();
-    String finalText = null; 
+    String finalText = null;
 
     if (callbackText != null && callbackText.length() > 0) {
       finalText = new StringBuilder().append(callbackText).append(GET_NUMBER_MESSAGE).toString();
@@ -606,14 +602,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     }
 
     List<Ncco> list = nccoFactory.nccoListWithGetNumber(finalText, finalEventUrl);
-    
-    // preparing a response    
+
+    // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-    
-    
+
+
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
@@ -621,17 +617,17 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
   private String respondByTransitionToConfirmNumber(TaskDto task, String number) {
     LOGGER.debug("respondByTransitionToConfirmNumber");
-    String taskId = task.getId();
+    String taskId = task.getRef();
     String state = STATE_CONFIRM_NUMBER;
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
     taskContext.put(KEY_TEMP_NUMBER, new StringAttributeValueDto(number));
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
-    
+
     URI uri = UriBuilder.fromPath(getEventUrl())
         .queryParam("taskId", taskId)
         .queryParam(KEY_STATE, state)
@@ -640,21 +636,21 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     String machineReadableNumber = PhoneConverter.machineReadable(number);
     String confirmationMessage = String.format(CONFIRM_NUMBER_MESSAGE, machineReadableNumber);
     List<Ncco> list = nccoFactory.nccoListWithConfirmNumber(confirmationMessage, finalEventUrl);
-    
-    // preparing a response    
+
+    // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-    
+
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-  
+
   private String respondByTransitionToRecordName(TaskDto task, AttributeGroupDto moreContext) {
     LOGGER.debug("respondByTransitionToRecordName");
-    String taskId = task.getId();
+    String taskId = task.getRef();
     String state = STATE_RECORD_NAME;
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
@@ -664,13 +660,13 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         taskContext.put(key, moreContext.get(key));
       });
     }
-    
+
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
-    
+
     URI uri = UriBuilder.fromPath(getEventUrl())
         .queryParam("taskId", taskId)
         .queryParam(KEY_STATE, state)
@@ -684,27 +680,27 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     list.forEach(ncco -> {
       builder.appendNcco(ncco);
     });
-    
+
     // respond
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-  
+
   private String respondByTransitionToEnd(TaskDto task, AttributeGroupDto moreContext) {
     LOGGER.debug("respondByTransitionToEnd");
-    String taskId = task.getId();
+    String taskId = task.getRef();
     String state = STATE_END;
     AttributeGroupDto taskContext = new AttributeGroupDto();
     taskContext.put(KEY_STATE, new StringAttributeValueDto(state));
-    
+
     if (null != moreContext) {
       moreContext.keySet().forEach(key -> {
         taskContext.put(key, moreContext.get(key));
       });
     }
-    
+
     boolean taskUpdated = updateTaskContext(taskId, taskContext);
-    
+
     if (false == taskUpdated) {
       return respondWithErrorTalkNcco();
     }
@@ -718,13 +714,13 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-  
+
   private String handleOutboundAnswerFromAgentForCallbackTask(String taskId) {
     LOGGER.trace("handleOutboundAnswerFromAgentForCallbackTask");
 
     String answer = null;
     TaskDto task = getTask(taskId);
-    
+
     if (null != task) {
       // call customer at number
       String callbackNumber = attributeGroupDtogetString("callback_number", task.getUserContext());
@@ -733,7 +729,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         if (null != conversationName) {
 
           String callbackState =  attributeGroupDtogetString(KEY_STATE, task.getUserContext());
-          
+
           if (null != callbackState && callbackState.length() > 0) {
             boolean flagOk = false;
             // check the callback state and call customer only if it has completed its callback IVR
@@ -750,14 +746,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
               LOGGER.trace("Will not call customer as the task has been assigned");
               flagOk = true;
             }
-            
+
             if (flagOk) {
               String text = "Please wait while we are connecting to the customer";
               String musicOnHoldUrl = configuration.getMusicOnHoldUrl();
               List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForCallbackTask(text,
                   conversationName, musicOnHoldUrl);
-              
-              // preparing a response    
+
+              // preparing a response
               NccoResponseBuilder builder = new NccoResponseBuilder();
               list.forEach(ncco -> {
                 builder.appendNcco(ncco);
@@ -767,24 +763,24 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
               answer = nccoResponse.toJson();
             } else {
               LOGGER.trace("Customer's call has been left unfinished. Will not try to connect");
-            } 
+            }
           }
         }
-      }      
+      }
     }
-    
+
     if (null != answer) {
       return answer;
     }
-     
+
     return respondWithErrorTalkNcco();
   }
-  
+
   private String handleOutboundAnswerFromCustomerForCallbackTask(String taskId) {
     LOGGER.trace("handleOutboundAnswerFromCustomerForCallbackTask");
 
     TaskDto task = getTask(taskId);
-    
+
     if (null != task) {
       if (this.withFeatureRecordName) {
         String recordingUrl = attributeGroupDtogetString(KEY_RECORDING_URL, task.getUserContext());
@@ -793,19 +789,19 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
           return respondOutboundByPromptCustomerName(task, recordingUrl);
         }
       }
-      
+
       return respondOutboundByConnectCustomer(task);
     }
-    
+
     return respondWithErrorTalkNcco();
   }
-  
+
   private String handleOutboundAnswerFromAgentForRegularTask(String taskId) {
-    
+
     LOGGER.trace("handleOutboundAnswerFromAgentForRegularTask");
-    
+
     TaskDto task = getTask(taskId);
-    
+
     if (null != task) {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
@@ -813,7 +809,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         List<Ncco> list = nccoFactory.nccoListWithAnswerFromAgentForRegularTask(
             MESSAGE_REGULAR_TASK_GREETING, conversationName, getMusicOnHoldUrl());
 
-        // preparing a response    
+        // preparing a response
         NccoResponseBuilder builder = new NccoResponseBuilder();
         list.forEach(ncco -> {
           builder.appendNcco(ncco);
@@ -840,19 +836,19 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return response;
   }
-  
+
   private String respondOutboundByConnectCustomer(TaskDto task) {
     LOGGER.debug("respondOutboundByConnectCustomer");
-    
+
     if (null != task && null != task.getUserContext()) {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
         String text = "Please wait while we connect you";
-        
+
         List<Ncco> list = nccoFactory.nccoListWithAnswerFromCustomerForCallbackTask(text,
             conversationName);
-        
-        // preparing a response    
+
+        // preparing a response
         NccoResponseBuilder builder = new NccoResponseBuilder();
         list.forEach(ncco -> {
           builder.appendNcco(ncco);
@@ -862,14 +858,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         return nccoResponse.toJson();
       }
     }
-    
+
     return respondWithErrorTalkNcco();
   }
 
   private String respondOutboundByPromptCustomerName(TaskDto task, String recordingUrl) {
-    
+
     LOGGER.debug("respondOutboundByPromptCustomerName");
-    
+
     if (null != task && null != task.getUserContext() && recordingUrl != null) {
       String conversationName = attributeGroupDtogetString(KEY_CONV_NAME, task.getUserContext());
       if (null != conversationName) {
@@ -879,14 +875,14 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
         URI uri = UriBuilder.fromPath(getEventUrl())
             .path("connect_callback")
-            .queryParam("taskId", task.getId())
+            .queryParam("taskId", task.getRef())
             .queryParam("action", "confirm_name")
             .build();
         String eventUrl = uri.toString();
         List<Ncco> list = nccoFactory.nccoListWithPromptCustomerNameForCallbackTask(recordingUrl,
             text1, text2, text3, eventUrl);
-        
-        // preparing a response    
+
+        // preparing a response
         NccoResponseBuilder builder = new NccoResponseBuilder();
         list.forEach(ncco -> {
           builder.appendNcco(ncco);
@@ -896,32 +892,32 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         return nccoResponse.toJson();
       }
     }
-    
+
     return respondWithErrorTalkNcco();
   }
-  
+
   private String parseDtmfFromUserInfo(JsonNode userInfo) {
 
     if (userInfo.get("dtmf").getNodeType() == JsonNodeType.STRING) {
       String dtmf = userInfo.get("dtmf").asText();
-      int indexOfPound = dtmf.indexOf("#"); 
+      int indexOfPound = dtmf.indexOf("#");
       if ( indexOfPound != -1) {
         dtmf = dtmf.substring(0, indexOfPound);
       }
-      
+
       return dtmf;
     }
-    
+
     return null;
   }
-  
+
   private String parseRecordingUrlFromUserInfo(JsonNode userInfo) {
 
-    if (userInfo.get("recording_url").getNodeType() == JsonNodeType.STRING) {    
+    if (userInfo.get("recording_url").getNodeType() == JsonNodeType.STRING) {
       String url = userInfo.get("recording_url").asText();
       return url;
     }
-    
+
     return null;
   }
 
@@ -934,7 +930,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
       taskReq.setCallbackUrl(uri.toURL());
 
-      AttributeGroupDto userContext = new AttributeGroupDto(); 
+      AttributeGroupDto userContext = new AttributeGroupDto();
       userContext.put(KEY_CONV_NAME, new StringAttributeValueDto(conversationName));
       // basic check for valid phone number
       if (from != null && from.length() > 9 && Character.isDigit(from.charAt(1))) {
@@ -962,12 +958,12 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         });
 
         taskReq.setRequirements(requirements);
-        taskReq.setPlanId(getPlanId());
+        taskReq.setPlanRef(getPlanId());
         if (tag != null) {
           taskReq.setTag(tag);
         }
       } else {
-        taskReq.setQueueId(getQueueId());
+        taskReq.setQueueRef(getQueueId());
       }
 
       task = taskServiceClient.create(taskReq, getRouterId());
@@ -979,12 +975,12 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
     return task;
   }
-  
-  private boolean updateTaskContext(String taskId, AttributeGroupDto taskContext) {
+
+  private boolean updateTaskContext(String taskRef, AttributeGroupDto taskContext) {
     boolean result = false;
-    
+
     try {
-      RouterObjectId routerObjectId = new RouterObjectId(taskId, getRouterId());
+      RouterObjectRef routerObjectId = new RouterObjectRef(taskRef, getRouterId());
       UpdateTaskContext updTaskContext = new UpdateTaskContext();
       updTaskContext.setUserContext(taskContext);
       taskServiceClient.updateContext(updTaskContext, routerObjectId);
@@ -994,26 +990,26 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     } catch (Exception ex) {
       LOGGER.error("updateTaskContext failed: {}", ex.getMessage());
     }
-    
+
     return result;
   }
-  
-  private TaskDto getTask(String taskId) {
+
+  private TaskDto getTask(String taskRef) {
     TaskDto task = null;
     try {
-      RouterObjectId routerObjectId = new RouterObjectId(taskId, getRouterId());
+      RouterObjectRef routerObjectId = new RouterObjectRef(taskRef, getRouterId());
       task = taskServiceClient.get(routerObjectId);
-      
+
       LOGGER.trace("task:{}", task);
     } catch (CommsRouterException e) {
       e.printStackTrace();
     } catch (Exception ex) {
       ex.printStackTrace();
     }
-    
+
     return task;
   }
-  
+
   private String respondWithErrorTalkNcco() {
     // preparing a response
     NccoResponseBuilder builder = new NccoResponseBuilder();
@@ -1024,16 +1020,16 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     NccoResponse nccoResponse = builder.getValue();
     return nccoResponse.toJson();
   }
-  
+
   private String getEventUrl() {
     return configuration.getNexmoCallbackBaseUrl() + "event_callback";
   }
-  
-  private String getTaskCallbackUrl() {  
+
+  private String getTaskCallbackUrl() {
     return configuration.getCallbackBaseUrl() + "comms_callback";
   }
-  
-  private String getRouterId() {  
+
+  private String getRouterId() {
     return configuration.getCommsRouterId();
   }
 
@@ -1054,37 +1050,37 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     if (null == valueDto) {
       return "";
     }
-    
+
     String stringValue = null;
     ArrayList<String> result = new ArrayList<String>();
-    
+
     try {
-      
+
       valueDto.accept( new AttributeValueVisitor() {
         @Override
         public void handleStringValue(StringAttributeValueDto value) throws IOException {
           result.add(value.getValue());
         }
-        
+
         @Override
         public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
             throws IOException {
           // TODO Auto-generated method stub
 
         }
-        
+
         @Override
         public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
             throws IOException {
@@ -1095,11 +1091,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     } catch (IOException e) {
       LOGGER.error(e.getLocalizedMessage());
     }
-    
+
     if (result != null && result.size() > 0) {
       stringValue = result.get(0);
     }
-    
+
     return stringValue;
   }
 
@@ -1111,12 +1107,12 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
     }
     return "";
   }
-  
-  private boolean callCustomer(String number, String taskId) {
+
+  private boolean callCustomer(String number, String taskRef) {
 
     boolean flagOk = false;
     CallEvent callEvent = null;
-    
+
     try {
       // obtain agent's endpoint to be called
       String toNumber = number;//PhoneConverter.normalize(number);
@@ -1126,7 +1122,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_customer")
-          .queryParam("taskId", taskId)
+          .queryParam("taskId", taskRef)
           .build();
 
       String answerUrl = uri.toString();
@@ -1135,11 +1131,11 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       Call callRequest = new Call(epTo, epFrom, answerUrl);
 
       // set event url
-      URI evturi = 
+      URI evturi =
           UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("event_outbound")
           .queryParam("kind", "callback_customer")
-          .queryParam("taskId", taskId)
+          .queryParam("taskId", taskRef)
           .build();
 
       String eventUrl = evturi.toString();
@@ -1152,7 +1148,7 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         LOGGER.debug("uuid: {}", callEvent.getUuid());
         flagOk = true;
       }
-    
+
     } catch (IOException | NexmoClientException e) {
       // Would not call agent. Mark the task as complete with error.
       LOGGER.error("Failed to make a call to customer with error: {}", e.getLocalizedMessage());
@@ -1167,22 +1163,22 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
         UpdateTaskContext updateCtx = new UpdateTaskContext();
         userContext.put("customer_uuid", new StringAttributeValueDto(callEvent.getUuid()));
         updateCtx.setUserContext(userContext);
-        taskServiceClient.updateContext(updateCtx, 
-            new RouterObjectId(taskId, configuration.getCommsRouterId()));
+        taskServiceClient.updateContext(updateCtx,
+            new RouterObjectRef(taskRef, configuration.getCommsRouterId()));
       } else {
         // complete the task
-        LOGGER.debug("Failed to call customer, mark task as completed: {}", taskId);
+        LOGGER.debug("Failed to call customer, mark task as completed: {}", taskRef);
         UpdateTaskArg updateArg = new UpdateTaskArg();
         updateArg.setState(TaskState.completed);
-        taskServiceClient.update(updateArg, 
-            new RouterObjectId(taskId, configuration.getCommsRouterId()));
+        taskServiceClient.update(updateArg,
+            new RouterObjectRef(taskRef, configuration.getCommsRouterId()));
       }
     } catch (BadValueException | NotFoundException e1) {
       LOGGER.error("Failed to update task context with error: {}", e1.getLocalizedMessage());
     } catch (Exception e2) {
       LOGGER.error("Failed to update task context with eror: {}", e2.getLocalizedMessage());
     }
-    
+
     return flagOk;
   }
 }

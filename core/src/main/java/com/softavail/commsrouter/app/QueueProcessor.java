@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ public class QueueProcessor {
 
   private static final Logger LOGGER = LogManager.getLogger(QueueProcessor.class);
 
-  private final String queueId;
+  private final Long queueId;
   private final JpaDbFacade db;
   private final TaskDispatcher taskDispatcher;
   private final ScheduledThreadPoolExecutor threadPool;
@@ -45,8 +45,7 @@ public class QueueProcessor {
 
   private QueueProcessorState state;
 
-  public QueueProcessor(
-      String queueId,
+  public QueueProcessor(Long queueId,
       JpaDbFacade db,
       TaskDispatcher taskDispatcher,
       ScheduledThreadPoolExecutor threadPool,
@@ -62,7 +61,7 @@ public class QueueProcessor {
     this.state = QueueProcessorState.IDLE;
   }
 
-  public String getQueueId() {
+  public Long getQueueId() {
     return queueId;
   }
 
@@ -152,14 +151,14 @@ public class QueueProcessor {
 
   public static class Builder {
 
-    private String queueId;
+    private Long queueId;
     private JpaDbFacade db;
     private TaskDispatcher taskDispatcher;
     private ScheduledThreadPoolExecutor threadPool;
     private long processRetryDelaySeconds;
     private StateChangeListener stateChangeListener = null;
 
-    public Builder setQueueId(String queueId) {
+    public Builder setQueueId(Long queueId) {
       this.queueId = queueId;
       return this;
     }

@@ -1,12 +1,13 @@
 
 package com.softavail.commsrouter.domain.test;
 
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.jpa.test.TestBase;
 
 import org.junit.Test;
 import java.util.List;
-import javax.persistence.Query;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -17,42 +18,33 @@ import static org.junit.Assert.assertEquals;
 public class RouterTest extends TestBase {
 
   @Test
-  public void testGetObjectById_success() {
-    Router router = em.find(Router.class, "01");
+  public void testGetObjectById_success() throws NotFoundException {
+    Router router = app.db.router.getByRef(em, "01");
     assertNotNull(router);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetAll_success() {
-    Query query = em.createQuery("SELECT e FROM Router e");
-    List<Router> routers = query.getResultList();
+  public void testGetAll_success() throws CommsRouterException {
+    List<Router> routers = app.db.router.list(em);
     assertEquals(2, routers.size());
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testPersist_success() {
+  public void testPersist_success() throws CommsRouterException {
     createRouter("name_two", "description_two", "03");
-    Query query = em.createQuery("SELECT e FROM Router e");
-    List<Router> routers = query.getResultList();
+    List<Router> routers = app.db.router.list(em);
     assertNotNull(routers);
     assertEquals(3, routers.size());
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testDelete_success() {
-    Router router = em.find(Router.class, "01");
-
-    em.getTransaction().begin();
-    em.remove(router);
-    em.getTransaction().commit();
-
-    Query query = em.createQuery("SELECT e FROM Router e");
-    List<Router> routers = query.getResultList();
-
-    assertEquals(1, routers.size());
+  public void testDelete_success() throws CommsRouterException {
+    app.db.router.deleteByRef(em, "01");
+    List<Router> routers = app.db.router.list(em);
+    assertEquals(2, routers.size());
   }
 
 }

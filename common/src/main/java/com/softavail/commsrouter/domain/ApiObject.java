@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,12 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Version;
@@ -28,7 +30,10 @@ import javax.persistence.Version;
 public class ApiObject implements Serializable {
 
   @Id
-  private String id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  private String ref;
 
   @Version
   private Integer version;
@@ -36,19 +41,27 @@ public class ApiObject implements Serializable {
   public ApiObject() {}
 
   public ApiObject(ApiObject rhs) {
-    this.id = rhs.id;
+    this.ref = rhs.ref;
   }
 
-  public ApiObject(String id) {
-    this.id = id;
+  public ApiObject(String ref) {
+    this.ref = ref;
   }
 
-  public String getId() {
+  public Long getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getRef() {
+    return ref;
+  }
+
+  public void setRef(String ref) {
+    this.ref = ref;
   }
 
   public Integer getVersion() {
@@ -59,8 +72,8 @@ public class ApiObject implements Serializable {
     this.version = version;
   }
 
-  public ApiObjectId cloneApiObjectId() {
-    return new ApiObjectId(id);
+  public ApiObjectRef cloneApiObjectRef() {
+    return new ApiObjectRef(id, ref);
   }
 
   @Override
@@ -72,12 +85,12 @@ public class ApiObject implements Serializable {
       return false;
     }
     ApiObject apiObject = (ApiObject) object;
-    return Objects.equals(getId(), apiObject.getId());
+    return Objects.equals(getRef(), apiObject.getRef());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getId(), getVersion(), getClass());
+    return Objects.hash(getRef(), getVersion(), getClass());
   }
 
 }

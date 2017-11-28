@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class PlanDto extends RouterObjectId {
+public class PlanDto extends RouterObjectRef {
 
   private String description;
   private List<RuleDto> rules = new ArrayList<>();
@@ -34,8 +34,8 @@ public class PlanDto extends RouterObjectId {
 
   public PlanDto() {}
 
-  public PlanDto(CreatePlanArg createArg, RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+  public PlanDto(CreatePlanArg createArg, RouterObjectRef objectRef) {
+    super(objectRef.getRef(), objectRef.getRouterRef());
     this.description = createArg.getDescription();
   }
 

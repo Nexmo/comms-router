@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.jpa;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Queue;
@@ -35,8 +36,7 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     super(transactionManager);
   }
 
-  public long getQueueSize(EntityManager em, String queueId)
-      throws CommsRouterException {
+  public long getQueueSize(EntityManager em, Long queueId) throws CommsRouterException {
 
     String qlString = "SELECT COUNT(t.id) FROM Task t "
         + "JOIN t.queue q WHERE q.id = :queueId AND t.state = :state";
@@ -47,8 +47,20 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
         .getSingleResult();
   }
 
+  public long getQueueSize(EntityManager em, RouterObjectRef queueRef) throws CommsRouterException {
+
+    String qlString = "SELECT COUNT(t.id) FROM Task t " + "JOIN t.queue q JOIN q.router r "
+            + "WHERE r.ref = :routerRef AND q.ref = :queueRef AND t.state = :state";
+
+    return (long) em.createQuery(qlString)
+        .setParameter("routerRef", queueRef.getRouterRef())
+        .setParameter("queueRef", queueRef.getRef())
+        .setParameter("state", TaskState.waiting)
+        .getSingleResult();
+  }
+
   @SuppressWarnings("unchecked")
-  public Optional<MatchResult> findAssignment(EntityManager em, String queueId)
+  public Optional<MatchResult> findAssignment(EntityManager em, Long queueId)
       throws CommsRouterException {
 
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, ag) "
@@ -67,7 +79,7 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
   }
 
   @SuppressWarnings("unchecked")
-  public Optional<MatchResult> findAssignmentForAgent(EntityManager em, String agentId)
+  public Optional<MatchResult> findAssignmentForAgent(EntityManager em, Long agentId)
       throws CommsRouterException {
 
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "

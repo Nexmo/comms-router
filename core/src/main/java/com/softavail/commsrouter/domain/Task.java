@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -97,8 +97,8 @@ public class Task extends RouterObject {
 
   public Task() {}
 
-  public Task(RouterObjectId objectId) {
-    super(objectId.getId());
+  public Task(RouterObjectRef objectId) {
+    super(objectId.getRef());
   }
 
   public AttributeGroup getRequirements() {

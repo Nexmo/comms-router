@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,30 +25,27 @@ import java.util.Date;
  *
  * @author ikrustev
  */
-public class TaskDto extends RouterObjectId {
+public class TaskDto extends RouterObjectRef {
 
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private TaskState state;
-  private String queueId;
-  private String agentId;
+  private String queueRef;
+  private String agentRef;
   private String callbackUrl;
   private Long priority;
   private Date createDate;
   private Date updateDate;
   private Long queuedTimeout;
-  private Long routeId;
-  private Long ruleId;
   private String tag;
 
   public TaskDto() {}
 
-  public TaskDto(CreateTaskArg createArg, RouterObjectId objectId) {
-    super(objectId.getId(), objectId.getRouterId());
+  public TaskDto(CreateTaskArg createArg, RouterObjectRef objectRef) {
+    super(objectRef.getRef(), objectRef.getRouterRef());
     requirements = createArg.getRequirements();
     userContext = createArg.getUserContext();
-    // ruleId = createArg.getPlanId();
-    queueId = createArg.getQueueId();
+    queueRef = createArg.getQueueRef();
     callbackUrl = createArg.getCallbackUrl().toString();
   }
 
@@ -56,9 +53,8 @@ public class TaskDto extends RouterObjectId {
     super(taskDto);
     requirements = taskDto.requirements;
     userContext = taskDto.userContext;
-    ruleId = taskDto.ruleId;
-    queueId = taskDto.queueId;
-    agentId = taskDto.agentId;
+    queueRef = taskDto.queueRef;
+    agentRef = taskDto.agentRef;
     callbackUrl = taskDto.callbackUrl;
     priority = taskDto.priority;
   }
@@ -87,28 +83,20 @@ public class TaskDto extends RouterObjectId {
     this.state = state;
   }
 
-  public Long getRuleId() {
-    return ruleId;
+  public String getQueueRef() {
+    return queueRef;
   }
 
-  public void setRuleId(Long ruleId) {
-    this.ruleId = ruleId;
+  public void setQueueRef(String queueRef) {
+    this.queueRef = queueRef;
   }
 
-  public String getQueueId() {
-    return queueId;
+  public String getAgentRef() {
+    return agentRef;
   }
 
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
-  }
-
-  public String getAgentId() {
-    return agentId;
-  }
-
-  public void setAgentId(String agentId) {
-    this.agentId = agentId;
+  public void setAgentRef(String agentRef) {
+    this.agentRef = agentRef;
   }
 
   public String getCallbackUrl() {
@@ -149,14 +137,6 @@ public class TaskDto extends RouterObjectId {
 
   public void setQueuedTimeout(Long queuedTimeout) {
     this.queuedTimeout = queuedTimeout;
-  }
-
-  public Long getRouteId() {
-    return routeId;
-  }
-
-  public void setRouteId(Long routeId) {
-    this.routeId = routeId;
   }
 
   public String getTag() {

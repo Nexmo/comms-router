@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@
 package com.softavail.commsrouter.client;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +37,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObjectId> {
+public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObjectRef> {
 
   private static final Logger LOGGER = LogManager.getLogger(ServiceClientBase.class);
 
@@ -75,10 +75,10 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
   }
 
   // POST over resource updates. Returns void
-  protected void post(Object obj, ApiObjectId id) {
+  protected void post(Object obj, ApiObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .build(id.getId());
+        .path("{resourceRef}")
+        .build(ref.getRef());
 
     getClient()
         .target(uri)
@@ -87,10 +87,10 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
   }
 
   // POST over resource updates. Returns void
-  protected void post(Object obj, RouterObjectId id) {
+  protected void post(Object obj, RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .build(id.getRouterId(), id.getId());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     getClient()
         .target(uri)
@@ -98,18 +98,18 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
   }
 
-  protected R put(Object obj, String id) {
-    URI uri = getApiUrl().clone().build(id);
+  protected R put(Object obj, String ref) {
+    URI uri = getApiUrl().clone().build(ref);
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
         .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
   }
 
-  protected R put(Object obj, RouterObjectId id) {
+  protected R put(Object obj, RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .build(id.getRouterId(), id.getId());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     return getClient()
         .target(uri)
@@ -117,8 +117,8 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .put(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE), createResponseType);
   }
 
-  protected T getItem(ApiObjectId id) {
-    URI uri = getApiUrl().clone().path(id.getId()).build();
+  protected T getItem(ApiObjectRef ref) {
+    URI uri = getApiUrl().clone().path(ref.getRef()).build();
 
     return getClient()
         .target(uri)
@@ -126,10 +126,9 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .get(responseType);
   }
 
-  protected T getItem(RouterObjectId id) {
+  protected T getItem(RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .build(id.getRouterId(), id.getId());
+        .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
 
     return getClient()
         .target(uri)
@@ -154,11 +153,10 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .get(new GenericType<List<T>>() {});
   }
 
-  protected PaginatedList<T> getList(String routerId, int page, int perPage) {
+  protected PaginatedList<T> getList(String routerRef, int page, int perPage) {
     URI uri = getApiUrl().clone()
         .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, page)
-        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, perPage)
-        .build(routerId);
+        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, perPage).build(routerRef);
 
     Response response = getClient()
         .target(uri)
@@ -172,8 +170,8 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
     return new PaginatedList<>(list, page, perPage, totalCount);
   }
 
-  protected void deleteRequest(ApiObjectId id) {
-    URI uri = getApiUrl().clone().path(id.getId()).build();
+  protected void deleteRequest(ApiObjectRef ref) {
+    URI uri = getApiUrl().clone().path(ref.getRef()).build();
 
     getClient()
         .target(uri)
@@ -181,10 +179,10 @@ public abstract class ServiceClientBase<T extends ApiObjectId, R extends ApiObje
         .delete();
   }
 
-  protected void deleteRequest(RouterObjectId id) {
+  protected void deleteRequest(RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
-        .path("{resourceId}")
-        .build(id.getRouterId(), id.getId());
+        .path("{resourceRef}")
+        .build(ref.getRouterRef(), ref.getRef());
 
     getClient()
         .target(uri)

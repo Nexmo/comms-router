@@ -17,8 +17,8 @@
 
 (defun publish-id(resource)
   #'(lambda(js)
-      (funcall (fire-event resource) (jsown:val js "id"))
-      (list t (list(format nil "ok - publish ~A id ->~A" resource (jsown:val js "id"))))))
+      (funcall (fire-event resource) (jsown:val js "ref"))
+      (list t (list(format nil "ok - publish ~A id ->~A" resource (jsown:val js "ref"))))))
 
 (defun remove-id(resource)
   #'(lambda(js)
@@ -127,11 +127,11 @@
 
 (defun check-routers(x)
   (step-bind
-   (check-step #'(lambda()(router-new :name x)) (has-key "id"))
+   (check-step #'(lambda()(router-new :name x)) (has-key "ref"))
    (lambda(json descr)
      (destructuring-bind (result status descr1)
          (funcall (check-step #'(lambda()
-                                  (router-del :id (jsown:val json "id")))
+                                  (router-del :id (jsown:val json "ref")))
                               (is-equal "")))
        (step-result result status (append descr1 descr))))))
 
@@ -149,21 +149,21 @@
 
 (defun crouter-new()
   (check-step #'(lambda()(router-new))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun crouter()
   (check-step #'(lambda()(router))
-              (has-key "id")))
+              (has-key "ref")))
 (defun crouter-all()
   (check-step #'(lambda()(router-all))
-              (has-keys "id")))
+              (has-keys "ref")))
 
 (defun crouter-update()
   (check-step #'(lambda()(router-set))
               (is-equal "")))
 (defun crouter-put()
   (check-step #'(lambda()(router-put :id (get-id "router-")))
-              (has-key "id")))
+              (has-key "ref")))
 (defun crouter-del()
   (check-step #'(lambda()(router-del))
               (is-equal "")))
@@ -175,23 +175,23 @@
              (lambda(json descr)
                (destructuring-bind (result status descr1)
                    (funcall (check-step #'(lambda()(router-new))
-                                        (has-key "id")))
+                                        (has-key "ref")))
                  (step-result result status (append descr1 descr))))))
 ;;; agent
 (defun cagent-new()
   (check-step #'(lambda()(agent-new))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cagent()
   (check-step #'(lambda()(agent))
-              (has-key "id")))
+              (has-key "ref")))
 (defun cagent-all()
   (check-step #'(lambda()(agent-all))
-              (has-keys "id")))
+              (has-keys "ref")))
 
 (defun cagent-update()
   (check-step #'(lambda()(agent-put))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cagent-set()
   (check-step #'(lambda()(agent-set :state "ready"))
@@ -216,26 +216,26 @@
              (lambda(json descr)
                (destructuring-bind (result status descr1)
                    (funcall (check-step #'(lambda()(agent-new))
-                                        (has-key "id")))
+                                        (has-key "ref")))
                  (step-result result status (append descr1 descr))))))
 ;;;
 ;;; queue
 (defun cqueue-new-and-bind-to-agent()
   (check-step #'(lambda()(queue-new))
-              (check-and (has-key "id")
+              (check-and (has-key "ref")
                          #'(lambda(json) (bind-agent-to-queue) (list nil '("bind agent to queue intentionally fail"))))))
 
 (defun cqueue-new()
   (check-step #'(lambda()(queue-new))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cqueue()
   (check-step #'(lambda()(queue))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cqueue-all()
   (check-step #'(lambda()(queue-all))
-              (has-keys "id")))
+              (has-keys "ref")))
 
 (defun cqueue-update()
   (check-step #'(lambda()(queue-put))
@@ -252,24 +252,24 @@
              (lambda(json descr)
                (destructuring-bind (result status descr1)
                    (funcall (check-step #'(lambda()(queue-new))
-                                        (has-key "id")))
+                                        (has-key "ref")))
                  (step-result result status (append descr1 descr))))))
 
 ;;;
 ;;; plan
 (defun cplan-new-empty()
   (check-step #'(lambda()(plan-new :rules ()))
-              (has-key "id")))
+              (has-key "ref")))
 (defun cplan-new(&key (predicate "true"))
   (check-step #'(lambda()(plan-new :predicate predicate))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cplan()
   (check-step #'(lambda()(plan))
-              (has-key "id")))
+              (has-key "ref")))
 (defun cplan-all()
   (check-step #'(lambda()(plan-all))
-              (has-keys "id")))
+              (has-keys "ref")))
 
 (defun cplan-update()
   (check-step #'(lambda()(plan-put :rules '()))
@@ -283,22 +283,22 @@
 ;;; task
 (defun ctask-new()
   (check-step #'(lambda()(task-new))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun cptask-new()
   (check-step #'(lambda()(ptask-new))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun ctask()
   (check-step #'(lambda()(task))
-              (has-key "id")))
+              (has-key "ref")))
 (defun ctask-all()
   (check-step #'(lambda()(task-all))
-              (has-keys "id")))
+              (has-keys "ref")))
 
 (defun ctask-update()
   (check-step #'(lambda()(task-put))
-              (has-key "id")))
+              (has-key "ref")))
 
 (defun ctask-set()
   (check-step #'(lambda()(task-set :state "completed"))
@@ -324,7 +324,7 @@
              (lambda(json descr)
                (destructuring-bind (result status descr1)
                    (funcall (check-step #'(lambda()(task-new))
-                                        (has-key "id")))
+                                        (has-key "ref")))
                  (step-result result status (append descr1 descr))))))
 
 (defun check-ops(all)

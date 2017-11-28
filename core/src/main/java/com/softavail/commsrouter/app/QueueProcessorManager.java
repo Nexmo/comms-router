@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,8 +36,8 @@ public class QueueProcessorManager {
 
   private static final QueueProcessorManager instance = new QueueProcessorManager();
 
-  private final Map<String, QueueProcessor> queueProcessors = Maps.newHashMap();
-  private final Map<String, ScheduledFuture> scheduledFutures = Maps.newHashMap();
+  private final Map<Long, QueueProcessor> queueProcessors = Maps.newHashMap();
+  private final Map<Long, ScheduledFuture> scheduledFutures = Maps.newHashMap();
 
   private QueueProcessorManager() {
   }
@@ -46,9 +46,7 @@ public class QueueProcessorManager {
     return instance;
   }
 
-  public synchronized void processQueue(
-      String queueId,
-      JpaDbFacade db,
+  public synchronized void processQueue(Long queueId,      JpaDbFacade db,
       EntityMappers mappers,
       TaskDispatcher taskDispatcher,
       CoreConfiguration configuration,
@@ -77,7 +75,7 @@ public class QueueProcessorManager {
     queueProcessor.process();
   }
 
-  private synchronized void removeQueueProcessor(String queueId) {
+  private synchronized void removeQueueProcessor(Long queueId) {
     QueueProcessor queueProcessor = queueProcessors.get(queueId);
     if (!queueProcessor.isWorking()) {
       queueProcessors.remove(queueId);

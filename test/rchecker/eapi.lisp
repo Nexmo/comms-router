@@ -12,7 +12,7 @@
          (tapply (http-post (list "/routers" router-id "queues")
                             (jsown:new-js ("description" description)
                                           ("predicate" predicate))))
-         (check-and (has-json) (has-key "id") (publish-id :queue))))
+         (check-and (has-json) (has-key "ref") (publish-id :queue))))
 
 (defun equeue-size (&key (router-id (get-event :router))
                       (id (get-event :queue))
@@ -30,7 +30,7 @@
          (tapply (http-put (list "/routers" router-id "queues" id) (jsown:new-js
                                                                      ("description" description)
                                                                      ("predicate" predicate))))
-         (check-and (has-json) (has-key "id") (publish-id :queue))))
+         (check-and (has-json) (has-key "ref") (publish-id :queue))))
 
 (defun equeue-del (&key (router-id (get-event :router))
                      (id (get-event :queue)))
@@ -46,7 +46,7 @@
          (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
                                                                    ("address" address)
                                                                    ("capabilities" capabilities))))
-         (check-and (has-json) (has-key "id") (publish-id :agent))))
+         (check-and (has-json) (has-key "ref") (publish-id :agent))))
 
 (defun eagent-put (&key (router-id (get-event :router))
                      (id (get-event :agent))
@@ -56,7 +56,7 @@
          (tapply (http-put (list "/routers" router-id "agents" id) (jsown:new-js
                                                               ("address" address)
                                                               ("capabilities" capabilities))))
-         (check-and (has-json) (has-key "id") (publish-id :agent))))
+         (check-and (has-json) (has-key "ref") (publish-id :agent))))
 
 (defun eagent-set (&key (router-id (get-event :router))
                      (id (get-event :agent))
@@ -85,7 +85,7 @@
   (tstep (format nil "Create new router.")
          (tapply (http-post "/routers" (jsown:new-js("name" name)
                                                     ("description" description))))
-         (check-and (has-json) (has-key "id") (publish-id :router))))
+         (check-and (has-json) (has-key "ref") (publish-id :router))))
 
 (defun erouter-all (&key (checks (check-and (has-json))))
   (tstep (format nil "List available routers.")
@@ -96,7 +96,7 @@
   (tstep (format nil "Replace or create router.")
          (tapply (http-put (list "/routers" id) (jsown:new-js ("name" name)
                                                               ("description" description))))
-         (check-and (has-json) (has-key "id") (publish-id :router))))
+         (check-and (has-json) (has-key "ref") (publish-id :router))))
 
 (defun erouter-del (&key (id (get-event :router)))
   (tstep (format nil "Delete router ~A." id)
@@ -110,7 +110,7 @@
                    (context (jsown:new-js ("key" "value")))
                    (queue-id (get-event :queue))
                    (plan-id :null)
-                   (checks (check-and (has-json) (has-key "id") (publish-id :task))))
+                   (checks (check-and (has-json) (has-key "ref") (publish-id :task))))
   (tstep (format nil "Create new task to queue ~A, plan ~A and context ~A." queue-id plan-id (jsown:to-json context))
          (tapply (http-post (list "/routers" router-id "tasks")
                             (jsown:new-js
@@ -118,8 +118,8 @@
                               ("callbackUrl" callback-url)
                               ("userContext" context)
                               ("requirements" requirements)
-                              ("queueId" queue-id)
-                              ("planId" plan-id))))
+                              ("queueRef" queue-id)
+                              ("planRef" plan-id))))
          checks))
 
 (defun etask-del (&key (router-id (get-event :router))
@@ -186,7 +186,7 @@
          (is-equal "")))
 
 (defun eagent(&key (description "Get state of the agent") (router-id (get-event :router))
-                (id (get-event :agent)) (checks (has-kv "id" id)))
+                (id (get-event :agent)) (checks (has-kv "ref" id)))
   (tstep description
          (tapply (http-get "/routers" router-id "agents" id))
          checks))
@@ -209,16 +209,16 @@
                                               ("predicate" predicate)
                                               ("routes" (append
                                                          (list (jsown:new-js
-                                                                 ("queueId" queue-id)
+                                                                 ("queueRef" queue-id)
                                                                  ("priority" priority)
                                                                  ("timeout" timeout)))
                                                          next-route)))))
                    (description "description")
                    (default-route (jsown:new-js
-                                    ("queueId" default-queue-id)
+                                    ("queueRef" default-queue-id)
                                     ("priority" 0)
                                     ("timeout" default-timeout)))
-                   (checks (check-and (has-json) (has-key "id"))))
+                   (checks (check-and (has-json) (has-key "ref"))))
   (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
          (tapply (http-post (list "/routers" router-id "plans")
                             (jsown:new-js
@@ -239,16 +239,16 @@
                                               ("predicate" predicate)
                                               ("routes" (append
                                                          (list (jsown:new-js
-                                                                 ("queueId" queue-id)
+                                                                 ("queueRef" queue-id)
                                                                  ("priority" priority)
                                                                  ("timeout" timeout)))
                                                          next-route)))))
                    (description "description")
                    (default-route (jsown:new-js
-                                    ("queueId" default-queue-id)
+                                    ("queueRef" default-queue-id)
                                     ("priority" 0)
                                     ("timeout" default-timeout)))
-                   (checks (check-and (has-json) (has-key "id"))))
+                   (checks (check-and (has-json) (has-key "ref"))))
   (tstep (format nil "Create new plan to queue ~A with predicate ~A." queue-id predicate)
          (tapply (http-put (list "/routers" router-id "plans" id)
                             (jsown:new-js

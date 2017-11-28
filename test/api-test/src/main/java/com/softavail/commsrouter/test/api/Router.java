@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.softavail.commsrouter.test.api;
 
 import static io.restassured.RestAssured.given;
@@ -23,7 +22,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
@@ -42,69 +41,72 @@ public class Router extends Resource {
   }
 
   public List<RouterDto> list() {
-    RouterDto[] routers = given().when()
-        .get("/routers")
+    RouterDto[] routers = given()
+        .when().get("/routers")
         .then().statusCode(200)
-        .extract().as(RouterDto[].class);
+        .extract()
+        .as(RouterDto[].class);
     return Arrays.asList(routers);
   }
 
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
-    String id = state().get(CommsRouterResource.ROUTER);
+    String routerRef = state().get(CommsRouterResource.ROUTER);
     return given()
         .contentType("application/json")
-        .pathParam("routerId", id)
-        .body(args)
-        .when().put("/routers/{routerId}")
+        .pathParam("routerRef", routerRef).body(args)
+        .when().put("/routers/{routerRef}")
         .then();
   }
 
-
-  public ApiObjectId replace(CreateRouterArg args) {
-    ApiObjectId oid = replaceResponse(args).statusCode(201)
+  public ApiObjectRef replace(CreateRouterArg args) {
+    ApiObjectRef oid = replaceResponse(args)
+        .statusCode(201)
         .extract()
-        .as(ApiObjectId.class);
-    state().put(CommsRouterResource.ROUTER, oid.getId());
+        .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.ROUTER, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreateRouterArg args) {
-    ApiObjectId oid = given()
+  public ApiObjectRef create(CreateRouterArg args) {
+    ApiObjectRef oid = given()
         .contentType("application/json")
         .body(args)
         .when().post("/routers")
-        .then().statusCode(201).body("id", not(isEmptyString()))
+        .then().statusCode(201)
+        .body("ref", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.ROUTER, id);
     return oid;
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.ROUTER);
+    String routerRef = state().get(CommsRouterResource.ROUTER);
     given()
-        .pathParam("routerId", id)
-        .when().delete("/routers/{routerId}")
+        .pathParam("routerRef", routerRef)
+        .when().delete("/routers/{routerRef}")
         .then().statusCode(204);
   }
 
   public RouterDto get() {
-    String id = state().get(CommsRouterResource.ROUTER);
+    String routerRef = state().get(CommsRouterResource.ROUTER);
     return given()
-        .pathParam("routerId", id)
-        .when().get("/routers/{routerId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(RouterDto.class);
+        .pathParam("routerRef", routerRef)
+        .when().get("/routers/{routerRef}")
+        .then().statusCode(200)
+        .body("ref", equalTo(routerRef))
+        .extract()
+        .as(RouterDto.class);
   }
 
   public void update(CreateRouterArg args) {
-    String id = state().get(CommsRouterResource.ROUTER);
+    String routerRef = state().get(CommsRouterResource.ROUTER);
     given()
         .contentType("application/json")
-        .pathParam("routerId", id)
+        .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerId}")
+        .when().post("/routers/{routerRef}")
         .then().statusCode(204);
   }
 

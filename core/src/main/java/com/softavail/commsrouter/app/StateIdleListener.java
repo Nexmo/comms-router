@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,6 @@ public interface StateIdleListener extends StateChangeListener {
 
   }
 
-  void inWaitingState(String queueId);
+  void inWaitingState(Long queueId);
 
 }

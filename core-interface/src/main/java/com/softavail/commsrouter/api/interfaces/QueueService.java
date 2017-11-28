@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 
@@ -31,19 +31,18 @@ import java.util.Collection;
  */
 public interface QueueService extends RouterObjectService<QueueDto> {
 
-  ApiObjectId create(CreateQueueArg createArg, String routerId)
+  ApiObjectRef create(CreateQueueArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectId create(CreateQueueArg createArg, RouterObjectId objectId)
+  ApiObjectRef replace(CreateQueueArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateQueueArg updateArg, RouterObjectId objectId)
+  void update(UpdateQueueArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  long getQueueSize(RouterObjectId objectId)
+  long getQueueSize(RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  Collection<TaskDto> getTasks(RouterObjectId objectId)
-      throws CommsRouterException;
+  Collection<TaskDto> getTasks(RouterObjectRef objectRef)      throws CommsRouterException;
 
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,8 @@ package com.softavail.commsrouter.webservice.helpers;
 import com.google.common.collect.Lists;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
@@ -58,20 +58,19 @@ import javax.ws.rs.core.UriBuilder;
  */
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
-public abstract class GenericRouterObjectResource<T extends RouterObjectId>
+public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
     extends RouterObjectResource {
 
   private static final Logger LOGGER = LogManager.getLogger(GenericRouterObjectResource.class);
 
   protected abstract RouterObjectService<T> getService();
 
-  protected URI getLocation(ApiObjectId routerObject) {
+  protected URI getLocation(ApiObjectRef routerObject) {
     return entryPoint.clone()
-        .path("{resourceId}")
-        .build(routerId, routerObject.getId());
+        .path("{resourceId}").build(routerRef, routerObject.getRef());
   }
 
-  protected Response createResponse(ApiObjectId routerObject) {
+  protected Response createResponse(ApiObjectRef routerObject) {
     URI createLocation = getLocation(routerObject);
 
     return Response.status(Status.CREATED)
@@ -119,7 +118,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
       uriBuilder.queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, String.valueOf(perPage));
     }
 
-    return Link.fromUriBuilder(uriBuilder).rel(rel).build(routerId);
+    return Link.fromUriBuilder(uriBuilder).rel(rel).build(routerRef);
   }
 
   @GET
@@ -156,10 +155,9 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
       @QueryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM) int perPage)
       throws CommsRouterException {
 
-    PaginatedList<T> pagedList = getService().list(routerId, pageNum, perPage);
+    PaginatedList<T> pagedList = getService().list(routerRef, pageNum, perPage);
 
-    LOGGER.debug("Listing page {}/{} for router {}: {}",
-        pageNum, perPage, routerId, pagedList);
+    LOGGER.debug("Listing page {}/{} for router {}: {}", pageNum, perPage, routerRef, pagedList);
 
     Link[] links = getLinks(pagedList);
 
@@ -173,12 +171,12 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
   }
 
   @GET
-  @Path("{resourceId}")
+  @Path("{resourceRef}")
   @ApiOperation(value = "Get resource by ID", notes = "Returns resource by the given ID")
-  public T get(@PathParam("resourceId") String resourceId)
+  public T get(@PathParam("resourceRef") String resourceRef)
       throws CommsRouterException {
 
-    RouterObjectId routerObjectId = getRouterObjectId(resourceId);
+    RouterObjectRef routerObjectId = getRouterObjectRef(resourceRef);
 
     LOGGER.debug("Getting {}", routerObjectId);
 
@@ -186,7 +184,7 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
   }
 
   @DELETE
-  @Path("{resourceId}")
+  @Path("{resourceRef}")
   @ApiOperation(value = "Deletes an existing resource by ID")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Successful operation"),
@@ -194,14 +192,14 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectId>
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",
           response = ExceptionPresentation.class)})
-  public void delete(@PathParam("resourceId") String resourceId)
+  public void delete(@PathParam("resourceRef") String resourceRef)
       throws CommsRouterException {
 
-    RouterObjectId routerObjectId = getRouterObjectId(resourceId);
+    RouterObjectRef routerObjectRef = getRouterObjectRef(resourceRef);
 
-    LOGGER.debug("Deleting {}", routerObjectId);
+    LOGGER.debug("Deleting {}", routerObjectRef);
 
-    getService().delete(routerObjectId);
+    getService().delete(routerObjectRef);
   }
 
 }

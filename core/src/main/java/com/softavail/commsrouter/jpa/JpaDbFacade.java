@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,6 @@ package com.softavail.commsrouter.jpa;
 import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
-import com.softavail.commsrouter.domain.Router;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -33,7 +32,7 @@ public class JpaDbFacade {
 
   public final JpaTransactionManager transactionManager;
 
-  public final GenericRepository<Router> router;
+  public final RouterRepository router;
   public final QueueRepository queue;
   public final RouterObjectRepository<Plan> plan;
   public final RouterObjectRepository<Agent> agent;

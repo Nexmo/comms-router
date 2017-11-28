@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,69 +43,70 @@ public class Plan extends Resource {
 
   public List<PlanDto> list() {
     PlanDto[] routers = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER)).when()
-        .get("/routers/{routerId}/plans")
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .when().get("/routers/{routerRef}/plans")
         .then().statusCode(200)
         .extract().as(PlanDto[].class);
     return Arrays.asList(routers);
   }
 
-  public ApiObjectId replace(CreatePlanArg args) {
-    String id = state().get(CommsRouterResource.PLAN);
-    ApiObjectId oid = given()
+  public ApiObjectRef replace(CreatePlanArg args) {
+    String ref = state().get(CommsRouterResource.PLAN);
+    ApiObjectRef oid = given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
         .body(args)
-        .when().put("/routers/{routerId}/plans/{queueId}")
+        .when().put("/routers/{routerRef}/plans/{ref}")
         .then().statusCode(201)
         .extract()
-        .as(ApiObjectId.class);
-    state().put(CommsRouterResource.PLAN, oid.getId());
+        .as(ApiObjectRef.class);
+    state().put(CommsRouterResource.PLAN, oid.getRef());
     return oid;
   }
 
-  public ApiObjectId create(CreatePlanArg args) {
-    ApiObjectId oid = given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
+  public ApiObjectRef create(CreatePlanArg args) {
+    ApiObjectRef oid = given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
-        .when().post("/routers/{routerId}/plans")
-        .then().statusCode(201).body("id", not(isEmptyString()))
+        .when().post("/routers/{routerRef}/plans")
+        .then().statusCode(201)
+        .body("ref", not(isEmptyString()))
         .extract()
-        .as(ApiObjectId.class);
-    String id = oid.getId();
+        .as(ApiObjectRef.class);
+    String id = oid.getRef();
     state().put(CommsRouterResource.PLAN, id);
     return oid;
   }
 
   public void delete() {
-    String id = state().get(CommsRouterResource.PLAN);
+    String ref = state().get(CommsRouterResource.PLAN);
     given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().delete("/routers/{routerId}/plans/{queueId}")
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().delete("/routers/{routerRef}/plans/{ref}")
         .then().statusCode(204);
   }
 
   public PlanDto get() {
-    String id = state().get(CommsRouterResource.PLAN);
+    String ref = state().get(CommsRouterResource.PLAN);
     return given()
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
-        .when().get("/routers/{routerId}/plans/{queueId}")
-        .then().statusCode(200).body("id", equalTo(id))
-        .extract().as(PlanDto.class);
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+        .pathParam("ref", ref)
+        .when().get("/routers/{routerRef}/plans/{ref}")
+        .then().statusCode(200)
+        .body("ref", equalTo(ref))
+        .extract()
+        .as(PlanDto.class);
   }
 
   public void update(CreatePlanArg args) {
-    String id = state().get(CommsRouterResource.PLAN);
+    String ref = state().get(CommsRouterResource.PLAN);
     given()
         .contentType("application/json")
-        .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
-        .pathParam("queueId", id)
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
         .body(args)
-        .when().post("/routers/{routerId}/plans/{queueId}")
+        .when().post("/routers/{routerRef}/plans/{ref}")
         .then().statusCode(204);
   }
 

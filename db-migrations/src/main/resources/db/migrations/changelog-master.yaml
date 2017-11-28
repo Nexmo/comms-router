@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2017 SoftAvail Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
+#
 
 about:
   license: ALv2
@@ -20,21 +20,28 @@ about:
 databaseChangeLog:
 - changeSet:
     id: 1509013814357-1
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - createTable:
         columns:
         - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: agent_pkey
+            name: id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
-            name: id
+            name: ref
             type: VARCHAR(255)
         - column:
             name: version
             type: INT
         - column:
             name: router_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: address
             type: VARCHAR(255)
@@ -58,12 +65,12 @@ databaseChangeLog:
             constraints:
               nullable: false
             name: agent_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             constraints:
               nullable: false
             name: queue_id
-            type: VARCHAR(255)
+            type: BIGINT
         tableName: agent_queue
 - changeSet:
     id: 1509013814357-3
@@ -110,21 +117,28 @@ databaseChangeLog:
         tableName: attribute_group
 - changeSet:
     id: 1509013814357-5
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - createTable:
         columns:
         - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: plan_pkey
+            name: id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
-            name: id
+            name: ref
             type: VARCHAR(255)
         - column:
             name: version
             type: INT
         - column:
             name: router_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: description
             type: VARCHAR(255)
@@ -134,21 +148,28 @@ databaseChangeLog:
         tableName: plan
 - changeSet:
     id: 1509013814357-6
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - createTable:
         columns:
         - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: queue_pkey
+            name: id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
-            name: id
+            name: ref
             type: VARCHAR(255)
         - column:
             name: version
             type: INT
         - column:
             name: router_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: description
             type: VARCHAR(255)
@@ -174,13 +195,13 @@ databaseChangeLog:
             type: BIGINT
         - column:
             name: queue_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: queued_task_timeout
             type: BIGINT
         - column:
             name: plan_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: rule_id
             type: BIGINT
@@ -190,14 +211,21 @@ databaseChangeLog:
         tableName: route
 - changeSet:
     id: 1509013814357-8
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - createTable:
         columns:
         - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: router_pkey
+            name: id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
-            name: id
+            name: ref
             type: VARCHAR(255)
         - column:
             name: version
@@ -230,28 +258,35 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: plan_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: rule_order
             type: INT
         tableName: rule
 - changeSet:
     id: 1509013814357-10
-    author: mapuo (generated)
+    author: ikrustev
     changes:
     - createTable:
         columns:
         - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: task_pkey
+            name: id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
-            name: id
+            name: ref
             type: VARCHAR(255)
         - column:
             name: version
             type: INT
         - column:
             name: router_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: callback_url
             type: VARCHAR(255)
@@ -276,13 +311,13 @@ databaseChangeLog:
             type: TIMESTAMP(3)
         - column:
             name: agent_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: current_route
             type: BIGINT
         - column:
             name: queue_id
-            type: VARCHAR(255)
+            type: BIGINT
         - column:
             name: requirements_attribute_group_id
             type: BIGINT
@@ -295,43 +330,43 @@ databaseChangeLog:
         tableName: task
 - changeSet:
     id: 1509013814357-11
-    author: mapuo (generated)
+    author: ikrustev
     changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: agent_pkey
+    - addUniqueConstraint:
+        columnNames: router_id, ref
+        constraintName: agent_unique_router_ref
         tableName: agent
 - changeSet:
     id: 1509013814357-12
-    author: mapuo (generated)
+    author: ikrustev
     changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: plan_pkey
+    - addUniqueConstraint:
+        columnNames: router_id, ref
+        constraintName: plan_unique_router_ref
         tableName: plan
 - changeSet:
     id: 1509013814357-13
-    author: mapuo (generated)
+    author: ikrustev
     changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: queue_pkey
+    - addUniqueConstraint:
+        columnNames: router_id, ref
+        constraintName: queue_unique_router_ref
         tableName: queue
 - changeSet:
     id: 1509013814357-14
-    author: mapuo (generated)
+    author: ikrustev
     changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: router_pkey
+    - addUniqueConstraint:
+        columnNames: ref
+        constraintName: router_unique_ref
         tableName: router
 - changeSet:
     id: 1509013814357-15
-    author: mapuo (generated)
+    author: ikrustev
     changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: task_pkey
+    - addUniqueConstraint:
+        columnNames: router_id, ref
+        constraintName: task_unique_router_ref
         tableName: task
 - changeSet:
     id: 1509013814357-16

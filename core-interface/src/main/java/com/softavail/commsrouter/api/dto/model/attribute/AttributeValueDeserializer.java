@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,9 +51,6 @@ public class AttributeValueDeserializer extends StdDeserializer<AttributeValueDt
       throws IOException, JsonProcessingException {
     JsonToken currentToken = jp.getCurrentToken();
     if (currentToken != null) {
-      LOGGER.info("AttributeValue deserialize token:{} value:{}", currentToken,
-          jp.getCurrentName());
-
       switch (currentToken) {
         case VALUE_NUMBER_INT:
         case VALUE_NUMBER_FLOAT:

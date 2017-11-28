@@ -25,27 +25,27 @@ import java.net.URL;
  */
 public class CreateTaskArg {
 
-  private String queueId;
-  private String planId;
+  private String queueRef;
+  private String planRef;
   private AttributeGroupDto requirements;
   private AttributeGroupDto userContext;
   private URL callbackUrl;
   private String tag;
 
-  public String getQueueId() {
-    return queueId;
+  public String getQueueRef() {
+    return queueRef;
   }
 
-  public void setQueueId(String queueId) {
-    this.queueId = queueId;
+  public void setQueueRef(String queueRef) {
+    this.queueRef = queueRef;
   }
 
-  public String getPlanId() {
-    return planId;
+  public String getPlanRef() {
+    return planRef;
   }
 
-  public void setPlanId(String planId) {
-    this.planId = planId;
+  public void setPlanRef(String planRef) {
+    this.planRef = planRef;
   }
 
   public AttributeGroupDto getRequirements() {
@@ -92,7 +92,7 @@ public class CreateTaskArg {
     }
 
     public Builder queue(String queueId) {
-      arg.setQueueId(queueId);
+      arg.setQueueRef(queueId);
       return this;
     }
 

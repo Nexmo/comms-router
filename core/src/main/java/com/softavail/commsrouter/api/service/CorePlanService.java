@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.PlanService;
@@ -43,37 +43,40 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, String routerId) throws CommsRouterException {
+  public ApiObjectRef create(CreatePlanArg createArg, String routerId) throws CommsRouterException {
 
-    RouterObjectId routerObjectId =
-        RouterObjectId.builder().setId(Uuid.get()).setRouterId(routerId).build();
+    RouterObjectRef routerObjectRef =
+        RouterObjectRef.builder().setRef(Uuid.get()).setRouterRef(routerId).build();
 
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, routerObjectId);
+      return doCreate(em, createArg, routerObjectRef);
     });
   }
 
   @Override
-  public ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
+  public ApiObjectRef replace(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.plan.delete(em, objectId.getId());
-      return doCreate(em, createArg, objectId);
+      app.db.plan.delete(em, objectRef);
+      em.flush();
+      return doCreate(em, createArg, objectRef);
     });
   }
 
   @Override
-  public void update(UpdatePlanArg updateArg, RouterObjectId objectId) throws CommsRouterException {
+  public void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)
+      throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Plan plan = app.db.plan.get(em, objectId.getId());
+      Plan plan = app.db.plan.get(em, objectRef);
       PlanResolver planResolver = PlanResolver.create(app, em, plan);
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });
   }
 
-  private ApiObjectId doCreate(EntityManager em, CreatePlanArg createArg, RouterObjectId objectId)
+  private ApiObjectRef doCreate(EntityManager em, CreatePlanArg createArg,
+      RouterObjectRef objectRef)
       throws CommsRouterException {
 
     if (createArg.getDefaultRoute() == null) {
@@ -81,7 +84,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
           "Default route 'default_route' is mandatory option for plan creation.");
     }
 
-    if (createArg.getDefaultRoute().getQueueId() == null) {
+    if (createArg.getDefaultRoute().getQueueRef() == null) {
       throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
     }
 
@@ -92,8 +95,8 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       }
     }
 
-    Router router = getRouter(em, objectId);
-    Plan plan = new Plan(objectId);
+    Router router = getRouter(em, objectRef);
+    Plan plan = new Plan(objectRef);
     plan.setRouter(router);
     plan.setDescription(createArg.getDescription());
 
@@ -101,7 +104,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
             .setDefaultDtoRoute(createArg.getDefaultRoute());
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
-    return new ApiObjectId(planDto);
+    return new ApiObjectRef(planDto);
   }
 
 }

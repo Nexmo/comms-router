@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,25 +54,10 @@ public class CoreApiObjectService<DTOENTITYT, ENTITYT>
   }
 
   @Override
-  public DTOENTITYT get(String id) throws CommsRouterException {
-    return transactionManager.execute((em) -> {
-      ENTITYT entity = repository.get(em, id);
-      return entityMapper.toDto(entity);
-    });
-  }
-
-  @Override
   public List<DTOENTITYT> list() throws CommsRouterException {
     return transactionManager.execute((em) -> {
       List<ENTITYT> list = repository.list(em);
       return entityMapper.toDto(list);
-    });
-  }
-
-  @Override
-  public void delete(String id) throws CommsRouterException {
-    transactionManager.executeVoid((em) -> {
-      repository.delete(em, id);
     });
   }
 

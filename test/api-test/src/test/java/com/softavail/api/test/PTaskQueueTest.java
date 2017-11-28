@@ -29,13 +29,12 @@ import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +73,7 @@ public class PTaskQueueTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
     routerArg.setName("router-name");
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
 
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
@@ -84,17 +83,17 @@ public class PTaskQueueTest {
     defaultQueueId = q.create(new CreateQueueArg.Builder()
         .predicate(predicate)
         .description("queue description").build())
-        .getId();
+        .getRef();
 
     backupQueueId = q.create(new CreateQueueArg.Builder()
         .predicate(predicate)
         .description("backup queue description").build())
-        .getId();
+        .getRef();
 
     mainQueueId = q.create(new CreateQueueArg.Builder()
                   .predicate(predicate)
                   .description("queue description").build())
-        .getId();
+        .getRef();
   }
 
     //@AfterEach

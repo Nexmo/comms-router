@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +48,8 @@ public class Plan extends RouterObject {
 
   public Plan() {}
 
-  public Plan(RouterObjectId objectId) {
-    super(objectId.getId());
+  public Plan(RouterObjectRef objectId) {
+    super(objectId.getRef());
   }
 
   public String getDescription() {

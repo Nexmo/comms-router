@@ -16,8 +16,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
@@ -48,7 +48,7 @@ public class AgentServiceClientTest {
 
   private static Client client;
 
-  private static String routerId;
+  private static String routerRef;
 
   private static AgentServiceClient serviceClient;
 
@@ -58,9 +58,8 @@ public class AgentServiceClientTest {
   public static void setUpClass() throws Exception {
     endpoint = "http://localhost:" + wireMockRule.port() + "/api";
     client = ClientBuilder.newClient();
-    routerId = UUID.randomUUID().toString();
-    serviceClient =
-        new AgentServiceClient(client, endpoint, routerId);
+    routerRef = UUID.randomUUID().toString();
+    serviceClient = new AgentServiceClient(client, endpoint, routerRef);
     objectMapper = new ObjectMapper();
   }
 
@@ -70,52 +69,50 @@ public class AgentServiceClientTest {
 
   @Test
   public void create() throws Exception {
-    String agentId = UUID.randomUUID().toString();
+    String agentRef = UUID.randomUUID().toString();
 
-    stubFor(post(urlEqualTo("/api/routers/" + routerId + "/agents"))
+    stubFor(post(urlEqualTo("/api/routers/" + routerRef + "/agents"))
         .withHeader("Accept", equalTo("application/json"))
         .willReturn(aResponse()
             .withStatus(201)
             .withHeader("Content-Type", "application/json")
-            .withBody("{\"id\":\"" + agentId + "\"}")));
+            .withBody("{\"ref\":\"" + agentRef + "\"}")));
 
     CreateAgentArg createArg = new CreateAgentArg();
     createArg.setAddress("sip:someone@somesip.pip");
-    ApiObjectId apiObjectId = serviceClient.create(createArg, routerId);
+    ApiObjectRef apiObjectId = serviceClient.create(createArg, routerRef);
 
     LOGGER.debug("apiObjectId: {}", apiObjectId);
 
-    assertEquals("agentId",
-        agentId, apiObjectId.getId());
+    assertEquals("agentRef", agentRef, apiObjectId.getRef());
   }
 
   @Test
   public void createWithId() throws Exception {
-    String agentId = UUID.randomUUID().toString();
+    String agentRef = UUID.randomUUID().toString();
 
-    stubFor(put(urlEqualTo("/api/routers/" + routerId + "/agents/" + agentId))
+    stubFor(put(urlEqualTo("/api/routers/" + routerRef + "/agents/" + agentRef))
         .withHeader("Accept", equalTo("application/json"))
         .willReturn(aResponse()
             .withStatus(201)
             .withHeader("Content-Type", "application/json")
-            .withBody("{\"id\":\"" + agentId + "\"}")));
+            .withBody("{\"ref\":\"" + agentRef + "\"}")));
 
     CreateAgentArg createArg = new CreateAgentArg();
     createArg.setAddress("sip:someone@somesip.pip");
-    ApiObjectId apiObjectId =
-        serviceClient.create(createArg, new RouterObjectId(agentId, routerId));
+    ApiObjectRef apiObjectRef =
+        serviceClient.replace(createArg, new RouterObjectRef(agentRef, routerRef));
 
-    LOGGER.debug("apiObjectId: {}", apiObjectId);
+    LOGGER.debug("apiObjectId: {}", apiObjectRef);
 
-    assertEquals("agentId",
-        agentId, apiObjectId.getId());
+    assertEquals("agentRef", agentRef, apiObjectRef.getRef());
   }
 
   @Test
   public void update() throws Exception {
     String agentId = UUID.randomUUID().toString();
 
-    stubFor(put(urlEqualTo("/api/routers/" + routerId + "/agents/" + agentId))
+    stubFor(put(urlEqualTo("/api/routers/" + routerRef + "/agents/" + agentId))
         .withHeader("Accept", equalTo("application/json"))
         .willReturn(aResponse()
             .withStatus(204)
@@ -123,7 +120,7 @@ public class AgentServiceClientTest {
 
     UpdateAgentArg updateAgentArg = new UpdateAgentArg();
     updateAgentArg.setAddress("sip:someone@somesip.pip");
-    serviceClient.update(updateAgentArg, new RouterObjectId(agentId, routerId));
+    serviceClient.update(updateAgentArg, new RouterObjectRef(agentId, routerRef));
   }
 
   @Test
@@ -132,14 +129,14 @@ public class AgentServiceClientTest {
     AgentDto agent = new AgentDto();
     agent.setAddress("sip:someone@somesip.pip");
 
-    stubFor(WireMock.get(urlEqualTo("/api/routers/" + routerId + "/agents/" + agentId))
+    stubFor(WireMock.get(urlEqualTo("/api/routers/" + routerRef + "/agents/" + agentId))
         .withHeader("Accept", equalTo("application/json"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/json")
         .withBody(objectMapper.writeValueAsString(agent))));
 
-    AgentDto agentDto = serviceClient.get(new RouterObjectId(agentId, routerId));
+    AgentDto agentDto = serviceClient.get(new RouterObjectRef(agentId, routerRef));
 
     assertNotNull("agent is found",
         agentDto);
@@ -158,15 +155,15 @@ public class AgentServiceClientTest {
 
   @Test
   public void delete() throws Exception {
-    String agentId = UUID.randomUUID().toString();
+    String agentRef = UUID.randomUUID().toString();
 
-    stubFor(WireMock.delete(urlEqualTo("/api/routers/" + routerId + "/agents/" + agentId))
+    stubFor(WireMock.delete(urlEqualTo("/api/routers/" + routerRef + "/agents/" + agentRef))
         .withHeader("Accept", equalTo("application/json"))
         .willReturn(aResponse()
             .withStatus(204)
             .withHeader("Content-Type", "application/json")));
 
-    serviceClient.delete(new RouterObjectId(agentId, routerId));
+    serviceClient.delete(new RouterObjectRef(agentRef, routerRef));
   }
 
 }

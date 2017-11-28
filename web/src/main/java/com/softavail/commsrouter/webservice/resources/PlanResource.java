@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.PlanService;
@@ -67,13 +67,12 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
       value = "Add new Plan",
       notes = "Add new Plan and associate it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class)})
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
   public Response create(CreatePlanArg planArg) throws CommsRouterException {
 
     LOGGER.debug("Creating plan {}", planArg);
 
-    ApiObjectId plan = planService.create(planArg, routerId);
+    ApiObjectRef plan = planService.create(planArg, routerRef);
 
     return createResponse(plan);
   }
@@ -84,8 +83,7 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
       value = "Replace an existing Plan",
       notes = "If the plan with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation",
-          response = ApiObjectId.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Plan not found",
@@ -102,10 +100,10 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
 
     LOGGER.debug("Replacing plan: {}, with id: {}", createArg, resourceId);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectRef =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
-    ApiObjectId plan = planService.create(createArg, objectId);
+    ApiObjectRef plan = planService.replace(createArg, objectRef);
 
     return createResponse(plan);
   }
@@ -131,8 +129,8 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
 
     LOGGER.debug("Updating plan {}", planArg);
 
-    RouterObjectId objectId =
-        RouterObjectId.builder().setId(resourceId).setRouterId(routerId).build();
+    RouterObjectRef objectId =
+        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
     planService.update(planArg, objectId);
   }

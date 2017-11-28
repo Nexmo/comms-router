@@ -36,12 +36,12 @@ public abstract class EntityMapper<DTOENTITYT, JPAENTITYT> {
 
   protected <ELEMENT extends ApiObject> List<String> createIdList(List<ELEMENT> from) {
     return from.stream()
-        .map(ApiObject::getId)
+        .map(ApiObject::getRef)
         .collect(Collectors.toList());
   }
 
   protected String getOptionalId(ApiObject apiObject) {
-    return apiObject == null ? null : apiObject.getId();
+    return apiObject == null ? null : apiObject.getRef();
   }
 
 }

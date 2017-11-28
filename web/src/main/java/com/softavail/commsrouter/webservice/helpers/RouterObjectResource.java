@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.webservice.helpers;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -25,22 +25,19 @@ import javax.ws.rs.core.UriBuilder;
  */
 public class RouterObjectResource {
 
-  protected String routerId;
+  protected String routerRef;
   protected UriBuilder entryPoint;
 
-  public void setRouterId(final String routerId) {
-    this.routerId = routerId;
+  public void setRouterRef(final String routerRef) {
+    this.routerRef = routerRef;
   }
 
   public void setEntryPoint(UriBuilder entryPoint) {
     this.entryPoint = entryPoint;
   }
 
-  protected RouterObjectId getRouterObjectId(String id) {
-    return new RouterObjectId.Builder()
-        .setRouterId(routerId)
-        .setId(id)
-        .build();
+  protected RouterObjectRef getRouterObjectRef(String ref) {
+    return new RouterObjectRef.Builder().setRouterRef(routerRef).setRef(ref).build();
   }
 
 }

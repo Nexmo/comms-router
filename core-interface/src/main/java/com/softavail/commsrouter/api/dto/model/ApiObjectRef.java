@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,32 +16,53 @@
 
 package com.softavail.commsrouter.api.dto.model;
 
-public class ApiObjectId {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.xml.bind.annotation.XmlTransient;
 
-  private String id;
+public class ApiObjectRef {
 
-  public ApiObjectId() {}
+  private Long id;
 
-  public ApiObjectId(String id) {
+  private String ref;
+
+  public ApiObjectRef() {}
+
+  public ApiObjectRef(String ref) {
+    setRef(ref);
+  }
+
+  public ApiObjectRef(Long id, String ref) {
     setId(id);
+    setRef(ref);
   }
 
-  public ApiObjectId(ApiObjectId rhs) {
+  public ApiObjectRef(ApiObjectRef rhs) {
     setId(rhs.getId());
+    setRef(rhs.getRef());
   }
 
-  public String getId() {
+  @XmlTransient
+  @JsonIgnore
+  public Long getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getRef() {
+    return ref;
+  }
+
+  public void setRef(String ref) {
+    this.ref = ref;
   }
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("ApiObjectId{");
-    sb.append("id='").append(id).append('\'');
+    final StringBuilder sb = new StringBuilder("ApiObjectRef{");
+    sb.append("ref='").append(ref).append('\'');
     sb.append('}');
     return sb.toString();
   }

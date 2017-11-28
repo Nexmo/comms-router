@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.is;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import org.junit.jupiter.api.AfterEach;
@@ -65,14 +65,14 @@ public class TaskTest {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
     routerArg.setName("router-name");
-    ApiObjectId id = r.create(routerArg);
+    ApiObjectRef ref = r.create(routerArg);
 
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription("queue description");
     queueArg.setPredicate(predicate);
     q = new Queue(state);
-    id = q.create(queueArg);
+    ref = q.create(queueArg);
   }
 
   @AfterEach
@@ -90,7 +90,7 @@ public class TaskTest {
     arg.setCallbackUrl(new URL("http://example.com"));
     arg.setRequirements(new AttributeGroupDto()
         .withKeyValue("language", new StringAttributeValueDto("en")));
-    arg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.createWithPlan(arg);
     assertThat(q.size(), is(1));
   }
@@ -105,7 +105,7 @@ public class TaskTest {
     arg.setUserContext(
         new AttributeGroupDto().withKeyValue("key", new StringAttributeValueDto("Value")));
 
-    arg.setQueueId(state.get(CommsRouterResource.QUEUE));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.create(arg);
     assertThat(q.size(), is(1));
   }

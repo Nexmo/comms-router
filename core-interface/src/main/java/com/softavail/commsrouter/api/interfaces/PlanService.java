@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 /**
@@ -28,13 +28,12 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface PlanService extends RouterObjectService<PlanDto> {
 
-  ApiObjectId create(CreatePlanArg createArg, String routerId)
+  ApiObjectRef create(CreatePlanArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectId create(CreatePlanArg createArg, RouterObjectId objectId)
+  ApiObjectRef replace(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdatePlanArg updateArg, RouterObjectId objectId)
-      throws CommsRouterException;
+  void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)      throws CommsRouterException;
 
 }

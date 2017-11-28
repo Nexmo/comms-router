@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ package com.softavail.commsrouter.api.interfaces;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 
@@ -27,13 +27,16 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface RouterService extends ApiObjectService<RouterDto> {
 
-  ApiObjectId create(CreateRouterArg createArg)
+  ApiObjectRef create(CreateRouterArg createArg)
       throws CommsRouterException;
 
-  ApiObjectId create(CreateRouterArg createArg, String routerId)
-      throws CommsRouterException;
+  ApiObjectRef replace(CreateRouterArg createArg, String routerRef) throws CommsRouterException;
 
   void update(UpdateRouterArg updateArg, String routerId)
       throws CommsRouterException;
+
+  RouterDto get(String ref) throws CommsRouterException;
+
+  void delete(String ref) throws CommsRouterException;
 
 }

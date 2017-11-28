@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,8 @@ import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 
@@ -33,18 +33,18 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
+public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef>
     implements AgentService {
 
   private final Client client;
   private final String endpoint;
-  private final String routerId;
+  private final String routerRef;
 
   @Inject
-  public AgentServiceClient(Client client, String endpoint, String routerId) {
+  public AgentServiceClient(Client client, String endpoint, String routerRef) {
     this.client = client;
     this.endpoint = endpoint;
-    this.routerId = routerId;
+    this.routerRef = routerRef;
   }
 
   @Override
@@ -63,51 +63,51 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectId>
 
 
   @Override
-  public ApiObjectId create(CreateAgentArg createArg, String routerId)
+  public ApiObjectRef create(CreateAgentArg createArg, String routerRef)
       throws CommsRouterException {
 
-    return post(createArg, routerId);
+    return post(createArg, routerRef);
   }
 
   @Override
-  public ApiObjectId create(CreateAgentArg createArg, RouterObjectId objectId)
+  public ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    return put(createArg, objectId);
+    return put(createArg, objectRef);
   }
 
   @Override
-  public void update(UpdateAgentArg updateArg, RouterObjectId objectId)
+  public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    put(updateArg, objectId);
+    put(updateArg, objectRef);
   }
 
   @Override
-  public AgentDto get(RouterObjectId routerObjectId)
+  public AgentDto get(RouterObjectRef routerObjectRef)
       throws CommsRouterException {
 
-    return getItem(routerObjectId);
+    return getItem(routerObjectRef);
   }
 
   @Override
-  public List<AgentDto> list(String routerId)
+  public List<AgentDto> list(String routerRef)
       throws CommsRouterException {
 
-    return getList(routerId);
+    return getList(routerRef);
   }
 
   @Override
-  public PaginatedList<AgentDto> list(String routerId, int page, int perPage)
+  public PaginatedList<AgentDto> list(String routerRef, int page, int perPage)
       throws CommsRouterException {
 
-    return getList(routerId, page, perPage);
+    return getList(routerRef, page, perPage);
   }
 
   @Override
-  public void delete(RouterObjectId routerObjectId) {
-    routerObjectId.setRouterId(routerId);
-    deleteRequest(routerObjectId);
+  public void delete(RouterObjectRef routerObjectRef) {
+    routerObjectRef.setRouterRef(routerRef);
+    deleteRequest(routerObjectRef);
   }
 
 }

@@ -1,21 +1,15 @@
 package com.softavail.comms.demo.application.api;
 
 import com.nexmo.client.NexmoClientException;
-import com.nexmo.client.voice.Call;
-import com.nexmo.client.voice.CallDirection;
-import com.nexmo.client.voice.CallEvent;
-import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.model.NexmoCallEvent;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
-import com.softavail.commsrouter.api.dto.model.RouterObjectId;
+import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
-import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
@@ -29,7 +23,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -39,7 +32,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
@@ -62,7 +54,7 @@ public class NexMoEventOutResource {
       @QueryParam("kind") String kind,
       @QueryParam("taskId") String taskId,
       NexmoCallEvent callEvent) {
-    
+
     if (callEvent != null) {
       LOGGER.debug("/event_outbound with call uuid: {} status: {} direction: {}",
           callEvent.getUuid(), callEvent.getStatus(), callEvent.getDirection());
@@ -83,7 +75,7 @@ public class NexMoEventOutResource {
 
   private void handleCustomerCallEvent(NexmoCallEvent callEvent, String taskId) {
     LOGGER.trace("handleCustomerCallEvent");
-    
+
     switch (callEvent.getStatus()) {
       case STARTED:
         break;
@@ -108,7 +100,7 @@ public class NexMoEventOutResource {
         break;
     }
   }
-  
+
   private void handleAgentCallEvent(NexmoCallEvent callEvent, String taskId) {
     LOGGER.trace("handleAgentCallEvent");
     switch (callEvent.getStatus()) {
@@ -135,17 +127,17 @@ public class NexMoEventOutResource {
         break;
     }
   }
-  
+
   private void handleCustomerAnsweredCallEvent(NexmoCallEvent callEvent, String taskId) {
     if (null != taskId ) {
-      
+
     }
   }
 
   private void handleCustomerCompletedCallEvent(NexmoCallEvent callEvent, String taskId) {
     if (null != taskId ) {
       TaskDto task = getTask(taskId);
-      
+
       if (null != task && null != task.getUserContext()) {
         AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
 
@@ -168,7 +160,7 @@ public class NexMoEventOutResource {
   private void handleCustomerFailedCallEvent(NexmoCallEvent callEvent, String taskId) {
     if (null != taskId ) {
       TaskDto task = getTask(taskId);
-      
+
       if (null != task && null != task.getUserContext()) {
         AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
 
@@ -190,19 +182,19 @@ public class NexMoEventOutResource {
 
   private void handleAgentAnsweredCallEvent(NexmoCallEvent callEvent, String taskId) {
     if (null != taskId ) {
-      
+
     }
   }
-  
+
   private void handleAgentCompletedCallEvent(NexmoCallEvent callEvent, String taskId) {
 
     if (null != taskId ) {
-      
+
       TaskDto task = getTask(taskId);
-      
+
       if (null != task) {
         updateTaskServiceState(taskId, TaskState.completed);
-        
+
         // hangup customer's call if present
         if (null != task.getUserContext()) {
           AttributeValueDto customerUuidDto = task.getUserContext().get("customer_uuid");
@@ -222,14 +214,14 @@ public class NexMoEventOutResource {
       }
     }
   }
-  
+
   private void handleAgentFailedCallEvent(NexmoCallEvent callEvent, String taskId) {
     LOGGER.trace("handleAgentTimedoutCallEvent");
 
     if (null != taskId ) {
       // TODO: decide how to report this state. may be it is better to report it as timed out?
       updateTaskServiceState(taskId, TaskState.completed);
-      
+
       TaskDto task = getTask(taskId);
       // hang up customer's call if present
       if (null != task && null != task.getUserContext()) {
@@ -248,14 +240,14 @@ public class NexMoEventOutResource {
     }
   }
 
-  private void updateTaskServiceState(String taskId, TaskState state) {
+  private void updateTaskServiceState(String taskRef, TaskState state) {
     UpdateTaskArg updTaskReq = new UpdateTaskArg();
     updTaskReq.setState(state);
 
     try {
-      LOGGER.trace("Update task: {} in router as completed", taskId);
+      LOGGER.trace("Update task: {} in router as completed", taskRef);
       taskServiceClient.update(updTaskReq,
-          new RouterObjectId(taskId, configuration.getCommsRouterId()));
+          new RouterObjectRef(taskRef, configuration.getCommsRouterId()));
     } catch (BadValueException | NotFoundException e) {
       LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
       e.printStackTrace();
@@ -265,12 +257,13 @@ public class NexMoEventOutResource {
     }
   }
 
-  private TaskDto getTask(String taskId) {
+  private TaskDto getTask(String taskRef) {
     TaskDto result = null;
-    
+
     try {
-      LOGGER.trace("Get task: {}", taskId);
-      result = taskServiceClient.get(new RouterObjectId(taskId, configuration.getCommsRouterId()));
+      LOGGER.trace("Get task: {}", taskRef);
+      result =
+          taskServiceClient.get(new RouterObjectRef(taskRef, configuration.getCommsRouterId()));
     } catch (NotFoundException e) {
       LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
       e.printStackTrace();
@@ -278,7 +271,7 @@ public class NexMoEventOutResource {
       LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
-    
+
     return result;
   }
 
@@ -294,7 +287,7 @@ public class NexMoEventOutResource {
       e.printStackTrace();
     }
   }
-  
+
   private String normilizeNumber(String number) {
     String normalized = number;
     if (!number.startsWith("+")) {
@@ -302,43 +295,43 @@ public class NexMoEventOutResource {
     } else {
       normalized = number;
     }
-    
+
     return normalized;
   }
-  
-  
+
+
   private String getStringFromAttributeValueDto(AttributeValueDto valueDto) {
 
     String stringValue = null;
     ArrayList<String> result = new ArrayList<String>();
-    
+
     try {
-      
+
       valueDto.accept( new AttributeValueVisitor() {
         @Override
         public void handleStringValue(StringAttributeValueDto value) throws IOException {
           result.add(value.getValue());
         }
-        
+
         @Override
         public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
           // TODO Auto-generated method stub
-          
+
         }
-        
+
         @Override
         public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
             throws IOException {
           // TODO Auto-generated method stub
 
         }
-        
+
         @Override
         public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
             throws IOException {
@@ -349,11 +342,11 @@ public class NexMoEventOutResource {
     } catch (IOException e) {
       LOGGER.error(e.getLocalizedMessage());
     }
-    
+
     if (result != null && result.size() > 0) {
       stringValue = result.get(0);
     }
-    
+
     return stringValue;
   }
 }

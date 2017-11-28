@@ -12,67 +12,67 @@
                      (fn #'(lambda(router-id queue-id plan-id task-id)
                              (tstep-result "Test completed" "Success" t "Setup router queue plan task completed" (list "OK"))) ))
 
-  (tlet ((router-id (js-val "id")
+  (tlet ((router-id (js-val "ref")
                     (tstep "Create new router"
                            (tapply (http-post "/routers" (jsown:new-js("name" "name")
                                                                       ("description" "description"))))
-                           (check-and (has-json) (has-key "id"))))
-         (queue-id (js-val "id")
+                           (check-and (has-json) (has-key "ref"))))
+         (queue-id (js-val "ref")
                    (tstep "Create new queue"
                           (tapply (http-post (list "/routers" router-id "queues")
                                              (jsown:new-js ("description" "queue description")
                                                            ("predicate" qpredicate))))
-                          (check-and (has-json) (has-key "id"))))
-         (plan-id (js-val "id")
+                          (check-and (has-json) (has-key "ref"))))
+         (plan-id (js-val "ref")
                   (eplan-new :router-id router-id
                              :queue-id queue-id
                              :default-queue-id queue-id
                              :predicate tpredicate :description "plan description"
-                             :checks (check-and (has-json) (has-key "id") (publish-id :plan))))
-         (task-id (js-val "id")
+                             :checks (check-and (has-json) (has-key "ref") (publish-id :plan))))
+         (task-id (js-val "ref")
                   (tand
                    (tstep "Show created plan"
                           (tapply (http-get "/routers" router-id "plans" plan-id))
-                          (check-and (has-json) (has-key "id")))
+                          (check-and (has-json) (has-key "ref")))
                    (tstep "Create new task with plan"
                           (tapply (http-post (list "/routers" router-id "tasks")
                                              (jsown:new-js ("callbackUrl" "http://localhost:8080")
                                                            ("requirements" task-req)
-                                                           ("queueId" :null)
-                                                           ("planId" plan-id))))
-                          (check-and (has-json) (has-key "id"))))))
+                                                           ("queueRef" :null)
+                                                           ("planRef" plan-id))))
+                          (check-and (has-json) (has-key "ref"))))))
     (funcall fn router-id queue-id plan-id task-id)))
 
 (defun setup-rqt (&key (qpredicate "1==1")
                     (fn #'(lambda(router-id queue-id plan-id agent-id)
                              (tstep-result "End of test" "Success" t  "Setup router queue agent completed" (list "OK"))) ))
 
-  (tlet ((router-id (js-val "id")
+  (tlet ((router-id (js-val "ref")
                     (tstep "Create new router"
                            (tapply (http-post "/routers" (jsown:new-js("name" "name")
                                                                       ("description" "description"))))
-                           (check-and (has-json) (has-key "id"))))
-         (queue-id (js-val "id")
+                           (check-and (has-json) (has-key "ref"))))
+         (queue-id (js-val "ref")
                    (tstep "Create new queue"
                           (tapply (http-post (list "/routers" router-id "queues")
                                              (jsown:new-js ("description" "queue description")
                                                            ("predicate" qpredicate))))
-                          (check-and (has-json) (has-key "id"))))
-         (agent-id (js-val "id")
+                          (check-and (has-json) (has-key "ref"))))
+         (agent-id (js-val "ref")
                    (tstep "Create agent"
                           (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
                                                                                     ("address" "some-phone")
                                                                                     ("capabilities"
                                                                                      (jsown:new-js ("language" "en"))))))
-                          (check-and (has-json) (has-key "id"))))
-         (task-id (js-val "id")
+                          (check-and (has-json) (has-key "ref"))))
+         (task-id (js-val "ref")
                   (tstep "Create new task with plan"
                          (tapply (http-post (list "/routers" router-id "tasks")
                                             (jsown:new-js ("callbackUrl" "http://localhost:8080")
                                                           ("requirements" :null)
-                                                          ("queueId" queue-id)
-                                                          ("planId" :null))))
-                         (check-and (has-json) (has-key "id")))))
+                                                          ("queueRef" queue-id)
+                                                          ("planRef" :null))))
+                         (check-and (has-json) (has-key "ref")))))
     (funcall fn router-id queue-id nil task-id)))
 
 (defun process-one-task()
@@ -81,14 +81,14 @@
        (tstep "Check that task is in state waiting."
               (tapply (http-get "/routers" router-id "tasks" task-id ))
               (check-and (has-json) (has-kv "state" "waiting")
-                         (has-kv "queueId" queue-id)))
-       (tlet ((agent-id (js-val "id")
+                         (has-kv "queueRef" queue-id)))
+       (tlet ((agent-id (js-val "ref")
                         (tstep "Create agent"
                                (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
                                                                                          ("address" "some-phone")
                                                                                          ("capabilities"
                                                                                           (jsown:new-js ("language" "en"))))))
-                               (check-and (has-json) (has-key "id")))))
+                               (check-and (has-json) (has-key "ref")))))
          (tand
           (tstep "Check agent to be offline."
                  (tapply (http-get "/routers" router-id "agents" agent-id))
@@ -101,8 +101,8 @@
           (twait (tstep "Check that task is in state assigned."
                         (tapply (http-get "/routers" router-id "tasks" task-id ))
                         (check-and (has-json) (has-kv "state" "assigned")
-                                   (has-kv "queueId" queue-id)
-                                   (has-kv "agentId" agent-id)
+                                   (has-kv "queueRef" queue-id)
+                                   (has-kv "agentRef" agent-id)
                                    )))
           (tstep "Agent has task.Check that it gets busy."
                  (tapply (http-get "/routers" router-id "agents" agent-id))
@@ -117,31 +117,31 @@
 
 (defun process-two-tasks()
   #'(lambda(router-id queue-id plan-id task-id)
-      (tlet((high-task-id (js-val "id")
+      (tlet((high-task-id (js-val "ref")
                           (tstep "Create high priority task"
                                  (tapply (http-post (list "/routers" router-id "tasks")
                                                     (jsown:new-js ("callbackUrl" "http://localhost:8080")
                                                                   ("requirements" (jsown:new-js ("key" t)))
-                                                                  ("queueId" queue-id)
-                                                                  ("planId" :null))))
-                                 (check-and (has-json) (has-key "id")))))
+                                                                  ("queueRef" queue-id)
+                                                                  ("planRef" :null))))
+                                 (check-and (has-json) (has-key "ref")))))
         (tand
          (tstep "Check that high priority task is in state waiting."
                 (tapply (http-get "/routers" router-id "tasks" high-task-id ))
                 (check-and (has-json) (has-kv "state" "waiting")
-                           (has-kv "queueId" queue-id)))
+                           (has-kv "queueRef" queue-id)))
          (tstep "Check that low priority task is in state waiting."
                 (tapply (http-get "/routers" router-id "tasks" task-id ))
                 (check-and (has-json) (has-kv "state" "waiting")
-                           (has-kv "queueId" queue-id)))
+                           (has-kv "queueRef" queue-id)))
 
-         (tlet ((agent-id (js-val "id")
+         (tlet ((agent-id (js-val "ref")
                           (tstep "Create agent"
                                  (tapply (http-post (list "/routers" router-id "agents") (jsown:new-js
                                                                                            ("address" "some-phone")
                                                                                            ("capabilities"
                                                                                             (jsown:new-js ("language" "en"))))))
-                                 (check-and (has-json) (has-key "id")))))
+                                 (check-and (has-json) (has-key "ref")))))
            (tand
             (tstep "Check agent to be offline."
                    (tapply (http-get "/routers" router-id "agents" agent-id))
@@ -154,8 +154,8 @@
             (tstep "Check that high priority task is in state assigned."
                    (tapply (http-get "/routers" router-id "tasks" high-task-id ))
                    (check-and (has-json) (has-kv "state" "assigned")
-                              (has-kv "queueId" queue-id)
-                              (has-kv "agentId" agent-id)
+                              (has-kv "queueRef" queue-id)
+                              (has-kv "agentRef" agent-id)
                               ))
             (tstep "Agent has task.Check that it gets busy."
                    (tapply (http-get "/routers" router-id "agents" agent-id))
@@ -171,8 +171,8 @@
             (tstep "Check that low priority task is in state assigned."
                    (tapply (http-get "/routers" router-id "tasks" task-id ))
                    (check-and (has-json) (has-kv "state" "assigned")
-                              (has-kv "queueId" queue-id)
-                              (has-kv "agentId" agent-id)))
+                              (has-kv "queueRef" queue-id)
+                              (has-kv "agentRef" agent-id)))
             (tstep "Complete the task."
                    (tapply (http-post (list "/routers" router-id "tasks" task-id)
                                       (jsown:new-js ("state" "completed"))))
@@ -198,40 +198,40 @@
    :fn #'(lambda(router-id queue-id plan-id task-id)
            (tand
             (funcall (process-one-task) router-id queue-id plan-id task-id)
-            (tlet((agent-id (js-val "id") #'first
+            (tlet((agent-id (js-val "ref") #'first
                             (eagent-all :router-id router-id)))
               (tand
                (eagent-del :router-id router-id :id agent-id)
                (etask-all :router-id router-id)) ) ) )) )
 
 (defun test-set-unavailable()
-  (tlet ((router-id (js-val "id") (erouter-new))
-         (queue-id (js-val "id") (equeue-new :router-id router-id))
-         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/not-existing-page"))
-         (agent-id (js-val "id") (eagent-new :router-id router-id)))
+  (tlet ((router-id (js-val "ref") (erouter-new))
+         (queue-id (js-val "ref") (equeue-new :router-id router-id))
+         (task-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/not-existing-page"))
+         (agent-id (js-val "ref") (eagent-new :router-id router-id)))
     (tand
      (eagent-set  :router-id router-id :id agent-id :state "ready")
      (twait (etask :router-id router-id :id task-id :checks (check-and (has-kv "state" "assigned")
-                                                                       (has-kv "agentId" agent-id))))
+                                                                       (has-kv "agentRef" agent-id))))
      (etask-set   :router-id router-id :id task-id  :state "waiting")
      (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "unavailable")))
      (eagent-set :router-id router-id :id agent-id :description "Restore agent to working state" :state "ready")
      (twait (eagent :description "Canceled task gets to the same agent":router-id router-id :id agent-id :checks (has-kv "state" "busy"))))))
 
 (defun test-task-ordering()
-  (tlet ((router-id (js-val "id") (erouter-new))
-         (queue-id (js-val "id") (equeue-new :router-id router-id))
-         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
-         (task1-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
-         (agent-id (js-val "id") (eagent-new :router-id router-id)))
+  (tlet ((router-id (js-val "ref") (erouter-new))
+         (queue-id (js-val "ref") (equeue-new :router-id router-id))
+         (task-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (task1-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (agent-id (js-val "ref") (eagent-new :router-id router-id)))
     (tand
      (eagent-set :router-id router-id :state "ready")
      (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "busy")))
      (etask :description "Check that first task is the selected one"
             :router-id router-id
             :id task-id
-            :checks (has-kv "agentId" agent-id))
-     (tlet ((task2-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/")))
+            :checks (has-kv "agentRef" agent-id))
+     (tlet ((task2-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://google.com/")))
        (etask-set :state "completed"
                   :id task-id
                   :router-id router-id)
@@ -239,7 +239,7 @@
        (etask :description "Check that second task is the selected one"
               :router-id router-id
               :id task1-id
-              :checks (check-and (has-kv "agentId" agent-id)
+              :checks (check-and (has-kv "agentRef" agent-id)
                                  (has-kv "state" "assigned")))
        (etask-set :state "completed"
                   :id task1-id
@@ -248,29 +248,29 @@
        (etask :description "Check that second task is the selected one"
               :router-id router-id
               :id task2-id
-              :checks (check-and (has-kv "agentId" agent-id)
+              :checks (check-and (has-kv "agentRef" agent-id)
                                  (has-kv "state" "assigned")))
        (etask-set :state "completed"
                   :id task2-id
                   :router-id router-id) ))))
 
 (defun test-task-ordering1()
-  (tlet ((router-id (js-val "id") (erouter-new))
-         (queue-id (js-val "id") (equeue-new :router-id router-id))
-         (agent-id (js-val "id") (eagent-new :router-id router-id))
+  (tlet ((router-id (js-val "ref") (erouter-new))
+         (queue-id (js-val "ref") (equeue-new :router-id router-id))
+         (agent-id (js-val "ref") (eagent-new :router-id router-id))
          (agent-ready (eagent-set :id agent-id :state "ready"
                                   :router-id router-id))
-         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
-         (agent1-id (js-val "id") (eagent-new :router-id router-id))
+         (task-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/"))
+         (agent1-id (js-val "ref") (eagent-new :router-id router-id))
          (agent1-ready (eagent-set :id agent1-id :state "ready"
                                    :router-id router-id))
-         (task1-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+         (task1-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
     (tand
      (etask-set :id task1-id :router-id router-id :state "completed")
      (twait (eagent :router-id router-id :id agent1-id :checks (has-kv "state" "ready")))
      (etask-set :id task-id :router-id router-id :state "completed")
      (twait (eagent :router-id router-id :id agent-id :checks (has-kv "state" "ready")))
-     (tlet ((task2-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+     (tlet ((task2-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
        (tand
         (twait (etask :description "Check that task handled not by agent that just has completed task, but the other one."
                       :router-id router-id
@@ -279,18 +279,18 @@
         (etask :description "Check that task handled not by agent that just has completed task, but the other one."
                :router-id router-id
                :id task2-id
-               :checks (has-kv "agentId" agent1-id)))))))
+               :checks (has-kv "agentRef" agent1-id)))))))
 
 (defun test-task-ordering2()
-  (tlet ((router-id (js-val "id") (erouter-new))
-         (queue-id (js-val "id") (equeue-new :router-id router-id))
-         (agent-id (js-val "id") (eagent-new :router-id router-id))
+  (tlet ((router-id (js-val "ref") (erouter-new))
+         (queue-id (js-val "ref") (equeue-new :router-id router-id))
+         (agent-id (js-val "ref") (eagent-new :router-id router-id))
          (agent-ready (eagent-set :id agent-id :state "ready"
                                   :router-id router-id))
-         (agent1-id (js-val "id") (eagent-new :router-id router-id))
+         (agent1-id (js-val "ref") (eagent-new :router-id router-id))
          (agent1-ready (eagent-set :id agent1-id :state "ready"
                                    :router-id router-id))
-         (task-id (js-val "id") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
+         (task-id (js-val "ref") (etask-new :router-id router-id :queue-id queue-id :callback-url "http://localhost:8080/")))
     (tand
      (twait (etask :description "Wait state to be assigned."
                    :router-id router-id
@@ -299,32 +299,32 @@
      (etask :description "Check that task is handled first created agent."
             :router-id router-id
             :id task-id
-            :checks (has-kv "agentId" agent-id)))))
+            :checks (has-kv "agentRef" agent-id)))))
 
 (defun test-set-context(&key(router-id (get-event :router)) (queue-id (get-event :queue)))
-  (tlet ((task-id (js-val "id")
+  (tlet ((task-id (js-val "ref")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
                                             (jsown:new-js ("callbackUrl" (format nil "http://localhost:4343/nowheretaskk?router=~A&sleep=~A" router-id (random 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
-                                                          ("queueId" queue-id)
+                                                          ("queueRef" queue-id)
                                         ;("userContext" (jsown:new-js ))
-                                                          ("planId" :null))))
-                         (check-and (has-json) (has-key "id")))))
+                                                          ("planRef" :null))))
+                         (check-and (has-json) (has-key "ref")))))
     (etask-set-context :router-id router-id :task-id task-id :key "key" :value "value")))
 
 (defun push-a-task(&key (host "localhost") (timeout 30) (handle-time 2) (shuffle-time #'identity))
   #'(lambda(&key (router-id (get-event :router)) (queue-id (get-event :queue)))
-      (tlet ((task-id (js-val "id")
+      (tlet ((task-id (js-val "ref")
                   (tstep "Create task"
                          (tapply (http-post (list "/routers" router-id "tasks")
                                             (jsown:new-js ("callbackUrl"(format nil "http://~A:4343/task?router=~A&sleep=~A" host router-id
                                                                                 (funcall shuffle-time 2)))
                                                           ("requirements" (jsown:new-js ("key" t)))
-                                                          ("queueId" queue-id)
+                                                          ("queueRef" queue-id)
                                                           ("userContext" (jsown:new-js ))
-                                                          ("planId" :null))))
-                         (check-and (has-json) (has-key "id")))))
+                                                          ("planRef" :null))))
+                         (check-and (has-json) (has-key "ref")))))
     (tand
      (twait (tstep "Wait task to be completed" (tapply (http-get "/routers" router-id "tasks" task-id ))
                    (check-and (has-json) (has-kv "state" "completed")))
@@ -338,12 +338,12 @@
   #'(lambda()
       (router-new)
 
-      (let* ((q-ids (mapcar (js-val "id")
+      (let* ((q-ids (mapcar (js-val "ref")
                             (lparallel:pmapcar #'(lambda(i) (queue-new))
                                                (loop :repeat queues :collect 1)) ))
              (agent-ids (lparallel:pmapcar #'(lambda(i) (agent-new ))
                                            (loop :repeat agents :collect 1)))
-             (agent-ready (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "id") :state "ready"))
+             (agent-ready (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "ref") :state "ready"))
                                              agent-ids))
              (result (remove-if
                       #'second
@@ -401,17 +401,17 @@
 
 
 (defun test-plan-and-task()
-  (tlet ((router-id (js-val "id")
+  (tlet ((router-id (js-val "ref")
                     (erouter-new))
-         (default-queue-id (js-val "id")
+         (default-queue-id (js-val "ref")
                    (equeue-new :router-id router-id))
-         (plan-id (js-val "id")
+         (plan-id (js-val "ref")
                   (eplan-new
                    :rules (list (jsown:new-js ("tag" :null)
                                               ("predicate" "HAS([10],#{age})")
                                               ("routes" (list  ))))
                    :default-route (jsown:new-js
-                                    ("queueId" default-queue-id))
+                                    ("queueRef" default-queue-id))
                    :router-id router-id)))
     (etask-new :queue-id :null :plan-id plan-id)))
 
@@ -431,7 +431,7 @@
      #'funcall tests))))
 
 (defun delete-completed-tasks()
-  (loop for task-all = (task-all) for task = (when (listp task-all) (first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "id"))))
+  (loop for task-all = (task-all) for task = (when (listp task-all) (first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "ref"))))
 
 (defun delete-router()
   (loop for x = (task-all) :until (equal x "[]") do (task-del))
@@ -441,7 +441,7 @@
   )
 
 (defun setup-demo()
-  (tlet((router-id (js-val "id") (erouter-put :id "router-ivr")))
+  (tlet((router-id (js-val "ref") (erouter-put :id "router-ivr")))
 
     (apply #'tand
            (append (mapcar #'(lambda(id)(equeue-put :id (first id)
@@ -466,19 +466,19 @@
                          :rules '((:OBJ ("tag" . "en-sales")
                                    ("predicate" . "#{language}=='en' && #{department}=='sales'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "en-sales") ("priority" . 0) ("timeout" . 3600))))
+                                    (:OBJ ("queueRef" . "en-sales") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "es-sales")
                                    ("predicate" . "#{language}=='es' && #{department}=='sales'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "es-sales") ("priority" . 0) ("timeout" . 3600))))
+                                    (:OBJ ("queueRef" . "es-sales") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "en-support")
                                    ("predicate" . "#{language}=='en' && #{department}=='support'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "en-support") ("priority" . 0) ("timeout" . 3600))))
+                                    (:OBJ ("queueRef" . "en-support") ("priority" . 0) ("timeout" . 3600))))
                                   (:OBJ ("tag" . "es-support")
                                    ("predicate" . "#{language}=='es' && #{department}=='support'")
                                    ("routes"
-                                    (:OBJ ("queueId" . "es-support") ("priority" . 0) ("timeout" . 3600))))))) ) ) ) )
+                                    (:OBJ ("queueRef" . "es-support") ("priority" . 0) ("timeout" . 3600))))))) ) ) ) )
 
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
@@ -489,13 +489,12 @@
                                          (task-set :id task-id))
 
                                    (task-del :id task-id) )
-                          (mapcar (js-val "id") tasks)))
-  )
+                          (mapcar (js-val "ref") tasks))))
 
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()
       (router-new)
-      (let* ((q-ids (mapcar (js-val "id")
+      (let* ((q-ids (mapcar (js-val "ref")
                             (lparallel:pmapcar #'(lambda(i) (queue-new))
                                                (loop :repeat queues :collect 1)) ))
              (agent-ids (lparallel:pmapcar #'(lambda(i) (agent-new ))
@@ -508,17 +507,17 @@
                                                   :callback-url (format nil "http://localhost:4343/task?router=fbjFl8BWnmnuM8TXtWolI6&sleep=~A"
                                                                         handle-time))))
                             (loop :repeat tasks :collect 1) ))))
-             (agent-ready (time (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "id") :state "ready"))
+             (agent-ready (time (lparallel:pmapcar #'(lambda(json)(agent-set :id (jsown:val json "ref") :state "ready"))
                                                    agent-ids))) )
         (time (loop for queue = (lparallel:pevery #'(lambda(id) (zerop (jsown:val (queue-size :id id) "size")))
-                                                  (mapcar (js-val "id") (queue-all)))
+                                                  (mapcar (js-val "ref") (queue-all)))
                  :while (not queue)  do (sleep 1)))
         (mapcar #'print-log result)) ) )
 ;;(loop for a from 1 to 1 for start-time = (get-internal-real-time) for res = (funcall (test-performance :tasks 1000 :queues 25 :agents 1 :handle-time 1)) :collect (floor (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
 
 (defun complete-tasks(&key (try 3))
-  (tlet ((router-id (js-val "id")(erouter-new))
-         (queue-id (js-val "id") (equeue-new)))
+  (tlet ((router-id (js-val "ref")(erouter-new))
+         (queue-id (js-val "ref") (equeue-new)))
     (let ((res(lparallel:pmapcar #'funcall
                                  (loop :repeat try :append (list (etask-new :callback-url "http://localhost:4343/task?sleep=0" :router-id router-id :queue-id queue-id)
                                                                 (tlet ((agent-id (eagent-new)))

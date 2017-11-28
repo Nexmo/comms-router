@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ package com.softavail.commsrouter.client;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
-import com.softavail.commsrouter.api.dto.model.ApiObjectId;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
@@ -32,7 +32,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectId>
+public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectRef>
     implements RouterService {
 
   private Client client;
@@ -57,31 +57,31 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectI
   }
 
   @Override
-  public ApiObjectId create(CreateRouterArg createArg)
+  public ApiObjectRef create(CreateRouterArg createArg)
       throws CommsRouterException {
 
     return post(createArg);
   }
 
   @Override
-  public ApiObjectId create(CreateRouterArg createArg, String routerId)
+  public ApiObjectRef replace(CreateRouterArg createArg, String routerRef)
       throws CommsRouterException {
 
-    return put(createArg, routerId);
+    return put(createArg, routerRef);
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, String id)
+  public void update(UpdateRouterArg updateArg, String ref)
       throws NotFoundException {
 
-    post(updateArg, id);
+    post(updateArg, ref);
   }
 
   @Override
-  public RouterDto get(String id)
+  public RouterDto get(String ref)
       throws NotFoundException {
 
-    return getItem(new ApiObjectId(id));
+    return getItem(new ApiObjectRef(ref));
   }
 
   @Override
@@ -92,10 +92,10 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectI
   }
 
   @Override
-  public void delete(String id)
+  public void delete(String ref)
       throws CommsRouterException {
 
-    deleteRequest(new ApiObjectId(id));
+    deleteRequest(new ApiObjectRef(ref));
   }
 
 }

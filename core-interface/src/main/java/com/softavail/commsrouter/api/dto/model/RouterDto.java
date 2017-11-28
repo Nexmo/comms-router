@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ package com.softavail.commsrouter.api.dto.model;
  *
  * @author ikrustev
  */
-public class RouterDto extends ApiObjectId {
+public class RouterDto extends ApiObjectRef {
 
   private String name;
   private String description;
@@ -51,7 +51,7 @@ public class RouterDto extends ApiObjectId {
 
   @Override
   public String toString() {
-    return "Router: [" + "id=" + getId() + "]";
+    return "Router: [" + "ref=" + getRef() + "]";
   }
 
 }
