@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.softavail.api.test;
 
 import com.softavail.commsrouter.test.api.Queue;
@@ -24,6 +23,8 @@ import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.allOf;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+
 
 /**
  * Unit test for Task to queue mapping.
@@ -108,6 +110,44 @@ public class TaskTest {
     arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.create(arg);
     assertThat(q.size(), is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with tag.")
+  public void addTaskWithTag() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    CreateTaskArg arg = new CreateTaskArg();
+    arg.setCallbackUrl(new URL("http://example.com"));
+    arg.setRequirements(new AttributeGroupDto());
+    arg.setUserContext(
+        new AttributeGroupDto().withKeyValue("key", new StringAttributeValueDto("Value")));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
+    String uniqueTag = state.get(CommsRouterResource.QUEUE);
+    arg.setTag(uniqueTag);
+    t.create(arg);
+    assertThat(q.size(), is(1));
+    assertThat(t.list("?tag="+uniqueTag).size(),is(1));
+  }
+
+  @Test
+  @DisplayName("Add task with existing tag.")
+  public void addTaskWithExistingTag() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    CreateTaskArg arg = new CreateTaskArg();
+    arg.setCallbackUrl(new URL("http://example.com"));
+    arg.setRequirements(new AttributeGroupDto());
+    arg.setUserContext(
+        new AttributeGroupDto().withKeyValue("key", new StringAttributeValueDto("Value")));
+    arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
+    String uniqueTag = state.get(CommsRouterResource.QUEUE);
+    arg.setTag(uniqueTag);
+    t.create(arg);
+    assertThat(t.list("?tag="+uniqueTag).size(),is(1));
+    t.createResponse(arg)
+        .statusCode(500)
+        .body("error.description",
+              allOf(containsString("Duplicate entry"),
+                    containsString("for key 'task_tag_index'")));
   }
 
 }

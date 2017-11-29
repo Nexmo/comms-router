@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import io.restassured.response.ValidatableResponse;
 
 public class Task extends Resource {
 
@@ -46,14 +47,18 @@ public class Task extends Resource {
     super(state);
   }
 
-  public List<TaskDto> list() {
+  public List<TaskDto> list(String params) {
     TaskDto[] routers = given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .when().get("/routers/{routerRef}/tasks")
+        .when().get("/routers/{routerRef}/tasks"+params)
         .then().statusCode(200)
         .extract()
         .as(TaskDto[].class);
     return Arrays.asList(routers);
+  }
+
+  public List<TaskDto> list() {
+      return list("");
   }
 
   public CreatedTaskDto replace(CreateTaskArg args) {
@@ -71,17 +76,22 @@ public class Task extends Resource {
     return oid;
   }
 
+  public ValidatableResponse createResponse(CreateTaskArg args) {
+    return given()
+          .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+          .contentType("application/json")
+          .body(args)
+          .when().post("/routers/{routerRef}/tasks")
+          .then();
+  }
+
   public CreatedTaskDto create(CreateTaskArg args) {
-    CreatedTaskDto oid = given()
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .contentType("application/json")
-        .body(args)
-        .when().post("/routers/{routerRef}/tasks")
-        .then().statusCode(201)
-        .body("ref", not(isEmptyString()))
-        .and().body("queueTasks", isA(Integer.class))
-        .extract()
-        .as(CreatedTaskDto.class);
+      CreatedTaskDto oid = createResponse(args)
+          .statusCode(201)
+          .body("ref", not(isEmptyString()))
+          .and().body("queueTasks", isA(Integer.class))
+          .extract()
+          .as(CreatedTaskDto.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.TASK, id);
     return oid;

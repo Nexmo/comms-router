@@ -96,6 +96,11 @@ public class CreateTaskArg {
       return this;
     }
 
+    public Builder tag(String tag) {
+      arg.setTag(tag);
+      return this;
+    }
+
     public Builder requirements(AttributeGroupDto requirements) {
       arg.setRequirements(requirements);
       return this;
