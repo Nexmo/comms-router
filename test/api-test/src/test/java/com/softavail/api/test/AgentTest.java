@@ -258,7 +258,7 @@ public class AgentTest {
     assertThat(String.format("Check agent state (%s) to be unavailable.", resource.getState()),
         resource.getState(), is(AgentState.unavailable));
 
-    t.setState(TaskState.completed);
+    t.setState(TaskState.canceled);
 
     assertThat(q.size(), is(0));
 

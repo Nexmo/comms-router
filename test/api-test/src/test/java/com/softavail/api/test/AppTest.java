@@ -154,7 +154,7 @@ public class AppTest {
     assertThat(t.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     t.replace(new CreateTaskArg.Builder().callback(new URL("http://localhost:8080"))
         .queue(queueRef.getRef()).build());
-    t.update(new UpdateTaskArg.Builder().state(TaskState.completed).build());
+    t.update(new UpdateTaskArg.Builder().state(TaskState.canceled).build());
     t.delete();
     q.delete();
     r.delete();

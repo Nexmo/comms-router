@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -200,7 +200,7 @@ public class Task extends RouterObject {
   public void setExpirationDate(Date expirationDate) {
     this.expirationDate = expirationDate;
   }
-  
+
   public String getTag() {
     return tag;
   }
@@ -220,7 +220,16 @@ public class Task extends RouterObject {
   }
 
   public void makeCompleted() {
-    setState(TaskState.completed);
+    makeFinal(TaskState.completed);
+  }
+
+  public void makeCanceled() {
+    makeFinal(TaskState.canceled);
+  }
+
+  private void makeFinal(TaskState state) {
+    assert state.isFinal();
+    setState(state);
     setQueue(null);
     setAgent(null);
     setRule(null);

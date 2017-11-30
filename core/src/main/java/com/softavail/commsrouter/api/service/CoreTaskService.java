@@ -27,6 +27,7 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.InternalErrorException;
 import com.softavail.commsrouter.api.exception.InvalidStateException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
@@ -47,7 +48,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
@@ -123,17 +123,30 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
     switch (updateArg.getState()) {
       case waiting:
-        app.db.transactionManager.execute(em -> rejectAssignment(em, objectRef))
-            .ifPresent(app.taskDispatcher::dispatchTask);
+        rejectTaskAssignment(objectRef);
+        break;
+      case canceled:
+        app.db.transactionManager.executeVoidWithLockRetry(em -> cancelTask(em, objectRef));
         break;
       case completed:
-        app.db.transactionManager.execute(em -> completeTask(em, objectRef))
-            .ifPresent(app.taskDispatcher::dispatchAgent);
+        completeTask(objectRef);
         break;
       case assigned:
       default:
-        throw new BadValueException("Expected state: waiting or completed");
+        throw new BadValueException("Expected state: canceled, waiting or completed");
     }
+  }
+
+  private void rejectTaskAssignment(RouterObjectRef objectRef) throws CommsRouterException {
+    final TaskDispatchInfo dispatchInfo = app.db.transactionManager
+            .executeWithLockRetry(em -> rejectAssignment(em, objectRef));
+    app.taskDispatcher.dispatchTask(dispatchInfo);
+  }
+
+  private void completeTask(RouterObjectRef objectRef) throws CommsRouterException {
+    final Long agentId = app.db.transactionManager
+            .executeWithLockRetry(em -> completeTask(em, objectRef));
+    app.taskDispatcher.dispatchAgent(agentId);
   }
 
   @Override
@@ -200,7 +213,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     task.setRequirements(app.entityMapper.attributes.fromDto(createArg.getRequirements()));
     task.setUserContext(app.entityMapper.attributes.fromDto(createArg.getUserContext()));
     task.setTag(createArg.getTag());
-    
+
     em.persist(task);
 
     Long queueId = task.getQueue().getId();
@@ -286,38 +299,48 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
   }
 
-  private Optional<TaskDispatchInfo> rejectAssignment(EntityManager em, RouterObjectRef taskRef)
-      throws NotFoundException {
+  private TaskDispatchInfo rejectAssignment(EntityManager em, RouterObjectRef taskRef)
+      throws NotFoundException, InvalidStateException, InternalErrorException {
 
     Task task = app.db.task.get(em, taskRef);
-    Agent agent = task.getAgent();
 
-    if (task.getState().isAssigned() && agent != null) {
-      agent.setState(AgentState.unavailable);
-      task.setState(TaskState.waiting);
-      task.setAgent(null);
-
-      return Optional.of(app.entityMapper.task.toDispatchInfo(task));
+    switch (task.getState()) {
+      case assigned:
+        break;
+      case completed:
+      case canceled:
+      case waiting:
+      default:
+        throw new InvalidStateException(
+            "Current state cannot be switched to waiting: " + task.getState());
     }
 
-    return Optional.empty();
+    Agent agent = task.getAgent();
+    assert agent != null : "Rejected task with no agent: " + task.getRef();
+
+    if (agent.getState() != AgentState.busy) {
+      throw new InternalErrorException("Unexpected agent state: " + agent.getState());
+    }
+    agent.setState(AgentState.unavailable);
+
+    task.setState(TaskState.waiting);
+    task.setAgent(null);
+
+    return app.entityMapper.task.toDispatchInfo(task);
   }
 
-  private Optional<Long> completeTask(EntityManager em, RouterObjectRef taskRef)
-      throws NotFoundException, InvalidStateException {
+  private Long completeTask(EntityManager em, RouterObjectRef taskRef)
+      throws NotFoundException, InvalidStateException, InternalErrorException {
 
     Task task = app.db.task.get(em, taskRef);
 
     switch (task.getState()) {
       case completed:
         throw new InvalidStateException("Task already completed");
-      case waiting:
-        assert task.getAgent() == null : "Waiting task " + task.getRef() + " has assigned agent: "
-            + task.getAgent().getRef();
-        task.makeCompleted();
-        return Optional.empty();
       case assigned:
         break;
+      case canceled:
+      case waiting:
       default:
         throw new InvalidStateException(
             "Current state cannot be switched to completed: " + task.getState());
@@ -330,12 +353,31 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     task.makeCompleted();
 
     if (agent.getState() != AgentState.busy) {
-      assert false
-          : "Invalid agent state '" + agent.getState() + "' for completed task: " + task.getRef();
-      return Optional.empty();
+      throw new InternalErrorException("Unexpected agent state: " + agent.getState());
     }
     agent.setState(AgentState.ready);
-    return Optional.of(agent.getId());
+    return agent.getId();
+  }
+
+  private void cancelTask(EntityManager em, RouterObjectRef taskRef)
+      throws NotFoundException, InvalidStateException {
+
+    Task task = app.db.task.get(em, taskRef);
+
+    switch (task.getState()) {
+      case waiting:
+        assert task.getAgent() == null : "Waiting task " + task.getRef() + " has assigned agent: "
+            + task.getAgent().getRef();
+        task.makeCanceled();
+        return;
+      case canceled:
+        throw new InvalidStateException("Task already canceled");
+      case assigned:
+      case completed:
+      default:
+        throw new InvalidStateException(
+            "Current state cannot be switched to canceled: " + task.getState());
+    }
   }
 
   @Override

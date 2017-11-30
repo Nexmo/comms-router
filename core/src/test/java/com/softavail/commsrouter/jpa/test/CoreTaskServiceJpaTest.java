@@ -41,16 +41,15 @@ public class CoreTaskServiceJpaTest extends TestBase {
     assertEquals(task.get(0).getCallbackUrl(), "https://test.com");
   }
 
-  // Testing the update method
   @Test
-  public void updateTest() throws CommsRouterException, MalformedURLException {
+  public void cancelTest() throws CommsRouterException, MalformedURLException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
     ApiObjectRef queue = queueService.replace(newCreateQueueArg("1==1", "desctiption_one"), ref);
     taskService.replace(newCreateTaskArg(queue.getRef(), "https://test_one.com", null), ref);
     // Updating
-    taskService.update(newUpdateTaskArg(2, TaskState.completed), ref);
+    taskService.update(newUpdateTaskArg(2, TaskState.canceled), ref);
     TaskDto task = taskService.get(ref);
-    assertEquals(task.getState(), TaskState.completed);
+    assertEquals(task.getState(), TaskState.canceled);
   }
 
   // Testing the update method that updates the TaskContext
