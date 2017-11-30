@@ -224,7 +224,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
         agentBecameAvailable = false;
         break;
       default:
-        throw new InternalErrorException("Unexpected agent state");
+        throw new InternalErrorException("Unexpected agent state: " + oldState);
     }
     agent.setState(newState);
     return agentBecameAvailable;

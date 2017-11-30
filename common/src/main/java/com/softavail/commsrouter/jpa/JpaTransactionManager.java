@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,6 +115,12 @@ public class JpaTransactionManager {
       throws CommsRouterException {
 
     execute(voidTransactionLogic);
+  }
+
+  public void executeVoidWithLockRetry(VoidTransactionLogic voidTransactionLogic)
+      throws CommsRouterException {
+
+    execute(lockRetryCount, voidTransactionLogic);
   }
 
   public void close() {

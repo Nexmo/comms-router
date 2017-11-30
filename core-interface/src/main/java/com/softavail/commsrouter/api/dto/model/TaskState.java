@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ package com.softavail.commsrouter.api.dto.model;
  */
 public enum TaskState {
 
-  waiting(true), assigned(false), completed(true);
+  waiting(true), canceled(true), assigned(false), completed(true);
 
   private boolean deleteAllowed;
 
@@ -32,6 +32,10 @@ public enum TaskState {
 
   public boolean isWaiting() {
     return this == waiting;
+  }
+
+  public boolean isCanceled() {
+    return this == canceled;
   }
 
   public boolean isAssigned() {
@@ -44,6 +48,10 @@ public enum TaskState {
 
   public boolean isDeleteAllowed() {
     return deleteAllowed;
+  }
+
+  public boolean isFinal() {
+    return this == completed || this == canceled;
   }
 
 }
