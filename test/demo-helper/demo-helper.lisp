@@ -6,13 +6,15 @@
   (rchecker::agent-set :router-id "router-ivr" :id agent :address :null :capabilities :null :state state)
   (hunchentoot:redirect "/") )
 
-(hunchentoot:define-easy-handler (app :uri "/") ()
+(hunchentoot:define-easy-handler (app :uri "/") (agent state)
   (setf (hunchentoot:content-type*) "text/html")
 
   (let* ((agents (rchecker::agent-all :router-id "router-ivr"))
-        (queues (rchecker::queue-all :router-id "router-ivr"))
+         (queues (rchecker::queue-all :router-id "router-ivr"))
          (qtasks (mapcar #'(lambda(id) (rchecker::queue-tasks :id id :router-id "router-ivr" ))
-                        (mapcar (rchecker::js-val "id") queues))))
+                         (mapcar (rchecker::js-val "id") queues))))
+    (when (and agent state)
+      (funcall (rchecker::eagent-set :router-id "router-ivr" :id agent :address :null :capabilities :null :state state)))
     (with-html-output-to-string (*standard-output* nil :prologue t)
       (:meta :http-equiv "refresh" :content 3)
       (:html
@@ -26,11 +28,11 @@
               (htm (:tr (:td (str (jsown:val agent "id")) )
                         (:td  (str (jsown:val agent "state")))
                         (:td (:a :href
-                                      (string
-                                       (format nil "set-state?agent=~A&state=~A"
-                                               (jsown:val agent "id")
-                                               (if (equal (jsown:val agent "state") "ready") "offline" "ready")))
-                                      "toggle")))  ) ) )
+                                 (string
+                                  (format nil "./?agent=~A&state=~A"
+                                          (jsown:val agent "id")
+                                          (if (equal (jsown:val agent "state") "ready") "offline" "ready")))
+                                 "toggle")))  ) ) )
         (:h2 "Queues:")
         (:table
          (:tr (:th "id") (:th "predicate") (:th "size"))
