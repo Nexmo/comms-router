@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package com.softavail.commsrouter.domain.dto.mappers;
 
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.domain.Agent;
+import com.softavail.commsrouter.domain.AgentQueueMapping;
 
 /**
  *
@@ -38,7 +39,9 @@ public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
     dto.setCapabilities(attributesMapper.toDto(jpa.getCapabilities()));
     dto.setAddress(jpa.getAddress());
     dto.setState(jpa.getState());
-    dto.setQueueRefs(createIdList(jpa.getQueues()));
+    dto.setQueueRefs(createIdList(jpa.getAgentQueueMappings()
+            .stream()
+            .map(AgentQueueMapping::getQueue)));
     dto.setLastTimeAtBusyState(jpa.getLastTimeAtBusyState());
     return dto;
   }

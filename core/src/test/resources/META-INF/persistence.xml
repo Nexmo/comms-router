@@ -27,6 +27,7 @@
       <class>com.softavail.commsrouter.domain.Rule</class>
       <class>com.softavail.commsrouter.domain.Route</class>
       <class>com.softavail.commsrouter.domain.Task</class>
+      <class>com.softavail.commsrouter.domain.AgentQueueMapping</class>
       <properties>
           <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
           <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test"/>

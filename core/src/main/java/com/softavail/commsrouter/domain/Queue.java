@@ -17,12 +17,12 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
-
 import java.util.ArrayList;
+
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -36,8 +36,8 @@ public class Queue extends RouterObject {
   private String description;
   private String predicate;
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "queues")
-  private List<Agent> agents = new ArrayList<>();
+  @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<AgentQueueMapping> agentQueueMappings = new ArrayList<>();
 
   public Queue() {}
 
@@ -53,12 +53,12 @@ public class Queue extends RouterObject {
     this.predicate = predicate;
   }
 
-  public List<Agent> getAgents() {
-    return agents;
+  public List<AgentQueueMapping> getAgentQueueMappings() {
+    return agentQueueMappings;
   }
 
-  public void setAgents(List<Agent> agents) {
-    this.agents = agents;
+  public void setAgentQueueMappings(List<AgentQueueMapping> agentQueueMappings) {
+    this.agentQueueMappings = agentQueueMappings;
   }
 
   public String getDescription() {

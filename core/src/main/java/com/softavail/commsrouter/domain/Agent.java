@@ -18,8 +18,8 @@ package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
-
 import java.util.ArrayList;
+
 import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -27,10 +27,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -52,10 +50,8 @@ public class Agent extends RouterObject {
   @Enumerated(EnumType.STRING)
   private AgentState state;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "agent_queue", joinColumns = @JoinColumn(name = "agent_id"),
-      inverseJoinColumns = @JoinColumn(name = "queue_id"))
-  private List<Queue> queues = new ArrayList<>();
+  @OneToMany(mappedBy = "agent", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<AgentQueueMapping> agentQueueMappings = new ArrayList<>();
 
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "last_time_at_busy_state")
@@ -95,12 +91,12 @@ public class Agent extends RouterObject {
     }
   }
 
-  public List<Queue> getQueues() {
-    return queues;
+  public List<AgentQueueMapping> getAgentQueueMappings() {
+    return agentQueueMappings;
   }
 
-  public void setQueues(List<Queue> queue) {
-    this.queues = queue;
+  public void setAgentQueueMappings(List<AgentQueueMapping> agentQueueMappings) {
+    this.agentQueueMappings = agentQueueMappings;
   }
 
   public Date getLastTimeAtBusyState() {
