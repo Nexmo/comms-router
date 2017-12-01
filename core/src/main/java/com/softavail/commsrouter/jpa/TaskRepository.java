@@ -44,7 +44,7 @@ public class TaskRepository extends RouterObjectRepository<Task> {
       throws NotFoundException {
 
     Task entity = (Task) em.createQuery(
-        "select t from Task t where t.tag = :tag and t.router.id = :routerId")
+        "select t from Task t where t.tag = :tag and t.router.ref = :routerId")
         .setParameter("tag", tag)
         .setParameter("routerId", routerId)
         .getSingleResult();

@@ -98,20 +98,28 @@ public class NexMoEventResource {
     String tag = callEvent.getUuid();
     if (null != tag) {
       TaskDto task = getTaskByTag(tag);
-      
-      if (null != task && null != task.getUserContext()) {
-        AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
 
-        if (null != uuidDto) {
-          String uuid = getStringFromAttributeValueDto(uuidDto);
-          if (null != uuid) {
-            hangupCall(uuid);
-          } else {
-            LOGGER.error("Cannot extract string from Dto");
-          }
-        } else {
-          LOGGER.warn("Cannot hangup agent's leg because \"agent_uuid\" is not available");
+      if (null != task) {
+        // cancel the task if it is still waiting 
+        if (task.getState() == TaskState.waiting) {
+          updateTaskServiceState(task.getRef(), TaskState.canceled);
         }
+
+        // try to hang up agent's call leg if possible
+        if (null != task.getUserContext()) {
+          AttributeValueDto uuidDto = task.getUserContext().get("agent_uuid");
+
+          if (null != uuidDto) {
+            String uuid = getStringFromAttributeValueDto(uuidDto);
+            if (null != uuid) {
+              hangupCall(uuid);
+            } else {
+              LOGGER.error("Cannot extract string from Dto");
+            }
+          } else {
+            LOGGER.warn("Cannot hangup agent's leg because \"agent_uuid\" is not available");
+          }
+        }   
       } else {
         LOGGER.warn("No task or taskContext, cannot handle customer completed call event, ");
       }
@@ -126,14 +134,14 @@ public class NexMoEventResource {
     updTaskReq.setState(state);
 
     try {
-      LOGGER.trace("Update task: {} in router as completed", taskRef);
+      LOGGER.debug("Update task's:{} state:'{}'", taskRef, state);
       taskServiceClient.update(updTaskReq,
           new RouterObjectRef(taskRef, configuration.getCommsRouterId()));
     } catch (BadValueException | NotFoundException e) {
-      LOGGER.error("Failed to update task state with error: {}", e.getLocalizedMessage());
+      LOGGER.error("Failed to update task's state with error: {}", e.getLocalizedMessage());
       e.printStackTrace();
     } catch (Exception ex) {
-      LOGGER.error("Failed to update task state with error: {}", ex.getLocalizedMessage());
+      LOGGER.error("Failed to update task's state with error: {}", ex.getLocalizedMessage());
       ex.printStackTrace();
     }
   }
