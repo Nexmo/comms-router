@@ -123,7 +123,7 @@ public class QueueProcessor {
         });
       } catch (CommsRouterException | RuntimeException e) {
         // Failed to get assignment. Most probably DB is down, so let's try again a bit later.
-        LOGGER.error("Queue processor {}: failure getting assignment: {}", e, e);
+        LOGGER.error("Queue processor {}: failure getting assignment: {}", queueId, e, e);
         threadPool.schedule(this::processQueue, processRetryDelaySeconds, TimeUnit.SECONDS);
         return;
       }
