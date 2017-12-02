@@ -23,6 +23,7 @@ import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.exception.BadRequestException;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.InternalErrorException;
@@ -35,6 +36,7 @@ import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -127,6 +129,28 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       }
     }
     LOGGER.info("Agent {}: queues attached: {}", agent.getRef(), attachedQueuesCount);
+  }
+
+  @Override
+  public List<AgentDto> listByState(String routerRef, String state) throws CommsRouterException {
+    if (state != null && !state.isEmpty()) {
+      AgentState st = null;
+      try { 
+          st = AgentState.valueOf(state.toLowerCase());
+      } catch (Exception ex) {
+        throw new BadRequestException(
+            "Undefined agent state: '" + state + "'. Valid states are: " + AgentState.asString(),
+            ex);
+      }
+      final AgentState aState = st;
+      return app.db.transactionManager.execute((em) -> {
+        List<Agent> list = app.db.agent.listByState(em, routerRef, aState);
+        return entityMapper.toDto(list);
+      });
+    }
+
+    throw new BadRequestException(
+        "Missing 'state' query parameter and/or value. Valid states are: "            + AgentState.asString());
   }
 
   private static class UpdateInfo {

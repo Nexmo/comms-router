@@ -16,7 +16,10 @@
 
 package com.softavail.commsrouter.jpa;
 
+import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.domain.Agent;
+import java.util.List;
+import javax.persistence.EntityManager;
 
 /**
  * @author ikrustev
@@ -25,6 +28,14 @@ public class AgentRepository extends RouterObjectRepository<Agent> {
 
   public AgentRepository(JpaTransactionManager transactionManager) {
     super(transactionManager);
+  }
+
+  public List<Agent> listByState(EntityManager em, String routerRef, AgentState state) {
+
+    String qlString = "select a from Agent a WHERE a.router.ref = :routerRef and a.state = :state";
+    List<Agent> list = em.createQuery(qlString).setParameter("routerRef", routerRef)
+        .setParameter("state", state).getResultList();
+    return list;
   }
 
 }

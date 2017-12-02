@@ -30,6 +30,19 @@ public enum AgentState {
     this.deleteAllowed = deleteAllowed;
   }
 
+  public static String asString() {
+    String result = "(";
+    for (AgentState st : values()) {
+      if (result.length() > 1) {
+        result += ", ";
+      }
+      result += st.name();
+    }
+    result += ")";
+
+    return result;
+  }
+  
   public boolean isDeleteAllowed() {
     return deleteAllowed;
   }

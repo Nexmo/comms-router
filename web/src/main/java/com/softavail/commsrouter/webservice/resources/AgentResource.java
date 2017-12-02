@@ -31,16 +31,20 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -137,6 +141,20 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
         RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
 
     agentService.update(agentArg, objectId);
+  }
+
+  @GET
+  @Path("byState")
+  @ApiOperation(value = "Get resource list by State",
+      notes = "Returns resource list by the given State")
+  public Response listByState(@QueryParam("state") String state) throws CommsRouterException {
+
+    LOGGER.debug("Getting list by state : '{}'", state);
+
+    List<AgentDto> list = agentService.listByState(routerRef, state);
+
+    GenericEntity<List<AgentDto>> genericEntity = new GenericEntity<>(list, List.class);
+    return Response.ok().entity(genericEntity).type(MediaType.APPLICATION_JSON_TYPE).build();
   }
 
 }

@@ -22,11 +22,14 @@ import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import java.util.List;
 
 /**
  * Created by @author mapuo on 04.09.17.
  */
 public interface AgentService extends RouterObjectService<AgentDto> {
+
+  String ITEMS_STATE_PARAM = "state";
 
   ApiObjectRef create(CreateAgentArg createArg, String routerRef)
       throws CommsRouterException;
@@ -35,5 +38,7 @@ public interface AgentService extends RouterObjectService<AgentDto> {
       throws CommsRouterException;
 
   void update(UpdateAgentArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;
+
+  List<AgentDto> listByState(String routerRef, String state) throws CommsRouterException;
 
 }

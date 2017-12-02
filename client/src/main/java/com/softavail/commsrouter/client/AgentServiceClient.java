@@ -24,10 +24,13 @@ import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
+import java.net.URI;
 
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -108,6 +111,20 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef
   public void delete(RouterObjectRef routerObjectRef) {
     routerObjectRef.setRouterRef(routerRef);
     deleteRequest(routerObjectRef);
+  }
+
+  @Override
+  public List<AgentDto> listByState(String routerRef, String state) throws CommsRouterException {
+    URI uri;
+    if (state != null && !state.isEmpty()) {
+      uri = getApiUrl().clone().path("byState").queryParam(AgentService.ITEMS_STATE_PARAM, state)
+          .build(routerRef);
+    } else {
+      uri = getApiUrl().clone().build(routerRef);
+    }
+
+    return getClient().target(uri).request(MediaType.APPLICATION_JSON_TYPE)
+        .get(new GenericType<List<AgentDto>>() {});
   }
 
 }
