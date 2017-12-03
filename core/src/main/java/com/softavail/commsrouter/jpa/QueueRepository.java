@@ -63,8 +63,8 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
   public Optional<MatchResult> findAssignment(EntityManager em, Long queueId)
       throws CommsRouterException {
 
-    String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, ag) "
-        + "FROM Task t JOIN t.queue q JOIN q.agents a JOIN Agent ag ON ag.id = a.id "
+    String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "
+        + "FROM Task t JOIN t.queue q JOIN q.agentQueueMappings m JOIN m.agent a "
         + "WHERE t.state = :taskState AND a.state = :agentState AND q.id = :queueId "
         + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
 
@@ -83,7 +83,7 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
       throws CommsRouterException {
 
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "
-        + "FROM Task t JOIN t.queue q JOIN q.agents a "
+        + "FROM Task t JOIN t.queue q JOIN q.agentQueueMappings m JOIN m.agent a "
         + "WHERE t.state = :taskState AND a.state = :agentState AND a.id = :agentId "
         + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
 

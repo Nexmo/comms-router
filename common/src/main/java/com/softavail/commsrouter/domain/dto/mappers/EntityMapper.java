@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import com.softavail.commsrouter.domain.ApiObject;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author ikrustev
@@ -35,7 +36,11 @@ public abstract class EntityMapper<DTOENTITYT, JPAENTITYT> {
   }
 
   protected <ELEMENT extends ApiObject> List<String> createIdList(List<ELEMENT> from) {
-    return from.stream()
+    return createIdList(from.stream());
+  }
+
+  protected <ELEMENT extends ApiObject> List<String> createIdList(Stream<ELEMENT> stream) {
+    return stream
         .map(ApiObject::getRef)
         .collect(Collectors.toList());
   }

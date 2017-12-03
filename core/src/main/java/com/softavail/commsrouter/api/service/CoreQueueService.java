@@ -29,6 +29,7 @@ import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationExcept
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
+import com.softavail.commsrouter.domain.AgentQueueMapping;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Task;
@@ -89,13 +90,15 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     queue.setRouter(router);
     queue.setDescription(createArg.getDescription());
     queue.setPredicate(createArg.getPredicate());
-    attachAgents(em, queue, evaluator, true);
     em.persist(queue);
+    attachAgents(em, queue, evaluator, true);
     return queue.cloneApiObjectRef();
   }
 
   private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
       boolean isNewQueue) throws CommsRouterException {
+
+    app.db.router.lockConfig(em, queue.getRouter().getId());
 
     LOGGER.info("Queue {}: attaching agents...", queue.getRef());
 
@@ -109,12 +112,15 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedAgentsCount;
 
-          if (isNewQueue || !agent.getQueues().contains(queue)) {
-            agent.getQueues().add(queue);
+          AgentQueueMapping mapping = new AgentQueueMapping(agent, queue);
+          em.persist(mapping);
+
+          if (isNewQueue || !agent.getAgentQueueMappings().contains(mapping)) {
+            agent.getAgentQueueMappings().add(mapping);
           }
-          queue.getAgents().add(agent);
+          queue.getAgentQueueMappings().add(mapping);
         } else if (!isNewQueue) {
-          agent.getQueues().remove(queue);
+          agent.getAgentQueueMappings().remove(new AgentQueueMapping(agent, queue));
         }
       } catch (CommsRouterException | RuntimeException ex) {
         LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getRef(), agent.getRef(), ex,
@@ -157,7 +163,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     evaluator.validate(predicate);
 
     queue.setPredicate(predicate);
-    queue.getAgents().clear();
+    queue.getAgentQueueMappings().clear();
     attachAgents(em, queue, evaluator, false);
   }
 

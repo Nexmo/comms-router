@@ -26,6 +26,7 @@ import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.Agent;
+import com.softavail.commsrouter.domain.AgentQueueMapping;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
@@ -221,8 +222,8 @@ public class JpaPlayground implements AutoCloseable {
           capabilities.add("is_supervisor", true);
           agent.setCapabilities(capabilities);
           agent.setState(AgentState.ready);
-          agent.getQueues().add(queue1);
-          agent.getQueues().add(queue2);
+          agent.getAgentQueueMappings().add(new AgentQueueMapping(agent, queue1));
+          agent.getAgentQueueMappings().add(new AgentQueueMapping(agent, queue2));
           agent.setRef("agent-id");
           agent.setRouter(db.router.getByRef(em, "router-id"));
           em.persist(agent);

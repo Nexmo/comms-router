@@ -24,6 +24,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.domain.RouterConfig;
 import com.softavail.commsrouter.jpa.RouterRepository;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
@@ -84,6 +85,10 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
       router.setDescription(createArg.getDescription());
     }
     em.persist(router);
+    RouterConfig routerConfig = new RouterConfig();
+    router.setConfig(routerConfig);
+    routerConfig.setRouter(router);
+    em.persist(routerConfig);
     return new ApiObjectRef(router.getId(), router.getRef());
   }
 

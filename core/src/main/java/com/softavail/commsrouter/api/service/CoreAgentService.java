@@ -30,6 +30,7 @@ import com.softavail.commsrouter.api.exception.InvalidStateException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
+import com.softavail.commsrouter.domain.AgentQueueMapping;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
@@ -94,13 +95,15 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     agent.setAddress(createArg.getAddress());
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
-    attachQueues(em, agent, createArg.getCapabilities(), true);
     em.persist(agent);
+    attachQueues(em, agent, createArg.getCapabilities(), true);
     return agent.cloneApiObjectRef();
   }
 
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
       boolean isNewAgent) throws CommsRouterException {
+
+    app.db.router.lockConfig(em, agent.getRouter().getId());
 
     LOGGER.info("Agent {}: attaching queues...", agent.getRef());
 
@@ -113,12 +116,15 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;
 
-          if (isNewAgent || !queue.getAgents().contains(agent)) {
-            queue.getAgents().add(agent);
+          AgentQueueMapping mapping = new AgentQueueMapping(agent, queue);
+          em.persist(mapping);
+
+          if (isNewAgent || !queue.getAgentQueueMappings().contains(mapping)) {
+            queue.getAgentQueueMappings().add(mapping);
           }
-          agent.getQueues().add(queue);
+          agent.getAgentQueueMappings().add(mapping);
         } else if (!isNewAgent) {
-          queue.getAgents().remove(agent);
+          queue.getAgentQueueMappings().remove(new AgentQueueMapping(agent, queue));
         }
       } catch (CommsRouterException ex) {
         LOGGER.error("Agent {}: failure attaching queue {}: {}", agent.getRef(), queue.getRef(), ex,
@@ -246,7 +252,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     LOGGER.info("Agent {}: detaching all queues due to capabilities change", agent.getRef());
 
     agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
-    agent.getQueues().clear();
+    agent.getAgentQueueMappings().clear();
     attachQueues(em, agent, newCapabilities, false);
   }
 
