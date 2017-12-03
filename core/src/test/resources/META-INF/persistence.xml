@@ -19,6 +19,7 @@
   <persistence-unit name="mnf-pu-test" transaction-type="RESOURCE_LOCAL">
       <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
       <class>com.softavail.commsrouter.domain.Router</class>
+      <class>com.softavail.commsrouter.domain.RouterConfig</class>
       <class>com.softavail.commsrouter.domain.Agent</class>
       <class>com.softavail.commsrouter.domain.Attribute</class>
       <class>com.softavail.commsrouter.domain.AttributeGroup</class>

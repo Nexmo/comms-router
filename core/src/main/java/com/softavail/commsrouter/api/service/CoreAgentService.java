@@ -103,6 +103,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
       boolean isNewAgent) throws CommsRouterException {
 
+    app.db.router.lockConfig(em, agent.getRouter().getId());
+
     LOGGER.info("Agent {}: attaching queues...", agent.getRef());
 
     int attachedQueuesCount = 0;

@@ -887,3 +887,37 @@ databaseChangeLog:
         indexName: task_tag_index
         tableName: task
         unique: true
+- changeSet:
+    id: 1512312981091-1
+    author: ikrustev
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: router_id
+            type: BIGINT
+        tableName: router_config
+- changeSet:
+    id: 1512312981091-2
+    author: ikrustev
+    changes:
+    - addPrimaryKey:
+        columnNames: router_id
+        constraintName: PRIMARY
+        tableName: router_config
+- changeSet:
+    id: 1512312981091-3
+    author: ikrustev
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: router_id
+        baseTableName: router_config
+        constraintName: fk_router_config__router
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: router

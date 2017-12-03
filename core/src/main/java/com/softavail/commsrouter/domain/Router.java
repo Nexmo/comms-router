@@ -17,8 +17,11 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import javax.persistence.CascadeType;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -31,6 +34,11 @@ public class Router extends ApiObject {
 
   private String name;
   private String description;
+
+
+  @OneToOne(mappedBy = "router", cascade = CascadeType.ALL, fetch = FetchType.LAZY,
+          optional = true, orphanRemoval = true)
+  private RouterConfig config;
 
   public Router() {}
 
@@ -52,6 +60,14 @@ public class Router extends ApiObject {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public RouterConfig getConfig() {
+    return config;
+  }
+
+  public void setConfig(RouterConfig config) {
+    this.config = config;
   }
 
   @Override

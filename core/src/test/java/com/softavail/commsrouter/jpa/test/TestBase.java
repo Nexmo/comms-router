@@ -31,6 +31,7 @@ import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.domain.RouterConfig;
 import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
@@ -141,8 +142,11 @@ public class TestBase {
     r.setDescription(description);
     r.setName(name);
     r.setRef(ref);
-    r.setVersion(1);
     em.persist(r);
+    RouterConfig rc = new RouterConfig();
+    rc.setRouter(r);
+    r.setConfig(rc);
+    em.persist(rc);
     em.getTransaction().commit();
   }
 

@@ -98,6 +98,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
       boolean isNewQueue) throws CommsRouterException {
 
+    app.db.router.lockConfig(em, queue.getRouter().getId());
+
     LOGGER.info("Queue {}: attaching agents...", queue.getRef());
 
     int attachedAgentsCount = 0;
