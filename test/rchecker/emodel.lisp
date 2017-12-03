@@ -457,8 +457,8 @@
                                    (jsown:val model"tasks"))))
           (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
-            (mstep (etask-set :id task-id :state "completed"
-                              :router-id router-id)) )
+            (mstep (twait (etask-set :id task-id :state "completed"
+                               :router-id router-id))) )
           #'(lambda(res model)
               (funcall
                (mlet((selected (js-val "selected-task"))

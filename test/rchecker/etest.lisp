@@ -247,10 +247,12 @@
             (progn (format t "~%Deadend reached!")) ) ) ))
 
 (defun test-random(&key(prefix ()) (size (length prefix)) (selector (policy-selector)))
-  (let* ((router-id (jsown:val (router-new) "ref"))
-         (queue-id (jsown:val (queue-new :router-id router-id) "ref"))
+  (let* (;;(router-id (jsown:val (router-new) "ref"))
+         ;;(queue-id (jsown:val (queue-new :router-id router-id) "ref"))
          (*mem* (make-hash-table :test #'equal))
-         (res (generate-sample :model (jsown:new-js ("router" router-id) ("queue" queue-id))
+         (res (generate-sample :model (jsown:new-js ;;("router" router-id)
+                                                    ;;("queue" queue-id)
+                                                    )
                                :selector selector
                                :tasks *tasks* :size size :prefix prefix)))
     (if (equal res 'pass)
