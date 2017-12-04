@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.client;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
@@ -141,6 +142,24 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .target(getApiUrl().clone())
         .request(MediaType.APPLICATION_JSON_TYPE)
         .get(new GenericType<List<T>>() {});
+  }
+
+  protected PaginatedList<T> getList(PagingRequest request) {
+    URI uri = getApiUrl().clone()
+        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, request.getPage())
+        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, request.getPerPage())
+        .build();
+
+    Response response = getClient()
+        .target(uri)
+        .request(MediaType.APPLICATION_JSON_TYPE)
+        .get();
+
+    List<T> list = response.readEntity(new GenericType<List<T>>() {});
+    Long totalCount = Long.valueOf(
+        response.getHeaderString(RouterObjectService.TOTAL_COUNT_HEADER));
+
+    return new PaginatedList<>(request, list, totalCount);
   }
 
   protected List<T> getList(String routerId) {

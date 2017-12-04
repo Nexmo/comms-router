@@ -37,8 +37,10 @@ public interface RouterObjectService<ENTITYT extends RouterObjectRef> {
   List<ENTITYT> list(String routerId)
       throws CommsRouterException;
 
-  PaginatedList<ENTITYT> list(String routerRef, int page, int perPage) throws CommsRouterException;
+  PaginatedList<ENTITYT> list(String routerRef, int page, int perPage)
+      throws CommsRouterException;
 
-  void delete(RouterObjectRef routerObjectRef) throws CommsRouterException;
+  void delete(RouterObjectRef routerObjectRef)
+      throws CommsRouterException;
 
 }

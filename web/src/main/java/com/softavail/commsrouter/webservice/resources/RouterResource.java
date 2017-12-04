@@ -18,11 +18,15 @@ package com.softavail.commsrouter.webservice.resources;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.webservice.helpers.PaginationHelper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,20 +38,26 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -74,14 +84,56 @@ public class RouterResource {
   @ApiOperation(value = "Get All Routers",
       notes = "Returns a list of Router. A single Router object represents "
           + "a container for Agents, Tasks, Queues and Plans.",
-      response = RouterDto.class, responseContainer = "List", tags = "routers")
-  public Collection<RouterDto> list() throws CommsRouterException {
+      response = RouterDto.class,
+      responseContainer = "List",
+      tags = "routers")
+  @ApiResponses(
+      @ApiResponse(
+          code = 200,
+          message = "Successful operation",
+          responseHeaders = {
+              @ResponseHeader(
+                  name = PaginatedService.TOTAL_COUNT_HEADER,
+                  description = "The total items from this listing",
+                  response = Integer.class)}))
+  public Response list(
+      @ApiParam(
+          value = "The current page of the listing",
+          defaultValue = "1",
+          allowableValues = "range[1, infinity]")
+      @Valid
+      @Min(value = 1L, message = "{resource.list.min.page.number}")
+      @DefaultValue("01")
+      @QueryParam(PaginatedService.PAGE_NUMBER_PARAM) int pageNum,
+      @ApiParam(
+          value = "Number of items per page (Maximum 50)",
+          defaultValue = "10",
+          allowableValues = "range[1, 50]")
+      @Valid
+      @Min(value = 1L, message = "{resource.list.min.items.per.page}")
+      @Max(value = 50, message = "{resource.list.max.items.per.page}")
+      @DefaultValue("10")
+      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage)
+      throws CommsRouterException {
 
-    List<RouterDto> list = routerService.list();
+    PaginatedList<RouterDto> pagedList = routerService.list(new PagingRequest(pageNum, perPage));
 
-    LOGGER.debug("Listing all routers: {}", list);
+    LOGGER.debug("Listing all routers: {}", pagedList);
 
-    return list;
+    PaginationHelper paginationHelper = new PaginationHelper(
+        () -> UriBuilder.fromResource(this.getClass()).path(this.getClass()).clone(),
+        (builder) -> builder.build());
+    Link[] links = paginationHelper.getLinks(pagedList);
+
+    GenericEntity<List<RouterDto>> genericEntity =
+        new GenericEntity<>(pagedList.getList(), List.class);
+
+    return Response.ok()
+        .header(PaginatedService.TOTAL_COUNT_HEADER, pagedList.getTotalCount())
+        .links(links)
+        .entity(genericEntity)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .build();
   }
 
   @GET

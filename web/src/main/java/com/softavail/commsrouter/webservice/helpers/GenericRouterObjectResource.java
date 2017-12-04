@@ -79,48 +79,6 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
         .build();
   }
 
-  protected Link[] getLinks(PaginatedList<T> pagedList) {
-    List<Link> result = Lists.newArrayList();
-
-    int pageNum = pagedList.getPage();
-    int perPage = pagedList.getPerPage();
-    long totalCount = pagedList.getTotalCount();
-    int maxPages = Math.toIntExact((totalCount + perPage - 1) / perPage);
-
-    // Check first
-    if (pageNum > 1) {
-      result.add(createLink("first", 1, perPage));
-    }
-
-    // Check prev
-    if (pageNum - 1 > 0) {
-      result.add(createLink("prev", pageNum - 1, perPage));
-    }
-
-    // Check next
-    if (pageNum + 1 <= maxPages) {
-      result.add(createLink("next", pageNum + 1, perPage));
-    }
-
-    // Check last
-    if (maxPages > 1 && pageNum < maxPages) {
-      result.add(createLink("last", maxPages, perPage));
-    }
-
-    return result.toArray(new Link[result.size()]);
-  }
-
-  private Link createLink(String rel, int pageNum, int perPage) {
-    UriBuilder uriBuilder = entryPoint.clone()
-        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, String.valueOf(pageNum));
-
-    if (perPage != 10) {
-      uriBuilder.queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, String.valueOf(perPage));
-    }
-
-    return Link.fromUriBuilder(uriBuilder).rel(rel).build(routerRef);
-  }
-
   @GET
   @ApiOperation(
       value = "List all resources",
@@ -157,9 +115,13 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
 
     PaginatedList<T> pagedList = getService().list(routerRef, pageNum, perPage);
 
-    LOGGER.debug("Listing page {}/{} for router {}: {}", pageNum, perPage, routerRef, pagedList);
+    LOGGER.debug("Listing page {}/{} for router {}: {}",
+        pageNum, perPage, routerRef, pagedList);
 
-    Link[] links = getLinks(pagedList);
+    PaginationHelper paginationHelper = new PaginationHelper(
+        () -> entryPoint.clone(),
+        (builder) -> builder.build(routerRef));
+    Link[] links = paginationHelper.getLinks(pagedList);
 
     GenericEntity<List<T>> genericEntity = new GenericEntity<>(pagedList.getList(), List.class);
     return Response.ok()

@@ -18,9 +18,12 @@ package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Router;
@@ -29,13 +32,15 @@ import com.softavail.commsrouter.jpa.RouterRepository;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
+import java.util.List;
 import javax.persistence.EntityManager;
+import javax.validation.ValidationException;
 
 /**
  * @author ikrustev
  */
 public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
-    implements RouterService {
+    implements RouterService, PaginatedService<RouterDto> {
 
   private final RouterRepository routerRepository;
 
@@ -93,7 +98,9 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public RouterDto get(String ref) throws CommsRouterException {
+  public RouterDto get(String ref)
+      throws CommsRouterException {
+
     return transactionManager.execute((em) -> {
       RouterDto dto = entityMapper.toDto(routerRepository.getByRef(em, ref));
       return dto;
@@ -101,7 +108,35 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
   }
 
   @Override
-  public void delete(String ref) throws CommsRouterException {
+  @SuppressWarnings("unchecked")
+  public PaginatedList<RouterDto> list(PagingRequest request)
+      throws CommsRouterException {
+
+    return transactionManager.execute(em -> {
+
+      String countString = "SELECT COUNT(id) FROM Router";
+      long totalCount = (long) em.createQuery(countString).getSingleResult();
+
+      int startPosition = (request.getPage() * request.getPerPage()) - request.getPerPage();
+
+      if (totalCount > 0 && totalCount <= startPosition) {
+        throw new ValidationException("{resource.list.max.page.number}");
+      }
+
+      String qlString = "SELECT r FROM Router r";
+      List<Router> jpaResult = em.createQuery(qlString)
+          .setFirstResult(startPosition)
+          .setMaxResults(request.getPerPage())
+          .getResultList();
+
+      return new PaginatedList<>(request, entityMapper.toDto(jpaResult), totalCount);
+    });
+  }
+
+  @Override
+  public void delete(String ref)
+      throws CommsRouterException {
+    
     transactionManager.executeVoid((em) -> {
       routerRepository.deleteByRef(em, ref);
     });

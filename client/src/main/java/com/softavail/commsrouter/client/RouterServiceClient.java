@@ -18,10 +18,13 @@ package com.softavail.commsrouter.client;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 
 import java.util.List;
@@ -33,7 +36,7 @@ import javax.ws.rs.core.UriBuilder;
  * Created by @author mapuo on 04.09.17.
  */
 public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectRef>
-    implements RouterService {
+    implements RouterService, PaginatedService<RouterDto> {
 
   private Client client;
   private final String endpoint;
@@ -89,6 +92,11 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectR
       throws CommsRouterException {
 
     return getList();
+  }
+
+  @Override
+  public PaginatedList<RouterDto> list(PagingRequest request) {
+    return getList(request);
   }
 
   @Override
