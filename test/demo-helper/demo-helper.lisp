@@ -29,7 +29,7 @@
                         (:td  (str (jsown:val agent "state")))
                         (:td (:a :href
                                  (string
-                                  (format nil "./?agent=~A&state=~A"
+                                  (format nil "?agent=~A&state=~A"
                                           (jsown:val agent "ref")
                                           (if (equal (jsown:val agent "state") "ready") "offline" "ready")))
                                  "toggle")))  ) ) )
