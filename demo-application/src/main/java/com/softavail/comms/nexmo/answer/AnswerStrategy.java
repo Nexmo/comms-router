@@ -1,8 +1,8 @@
 package com.softavail.comms.nexmo.answer;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.Map;
 
 public interface AnswerStrategy {
 

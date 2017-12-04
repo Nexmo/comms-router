@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.api.service;
 
-import com.softavail.commsrouter.app.AgentDispatchInfo;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
@@ -29,6 +28,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.InternalErrorException;
 import com.softavail.commsrouter.api.exception.InvalidStateException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
+import com.softavail.commsrouter.app.AgentDispatchInfo;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.AgentQueueMapping;
@@ -37,7 +37,6 @@ import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
 import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

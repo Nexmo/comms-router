@@ -20,6 +20,7 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.RouterConfig;
+
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;

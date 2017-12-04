@@ -17,8 +17,8 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
-import javax.persistence.CascadeType;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;

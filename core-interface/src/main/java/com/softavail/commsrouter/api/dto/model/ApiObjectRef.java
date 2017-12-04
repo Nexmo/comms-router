@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.api.dto.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.xml.bind.annotation.XmlTransient;
 
 public class ApiObjectRef {

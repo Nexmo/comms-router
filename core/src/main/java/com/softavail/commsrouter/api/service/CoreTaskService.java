@@ -138,18 +138,6 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     }
   }
 
-  private void rejectTaskAssignment(RouterObjectRef objectRef) throws CommsRouterException {
-    final TaskDispatchInfo dispatchInfo = app.db.transactionManager
-            .executeWithLockRetry(em -> rejectAssignment(em, objectRef));
-    app.taskDispatcher.dispatchTask(dispatchInfo);
-  }
-
-  private void completeTask(RouterObjectRef objectRef) throws CommsRouterException {
-    final AgentDispatchInfo dispatchInfo = app.db.transactionManager
-            .executeWithLockRetry(em -> completeTask(em, objectRef));
-    app.taskDispatcher.dispatchAgent(dispatchInfo);
-  }
-
   @Override
   public void update(UpdateTaskContext taskContext, RouterObjectRef objectRef)
       throws CommsRouterException {
@@ -328,6 +316,18 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     task.setAgent(null);
 
     return app.entityMapper.task.toDispatchInfo(task);
+  }
+
+  private void rejectTaskAssignment(RouterObjectRef objectRef) throws CommsRouterException {
+    final TaskDispatchInfo dispatchInfo = app.db.transactionManager
+        .executeWithLockRetry(em -> rejectAssignment(em, objectRef));
+    app.taskDispatcher.dispatchTask(dispatchInfo);
+  }
+
+  private void completeTask(RouterObjectRef objectRef) throws CommsRouterException {
+    final AgentDispatchInfo dispatchInfo = app.db.transactionManager
+        .executeWithLockRetry(em -> completeTask(em, objectRef));
+    app.taskDispatcher.dispatchAgent(dispatchInfo);
   }
 
   private AgentDispatchInfo completeTask(EntityManager em, RouterObjectRef taskRef)

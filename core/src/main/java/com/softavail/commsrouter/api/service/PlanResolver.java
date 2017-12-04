@@ -25,6 +25,7 @@ import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
 import com.softavail.commsrouter.domain.Rule;
+
 import java.util.List;
 import javax.persistence.EntityManager;
 

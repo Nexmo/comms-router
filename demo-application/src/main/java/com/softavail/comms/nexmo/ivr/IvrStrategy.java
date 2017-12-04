@@ -1,10 +1,9 @@
 package com.softavail.comms.nexmo.ivr;
 
-import java.util.Map;
-
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.Map;
+import javax.ws.rs.core.MultivaluedMap;
 
 public interface IvrStrategy {
   
