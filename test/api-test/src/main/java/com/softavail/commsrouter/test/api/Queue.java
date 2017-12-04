@@ -22,12 +22,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
-import io.restassured.response.ValidatableResponse;
-
-import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
+import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,8 +65,8 @@ public class Queue extends Resource {
   }
 
   public ApiObjectRef replace(CreateQueueArg args) {
-      String id = state().get(CommsRouterResource.QUEUE);
-      ApiObjectRef oid = replaceResponse(args)
+    String id = state().get(CommsRouterResource.QUEUE);
+    ApiObjectRef oid = replaceResponse(args)
           .statusCode(201)
           .extract()
           .as(ApiObjectRef.class);

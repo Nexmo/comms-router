@@ -29,6 +29,7 @@ import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,7 +38,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import io.restassured.response.ValidatableResponse;
 
 public class Task extends Resource {
 
@@ -50,7 +50,7 @@ public class Task extends Resource {
   public List<TaskDto> list(String params) {
     TaskDto[] routers = given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .when().get("/routers/{routerRef}/tasks"+params)
+        .when().get("/routers/{routerRef}/tasks" + params)
         .then().statusCode(200)
         .extract()
         .as(TaskDto[].class);
@@ -58,7 +58,7 @@ public class Task extends Resource {
   }
 
   public List<TaskDto> list() {
-      return list("");
+    return list("");
   }
 
   public CreatedTaskDto replace(CreateTaskArg args) {
@@ -86,7 +86,7 @@ public class Task extends Resource {
   }
 
   public CreatedTaskDto create(CreateTaskArg args) {
-      CreatedTaskDto oid = createResponse(args)
+    CreatedTaskDto oid = createResponse(args)
           .statusCode(201)
           .body("ref", not(isEmptyString()))
           .and().body("queueTasks", isA(Integer.class))

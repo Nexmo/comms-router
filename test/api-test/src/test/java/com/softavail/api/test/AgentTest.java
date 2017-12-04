@@ -116,7 +116,7 @@ public class AgentTest {
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
-    TimeUnit.SECONDS.sleep(2);
+      //TimeUnit.SECONDS.sleep(2);
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
@@ -131,6 +131,26 @@ public class AgentTest {
     resource = a.get();
     assertThat(String.format("Check agent state (%s) to be ready.", resource.getState()),
         resource.getState(), is(AgentState.ready));
+  }
+
+
+  public void completeTaskAndCreateQueue() throws MalformedURLException, InterruptedException {
+      //TimeUnit.SECONDS.sleep(2);
+    Integer last=50;
+    while(last >0){
+      AgentDto resource = a.get();
+      assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
+                 resource.getState(), is(AgentState.busy));
+      TaskDto task = t.get();
+      assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
+                 task.getState(), is(TaskState.assigned));
+      t.setState(TaskState.completed);
+      q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
+      resource = a.get();
+      assertThat(String.format("Check agent state (%s) to be ready.", resource.getState()),
+                 resource.getState(), is(AgentState.ready));
+      last--;
+    }
   }
 
   @Test

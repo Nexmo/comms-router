@@ -523,6 +523,7 @@
                                                                 (tlet ((agent-id (eagent-new)))
                                                                   (eagent-set :state "ready")))))))
       (tstep-result (format nil "run in parallel") res (not(some #'null (mapcar #'second res)))  "run in parallel" nil (reduce #'append res)))))
+
 (defun test-complete-and-create-queue()
   (time(test-random :prefix '("create router"
                               "create queue"  "create agent" "create task when there are no ready agents"
