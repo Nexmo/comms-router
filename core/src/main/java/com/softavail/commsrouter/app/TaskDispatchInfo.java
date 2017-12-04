@@ -22,11 +22,20 @@ package com.softavail.commsrouter.app;
  */
 public class TaskDispatchInfo {
 
+  private Long routerId;
   private Long taskId;
   private String taskRef;
   private Long queueId;
   private long queuePosition;
   private Long queuedTimeout;
+
+  public Long getRouterId() {
+    return routerId;
+  }
+
+  public void setRouterId(Long routerId) {
+    this.routerId = routerId;
+  }
 
   public Long getTaskId() {
     return taskId;

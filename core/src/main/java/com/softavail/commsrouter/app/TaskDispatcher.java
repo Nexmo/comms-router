@@ -25,9 +25,7 @@ import com.softavail.commsrouter.api.exception.CallbackException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.TaskEventHandler;
 import com.softavail.commsrouter.domain.Agent;
-import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Route;
-import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.domain.Rule;
 import com.softavail.commsrouter.domain.Task;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
@@ -39,13 +37,11 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import javax.persistence.LockModeType;
 
 /**
  * @author ikrustev
@@ -90,18 +86,19 @@ public class TaskDispatcher {
   private void startQueueProcessors() {
     try {
       db.transactionManager.executeVoid(em ->
-          db.router.list(em).stream()
-              .map(router -> db.queue.list(em, router.getRef()))
-              .flatMap(Collection::stream)
-              .map(Queue::getId)
-              .forEach(this::process));
+          db.router.list(em).forEach(router -> {
+            db.queue.list(em, router.getRef()).forEach(queue -> {
+              process(router.getId(), queue.getId());
+            });
+          })
+      );
     } catch (CommsRouterException e) {
       throw new RuntimeException("Can not instantiate TaskDispatcher!", e);
     }
   }
 
-  private void process(Long queueId) {
-    queueProcessorManager.processQueue(queueId, db, mappers, this, configuration, threadPool);
+  private void process(Long routerId, Long queueId) {
+    queueProcessorManager.processQueue(routerId, queueId, db, mappers, this, configuration, threadPool);
   }
 
   public void close() {
@@ -126,31 +123,31 @@ public class TaskDispatcher {
   }
 
   public void dispatchTask(TaskDispatchInfo dispatchInfo) {
-    process(dispatchInfo.getQueueId());
+    process(dispatchInfo.getRouterId(), dispatchInfo.getQueueId());
     setTaskExpirationTimeout(dispatchInfo.getTaskId(), dispatchInfo.getQueuedTimeout());
   }
 
-  public void dispatchAgent(Long agentId) {
+  public void dispatchAgent(AgentDispatchInfo dispatchInfo) {
     threadPool.submit(() -> {
       try {
-        doDispatchAgent(agentId);
+        doDispatchAgent(dispatchInfo);
       } catch (RuntimeException | CommsRouterException e) {
-        LOGGER.error("Dispatch agent {}: failure: {}", agentId, e, e);
+        LOGGER.error("Dispatch agent {}: failure: {}", dispatchInfo.getAgentId(), e, e);
       }
     });
   }
 
-  private void doDispatchAgent(Long agentId) throws CommsRouterException {
+  private void doDispatchAgent(AgentDispatchInfo dispatchInfo) throws CommsRouterException {
 
-    TaskAssignmentDto taskAssignmentDto =
-        db.transactionManager.executeWithLockRetry(em -> {
-          Router router = db.agent.get(em, agentId).getRouter();
-          em.lock(router, LockModeType.WRITE);
+    TaskAssignmentDto taskAssignmentDto = db.transactionManager.executeWithLockRetry(
+        em -> {
+          db.router.lock(em, dispatchInfo.getRouterId());
 
-      return db.queue.findAssignmentForAgent(em, agentId)
-          .map(this::assignTask)
-          .orElse(null);
-    });
+          return db.queue.findAssignmentForAgent(em, dispatchInfo.getAgentId())
+              .map(this::assignTask)
+              .orElse(null);
+        }
+    );
 
     if (taskAssignmentDto != null) {
       submitTaskAssignment(taskAssignmentDto);

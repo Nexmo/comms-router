@@ -16,6 +16,7 @@
 
 package com.softavail.commsrouter.api.service;
 
+import com.softavail.commsrouter.app.AgentDispatchInfo;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
@@ -135,32 +136,13 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     LOGGER.info("Agent {}: queues attached: {}", agent.getRef(), attachedQueuesCount);
   }
 
-  private static class UpdateInfo {
-    private static Long agentId;
-    private static boolean becameReady;
-
-    public UpdateInfo(Long agentId, boolean becameReady) {
-      this.agentId = agentId;
-      this.becameReady = becameReady;
-    }
-
-    Long getAgentId() {
-      return agentId;
-    }
-
-    boolean agentBecameReady() {
-      return becameReady;
-    }
-
-  }
-
   @Override
   public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    UpdateInfo updateInfo = updateAgent(updateArg, objectRef);
-    if (updateInfo.agentBecameReady()) {
-      app.taskDispatcher.dispatchAgent(updateInfo.getAgentId());
+    AgentDispatchInfo dispatchInfo = updateAgent(updateArg, objectRef);
+    if (dispatchInfo != null) {
+      app.taskDispatcher.dispatchAgent(dispatchInfo);
     }
 
   }
@@ -188,7 +170,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return false; // !keys.isEmpty();
   }
 
-  private UpdateInfo updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
+  private AgentDispatchInfo updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     if (updateArg.getState() == AgentState.busy
@@ -202,7 +184,13 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       updateCapabilities(em, agent, updateArg.getCapabilities());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
-      return new UpdateInfo(agent.getId(), agentBecameAvailable);
+      if (!agentBecameAvailable) {
+        return null;
+      }
+      AgentDispatchInfo dispatchInfo = new AgentDispatchInfo();
+      dispatchInfo.setAgentId(agent.getId());
+      dispatchInfo.setRouterId(agent.getRouter().getId());
+      return dispatchInfo;
     });
   }
 

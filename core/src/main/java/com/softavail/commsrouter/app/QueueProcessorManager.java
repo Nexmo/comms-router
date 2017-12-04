@@ -46,7 +46,8 @@ public class QueueProcessorManager {
     return instance;
   }
 
-  public synchronized void processQueue(Long queueId,      JpaDbFacade db,
+  public synchronized void processQueue(Long routerId, Long queueId,
+      JpaDbFacade db,
       EntityMappers mappers,
       TaskDispatcher taskDispatcher,
       CoreConfiguration configuration,
@@ -58,6 +59,7 @@ public class QueueProcessorManager {
     QueueProcessor queueProcessor = queueProcessors.get(queueId);
     if (queueProcessor == null) {
       queueProcessor = new QueueProcessor.Builder()
+          .setRouterId(routerId)
           .setQueueId(queueId)
           .setDb(db)
           .setTaskDispatcher(taskDispatcher)

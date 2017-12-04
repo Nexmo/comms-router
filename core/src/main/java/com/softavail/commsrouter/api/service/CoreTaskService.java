@@ -31,6 +31,7 @@ import com.softavail.commsrouter.api.exception.InternalErrorException;
 import com.softavail.commsrouter.api.exception.InvalidStateException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
+import com.softavail.commsrouter.app.AgentDispatchInfo;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatchInfo;
 import com.softavail.commsrouter.domain.Agent;
@@ -144,9 +145,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   }
 
   private void completeTask(RouterObjectRef objectRef) throws CommsRouterException {
-    final Long agentId = app.db.transactionManager
+    final AgentDispatchInfo dispatchInfo = app.db.transactionManager
             .executeWithLockRetry(em -> completeTask(em, objectRef));
-    app.taskDispatcher.dispatchAgent(agentId);
+    app.taskDispatcher.dispatchAgent(dispatchInfo);
   }
 
   @Override
@@ -329,7 +330,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     return app.entityMapper.task.toDispatchInfo(task);
   }
 
-  private Long completeTask(EntityManager em, RouterObjectRef taskRef)
+  private AgentDispatchInfo completeTask(EntityManager em, RouterObjectRef taskRef)
       throws NotFoundException, InvalidStateException, InternalErrorException {
 
     Task task = app.db.task.get(em, taskRef);
@@ -356,7 +357,10 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throw new InternalErrorException("Unexpected agent state: " + agent.getState());
     }
     agent.setState(AgentState.ready);
-    return agent.getId();
+    AgentDispatchInfo dispatchInfo = new AgentDispatchInfo();
+    dispatchInfo.setAgentId(agent.getId());
+    dispatchInfo.setRouterId(agent.getRouter().getId());
+    return dispatchInfo;
   }
 
   private void cancelTask(EntityManager em, RouterObjectRef taskRef)

@@ -51,6 +51,7 @@ public class TaskMapper extends RouterObjectEntityMapper<TaskDto, Task> {
 
   public TaskDispatchInfo toDispatchInfo(Task task) {
     TaskDispatchInfo result = new TaskDispatchInfo();
+    result.setRouterId(task.getRouter().getId());
     result.setTaskId(task.getId());
     result.setTaskRef(task.getRef());
     result.setQueueId(task.getQueue().getId());

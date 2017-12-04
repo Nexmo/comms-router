@@ -64,8 +64,12 @@ public class RouterRepository extends GenericRepository<Router> {
     }
   }
 
-  public void lockConfig(EntityManager em, Long id) {
-    em.find(RouterConfig.class, id, LockModeType.PESSIMISTIC_WRITE);
+  public void lock(EntityManager em, Long routerId) {
+    em.find(Router.class, routerId, LockModeType.PESSIMISTIC_WRITE);
+  }
+
+  public void lockConfig(EntityManager em, Long routerId) {
+    em.find(RouterConfig.class, routerId, LockModeType.PESSIMISTIC_WRITE);
   }
 
 }

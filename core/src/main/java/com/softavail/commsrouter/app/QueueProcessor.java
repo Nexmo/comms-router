@@ -18,7 +18,6 @@ package com.softavail.commsrouter.app;
 
 import com.softavail.commsrouter.api.dto.model.TaskAssignmentDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +26,6 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 
 /**
  * Created by @author mapuo on 17.10.17.
@@ -36,6 +34,7 @@ public class QueueProcessor {
 
   private static final Logger LOGGER = LogManager.getLogger(QueueProcessor.class);
 
+  private final Long routerId;
   private final Long queueId;
   private final JpaDbFacade db;
   private final TaskDispatcher taskDispatcher;
@@ -45,13 +44,16 @@ public class QueueProcessor {
 
   private QueueProcessorState state;
 
-  public QueueProcessor(Long queueId,
+  public QueueProcessor(
+      Long routerId,
+      Long queueId,
       JpaDbFacade db,
       TaskDispatcher taskDispatcher,
       ScheduledThreadPoolExecutor threadPool,
       long processRetryDelaySeconds,
       StateChangeListener stateChangeListener) {
 
+    this.routerId = routerId;
     this.queueId = queueId;
     this.db = db;
     this.taskDispatcher = taskDispatcher;
@@ -117,8 +119,7 @@ public class QueueProcessor {
       Optional<TaskAssignmentDto> taskAssignmentDto;
       try {
         taskAssignmentDto = db.transactionManager.executeWithLockRetry(em -> {
-          Router router = db.queue.get(em, queueId).getRouter();
-          em.lock(router, LockModeType.WRITE);
+          db.router.lock(em, routerId);
           return getAssignment(em);
         });
       } catch (CommsRouterException | RuntimeException e) {
@@ -151,12 +152,18 @@ public class QueueProcessor {
 
   public static class Builder {
 
+    private Long routerId;
     private Long queueId;
     private JpaDbFacade db;
     private TaskDispatcher taskDispatcher;
     private ScheduledThreadPoolExecutor threadPool;
     private long processRetryDelaySeconds;
     private StateChangeListener stateChangeListener = null;
+
+    public Builder setRouterId(Long routerId) {
+      this.routerId = routerId;
+      return this;
+    }
 
     public Builder setQueueId(Long queueId) {
       this.queueId = queueId;
@@ -189,7 +196,7 @@ public class QueueProcessor {
     }
 
     public QueueProcessor build() {
-      return new QueueProcessor(queueId, db, taskDispatcher, threadPool,
+      return new QueueProcessor(routerId, queueId, db, taskDispatcher, threadPool,
           processRetryDelaySeconds, stateChangeListener);
     }
   }
