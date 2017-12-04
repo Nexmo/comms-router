@@ -262,14 +262,14 @@
           (print-log (list nil nil (reduce #'append (mapcar #'third (mapcar #'rest (reverse res))))))
           (mapcar #'first res) ) ) ) )
 
-(defun find-bug (size &key (threads 1))
+(defun find-bug (size &key (threads 1) (prefixes '()))
   (setf *update-policy* ())
   (let ((problem-cases (loop for x = (lparallel:pmapcar
                                       #'(lambda(i)
                                           (let*((res nil)
                                                 (str (with-output-to-string(s)
                                                        (let((*standard-output* s))
-                                                         (setf res (test-random :size size))))))
+                                                         (setf res (test-random :prefix (when prefixes (random-elt prefixes )) :size size))))))
                                             (unless (null res)
                                               (format t "~A" str))
                                             res ))

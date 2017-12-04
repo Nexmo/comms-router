@@ -153,7 +153,7 @@
                                          :checks (check-and (has-json) (has-key "size")
                                                             (has-kv "size" waiting-tasks))
                                          :router-id router-id)
-                            :timeout 3)))
+                            :timeout 20)))
             #'(lambda(res model)model))
 
     (action "delete queue"
@@ -262,7 +262,7 @@
                      (eagent :id agent-id
                              :checks (has-kv "state" agent-state)
                              :router-id router-id)
-                     :timeout 10)))
+                     :timeout 20)))
                  #'(lambda(res model)model))
 
          (action "delete agent"
@@ -301,7 +301,8 @@
                                         :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
                                         :checks (check-and (has-json) (has-key "size")
                                                            (has-kv "size" waiting-tasks))
-                                        :router-id router-id))
+                                        :router-id router-id)
+                           :timeout 20)
                     (etask-new :checks (check-and (has-json) (has-key "ref")
                                                   (has-kv "queueTasks" waiting-tasks))
                                :router-id router-id
@@ -336,7 +337,8 @@
                                         :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
                                         :checks (check-and (has-json) (has-key "size")
                                                            (has-kv "size" waiting-tasks))
-                                        :router-id router-id))
+                                        :router-id router-id)
+                           :timeout 20)
                     (etask-new :checks (check-and (has-json) (has-key "ref")
                                                   (has-kv "queueTasks" waiting-tasks))
                                :router-id router-id
@@ -371,7 +373,8 @@
                                   :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
                                   :checks (check-and (has-json) (has-key "size")
                                                      (has-kv "size" waiting-tasks))
-                                  :router-id router-id ))
+                                  :router-id router-id )
+                     :timeout 20)
               (etask-new :checks (check-and (has-json) (has-key "ref")
                                             (has-kv "queueTasks" waiting-tasks))
                          :router-id router-id
@@ -413,7 +416,8 @@
                                   :description (format nil "There should be ~A tasks in the queue" waiting-tasks)
                                   :checks (check-and (has-json) (has-key "size")
                                                      (has-kv "size" waiting-tasks))
-                                  :router-id router-id ))
+                                  :router-id router-id )
+                     :timeout 20)
               (etask-new :checks (check-and (has-json) (has-key "ref")
                                             (has-kv "queueTasks" waiting-tasks))
                          :router-id router-id
@@ -444,7 +448,7 @@
             (mstep (twait (etask :id (jsown:val task "ref")
                                  :state (jsown:val task "state")
                                  :router-id router-id)
-                          :timeout 10)))
+                          :timeout 20)))
           #'(lambda(res model)model))
 
          (action
@@ -458,7 +462,8 @@
           (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
             (mstep (twait (etask-set :id task-id :state "completed"
-                               :router-id router-id))) )
+                               :router-id router-id)
+                          :timeout 20)) )
           #'(lambda(res model)
               (funcall
                (mlet((selected (js-val "selected-task"))
@@ -490,8 +495,9 @@
 
           (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
-            (mstep (etask-set :id task-id :state "completed"
-                              :router-id router-id)) )
+            (mstep (twait (etask-set :id task-id :state "completed"
+                               :router-id router-id)
+                          :timeout 20)) )
           #'(lambda(res model)
               (funcall
                (mlet ((selected (js-val "selected-task"))
