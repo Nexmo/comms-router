@@ -23,8 +23,10 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
+import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
+import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,12 +82,16 @@ public class Plan extends Resource {
   }
 
   public void delete() {
+    deleteResponse().statusCode(204);
+  }
+
+  public ValidatableResponse deleteResponse() {
     String ref = state().get(CommsRouterResource.PLAN);
-    given()
+    return given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .when().delete("/routers/{routerRef}/plans/{ref}")
-        .then().statusCode(204);
+        .then();
   }
 
   public PlanDto get() {
@@ -100,14 +106,18 @@ public class Plan extends Resource {
         .as(PlanDto.class);
   }
 
-  public void update(CreatePlanArg args) {
-    String ref = state().get(CommsRouterResource.PLAN);
-    given()
-        .contentType("application/json")
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER)).pathParam("ref", ref)
-        .body(args)
-        .when().post("/routers/{routerRef}/plans/{ref}")
-        .then().statusCode(204);
+  public ValidatableResponse updateResponse(UpdatePlanArg args) {
+    return given()
+          .contentType("application/json")
+          .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+          .pathParam("ref", state().get(CommsRouterResource.PLAN))
+          .body(args)
+          .when().post("/routers/{routerRef}/plans/{ref}")
+          .then();
+  }
+
+  public void update(UpdatePlanArg args) {
+    updateResponse(args).statusCode(204);
   }
 
 }

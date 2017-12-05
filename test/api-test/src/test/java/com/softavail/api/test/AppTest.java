@@ -51,6 +51,7 @@ import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 
 /**
  * Unit test for simple App.
@@ -95,7 +96,7 @@ public class AppTest {
     r.delete();
   }
 
-  //@Test // fail when rules is null
+  @Test // fail when rules is null
   @SuppressWarnings("unchecked")
   public void crdPlan() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -113,9 +114,16 @@ public class AppTest {
     assertThat(resource.getDescription(), nullValue());
     assertThat(p.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
     p.replace(arg);
-    p.update(arg);
-    //p.delete(); Known issue
-    r.delete();
+    UpdatePlanArg updateArg = new UpdatePlanArg();
+    p.update(updateArg);
+    p.deleteResponse()
+        .statusCode(500)
+        .body("error.description",
+              equalTo("Cannot delete or update 'route' as there is record in 'task' that refer to it."));
+    r.deleteResponse()
+        .statusCode(500)
+        .body("error.description",
+              equalTo("Cannot delete or update 'router' as there is record in 'plan' that refer to it."));
   }
 
   @Test
