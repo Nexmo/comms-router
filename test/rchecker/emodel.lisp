@@ -1,4 +1,5 @@
 (in-package :rchecker)
+(defparameter *timeout* 5)
 (defun action(name precondition step-fn update-model)
   (list precondition
         #'(lambda(model)
@@ -153,7 +154,7 @@
                                          :checks (check-and (has-json) (has-key "size")
                                                             (has-kv "size" waiting-tasks))
                                          :router-id router-id)
-                            :timeout 20)))
+                            :timeout *timeout*)))
             #'(lambda(res model)model))
 
     (action "delete queue"
@@ -262,7 +263,7 @@
                      (eagent :id agent-id
                              :checks (has-kv "state" agent-state)
                              :router-id router-id)
-                     :timeout 20)))
+                     :timeout *timeout*)))
                  #'(lambda(res model)model))
 
          (action "delete agent"
@@ -274,7 +275,7 @@
                  (mlet((agent-id (js-val "ref") (js-selected "selected-agent" "agents"))
                        (router-id (js-val "ref") (js-selected "selected-router" "routers")))
                    (mstep(twait (eagent-del :id agent-id :router-id router-id)
-                                :timeout 10)))
+                                :timeout *timeout*)))
                  (del-resource "selected-agent" "agents")))
    (select-actions "selected-agent" "agents")
 
@@ -302,7 +303,7 @@
                                         :checks (check-and (has-json) (has-key "size")
                                                            (has-kv "size" waiting-tasks))
                                         :router-id router-id)
-                           :timeout 20)
+                           :timeout *timeout*)
                     (etask-new :checks (check-and (has-json) (has-key "ref")
                                                   (has-kv "queueTasks" waiting-tasks))
                                :router-id router-id
@@ -338,7 +339,7 @@
                                         :checks (check-and (has-json) (has-key "size")
                                                            (has-kv "size" waiting-tasks))
                                         :router-id router-id)
-                           :timeout 20)
+                           :timeout *timeout*)
                     (etask-new :checks (check-and (has-json) (has-key "ref")
                                                   (has-kv "queueTasks" waiting-tasks))
                                :router-id router-id
@@ -374,7 +375,7 @@
                                   :checks (check-and (has-json) (has-key "size")
                                                      (has-kv "size" waiting-tasks))
                                   :router-id router-id )
-                     :timeout 20)
+                     :timeout *timeout*)
               (etask-new :checks (check-and (has-json) (has-key "ref")
                                             (has-kv "queueTasks" waiting-tasks))
                          :router-id router-id
@@ -417,7 +418,7 @@
                                   :checks (check-and (has-json) (has-key "size")
                                                      (has-kv "size" waiting-tasks))
                                   :router-id router-id )
-                     :timeout 20)
+                     :timeout *timeout*)
               (etask-new :checks (check-and (has-json) (has-key "ref")
                                             (has-kv "queueTasks" waiting-tasks))
                          :router-id router-id
@@ -448,8 +449,39 @@
             (mstep (twait (etask :id (jsown:val task "ref")
                                  :state (jsown:val task "state")
                                  :router-id router-id)
-                          :timeout 20)))
+                          :timeout *timeout*)))
           #'(lambda(res model)model))
+
+         (action
+          "cancel waiting task"
+          (fand
+           (fhas-key "selected-router")
+           (fhas-key "selected-task")
+           (fnth "selected-task" "tasks" (fhas-kv "state" "waiting" #'equal))
+           )
+          (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
+                 (router-id (js-val "ref") (js-selected "selected-router" "routers")))
+            (mstep (etask-set :id task-id :state "canceled"
+                              :router-id router-id)))
+          #'(lambda(res model)
+              (funcall
+               (mlet((selected (js-val "selected-task"))
+                     (tasks (js-val "tasks"))
+                     (agents (js-val "agents")))
+                 (let*((task (nth selected tasks))
+                       (agent-id (jsown:val task "agent-id"))
+                       (agent-pos (position-if #'(lambda(agent) (equal (jsown:val agent "ref") agent-id))
+                                               agents))
+                       (agent (nth agent-pos agents)))
+                   (js-extend (list "agents" (set-nth agent-pos (copy-tree agents)
+                                                      (jsown::extend-js agent
+                                                        ("state" "ready")
+                                                        ("lastTimeAtBusyState" (get-internal-real-time))) ))
+                              (list "tasks" (set-nth selected (copy-tree tasks)
+                                                     (jsown::extend-js task
+                                                       ("state" "completed")
+                                                       ("agent-id" ())))))))
+               model)))
 
          (action
           "complete task when there are no waiting tasks"
@@ -463,7 +495,7 @@
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
             (mstep (twait (etask-set :id task-id :state "completed"
                                :router-id router-id)
-                          :timeout 20)) )
+                          :timeout *timeout*)) )
           #'(lambda(res model)
               (funcall
                (mlet((selected (js-val "selected-task"))
@@ -497,7 +529,7 @@
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
             (mstep (twait (etask-set :id task-id :state "completed"
                                :router-id router-id)
-                          :timeout 20)) )
+                          :timeout *timeout*)) )
           #'(lambda(res model)
               (funcall
                (mlet ((selected (js-val "selected-task"))

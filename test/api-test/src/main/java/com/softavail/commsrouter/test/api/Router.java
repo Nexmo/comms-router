@@ -82,12 +82,15 @@ public class Router extends Resource {
     return oid;
   }
 
-  public void delete() {
-    String routerRef = state().get(CommsRouterResource.ROUTER);
-    given()
-        .pathParam("routerRef", routerRef)
+  public ValidatableResponse deleteResponse() {
+    return  given()
+        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .when().delete("/routers/{routerRef}")
         .then().statusCode(204);
+  }
+
+  public void delete() {
+    deleteResponse().statusCode(204);
   }
 
   public RouterDto get() {
