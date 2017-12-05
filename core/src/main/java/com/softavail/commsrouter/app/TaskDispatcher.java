@@ -339,20 +339,4 @@ public class TaskDispatcher {
     }
   }
 
-  public static class Configuration {
-
-    private static final Configuration DEFAULT = new Configuration(10, 2, 60, 500);
-
-    public final int threadPoolSize;
-    public final int backOffDelay;
-    public final int backOffMaxDelay;
-    public final int jitter;
-
-    public Configuration(int threadPoolSize, int backOffDelay, int backOffMaxDelay, int jitter) {
-      this.threadPoolSize = threadPoolSize;
-      this.backOffDelay = backOffDelay;
-      this.backOffMaxDelay = backOffMaxDelay;
-      this.jitter = jitter;
-    }
-  }
 }
