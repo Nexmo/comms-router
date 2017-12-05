@@ -43,11 +43,35 @@ public class RouterRepository extends GenericRepository<Router> {
   }
 
   @SuppressWarnings("unchecked")
-  private Router getByRefNoThrow(EntityManager em, String ref) throws NotFoundException {
+  public Router getByRefNoThrow(EntityManager em, String ref) throws NotFoundException {
 
     String query = "SELECT r FROM Router r WHERE r.ref = :ref";
 
     List<Router> result = em.createQuery(query).setParameter("ref", ref).getResultList();
+
+    if (result.isEmpty()) {
+      return null;
+    }
+
+    assert result.size() == 1;
+
+    return result.get(0);
+  }
+
+  public Long getIdByRef(EntityManager em, String ref) throws NotFoundException {
+    Long id = getIdByRefNoThrow(em, ref);
+    if (id != null) {
+      return id;
+    }
+    throw new NotFoundException(entityClass.getSimpleName() + " " + ref + " not found");
+  }
+
+  @SuppressWarnings("unchecked")
+  public Long getIdByRefNoThrow(EntityManager em, String ref) throws NotFoundException {
+
+    String query = "SELECT r.id FROM Router r WHERE r.ref = :ref";
+
+    List<Long> result = em.createQuery(query).setParameter("ref", ref).getResultList();
 
     if (result.isEmpty()) {
       return null;
@@ -71,6 +95,12 @@ public class RouterRepository extends GenericRepository<Router> {
 
   public void lockConfig(EntityManager em, Long routerId) {
     em.find(RouterConfig.class, routerId, LockModeType.PESSIMISTIC_WRITE);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void lockConfigByRef(EntityManager em, String routerRef) throws NotFoundException {
+    Long routerId = getIdByRef(em, routerRef);
+    lockConfig(em, routerId);
   }
 
 }

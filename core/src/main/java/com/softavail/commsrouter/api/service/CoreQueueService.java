@@ -25,7 +25,6 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
-import com.softavail.commsrouter.api.exception.ReferenceIntegrityViolationException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -82,6 +81,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private ApiObjectRef doCreate(EntityManager em, CreateQueueArg createArg,
       RouterObjectRef objectRef) throws CommsRouterException {
 
+    app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
     evaluator.validate(createArg.getPredicate());
 
@@ -97,8 +98,6 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
   private void attachAgents(EntityManager em, Queue queue, CommsRouterEvaluator evaluator,
       boolean isNewQueue) throws CommsRouterException {
-
-    app.db.router.lockConfig(em, queue.getRouter().getId());
 
     LOGGER.info("Queue {}: attaching agents...", queue.getRef());
 
@@ -135,23 +134,25 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public void update(UpdateQueueArg updateArg, RouterObjectRef objectId)
+  public void update(UpdateQueueArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Queue queue = app.db.queue.get(em, objectId);
-      updatePredicate(em, queue, updateArg.getPredicate());
+      Queue queue;
+      if (updateArg.getPredicate() != null) {
+        // ! get the queue after the router config lock
+        app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+        queue = app.db.queue.get(em, objectRef);
+        updatePredicate(em, queue, updateArg.getPredicate());
+      } else {
+        queue = app.db.queue.get(em, objectRef);
+      }
       Fields.update(queue::setDescription, queue.getDescription(), updateArg.getDescription());
     });
   }
 
   private void updatePredicate(EntityManager em, Queue queue, String predicate)
       throws CommsRouterException {
-
-    if (predicate == null) {
-      // no change requested
-      return;
-    }
 
     if (queue.getPredicate().equals(predicate)) {
       LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getRef());
@@ -198,12 +199,11 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   }
 
   @Override
-  public void delete(RouterObjectRef routerObjectId) throws CommsRouterException {
-    try {
-      super.delete(routerObjectId);
-    } catch (ReferenceIntegrityViolationException ex) {
-      throw ex;
-    }
+  public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
+    app.db.transactionManager.executeVoid((em) -> {
+      app.db.router.lockConfigByRef(em, routerObjectRef.getRouterRef());
+      repository.delete(em, routerObjectRef);
+    });
   }
 
 }

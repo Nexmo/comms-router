@@ -89,6 +89,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       RouterObjectRef objectRef)
       throws CommsRouterException {
 
+    app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
     agent.setRouter(router);
@@ -102,8 +104,6 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
   void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
       boolean isNewAgent) throws CommsRouterException {
-
-    app.db.router.lockConfig(em, agent.getRouter().getId());
 
     LOGGER.info("Agent {}: attaching queues...", agent.getRef());
 
@@ -179,9 +179,18 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     }
 
     return app.db.transactionManager.execute((em) -> {
-      Agent agent = app.db.agent.get(em, objectRef);
+
+      Agent agent;
+      if (updateArg.getCapabilities() != null) {
+        // ! get the agent after the router config lock
+        app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+        agent = app.db.agent.get(em, objectRef);
+        updateCapabilities(em, agent, updateArg.getCapabilities());
+      } else {
+        agent = app.db.agent.get(em, objectRef);
+      }
+
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
-      updateCapabilities(em, agent, updateArg.getCapabilities());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
       if (!agentBecameAvailable) {
         return null;
@@ -226,11 +235,6 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   private void updateCapabilities(EntityManager em, Agent agent, AttributeGroupDto newCapabilities)
       throws CommsRouterException {
 
-    if (newCapabilities == null) {
-      // no capabilities change requested
-      return;
-    }
-
     if (capabilitiesAreEqual(newCapabilities,
         app.entityMapper.attributes.toDto(agent.getCapabilities()))) {
       LOGGER.info("Agent {}: no capabilities change - will keep current queues", agent.getRef());
@@ -246,6 +250,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   @Override
   public void delete(RouterObjectRef routerObjectRef) throws CommsRouterException {
     app.db.transactionManager.executeVoid((em) -> {
+      app.db.router.lockConfigByRef(em, routerObjectRef.getRouterRef());
       Agent agent = app.db.agent.get(em, routerObjectRef);
       if (!agent.getState().isDeleteAllowed()) {
         throw new InvalidStateException(
