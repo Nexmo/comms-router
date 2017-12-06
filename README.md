@@ -10,7 +10,7 @@ A [demo application](demo-application/README.md) shows how to apply the router t
 
   * Task - work item characterized by its requirements - set of skills needed expressed by the user as key/value pairs.
   * Agent - abstract entity able to handle tasks, characterized by its capabilities - the skills it has expressed by the user as key/value pairs.
-  * Queue - collection of tasks waiting for the next available agent. It has a predicated defined by the user that is matched agains the agents' skills to select these able to serve the queue.
+  * Queue - collection of tasks waiting for the next available agent. It has a predicate defined by the user that is matched agains the agents' skills to select these able to serve the queue.
   * Plan - defines how a task is handled by the router selecting a queue for it.
   * Router - a container for the router entities allowing different user application to share the same database.
 
