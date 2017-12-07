@@ -40,7 +40,7 @@ import java.util.ArrayList;
  */
 public class InFunction implements Function {
 
-  final private ExpressionEvaluator exprEvaluator;
+  private final ExpressionEvaluator exprEvaluator;
 
   public InFunction(ExpressionEvaluator evaluator) {
     this.exprEvaluator = evaluator;

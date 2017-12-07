@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,20 +21,47 @@ package com.softavail.commsrouter.api.dto.misc;
  */
 public class PagingRequest {
 
-  private final int page;
+  private final String routerRef;
+  private final String token;
   private final int perPage;
 
-  public PagingRequest(int page, int perPage) {
-    this.page = page;
+  public PagingRequest() {
+    this(null, 10); // TODO Setting?
+  }
+
+  public PagingRequest(String token, int perPage) {
+    this(null, token, perPage);
+  }
+
+  public PagingRequest(String routerRef, String token, int perPage) {
+    this.routerRef = routerRef;
+    this.token = token;
     this.perPage = perPage;
   }
 
-  public int getPage() {
-    return page;
+  public boolean isRouterRefAvailable() {
+    return routerRef != null;
+  }
+
+  public String getRouterRef() {
+    return routerRef;
+  }
+
+  public String getToken() {
+    return token;
   }
 
   public int getPerPage() {
     return perPage;
+  }
+
+  @Override
+  public String toString() {
+    return new StringBuilder("PagingRequest{")
+        .append("routerRef='").append(routerRef).append('\'')
+        .append(", token='").append(token).append('\'')
+        .append(", perPage=").append(perPage)
+        .append('}').toString();
   }
 
 }

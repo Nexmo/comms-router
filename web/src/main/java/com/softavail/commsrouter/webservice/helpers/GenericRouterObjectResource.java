@@ -16,13 +16,13 @@
 
 package com.softavail.commsrouter.webservice.helpers;
 
-import com.google.common.collect.Lists;
-
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.interfaces.RouterObjectService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,11 +47,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 
 /**
  * Created by @author mapuo on 04.09.17.
@@ -90,18 +88,15 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
           message = "Successful operation",
           responseHeaders = {
               @ResponseHeader(
-                  name = RouterObjectService.TOTAL_COUNT_HEADER,
-                  description = "The total items from this listing",
-                  response = Integer.class)}))
+                  name = PaginatedService.NEXT_TOKEN_HEADER,
+                  description = "The token for the next page",
+                  response = String.class)}))
   public Response list(
       @ApiParam(
-          value = "The current page of the listing",
-          defaultValue = "1",
-          allowableValues = "range[1, infinity]")
+          value = "The token from the previous request",
+          defaultValue = "")
       @Valid
-      @Min(value = 1L, message = "{resource.list.min.page.number}")
-      @DefaultValue("01")
-      @QueryParam(RouterObjectService.PAGE_NUMBER_PARAM) int pageNum,
+      @QueryParam(PaginatedService.TOKEN_PARAM) String token,
       @ApiParam(
           value = "Number of items per page (Maximum 50)",
           defaultValue = "10",
@@ -110,23 +105,19 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
       @Min(value = 1L, message = "{resource.list.min.items.per.page}")
       @Max(value = 50, message = "{resource.list.max.items.per.page}")
       @DefaultValue("10")
-      @QueryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM) int perPage)
+      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage)
       throws CommsRouterException {
 
-    PaginatedList<T> pagedList = getService().list(routerRef, pageNum, perPage);
+    PagingRequest pagingRequest = new PagingRequest(routerRef, token, perPage);
+
+    PaginatedList<T> pagedList = getService().list(pagingRequest);
 
     LOGGER.debug("Listing page {}/{} for router {}: {}",
-        pageNum, perPage, routerRef, pagedList);
-
-    PaginationHelper paginationHelper = new PaginationHelper(
-        () -> entryPoint.clone(),
-        (builder) -> builder.build(routerRef));
-    Link[] links = paginationHelper.getLinks(pagedList);
+        token, perPage, routerRef, pagedList);
 
     GenericEntity<List<T>> genericEntity = new GenericEntity<>(pagedList.getList(), List.class);
     return Response.ok()
-        .header(RouterObjectService.TOTAL_COUNT_HEADER, pagedList.getTotalCount())
-        .links(links)
+        .header(PaginatedService.NEXT_TOKEN_HEADER, pagedList.getNextToken())
         .entity(genericEntity)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .build();

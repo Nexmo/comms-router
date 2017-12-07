@@ -4,18 +4,21 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import java.net.MalformedURLException;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
+
+import java.net.MalformedURLException;
 
 /**
  * @author G.Ivanov
@@ -37,8 +40,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   public void createTestTwo() throws MalformedURLException, CommsRouterException {
     ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), "01");
     taskService.create(newCreateTaskArg(queue.getRef(), "https://test.com", null), "01");
-    List<TaskDto> task = taskService.list("01");
-    assertEquals(task.get(0).getCallbackUrl(), "https://test.com");
+    PaginatedList<TaskDto> task = taskService.list(new PagingRequest("01", null, 10));
+    assertEquals(task.getList().get(0).getCallbackUrl(), "https://test.com");
   }
 
   @Test
@@ -97,8 +100,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
         planService.create(newCreatePlanArg("description_one", "1==1", queue.getRef()), "01");
 
     taskService.create(newCreateTaskArg(null, "https://test.com", plan.getRef()), "01");
-    List<TaskDto> task = taskService.list("01");
-    assertEquals(task.get(0).getCallbackUrl(), "https://test.com");
+    PaginatedList<TaskDto> task = taskService.list(new PagingRequest("01", null, 10));
+    assertEquals(task.getList().get(0).getCallbackUrl(), "https://test.com");
   }
 
 }

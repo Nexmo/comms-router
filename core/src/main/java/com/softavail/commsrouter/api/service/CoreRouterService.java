@@ -19,11 +19,11 @@ package com.softavail.commsrouter.api.service;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PaginationHelper;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.interfaces.RouterService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Router;
@@ -34,18 +34,21 @@ import com.softavail.commsrouter.util.Uuid;
 
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.validation.ValidationException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 /**
  * @author ikrustev
  */
-public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
-    implements RouterService, PaginatedService<RouterDto> {
+public class CoreRouterService
+    extends CoreApiObjectService<RouterDto, Router>
+    implements RouterService {
 
   private final RouterRepository routerRepository;
 
   public CoreRouterService(AppContext app) {
-    super(app.db.transactionManager, app.db.router, app.entityMapper.router);
+    super(app.db.transactionManager, app.entityMapper.router);
     routerRepository = app.db.router;
   }
 
@@ -114,29 +117,32 @@ public class CoreRouterService extends CoreApiObjectService<RouterDto, Router>
 
     return transactionManager.execute(em -> {
 
-      String countString = "SELECT COUNT(id) FROM Router";
-      long totalCount = (long) em.createQuery(countString).getSingleResult();
+      Long routerId = PaginationHelper.getEntityId(Router.class, request.getToken());
 
-      int startPosition = (request.getPage() * request.getPerPage()) - request.getPerPage();
+      CriteriaBuilder cb = em.getCriteriaBuilder();
+      CriteriaQuery<Router> query = cb.createQuery(Router.class);
+      Root<Router> root = query.from(Router.class);
+      query.select(
+          root);
+      query.where(
+          cb.gt(root.get("id"), routerId));
+      query.orderBy(
+          cb.asc(root.get("id")));
 
-      if (totalCount > 0 && totalCount <= startPosition) {
-        throw new ValidationException("{resource.list.max.page.number}");
-      }
-
-      String qlString = "SELECT r FROM Router r";
-      List<Router> jpaResult = em.createQuery(qlString)
-          .setFirstResult(startPosition)
+      List<Router> jpaResult = em.createQuery(query)
           .setMaxResults(request.getPerPage())
           .getResultList();
 
-      return new PaginatedList<>(request, entityMapper.toDto(jpaResult), totalCount);
+      String nextToken = getNextToken(jpaResult, request.getPerPage());
+
+      return new PaginatedList<>(entityMapper.toDto(jpaResult), nextToken);
     });
   }
 
   @Override
   public void delete(String ref)
       throws CommsRouterException {
-    
+
     transactionManager.executeVoid((em) -> {
       routerRepository.deleteByRef(em, ref);
     });

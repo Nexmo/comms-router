@@ -19,13 +19,13 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.AgentService;
 
-import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.UriBuilder;
@@ -91,17 +91,12 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef
   }
 
   @Override
-  public List<AgentDto> list(String routerRef)
+  public PaginatedList<AgentDto> list(PagingRequest request)
       throws CommsRouterException {
 
-    return getList(routerRef);
-  }
-
-  @Override
-  public PaginatedList<AgentDto> list(String routerRef, int page, int perPage)
-      throws CommsRouterException {
-
-    return getList(routerRef, page, perPage);
+    PagingRequest pagingRequest =
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage());
+    return getList(pagingRequest);
   }
 
   @Override

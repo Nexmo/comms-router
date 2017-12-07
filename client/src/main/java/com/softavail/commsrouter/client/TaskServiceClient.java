@@ -20,6 +20,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateTaskContext;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -28,7 +29,6 @@ import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 
 import java.net.URI;
-import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -43,13 +43,13 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
 
   private final Client client;
   private final String endpoint;
-  private final String routerId;
+  private final String routerRef;
 
   @Inject
-  public TaskServiceClient(Client client, String endpoint, String routerId) {
+  public TaskServiceClient(Client client, String endpoint, String routerRef) {
     this.client = client;
     this.endpoint = endpoint;
-    this.routerId = routerId;
+    this.routerRef = routerRef;
   }
 
   @Override
@@ -90,21 +90,21 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   public void update(UpdateTaskContext taskContext, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
-    putContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerId));
+    putContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerRef));
   }
 
   @Override
   public void updateContext(UpdateTaskContext taskContext, RouterObjectRef routerObjectId)
       throws CommsRouterException {
 
-    postContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerId));
+    postContext(taskContext, new RouterObjectRef(routerObjectId.getRef(), routerRef));
   }
 
   @Override
   public TaskDto get(RouterObjectRef routerObject)
       throws NotFoundException {
 
-    routerObject.setRouterRef(routerId);
+    routerObject.setRouterRef(routerRef);
     return getItem(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 
@@ -124,18 +124,15 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   }
 
   @Override
-  public List<TaskDto> list(String routerId) {
-    return getList(routerId);
-  }
-
-  @Override
-  public PaginatedList<TaskDto> list(String routerId, int page, int perPage) {
-    return getList(routerId, page, perPage);
+  public PaginatedList<TaskDto> list(PagingRequest request) {
+    PagingRequest pagingRequest =
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage());
+    return getList(pagingRequest);
   }
 
   @Override
   public void delete(RouterObjectRef routerObject) {
-    routerObject.setRouterRef(routerId);
+    routerObject.setRouterRef(routerRef);
     deleteRequest(new RouterObjectRef(routerObject.getRef(), routerObject.getRouterRef()));
   }
 

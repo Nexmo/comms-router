@@ -88,13 +88,6 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectR
   }
 
   @Override
-  public List<RouterDto> list()
-      throws CommsRouterException {
-
-    return getList();
-  }
-
-  @Override
   public PaginatedList<RouterDto> list(PagingRequest request) {
     return getList(request);
   }
