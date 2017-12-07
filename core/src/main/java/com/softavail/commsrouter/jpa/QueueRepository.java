@@ -66,7 +66,7 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "
         + "FROM Task t JOIN t.queue q JOIN q.agentQueueMappings m JOIN m.agent a "
         + "WHERE t.state = :taskState AND a.state = :agentState AND q.id = :queueId "
-        + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
+        + "ORDER BY t.priority DESC, t.id ASC, a.lastTimeAtBusyState ASC";
 
     List<MatchResult> result = em.createQuery(query)
         .setParameter("taskState", TaskState.waiting)
@@ -85,7 +85,7 @@ public class QueueRepository extends RouterObjectRepository<Queue> {
     String query = "SELECT NEW com.softavail.commsrouter.domain.result.MatchResult(t, a) "
         + "FROM Task t JOIN t.queue q JOIN q.agentQueueMappings m JOIN m.agent a "
         + "WHERE t.state = :taskState AND a.state = :agentState AND a.id = :agentId "
-        + "ORDER BY t.priority DESC, t.createDate ASC, a.lastTimeAtBusyState ASC";
+        + "ORDER BY t.priority DESC, t.id ASC, a.lastTimeAtBusyState ASC";
 
     List<MatchResult> result = em.createQuery(query)
         .setParameter("taskState", TaskState.waiting)
