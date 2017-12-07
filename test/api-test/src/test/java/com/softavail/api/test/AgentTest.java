@@ -27,6 +27,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.allOf;
 
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
@@ -53,6 +55,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+import java.net.ServerSocket;
+import java.net.Socket;
+import org.junit.jupiter.api.AfterEach;
+import java.io.OutputStreamWriter;
+import org.hamcrest.Matchers;
+import org.hamcrest.MatcherAssert;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
+import java.io.BufferedReader;
 
 
 /**
@@ -70,7 +82,7 @@ public class AgentTest {
   private Agent a = new Agent(state);
   private Task t = new Task(state);
   private Plan p = new Plan(state);
-
+  private ServerSocket server;
   @BeforeAll
   public static void beforeAll() throws Exception {
     Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
@@ -78,17 +90,27 @@ public class AgentTest {
 
 
   @BeforeEach
-  public void setup() {
+  public void setup() throws IOException {
+    server = new ServerSocket(0);
     r.create(new CreateRouterArg());
     q.create(
         new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
   }
 
-  //@AfterEach
-  public void cleanup() {
-    a.delete();
-    q.delete();
-    r.delete();
+  @AfterEach
+  public void cleanup() throws IOException {
+    server.close();
+  }
+
+  private String waitToConnect(int timeout) throws IOException {
+
+      server.setSoTimeout(timeout);
+      Socket socket = server.accept();
+      OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
+      ow.write("HTTP1/0 200 OK\r\n\r\n");
+      //InputStreamReader r = new InputStreamReader(socket.getInputStream(),"UTF-8");
+      return (new BufferedReader(new InputStreamReader(socket.getInputStream()))
+                         .lines().collect(Collectors.joining("\n")));
   }
 
   @Test
@@ -187,16 +209,20 @@ public class AgentTest {
     t.delete();
   }
 
+  private URL testServer() throws MalformedURLException {
+    return new URL("http://localhost:" + server.getLocalPort());
+  }
+
   @Test
   @DisplayName("Create new agent task - no ready agents, set agent ready to complete task.")
-  public void agentOfflineTaskReady() throws MalformedURLException, InterruptedException {
+  public void agentOfflineTaskReady() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
-    t.createQueueTask();
+    t.createQueueTask(testServer());
     assertThat(q.size(), is(1));
     a.setState(AgentState.ready);
-
-    TimeUnit.SECONDS.sleep(1);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString((state.get(CommsRouterResource.TASK)))));
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
@@ -216,17 +242,19 @@ public class AgentTest {
 
   @Test
   @DisplayName("Create new agent and cancel the assigned task.")
-  public void taskWithCancel() throws MalformedURLException, InterruptedException {
+  public void taskWithCancel() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
 
-    t.createQueueTask();
+    t.createQueueTask(testServer());
 
     assertThat(q.size(), is(1));
 
     a.setState(AgentState.ready);
 
-    TimeUnit.SECONDS.sleep(1);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString((state.get(CommsRouterResource.TASK)))));
+
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
@@ -240,10 +268,12 @@ public class AgentTest {
         resource.getState()),
         resource.getState(), is(AgentState.unavailable));
 
-    TimeUnit.SECONDS.sleep(1);
+    //TimeUnit.SECONDS.sleep(1);
 
     a.setState(AgentState.ready);
-    TimeUnit.SECONDS.sleep(1);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString((state.get(CommsRouterResource.TASK)))));
+
 
     resource = a.get();
     assertThat(String
@@ -263,7 +293,7 @@ public class AgentTest {
     assertThat(q.size(), is(1));
 
     a.setState(AgentState.ready);
-    TimeUnit.SECONDS.sleep(1);
+    // callback TimeUnit.SECONDS.sleep(1);
 
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
@@ -296,7 +326,7 @@ public class AgentTest {
 
   @Test
   @DisplayName("Multiple agents compete for a task.")
-  public void multipleAgentsPerTask() throws MalformedURLException, InterruptedException {
+  public void multipleAgentsPerTask() throws MalformedURLException, InterruptedException, IOException {
 
     ApiObjectRef ref1 = a.create("en");
     assertThat(q.size(), is(0));
@@ -307,7 +337,7 @@ public class AgentTest {
     assertThat(q.size(), is(0));
     a.setState(AgentState.ready);
 
-    t.createQueueTask();
+    t.createQueueTask(testServer());
     TimeUnit.SECONDS.sleep(1);
     assertThat(q.size(), is(0));
 
@@ -322,7 +352,9 @@ public class AgentTest {
 
     assertThat(q.size(), is(0));
 
-    TimeUnit.SECONDS.sleep(1);
+    assertThat(waitToConnect(3000),allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                         containsString((state.get(CommsRouterResource.TASK)))));
+
 
     resource = a.get();
     assertThat(String
@@ -387,7 +419,7 @@ public class AgentTest {
                 resource.getState()),
         resource.getState(), is(AgentState.busy));
     t.setState(TaskState.completed);
-    TimeUnit.SECONDS.sleep(2);// in order to ensure enough time granularity
+    // TimeUnit.SECONDS.sleep(2);// in order to ensure enough time
 
     t.delete();
   }
@@ -477,7 +509,7 @@ public class AgentTest {
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    TimeUnit.SECONDS.sleep(2);
+    // callcack TimeUnit.SECONDS.sleep(2);
 
     resource = a.get();
     assertThat(String
@@ -543,33 +575,35 @@ public class AgentTest {
 
   @Test
   @DisplayName("Three tasks with different priority.")
-  public void handleWithPriority() throws MalformedURLException, InterruptedException {
+  public void handleWithPriority() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     p.create(new CreatePlanArg.Builder("priority 0")
         .defaultRoute(
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(0L).build())
         .build());
     CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
     p.create(new CreatePlanArg.Builder("priority 5")
         .defaultRoute(
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(5L).build())
         .build());
     CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
     p.create(new CreatePlanArg.Builder("priority 3")
         .defaultRoute(
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(3L).build())
         .build());
     CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
 
     assertThat(q.size(), is(3));
     a.setState(AgentState.ready);
-    TimeUnit.SECONDS.sleep(2);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString(task5.getRef())));
+
     assertThat(q.size(), is(2));
     TaskDto task;
     state.put(CommsRouterResource.TASK, task5.getRef());
@@ -577,7 +611,9 @@ public class AgentTest {
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    TimeUnit.SECONDS.sleep(2);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString(task3.getRef())));
+
 
     state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();
@@ -601,7 +637,7 @@ public class AgentTest {
 
   @Test
   @DisplayName("Three tasks two queues with different priority.")
-  public void handleWithPriorityTwoQueues() throws MalformedURLException, InterruptedException {
+  public void handleWithPriorityTwoQueues() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     q.create(
         new CreateQueueArg.Builder().description("queue priority 0").predicate("1==1").build());
@@ -610,7 +646,7 @@ public class AgentTest {
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(0L).build())
         .build());
     CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
     q.create(
         new CreateQueueArg.Builder().description("queue priority 5").predicate("1==1").build());
@@ -619,7 +655,7 @@ public class AgentTest {
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(5L).build())
         .build());
     CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
     q.create(
         new CreateQueueArg.Builder().description("queue priority 3").predicate("1==1").build());
@@ -628,24 +664,30 @@ public class AgentTest {
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(3L).build())
         .build());
     CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
-        .callback(new URL("http://example.com"))
+                                            .callback(testServer())
         .build());
     a.setState(AgentState.ready);
-    TimeUnit.SECONDS.sleep(2);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString(task5.getRef())));
+
     TaskDto task;
     state.put(CommsRouterResource.TASK, task5.getRef());
     task = t.get();
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    TimeUnit.SECONDS.sleep(2);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString(task3.getRef())));
+
 
     state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();
     assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    TimeUnit.SECONDS.sleep(2);
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString(task0.getRef())));
+
 
     state.put(CommsRouterResource.TASK, task0.getRef());
     task = t.get();

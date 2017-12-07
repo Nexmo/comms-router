@@ -1,6 +1,5 @@
 (in-package #:rchecker)
 
-
 (defun setup-rqpt (&key (qpredicate "1==1")
                      (tpredicate "1")
                      (task-req (jsown:new-js ("bool" t)
