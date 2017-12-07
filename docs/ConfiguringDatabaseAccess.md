@@ -134,16 +134,17 @@ Setting up the JNDI datasource on Tomcat.
     which is non-transactional storage engine. 
     
     The CommsRouter **requires** _transactional_ storage engine. To enable that with MySQL 
-    you should set one of those JVM options at start:
-    - `-Dhibernate.dialect=org.hibernate.dialect.MySQL57Dialect` 
+    you should set the dialect for Hibernate in the JVM options at start:  
+    ```
+    -Dhibernate.dialect=org.hibernate.dialect.MySQL57Dialect
+    ``` 
       - Note that MySQL**5**Dialect is still using the MyISAM engine, 
         so use MySQL**55**Dialect or MySQL**57**Dialect
-    - `-Dhibernate.dialect.storage_engine=innodb`
 
     Ex. With Tomcat JVM properties are set like this:
     * UNIX: `$CATALINA_BASE/bin/setenv.sh`
     ```bash
-    export CATALINA_OPTS="$CATALINA_OPTS -Dhibernate.dialect.storage_engine=innodb"
+    export CATALINA_OPTS="$CATALINA_OPTS -Dhibernate.dialect=org.hibernate.dialect.MySQL57Dialect"
     ```
     * Windows: `%CATALINA_BASE%\bin\setenv.bat`
     ```bat
