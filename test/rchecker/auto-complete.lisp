@@ -9,9 +9,29 @@
             (funcall (tand (etask-set-context :router-id router-id :task-id task-id :key "result" :value (if check t :false))
                            (let ((descr (format nil "~S" description)))
                              (etask-set-context  :router-id router-id :task-id task-id
-                                                 :key "log" :value (ppcre:regex-replace-all "'" ""
-                                                                                            (subseq descr (max 0 (- (length descr) 255))))))
-                           ) )) ) )
+                                                 :key "log"
+                                                 :value (ppcre:regex-replace-all "'" ""
+                                                                                 (subseq descr (max 0 (- (length descr) 255)))))) ) )) ) )
+
+(defun fill-queue (&key (router (get-event :router)) (queue (get-event :queue)) (max-tasks 10) (delay 4))
+  (let* ((res (funcall (equeue-size :router-id router :id queue)))
+         (run-info (with-output-to-string(s)
+                     (let ((*standard-output* s))
+                       (if (second res)
+                           (let ((observed-tasks (jsown:val (first res) "size"))
+                                 (expected-tasks max-tasks))
+                             (if (> expected-tasks observed-tasks )
+                                 (mapcar
+                                  #'print-log
+                                  (remove-if
+                                   #'second
+                                   (lparallel:pmapcar
+                                    #'(lambda(i)(funcall (etask-new :router-id router :queue-id queue
+                                                                    :callback-url (format nil "http://~A/schedule-task?delay=~A&max-tasks=~A" "localhost:4343" delay max-tasks))))
+                                    (loop :repeat (- expected-tasks observed-tasks) :collect 1))))
+                                 "queue is full"))
+                           (print-log res)) ) )))
+    run-info ))
 
 (defvar *lock* (bt:make-lock))
 (defvar *to-complete* ())
@@ -81,65 +101,110 @@
 
 (hunchentoot:define-easy-handler (enable :uri "/enable") ()
   (setf (hunchentoot:content-type*) "text/plain")
-  (setf *active* t)
+  (setf *enabled* t)
   "enabled")
 
 (hunchentoot:define-easy-handler (disable :uri "/disable") ()
   (setf (hunchentoot:content-type*) "text/plain")
-  (setf *active* nil)
+  (setf *enabled* nil)
   "disabled")
+
+
 
 (hunchentoot:define-easy-handler (create-tasks :uri "/create-tasks") (router queue max-tasks delay)
   (setf (hunchentoot:content-type*) "text/plain")
-  (when *active*
+  (when *enabled*
     (bt:make-thread
      #'(lambda()
-         (let ((res (funcall (equeue-size :router-id router :id queue))))
-           (with-output-to-string(s)
-             (if (second res)
-                 (let ((observed-tasks (jsown:val (first res) "size"))
-                       (expected-tasks (parse-integer max-tasks)))
-                   (if (> expected-tasks observed-tasks )
-                       (mapcar
-                        #'print-log
-                        (remove-if
-                         #'second
-                         (lparallel:pmapcar
-                          #'(lambda(i)(funcall (etask-new :router-id router :queue-id queue
-                                                          :callback-url (format nil "http://~A/schedule-task?delay=~A&max-tasks=~A" "localhost:4343" delay max-tasks))))
-                          (loop :repeat (- expected-tasks observed-tasks) :collect 1))))
-                       "queue is full"))
-                 (print-log res))))
+         (fill-queue :router router :queue queue :max-tasks (parse-integer max-tasks) :delay delay)
          :name "auto-completer")))
   "OK")
 
 (hunchentoot:define-easy-handler (schedule-task :uri "/schedule-task") (delay max-tasks)
   (setf (hunchentoot:content-type*) "text/plain")
   (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
-    (hunchentoot:log-message* 'schedule "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
+    ;;(hunchentoot:log-message* 'schedule "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
     (let* ((start-time (get-internal-real-time))
            (task-info (jsown:parse body))
            (task (jsown:val task-info "task"))
            (queue-id (jsown:val task "queueRef"))
            (task-id (jsown:val task "ref"))
            (router-id (jsown:val task "routerRef")))
-      (bt:make-thread #'(lambda()
-                          (sleep (parse-integer delay))
-                          (drakma:http-request (format nil "http://localhost:4343/complete-task?max-tasks=~A&delay=~A&router=~A&task=~A&queue=~A" max-tasks delay router-id task-id queue-id))
-                          :name "auto-completer"))
+      (bt:make-thread
+       #'(lambda()
+           (drakma:http-request
+            (format nil "http://localhost:4343/create-tasks?max-tasks=~A&delay=~A&router=~A&queue=~A"
+                    max-tasks delay router-id queue-id)))
+       :name "fill-queue"
+       )
+      (bt:make-thread
+       #'(lambda()
+           (sleep (parse-integer delay))
+           (drakma:http-request (format nil "http://localhost:4343/complete-task?max-tasks=~A&delay=~A&router=~A&task=~A&queue=~A" max-tasks delay router-id task-id queue-id))
+           :name "auto-completer")
+       :name "wait-to-complete")
       "OK")))
+
+(hunchentoot:define-easy-handler (drakma-queue-size :uri "/queue-size") (max-tasks delay router task queue)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (format nil "~{~A~^,~}"(mapcar (compose (js-val "size") #'(lambda(id) (queue-size :id id)) (js-val "ref")) (queue-all)))  )
+(hunchentoot:define-easy-handler (drakma-agent-state :uri "/agent-state") (max-tasks delay router task queue)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (format nil "~{~A~^,~}"(mapcar (compose (js-val "state") #'(lambda(id) (agent :id id)) (js-val "ref")) (agent-all)))  )
 
 (hunchentoot:define-easy-handler (complete-task :uri "/complete-task") (max-tasks delay router task queue)
   (setf (hunchentoot:content-type*) "text/plain")
   (bt:make-thread #'(lambda()
                       (funcall (etask-set :router-id router :id task :state "completed"))
-                      (drakma:http-request "http://localhost:4343/task-completed")
-                      (drakma:http-request (format nil "http://localhost:4343/create-tasks?max-tasks=~A&delay=~A&router=~A&queue=~A" max-tasks delay router queue))
-                      :name "auto-completer")))
+                      (push (get-internal-real-time) *times*) )
+                  :name "complete task")
+  "OK")
 
-(hunchentoot:define-easy-handler (complete-task :uri "/task-completed") ()
-  (setf (hunchentoot:content-type*) "text/plain")
-  (push (get-internal-real-time) *times*))
+
+
+(hunchentoot:define-easy-handler (task-completed :uri "/throughput") ()
+  (setf (hunchentoot:content-type*) "text/html")
+  (let((template "<html>
+  <head>
+    <script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>
+    <script type=\"text/javascript\">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['minute', 'count'],
+          ~{~{['~A',~A]~}~^,~}
+        ]);
+
+        var options = {
+          title: 'Performance',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <div id='curve_chart' style='width: 900px; height: 500px'></div>
+    </body>
+    </html>"))
+      (format nil template (let((current (first *times*)))
+                             (mapcar #'(lambda(offset)
+                                         (list offset (floor (/ (count-if #'(lambda(timestamp)
+                                                                              (let ((timediff (- (- current (* offset (* 60 internal-time-units-per-second)))  
+                                                                                                 timestamp)))
+                                                                                (and (not (listp timestamp))
+                                                                                     (< timediff (* 120 internal-time-units-per-second))
+                                                                                     (>= timediff 0)                                                   )))
+                                                                          *times*) 2))))
+                                     (loop :for x from 0 to 30 :collect x))
+                             ))
+      ))
 
 (hunchentoot:define-easy-handler (retry :uri "/503") (data)
   (setf (hunchentoot:content-type*) "text/plain")
@@ -158,7 +223,16 @@
 (defun start-server()  (hunchentoot:start *server*))
 (defun stop-server()  (hunchentoot:stop *server*))
 
-;;(setf (hunchentoot:TASKMASTER-MAX-THREAD-COUNT (hunchentoot::acceptor-taskmaster *server*)) 200)
+;;(setf (hunchentoot:TASKMASTER-MAX-THREAD-COUNT (hunchentoot::acceptor-taskmaster *server*)) 400)
 ;;(setf (hunchentoot::acceptor-access-log-destination *server*) nil)
 ;;(drakma:http-request (format nil "http://localhost:4343/create-tasks?router=~A&queue=~A&max-tasks=10" (get-event :router) (get-event :queue)) )
 ;;(drakma:http-request (format nil "http://localhost:4343/schedule-task?router=~A&queue=~A&task=~A" (get-event :router) (get-event :queue) (get-event :task)) )
+(defparameter *queue-tag* 0)
+(defun add-queue-agents(&key(queues 10) (max-tasks 30) (task-delay 120) (insert-delay 30) (agent-per-queue 5))
+  (loop for x from 1 to queues do
+       (let ((queue (jsown:val (queue-new) "ref")))
+         (queue-set :predicate (format nil "#{queue}=='~A'" queue))
+         (fill-queue :queue queue :max-tasks max-tasks :delay task-delay)
+         (loop :repeat agent-per-queue do (agent-new ) (agent-set :capabilities (jsown:new-js ("queue" queue))))
+         (sleep insert-delay) ) ))
+;;

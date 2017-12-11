@@ -120,14 +120,16 @@
 
 
 (defun agent-del(&key (router-id (get-event :router))
-                   (id (get-event :agent)))
+                   (id (get-event :agent)) )
   (tr-step (http-del  "/routers" router-id "agents" id)
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :agent))))
 
 (defun agent-new(&key (router-id (get-event :router))
                    (address "address")
-                   (capabilities (jsown:new-js ("language" "en"))))
+                   (tag "some-info")
+                   (capabilities (jsown:new-js ("language" "en")
+                                               ("tag" tag))))
   (tr-step (http-post (list "/routers" router-id "agents") (jsown:new-js
                                                              ("address" address)
                                                              ("capabilities" capabilities)))
