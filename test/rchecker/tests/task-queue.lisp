@@ -482,13 +482,45 @@
 (defun create-tasks(&key (router-id (get-event :router)) (queue-id (get-event :queue)) (count 10))
   (time (remove-if #'second (lparallel:pmapcar #'(lambda(i)(funcall (etask-new :router-id router-id :queue-id queue-id))) (loop :repeat count :collect 1)))))
 
-(defun delete-tasks()
-  (loop for tasks = (task-all) :while (not(equal tasks "[]")) do
-       (lparallel:pmapcar #'(lambda(task-id)(unless (equal (jsown:val (task :id task-id) "state") "completed")
-                                         (task-set :id task-id))
-
-                                   (task-del :id task-id) )
+(defun delete-items(&key (all #'(lambda() (task-all))) 
+                      (complete #'(lambda(task-id)
+                                    (cond ((equal (jsown:val (task :id task-id) "state") "assigned") (funcall (etask-set :id task-id :state "completed")) )
+                                          ((equal (jsown:val (task :id task-id) "state") "waiting") (funcall (etask-set :id task-id :state "canceled")) ))))
+                      (delete #'(lambda(task-id) (task-del :id task-id))) )
+  (loop for tasks = (funcall all) 
+     :while (not(equal tasks "[]")) do
+       (lparallel:pmapcar #'(lambda(task-id) ;;
+                              (funcall complete task-id)
+                              (funcall delete task-id))
                           (mapcar (js-val "ref") tasks))))
+
+(defun clear-router()
+  (delete-items :all #'(lambda()(router-all))
+                :complete 
+                #'(lambda(router-id)
+                    (delete-items 
+                     :all #'(lambda() (task-all :router-id router-id))
+                     :complete #'(lambda(task-id)
+                                   (let ((task-state (jsown:val (task :router-id router-id :id task-id) "state"))) 
+                                     (cond ((equal  task-state "assigned")
+                                            (funcall (etask-set :router-id router-id :id task-id :state "completed")) )
+                                           ((equal task-state "waiting")
+                                            (funcall (etask-set :router-id router-id  :id task-id :state "canceled")) )) ))
+                     :delete #'(lambda(task-id) (task-del :router-id router-id :id task-id)))
+                    (delete-items 
+                     :all #'(lambda() (plan-all :router-id router-id))
+                     :complete #'(lambda(id))
+                     :delete #'(lambda(id) (plan-del :router-id router-id :id id)))
+                    (delete-items 
+                     :all #'(lambda() (agent-all :router-id router-id))
+                     :complete #'(lambda(id))
+                     :delete #'(lambda(id) (agent-del :router-id router-id :id id)))
+                    (delete-items 
+                     :all #'(lambda() (queue-all :router-id router-id))
+                     :complete #'(lambda(id))
+                     :delete #'(lambda(id) (queue-del :router-id router-id :id id)))
+                    )
+                :delete #'(lambda(id)(router-del :id id))))
 
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()
@@ -512,6 +544,7 @@
                                                   (mapcar (js-val "ref") (queue-all)))
                  :while (not queue)  do (sleep 1)))
         (mapcar #'print-log result)) ) )
+
 ;;(loop for a from 1 to 1 for start-time = (get-internal-real-time) for res = (funcall (test-performance :tasks 1000 :queues 25 :agents 1 :handle-time 1)) :collect (floor (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
 
 (defun complete-tasks(&key (try 3))
