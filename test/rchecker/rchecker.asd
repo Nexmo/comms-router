@@ -9,6 +9,7 @@
                #:drakma
                #:hunchentoot
                #:lparallel
+	       #:do-urlencode
                #:check-it)
   :serial t
   :components ((:file "package")
