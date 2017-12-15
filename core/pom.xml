@@ -46,6 +46,11 @@
       <artifactId>comms-router-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <version>${project.version}</version>
+      <artifactId>comms-router-validation</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>

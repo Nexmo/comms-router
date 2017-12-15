@@ -1,4 +1,4 @@
-<!--
+<!--   
   Copyright 2017 SoftAvail, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,52 +11,46 @@
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
-  limitations under the License.
+  limitations under the License.   
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
   <parent>
     <groupId>com.softavail.comms-router</groupId>
     <artifactId>comms-router-master</artifactId>
     <version>0.9.4-SNAPSHOT</version>
   </parent>
-
-  <artifactId>comms-router-core-interface</artifactId>
+    
+  <artifactId>comms-router-validation</artifactId>
   <packaging>jar</packaging>
-
-  <name>Comms Router Core Interface</name>
-
+    
+  <name>Comms Router Validation</name>
   <licenses>
     <license>
       <name>Apache License 2.0</name>
       <url>http://opensource.org/licenses/Apache-2.0</url>
     </license>
   </licenses>
-
-  <properties>
-    <netbeans.hint.license>apache20</netbeans.hint.license>
-  </properties>
-
+    
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <version>${project.version}</version>
-      <artifactId>comms-router-validation</artifactId>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>6.0.4.Final</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator-cdi</artifactId>
+        <version>6.0.4.Final</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-validator</artifactId>
-      <version>6.0.4.Final</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+        <groupId>org.glassfish</groupId>
+        <artifactId>javax.el</artifactId>
+        <version>3.0.1-b08</version>
     </dependency>
   </dependencies>
 </project>
