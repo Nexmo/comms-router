@@ -164,18 +164,21 @@ public class TestBase {
     return args;
   }
 
-  public UpdateAgentArg newUpdateAgentArg(String address, AgentState status) {
+  public UpdateAgentArg newUpdateAgentStateArg(AgentState state) {
+    // Creating test agent arguments
+    UpdateAgentArg args = new UpdateAgentArg();
+    args.setState(state);
+    return args;
+  }
+
+  public UpdateAgentArg newUpdateAgentArg(String address) {
     // Creating test attributeGroup and attributes
-    AttributeGroup aGroup = new AttributeGroup();
-    aGroup.add("name", "value");
-    aGroup.setId(5L);
-    AttributesMapper mapper = new AttributesMapper();
-    AttributeGroupDto aGroupDto = mapper.toDto(aGroup);
+    AttributeGroupDto aGroupDto = new AttributeGroupDto();
+    aGroupDto.add("name", "value");
     // Creating test agent arguments
     UpdateAgentArg args = new UpdateAgentArg();
     args.setAddress(address);
     args.setCapabilities(aGroupDto);
-    args.setState(status);
     return args;
   }
 

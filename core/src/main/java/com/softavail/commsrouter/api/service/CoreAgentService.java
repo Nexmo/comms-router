@@ -139,59 +139,38 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    AgentDispatchInfo dispatchInfo = updateAgent(updateArg, objectRef);
-    if (dispatchInfo != null) {
-      app.taskDispatcher.dispatchAgent(dispatchInfo);
-    }
-
-  }
-
-  private Boolean capabilitiesAreEqual(AttributeGroupDto newAttributes,
-      AttributeGroupDto oldAttributes) {
-    if (newAttributes == null && oldAttributes != null) {
-      return false;
-    }
-    if (newAttributes != null && oldAttributes == null) {
-      return false;
-    }
-    if (newAttributes == null && oldAttributes == null) {
-      return true;
-    }
-    if (newAttributes.size() != oldAttributes.size()) {
-      return false;
-    }
-    Set<String> keys = newAttributes.keySet();
-    for (String key : keys) {
-      if (!oldAttributes.containsKey(key)) {
-        return false;
-      }
-    }
-    return false; // !keys.isEmpty();
-  }
-
-  private AgentDispatchInfo updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
-      throws CommsRouterException {
-
     if (updateArg.getState() == AgentState.busy
         || updateArg.getState() == AgentState.unavailable) {
       throw new BadValueException(
           "Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
 
-    return app.db.transactionManager.execute((em) -> {
+    boolean updateState = updateArg.getState() != null;
+    boolean updateProperties = updateArg.getAddress() != null
+            || updateArg.getCapabilities() != null;
 
-      Agent agent;
-      if (updateArg.getCapabilities() != null) {
-        // ! get the agent after the router config lock
-        app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
-        agent = app.db.agent.get(em, objectRef);
-        updateCapabilities(em, agent, updateArg.getCapabilities());
-      } else {
-        agent = app.db.agent.get(em, objectRef);
+    if (updateState && updateProperties) {
+      throw new BadValueException("Agent's state change must be in an update of its own.");
+    }
+
+    if (updateState) {
+      assert !updateProperties;
+      AgentDispatchInfo dispatchInfo = updateState(updateArg, objectRef);
+      if (dispatchInfo != null) {
+        app.taskDispatcher.dispatchAgent(dispatchInfo);
       }
+    } else {
+      assert updateProperties;
+      updateProperties(updateArg, objectRef);
+    }
+  }
 
+  private AgentDispatchInfo updateState(UpdateAgentArg updateArg, RouterObjectRef objectRef)
+          throws CommsRouterException {
+
+    return app.db.transactionManager.execute((em) -> {
+      Agent agent = app.db.agent.get(em, objectRef);
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
-      Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
       if (!agentBecameAvailable) {
         return null;
       }
@@ -204,10 +183,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
   private boolean updateState(Agent agent, AgentState newState)
       throws InvalidStateException, InternalErrorException {
-    if (newState == null) {
-      // no change requested
-      return false;
-    }
+
     final AgentState oldState = agent.getState();
     if (oldState == newState) {
       return false;
@@ -232,8 +208,27 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     return agentBecameAvailable;
   }
 
+  private void updateProperties(UpdateAgentArg updateArg, RouterObjectRef objectRef)
+          throws CommsRouterException {
+
+    app.db.transactionManager.executeVoid((em) -> {
+      app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+      Agent agent = app.db.agent.get(em, objectRef);
+      if (!agent.getState().isUpdateAllowed()) {
+          throw new InvalidStateException(
+              "Updating agent properties in state " + agent.getState() + " not allowed");
+      }
+      updateCapabilities(em, agent, updateArg.getCapabilities());
+      Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
+    });
+  }
+
   private void updateCapabilities(EntityManager em, Agent agent, AttributeGroupDto newCapabilities)
       throws CommsRouterException {
+
+    if (newCapabilities == null) {
+      return;
+    }
 
     if (capabilitiesAreEqual(newCapabilities,
         app.entityMapper.attributes.toDto(agent.getCapabilities()))) {
@@ -245,6 +240,29 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
     agent.getAgentQueueMappings().clear();
     attachQueues(em, agent, newCapabilities, false);
+  }
+
+  private Boolean capabilitiesAreEqual(AttributeGroupDto newAttributes,
+      AttributeGroupDto oldAttributes) {
+    if (newAttributes == null && oldAttributes != null) {
+      return false;
+    }
+    if (newAttributes != null && oldAttributes == null) {
+      return false;
+    }
+    if (newAttributes == null && oldAttributes == null) {
+      return true;
+    }
+    if (newAttributes.size() != oldAttributes.size()) {
+      return false;
+    }
+    Set<String> keys = newAttributes.keySet();
+    for (String key : keys) {
+      if (!oldAttributes.containsKey(key)) {
+        return false;
+      }
+    }
+    return false; // !keys.isEmpty();
   }
 
   @Override

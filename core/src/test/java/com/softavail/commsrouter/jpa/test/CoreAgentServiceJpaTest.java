@@ -43,15 +43,26 @@ public class CoreAgentServiceJpaTest extends TestBase {
 
   // Testing the update method
   @Test
-  public void updateTest() throws CommsRouterException {
+  public void updateStateTest() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("aktyriskghsirol", "01");
     queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
     agentService.replace(newCreateAgentArg("address_one"), ref);
     // Updating
-    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref);
+    agentService.update(newUpdateAgentStateArg(AgentState.ready), ref);
+    AgentDto agent = agentService.get(ref);
+    assertEquals(agent.getState(), AgentState.ready);
+  }
+
+  // Testing the update method
+  @Test
+  public void updatePropertiesTest() throws CommsRouterException {
+    RouterObjectRef ref = new RouterObjectRef("aktyriskghsirol", "01");
+    queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
+    agentService.replace(newCreateAgentArg("address_one"), ref);
+    // Updating
+    agentService.update(newUpdateAgentArg("address_two"), ref);
     AgentDto agent = agentService.get(ref);
     assertEquals(agent.getAddress(), "address_two");
-    assertEquals(agent.getState(), AgentState.ready);
   }
 
   // Setting state to busy. Expecting a BadValueException
@@ -59,7 +70,7 @@ public class CoreAgentServiceJpaTest extends TestBase {
   public void updateStateBusy() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
     agentService.replace(newCreateAgentArg("address_one"), ref); // offline
-    agentService.update(newUpdateAgentArg("address_two", AgentState.busy), ref); // can't be busy
+    agentService.update(newUpdateAgentStateArg(AgentState.busy), ref); // can't be busy
   }
 
   // Updating state to offline
@@ -67,8 +78,8 @@ public class CoreAgentServiceJpaTest extends TestBase {
   public void updateStateOffline() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
     agentService.replace(newCreateAgentArg("address_one"), ref); // offline
-    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref); // ready
-    agentService.update(newUpdateAgentArg("address_two", AgentState.offline), ref); // offline
+    agentService.update(newUpdateAgentStateArg(AgentState.ready), ref); // ready
+    agentService.update(newUpdateAgentStateArg(AgentState.offline), ref); // offline
     AgentDto agent = agentService.get(ref);
     assertEquals(agent.getState(), AgentState.offline);
   }
