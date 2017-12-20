@@ -31,15 +31,31 @@
         (if (stringp res) res
             (babel:octets-to-string res ) )) ))
 
+(defun dexador-client()
+  #'(lambda(url method headers body)
+      (let ((cons-headers (mapcar #'cons (mapcar #'first headers) (mapcar #'second headers))))
+        (handler-case
+            (handler-bind ((dex:http-request-failed (dex:retry-request 5 :interval 3)))
+              (dex:request url :method method :headers cons-headers
+                           :content body))
+            
+          (dex:http-request-bad-request (e)
+
+            (dex:response-body e)
+            ;; Runs when 400 bad request returned
+            )
+          (dex:http-request-failed (e) ;; For other 4xx or 5xx
+            (format *error-output* "The server returned ~D" (dex:response-body e))
+            (dex:response-body e))) ) ))
+
 (defun content-json(fn)
   #'(lambda (url method headers body)
-      (let*((str (funcall fn url method headers body))
-            (json (unless (equal "" str)
-                    (handler-case (jsown:parse str)
-                      (error (e) (progn (format t "~S"e) t))))))
-        (dump (if (member json '(t nil) )
-                  str
-                  (format-json str)))
+      (let*((str (funcall fn url method headers body) )
+            (json (if (zerop(length str) )  ""
+                      (unless (equal "" str) 
+                        (handler-case (jsown:parse str)
+                          (error (e) (progn (format t "~S"e) t))))) ))
+        ;(dump (if (member json '(t nil) ) str (format-json str)))
         (if (member json '(t nil)) str json))))
 
 (defun transport()

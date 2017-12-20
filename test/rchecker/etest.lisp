@@ -30,6 +30,15 @@
         #'(lambda(res)
             (apply #'tand steps)))
       step))
+
+(defun tor(step &rest steps)
+  #'(lambda()
+      (destructuring-bind (result check description)(funcall step)
+        (if (or check (null steps)) 
+            (list result check description)
+            (destructuring-bind (result1 check1 description1) (funcall(apply #'tor steps))
+              (list result1 check1 (append description description1)))))))
+
 (assert (equal (funcall(tand (tstep-result 'description 'response 'check 'steps-to-repro '(check-descr))
                        (tstep-result 'description1 'response1 'check1 'steps-to-repro1 '(check-descr1))))
                '(RESPONSE1 CHECK1
@@ -246,7 +255,8 @@
                 (format t "~%invalid path")))
             (progn (format t "~%Deadend reached!")) ) ) ))
 
-(defun test-random(&key(prefix ()) (size (length prefix)) (selector (policy-selector)))
+(defun test-random(&key(prefix ()) (size (length prefix)) (selector (simple-selector);;(policy-selector)
+                                                                    ))
   (let* (;;(router-id (jsown:val (router-new) "ref"))
          ;;(queue-id (jsown:val (queue-new :router-id router-id) "ref"))
          (*mem* (make-hash-table :test #'equal))
@@ -280,7 +290,9 @@
                                     (format t "~%Failed cases:~%")
                                     (print (mapcar #'reverse x))
                                     res)
-                          do (setf *update-policy* ()) (format t "."))))
+                          do 
+                            ;(setf *update-policy* ())
+                            (format t "."))))
     (print(reduce #'min (print (remove-if #'zerop (mapcar #'length (let ((fn #'(lambda(problem-case)(test-random :prefix problem-case))))
                                                                      (if (= (length problem-cases) 1 )
                                                                          (list (funcall fn (first problem-cases)))

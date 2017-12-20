@@ -432,13 +432,6 @@
 (defun delete-completed-tasks()
   (loop for task-all = (task-all) for task = (when (listp task-all) (first task-all)) :while (and task (equal (jsown:val task "state") "completed")) do (task-del :id (jsown:val task "ref"))))
 
-(defun delete-router()
-  (loop for x = (task-all) :until (equal x "[]") do (task-del))
-  (loop for x = (agent-all) :until (equal x "[]") do (agent-del))
-  (loop for x = (plan-all) :until (equal x "[]") do (plan-del))
-  (loop for x = (queue-all) :until (equal x "[]") do (queue-del))
-  )
-
 (defun setup-demo()
   (tlet((router-id (js-val "ref") (erouter-put :id "router-ivr")))
 
@@ -506,21 +499,21 @@
                                             (funcall (etask-set :router-id router-id :id task-id :state "completed")) )
                                            ((equal task-state "waiting")
                                             (funcall (etask-set :router-id router-id  :id task-id :state "canceled")) )) ))
-                     :delete #'(lambda(task-id) (task-del :router-id router-id :id task-id)))
+                     :delete #'(lambda(task-id) (funcall (etask-del :router-id router-id :id task-id)) ))
                     (delete-items 
                      :all #'(lambda() (plan-all :router-id router-id))
                      :complete #'(lambda(id))
-                     :delete #'(lambda(id) (plan-del :router-id router-id :id id)))
+                     :delete #'(lambda(id) (funcall (eplan-del :router-id router-id :id id)) ))
                     (delete-items 
                      :all #'(lambda() (agent-all :router-id router-id))
                      :complete #'(lambda(id))
-                     :delete #'(lambda(id) (agent-del :router-id router-id :id id)))
+                     :delete #'(lambda(id) (funcall (eagent-del :router-id router-id :id id)) ))
                     (delete-items 
                      :all #'(lambda() (queue-all :router-id router-id))
                      :complete #'(lambda(id))
-                     :delete #'(lambda(id) (queue-del :router-id router-id :id id)))
+                     :delete #'(lambda(id) (funcall (equeue-del :router-id router-id :id id)) ))
                     )
-                :delete #'(lambda(id)(router-del :id id))))
+                :delete #'(lambda(id) (funcall (erouter-del :id id)) )))
 
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()

@@ -7,6 +7,7 @@
   :depends-on (#:alexandria
                #:jsown
                #:drakma
+               #:dexador
                #:hunchentoot
                #:lparallel
 	       #:do-urlencode

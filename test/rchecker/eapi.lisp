@@ -1,10 +1,22 @@
 (in-package :rchecker)
 
 (defun tapply(request)
-  #'(lambda()
-      (list (apply (funcall *endpoint* (cmd-curl)) (funcall request))
-            (apply (funcall *endpoint* (transport-drakma)) (funcall request)))))
+  (let ((req (funcall request)))
+    #'(lambda()
+        (list (apply (funcall *endpoint* (cmd-curl)) req)
+              (apply (funcall *endpoint* (content-json 
+                                          ;(dexador-client)
+                                          (drakma-client)
+                                          )) req)))))
+  
+  
 ;;; queue
+(defun equeue-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1)
+                    (checks (check-and (has-json))))
+  (tstep (format nil "List available queues page:~A."  page-number)
+         (tapply (http-get "/routers" router-id (format nil "queues?per_page=~A&page_num=~A" per-page page-number)))
+         checks) )
+
 (defun equeue-new (&key (router-id (get-event :router))
                      (description "description")
                      (predicate "1==1"))
@@ -87,9 +99,9 @@
                                                     ("description" description))))
          (check-and (has-json) (has-key "ref") (publish-id :router))))
 
-(defun erouter-all (&key (checks (check-and (has-json))))
+(defun erouter-all (&key (checks (check-and (has-json))) (per-page 50) (page-number 1))
   (tstep (format nil "List available routers.")
-         (tapply (http-get "/routers"))
+         (tapply (http-get (format nil "/routers?per_page=~A&page_num=~A" per-page page-number)))
          checks))
 
 (defun erouter-put (&key (id (get-event :router)) (name "name") (description "description"))
@@ -153,10 +165,10 @@
                             (jsown:new-js ("state" state) )))
          (is-equal "")))
 
-(defun etask-all(&key (router-id (get-event :router)))
+(defun etask-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1))
   (tstep "List all tasks"
-         (tapply (http-get "/routers" router-id "tasks"))
-         (not-contains "error")))
+         (tapply (http-get "/routers" router-id (format nil "tasks?per_page=~A&page_num=~A" per-page page-number)))
+         (has-json)))
 
 (defun etask-set-context(&key (router-id (get-event :router)) (task-id (get-event :task)) (key "key") (value "value"))
   (tstep (format nil "Set task's context~A = ~A." key value)
@@ -262,3 +274,18 @@
   (tstep (format nil "Delete plan with id ~A." id)
          (tapply (http-del "/routers" router-id "plans" id))
          (is-equal "")))
+
+(defun all(&key (description "Get all items.") (list-fn #'etask-all) (checks (has-json)) )
+  (tstep (format nil description)
+         #'(lambda()
+             (list description 
+                   (loop for page from 1 
+                      for (data res log) = (funcall (funcall list-fn :page-number page)) 
+                      :while (or (not (jsown:keyp data "error")) (progn 
+                                                                   (unless (equal (jsown:val (jsown:val data "error") "code") 
+                                                                                  "ValidationException") 
+                                                                     (print-log (list data res log) )
+                                                                     )
+                                                                   nil)) 
+                      :append data )))
+         checks)  )
