@@ -86,7 +86,7 @@ public class Router extends Resource {
     return  given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .when().delete("/routers/{routerRef}")
-        .then().statusCode(204);
+        .then();
   }
 
   public void delete() {
