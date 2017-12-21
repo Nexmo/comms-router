@@ -22,7 +22,7 @@ package com.softavail.commsrouter.api.dto.model;
  */
 public enum AgentState {
 
-  offline(true, true), ready(true, true), busy(false, false), unavailable(true, true);
+  offline(true, true), ready(false, false), busy(false, false), unavailable(true, true);
 
   private boolean deleteAllowed;
   private boolean updateAllowed;
