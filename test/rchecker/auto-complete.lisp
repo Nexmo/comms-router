@@ -34,7 +34,7 @@
 (hunchentoot:define-easy-handler (app :uri "/task") (data)
   (setf (hunchentoot:content-type*) "text/plain")
   (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
-    (hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
+    ;;(hunchentoot:log-message* 'task-requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
     (let* ((start-time (get-internal-real-time))
            (task-info (jsown:parse body))
            (task (jsown:val task-info "task"))
@@ -46,16 +46,15 @@
                           (let ((res (autocomplete-task router-id task-id)))
                             (if (some #'null (mapcar #'second res))
                                 "ERROR"
-                                (push (get-internal-real-time) *times*)))
-                          )
+                                (push (get-internal-real-time) *times*))))
                       :name "auto-completer")
-      (hunchentoot:log-message* 'ready "completed in ~A" (- (get-internal-real-time) start-time))
+      ;;(hunchentoot:log-message* 'ready "completed in ~A" (- (get-internal-real-time) start-time))
       "OK")))
 
 (hunchentoot:define-easy-handler (handle-slow :uri "/handle-slow") (data)
   (setf (hunchentoot:content-type*) "text/plain")
   (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
-    (hunchentoot:log-message* 'requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
+    (hunchentoot:log-message* 'slow-requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
     (let* ((start-time (get-internal-real-time))
            (task-info (jsown:parse body))
            (task (jsown:val task-info "task"))
@@ -107,11 +106,15 @@
 (hunchentoot:define-easy-handler (create-tasks :uri "/create-tasks") (router queue max-tasks delay host)
   (setf (hunchentoot:content-type*) "text/plain")
   (when *enabled*
-    (let ((queue-id queue))
+    (let ((queue-id queue)
+          (router router)
+          (max-tasks max-tasks)
+          (host host)
+          (delay delay))
       (bt:make-thread
        #'(lambda()
-	   (fill-queue :host (if host (do-urlencode:urldecode host) "localhost:4343") :router router :queue queue-id :max-tasks (parse-integer max-tasks) :delay delay)
-	   :name "auto-completer"))))
+           (fill-queue :host (if host (do-urlencode:urldecode host) "localhost:4343") :router router :queue queue-id :max-tasks (parse-integer max-tasks) :delay delay)
+           :name "auto-completer"))))
   "OK")
 
 (hunchentoot:define-easy-handler (schedule-task :uri "/schedule-task") (delay max-tasks host)
@@ -129,8 +132,7 @@
            (drakma:http-request
             (format nil "http://localhost:4343/create-tasks?max-tasks=~A&delay=~A&router=~A&queue=~A&host=~A"
                     max-tasks delay router-id queue-id (if host (do-urlencode:urlencode host) host))))
-       :name "fill-queue"
-       )
+       :name "fill-queue" )
       (bt:make-thread
        #'(lambda()
            (sleep (parse-integer delay))
@@ -223,7 +225,12 @@
 ;;(drakma:http-request (format nil "http://localhost:4343/create-tasks?router=~A&queue=~A&max-tasks=10" (get-event :router) (get-event :queue)) )
 ;;(drakma:http-request (format nil "http://localhost:4343/schedule-task?router=~A&queue=~A&task=~A" (get-event :router) (get-event :queue) (get-event :task)) )
 (defparameter *queue-tag* 0)
-(defun add-queue-agents(&key(queues 10) (max-tasks 30) (task-delay 120) (insert-delay 30) (agent-per-queue 5) (host "localhost:4343"))
+(defun add-queue-agents (&key(queues 10) 
+                         (max-tasks 30) 
+                         (task-delay 120)
+                         (insert-delay 30)
+                         (agent-per-queue 5)
+                         (host "localhost:4343"))
   (loop for x from 1 to queues do
        (let ((queue (jsown:val (queue-new) "ref")))
          (queue-set :predicate (format nil "#{queue}=='~A'" queue))

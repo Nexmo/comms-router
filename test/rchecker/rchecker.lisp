@@ -7,10 +7,10 @@
           (list t (list (format nil "ok - Response is json")))
           (list nil (list (format nil "FAIL- Response should be json, not ~A."json))))))
 
-(defun has-kv(key value)
+(defun has-kv(key value &optional (compare-fn #'equal))
   #'(lambda(json)
       (if (member key (jsown:keywords json) :test #'equal)
-          (if (equal (jsown:val json key) value)
+          (if (funcall compare-fn (jsown:val json key) value)
               (list t (list(format nil "ok - result contains key ~S=~S" key value)))
               (list nil (list(format nil "FAIL- key ~S should be ~S but it is ~S" key value (jsown:val json key)))) )
           (list nil (list(format nil "FAIL- should have key ~A in ~S" key (jsown:to-json json)))))))
