@@ -554,3 +554,18 @@
                               "create queue"  "create agent" "create task when there are no ready agents"
                               "set-agent ready if there are waiting tasks" "create queue"
                               "check agent state"))))
+
+(defun dump-time (f &optional (text "time")) 
+  #'(lambda()
+      (let ((start-time (get-internal-real-time)))
+        (prog1 (funcall f)
+          (format t "~%~A:~F" text (/ (- (get-internal-real-time) start-time) internal-time-units-per-second))))))
+
+(defun time-to-complete-task()
+  (tlet((router (js-val "ref") (erouter-new))
+        (queue  (js-val "ref") (equeue-new :router-id router))
+        (agent (js-val "ref") (eagent-new :router-id router))
+        (task (js-val "ref")  (etask-new :router-id router :queue-id queue)))
+    (tand (eagent-set :router-id router :id agent :state "ready")
+          (dump-time (twait (eagent :router-id router :id agent :checks (has-kv "state" "busy"))
+                       :timeout 200)))))

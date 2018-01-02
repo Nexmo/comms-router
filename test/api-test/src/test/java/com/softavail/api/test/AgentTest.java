@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.allOf;
+import org.junit.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
@@ -45,11 +46,6 @@ import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -57,7 +53,7 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.junit.jupiter.api.AfterEach;
+
 import java.io.OutputStreamWriter;
 import org.hamcrest.Matchers;
 import org.hamcrest.MatcherAssert;
@@ -71,7 +67,7 @@ import java.io.BufferedReader;
  * Unit test for Agents.
  */
 // @TestInstance(Lifecycle.PER_CLASS)
-@DisplayName("Agent Test")
+//@DisplayName("Agent Test")
 public class AgentTest {
 
   private static final Logger LOGGER = LogManager.getLogger(Agent.class);
@@ -83,13 +79,13 @@ public class AgentTest {
   private Task t = new Task(state);
   private Plan p = new Plan(state);
   private ServerSocket server;
-  @BeforeAll
+  //@BeforeAll
   public static void beforeAll() throws Exception {
-    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
+    Assume.assumeTrue( "autHost is set", System.getProperty("autHost") != null);
   }
 
 
-  @BeforeEach
+  @Before
   public void setup() throws IOException {
     server = new ServerSocket(0);
     r.create(new CreateRouterArg());
@@ -97,7 +93,7 @@ public class AgentTest {
         new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
   }
 
-  @AfterEach
+  @After
   public void cleanup() throws IOException {
     server.close();
   }
@@ -108,13 +104,12 @@ public class AgentTest {
       Socket socket = server.accept();
       OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
       ow.write("HTTP1/0 200 OK\r\n\r\n");
-      //InputStreamReader r = new InputStreamReader(socket.getInputStream(),"UTF-8");
       return (new BufferedReader(new InputStreamReader(socket.getInputStream()))
                          .lines().collect(Collectors.joining("\n")));
   }
 
   @Test
-  @DisplayName("Create new agent.")
+  //@DisplayName("Create new agent.")
   public void createAgent() {
     a.create(new CreateAgentArg());
     AgentDto resource = a.get();
@@ -124,7 +119,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Create new agent and bind to queue.")
+  //@DisplayName("Create new agent and bind to queue.")
   public void createAgentWithCapabilities() {
     a.create("en");
     AgentDto resource = a.get();
@@ -176,7 +171,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Create new agent and complete a task.")
+  //@DisplayName("Create new agent and complete a task.")
   public void agentHandlesTask() throws MalformedURLException, InterruptedException {
     a.create("en");
     AgentDto resource = a.get();
@@ -196,8 +191,8 @@ public class AgentTest {
     a.setState(AgentState.offline);
   }
 
-  //@Test
-  @DisplayName("Create new agent and complete two tasks.")
+  @Test
+  //@DisplayName("Create new agent and complete two tasks.")
   public void agentHandlesTwoTasks() throws MalformedURLException, InterruptedException {
     a.create("en");
     a.setState(AgentState.ready);
@@ -214,7 +209,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Create new agent task - no ready agents, set agent ready to complete task.")
+  //@DisplayName("Create new agent task - no ready agents, set agent ready to complete task.")
   public void agentOfflineTaskReady() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -241,7 +236,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Create new agent and cancel the assigned task.")
+  //@DisplayName("Create new agent and cancel the assigned task.")
   public void taskWithCancel() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -284,7 +279,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Check that bad url does not influence processing task.")
+  //@DisplayName("Check that bad url does not influence processing task.")
   public void taskRejectedBadCallbackUrl() throws MalformedURLException, InterruptedException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -325,7 +320,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Multiple agents compete for a task.")
+  //@DisplayName("Multiple agents compete for a task.")
   public void multipleAgentsPerTask() throws MalformedURLException, InterruptedException, IOException {
 
     ApiObjectRef ref1 = a.create("en");
@@ -388,7 +383,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Multiple agents cancel task and go to the next.")
+  //@DisplayName("Multiple agents cancel task and go to the next.")
   public void multipleAgentsAndCancelTask() throws MalformedURLException, InterruptedException {
 
     ApiObjectRef ref1 = a.create("en");
@@ -425,7 +420,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Multiple agents last busy starts a task.")
+  //@DisplayName("Multiple agents last busy starts a task.")
   public void multipleAgentsLastBusyStartsTask()
       throws MalformedURLException, InterruptedException {
 
@@ -486,7 +481,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Two tasks in a row.")
+  //@DisplayName("Two tasks in a row.")
   public void twoTaskInARow() throws MalformedURLException, InterruptedException {
 
     ApiObjectRef a1_ref = a.create("en");
@@ -530,7 +525,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Create task, create agent, create task- first one should be handled first.")
+  //@DisplayName("Create task, create agent, create task- first one should be handled first.")
   public void twoTaskBeforeAndAfterAgent() throws MalformedURLException, InterruptedException {
     CreatedTaskDto task1 = t.createQueueTask();
     TimeUnit.SECONDS.sleep(2);
@@ -574,7 +569,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Three tasks with different priority.")
+  //@DisplayName("Three tasks with different priority.")
   public void handleWithPriority() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     p.create(new CreatePlanArg.Builder("priority 0")
@@ -636,7 +631,7 @@ public class AgentTest {
   }
 
   @Test
-  @DisplayName("Three tasks two queues with different priority.")
+  //@DisplayName("Three tasks two queues with different priority.")
   public void handleWithPriorityTwoQueues() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     q.create(
@@ -678,7 +673,6 @@ public class AgentTest {
     t.setState(TaskState.completed);
     assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task3.getRef())));
-
 
     state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();

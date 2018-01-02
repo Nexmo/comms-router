@@ -15,36 +15,22 @@
  *
  */
 
-package com.softavail.commsrouter.test.api;
+package com.softavail.api.test;
 
-import io.restassured.RestAssured;
+import org.junit.*;
 
-import java.util.HashMap;
 
-public class Resource {
+/** Unit test for simple App. */
+public class BaseTest {
 
-  private HashMap<CommsRouterResource, String> state;
-
-  public Resource(HashMap<CommsRouterResource, String> state) {
-    RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+  @BeforeClass
+  public static void beforeAll() throws Exception {
     java.util.Map<String, String> env = System.getenv();
     String host = env.get("AUT_HOST");
     if (host != null){
       System.setProperty("autHost", host);
     }
 
-    if (System.getProperty("autHost") == null) {
-      RestAssured.baseURI = "http://localhost:8080";
-    } else {
-      // you can specify it using -DautHost=http://localhost:8080
-      RestAssured.baseURI = System.getProperty("autHost");
-    }
-    RestAssured.basePath = "/comms-router-web/api";
-    this.state = state;
+    Assume.assumeTrue("autHost is set", System.getProperty("autHost") != null);
   }
-
-  public HashMap<CommsRouterResource, String> state() {
-    return this.state;
-  }
-
 }

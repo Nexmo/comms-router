@@ -32,23 +32,10 @@
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19</version>
-          <dependencies>
-            <dependency>
-              <groupId>org.junit.platform</groupId>
-              <artifactId>junit-platform-surefire-provider</artifactId>
-              <version>1.0.0</version>
-            </dependency>
-            <dependency>
-              <!-- contains the engine that actually runs the Jupiter-tests -->
-              <groupId>org.junit.jupiter</groupId>
-              <artifactId>junit-jupiter-engine</artifactId>
-              <version>5.0.0</version>
-            </dependency>
-          </dependencies>
           <configuration>
             <useFile>false</useFile>
-            <trimStackTrace>true</trimStackTrace>
-            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <trimStackTrace>false</trimStackTrace>
+            <redirectTestOutputToFile>false</redirectTestOutputToFile>
           </configuration>
         </plugin>
       </plugins>
@@ -57,43 +44,22 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jool</artifactId>
-      <version>0.9.12</version>
-    </dependency>
-    <dependency>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
       <artifactId>comms-router-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.0.0</version>
-      <!-- for writing tests "test" scope would suffice,
-           but extensions are defined in the project's "main" folder, so we need "compile" -->
-      <scope>compile</scope>
-    </dependency>
-    <!-- this dependency is needed to create parameterized tests -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>5.0.0</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
-      <version>3.0.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
+      <version>3.0.6</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
+
 </project>
