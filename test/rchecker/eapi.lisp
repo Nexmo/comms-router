@@ -1,4 +1,6 @@
 (in-package :rchecker)
+(defun with-q(param q)
+  (format nil "~A~A" param q))
 
 (defun tapply(request)
   #'(lambda()
@@ -17,9 +19,10 @@
 (defun equeue-size (&key (router-id (get-event :router))
                       (id (get-event :queue))
                       (description (format nil "Get size of the queue."))
-                      (checks (check-and (has-json) (has-key "size"))))
+                      (checks (check-and (has-json) (has-key "size")))
+                      (q""))
   (tstep description
-         (tapply (http-get "/routers" router-id "queues" id "size"))
+         (tapply (http-get "/routers" router-id "queues" id (with-q "size" q)))
          checks ))
 
 (defun equeue-put (&key (router-id (get-event :router))
@@ -38,6 +41,11 @@
          (tapply (http-del  "/routers" router-id "queues" id))
          (check-and (is-equal "") (remove-id :queue))))
 
+(defun equeue-all(&key (router-id (get-event :router))
+                    (q ""))
+  (tstep "List all plans"
+         (tapply (http-get "/routers" router-id (with-q "queues" q)))
+         (not-contains "error")))
 ;;; agent
 (defun eagent-new (&key (router-id (get-event :router))
                      (address "address")
@@ -87,9 +95,10 @@
                                                     ("description" description))))
          (check-and (has-json) (has-key "ref") (publish-id :router))))
 
-(defun erouter-all (&key (checks (check-and (has-json))))
+(defun erouter-all (&key (checks (check-and (has-json)))
+                      (q ""))
   (tstep (format nil "List available routers.")
-         (tapply (http-get "/routers"))
+         (tapply (http-get (with-q "/routers" q)))
          checks))
 
 (defun erouter-put (&key (id (get-event :router)) (name "name") (description "description"))
@@ -133,10 +142,10 @@
                (description (format nil "Check that task is in state ~A." state))
                (router-id (get-event :router))
                (id (get-event :task))
-
+               (q "")
                (checks (check-and (has-json) (has-kv "state" state))))
   (tstep description
-         (tapply (http-get "/routers" router-id "tasks" id ))
+         (tapply (http-get "/routers" router-id "tasks" (with-q id q)))
          checks))
 
 (defun etask-by-tag(&key (tag "unique-tag")
@@ -153,9 +162,10 @@
                             (jsown:new-js ("state" state) )))
          (is-equal "")))
 
-(defun etask-all(&key (router-id (get-event :router)))
+(defun etask-all(&key (router-id (get-event :router))
+                   (q""))
   (tstep "List all tasks"
-         (tapply (http-get "/routers" router-id "tasks"))
+         (tapply (http-get "/routers" router-id (with-q "tasks" q)))
          (not-contains "error")))
 
 (defun etask-set-context(&key (router-id (get-event :router)) (task-id (get-event :task)) (key "key") (value "value"))
@@ -165,9 +175,10 @@
          (is-equal "")))
 
 ;;; agent
-(defun eagent-all(&key (router-id (get-event :router)))
+(defun eagent-all(&key (router-id (get-event :router))
+                    (q ""))
   (tstep "List all agents"
-         (tapply (http-get "/routers" router-id "agents"))
+         (tapply (http-get "/routers" router-id (with-q "agents" q)))
          (not-contains "error")))
 
 (defun eagent-set(&key
@@ -186,9 +197,10 @@
          (is-equal "")))
 
 (defun eagent(&key (description "Get state of the agent") (router-id (get-event :router))
-                (id (get-event :agent)) (checks (has-kv "ref" id)))
+                (id (get-event :agent)) (checks (has-kv "ref" id))
+                (q ""))
   (tstep description
-         (tapply (http-get "/routers" router-id "agents" id))
+         (tapply (http-get "/routers" router-id "agents" (with-q id)))
          checks))
 
 (defun eagent-del(&key (router-id (get-event :router))
@@ -262,3 +274,9 @@
   (tstep (format nil "Delete plan with id ~A." id)
          (tapply (http-del "/routers" router-id "plans" id))
          (is-equal "")))
+
+(defun eplan-all(&key (router-id (get-event :router))
+                    (q ""))
+  (tstep "List all plans"
+         (tapply (http-get "/routers" router-id (with-q "plans" q)))
+         (not-contains "error")))
