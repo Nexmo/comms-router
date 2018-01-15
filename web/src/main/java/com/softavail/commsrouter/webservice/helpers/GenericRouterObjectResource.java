@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.webservice.helpers;
 
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.service.PaginationHelper;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
@@ -29,6 +30,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ResponseHeader;
+import javax.validation.constraints.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -105,10 +107,14 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
       @Min(value = 1L, message = "{resource.list.min.items.per.page}")
       @Max(value = 50, message = "{resource.list.max.items.per.page}")
       @DefaultValue("10")
-      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage)
+      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage,
+      @Valid
+      @Pattern(regexp = PaginationHelper.SORT_REGEX, message = "{resource.list.sort.message}")
+      @QueryParam("sort") String sort,
+      @QueryParam("q") String query)
       throws CommsRouterException {
 
-    PagingRequest pagingRequest = new PagingRequest(routerRef, token, perPage);
+    PagingRequest pagingRequest = new PagingRequest(routerRef, token, perPage, sort, query);
 
     PaginatedList<T> pagedList = getService().list(pagingRequest);
 

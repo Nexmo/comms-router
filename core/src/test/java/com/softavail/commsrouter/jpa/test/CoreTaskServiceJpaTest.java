@@ -40,7 +40,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
   public void createTestTwo() throws MalformedURLException, CommsRouterException {
     ApiObjectRef queue = queueService.create(newCreateQueueArg("1==1", "desctiption_one"), "01");
     taskService.create(newCreateTaskArg(queue.getRef(), "https://test.com", null), "01");
-    PaginatedList<TaskDto> task = taskService.list(new PagingRequest("01", null, 10));
+    PaginatedList<TaskDto> task = taskService.list(
+        new PagingRequest("01", null, 10, null, null));
     assertEquals(task.getList().get(0).getCallbackUrl(), "https://test.com");
   }
 
@@ -100,7 +101,8 @@ public class CoreTaskServiceJpaTest extends TestBase {
         planService.create(newCreatePlanArg("description_one", "1==1", queue.getRef()), "01");
 
     taskService.create(newCreateTaskArg(null, "https://test.com", plan.getRef()), "01");
-    PaginatedList<TaskDto> task = taskService.list(new PagingRequest("01", null, 10));
+    PaginatedList<TaskDto> task = taskService.list(
+        new PagingRequest("01", null, 10, null, null));
     assertEquals(task.getList().get(0).getCallbackUrl(), "https://test.com");
   }
 

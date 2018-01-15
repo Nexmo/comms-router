@@ -126,7 +126,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   @Override
   public PaginatedList<TaskDto> list(PagingRequest request) {
     PagingRequest pagingRequest =
-        new PagingRequest(routerRef, request.getToken(), request.getPerPage());
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
     return getList(pagingRequest);
   }
 

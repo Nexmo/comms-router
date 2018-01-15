@@ -26,12 +26,14 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.api.service.PaginationHelper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ResponseHeader;
+import javax.validation.constraints.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -108,10 +110,16 @@ public class RouterResource {
       @Min(value = 1L, message = "{resource.list.min.items.per.page}")
       @Max(value = 50, message = "{resource.list.max.items.per.page}")
       @DefaultValue("10")
-      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage)
+      @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage,
+      @Valid
+      @Pattern(regexp = PaginationHelper.SORT_REGEX, message = "{resource.list.sort.message}")
+      @QueryParam("sort") String sort,
+      @QueryParam("q") String query)
       throws CommsRouterException {
 
-    PaginatedList<RouterDto> pagedList = routerService.list(new PagingRequest(token, perPage));
+    PagingRequest pagingRequest = new PagingRequest(token, perPage, sort, query);
+
+    PaginatedList<RouterDto> pagedList = routerService.list(pagingRequest);
 
     LOGGER.debug("Listing all routers: {}", pagedList);
 

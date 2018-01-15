@@ -75,7 +75,7 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef
   @Override
   public PaginatedList<QueueDto> list(PagingRequest request) {
     PagingRequest pagingRequest =
-        new PagingRequest(routerRef, request.getToken(), request.getPerPage());
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
     return getList(pagingRequest);
   }
 

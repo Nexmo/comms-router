@@ -40,7 +40,8 @@ public class CoreAgentServiceJpaTest extends TestBase {
     routerService.replace(newCreateRouterArg("router-name", ""), routerRef);
     queueService.create(newCreateQueueArg("1==1", "description_one"), routerRef);
     agentService.create(newCreateAgentArg("address_one"), routerRef);
-    PaginatedList<AgentDto> agent = agentService.list(new PagingRequest(routerRef, null, 10));
+    PaginatedList<AgentDto> agent = agentService.list(
+        new PagingRequest(routerRef, null, 10, null,null));
     assertEquals(agent.getList().get(0).getAddress(), "address_one");
   }
 

@@ -16,10 +16,11 @@
 
 package com.softavail.commsrouter.api.service;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
-import com.softavail.commsrouter.api.dto.misc.PaginationHelper;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
@@ -33,9 +34,12 @@ import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 /**
@@ -117,23 +121,39 @@ public class CoreRouterService
 
     return transactionManager.execute(em -> {
 
-      Long routerId = PaginationHelper.getEntityId(Router.class, request.getToken());
 
       CriteriaBuilder cb = em.getCriteriaBuilder();
       CriteriaQuery<Router> query = cb.createQuery(Router.class);
       Root<Router> root = query.from(Router.class);
-      query.select(
-          root);
-      query.where(
-          cb.gt(root.get("id"), routerId));
-      query.orderBy(
-          cb.asc(root.get("id")));
+      query.select(root);
+
+      Optional<Predicate> filterPredicate =
+          FilterHelper.filterPredicate(request.getQuery(), root, em);
+
+      List<Predicate> sortPredicates =
+          PaginationHelper.getSortPredicates(cb, root, Router.class, request);
+
+      Builder<Predicate> predicateBuilder = ImmutableList.<Predicate>builder()
+          .addAll(sortPredicates);
+      filterPredicate.ifPresent(predicateBuilder::add);
+
+      Predicate[] predicates = predicateBuilder
+          .build()
+          .toArray(new Predicate[0]);
+      query.where(predicates);
+
+      List<Order> sortOrder = PaginationHelper.getSortOrder(cb, root, request.getSort());
+      query.orderBy(sortOrder);
 
       List<Router> jpaResult = em.createQuery(query)
           .setMaxResults(request.getPerPage())
           .getResultList();
 
-      String nextToken = getNextToken(jpaResult, request.getPerPage());
+      String nextToken = null;
+      if (!jpaResult.isEmpty() && jpaResult.size() == request.getPerPage()) {
+        Router lastEntity = jpaResult.get(jpaResult.size() - 1);
+        nextToken = PaginationHelper.getToken(lastEntity, request.getSort());
+      }
 
       return new PaginatedList<>(entityMapper.toDto(jpaResult), nextToken);
     });

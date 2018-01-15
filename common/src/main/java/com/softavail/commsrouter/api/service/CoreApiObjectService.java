@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.api.service;
 
-import com.softavail.commsrouter.api.dto.misc.PaginationHelper;
 import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
 import com.softavail.commsrouter.jpa.JpaTransactionManager;
@@ -50,14 +49,6 @@ public class CoreApiObjectService<DTOENTITYT, ENTITYT extends ApiObject> {
 
   public Class<DTOENTITYT> getDtoEntityClass() {
     return dtoEntityClass;
-  }
-
-  protected String getNextToken(List<ENTITYT> jpaResult, int perPage) {
-    if (!jpaResult.isEmpty() && jpaResult.size() == perPage) {
-      ENTITYT lastEntity = jpaResult.get(jpaResult.size() - 1);
-      return PaginationHelper.getToken(entityClass, lastEntity.getId());
-    }
-    return null;
   }
 
 }

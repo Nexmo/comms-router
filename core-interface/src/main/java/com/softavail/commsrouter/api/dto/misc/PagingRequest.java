@@ -24,19 +24,31 @@ public class PagingRequest {
   private final String routerRef;
   private final String token;
   private final int perPage;
+  private final String sort;
+  private final String query;
 
   public PagingRequest() {
     this(null, 10); // TODO Setting?
   }
 
   public PagingRequest(String token, int perPage) {
-    this(null, token, perPage);
+    this(null, token, perPage, null, null);
   }
 
-  public PagingRequest(String routerRef, String token, int perPage) {
+  public PagingRequest(String token, int perPage, String sort) {
+    this(null, token, perPage, sort, null);
+  }
+
+  public PagingRequest(String token, int perPage, String sort, String query) {
+    this(null, token, perPage, sort, query);
+  }
+
+  public PagingRequest(String routerRef, String token, int perPage, String sort, String query) {
     this.routerRef = routerRef;
     this.token = token;
     this.perPage = perPage;
+    this.sort = sort;
+    this.query = query;
   }
 
   public boolean isRouterRefAvailable() {
@@ -55,12 +67,22 @@ public class PagingRequest {
     return perPage;
   }
 
+  public String getSort() {
+    return sort;
+  }
+
+  public String getQuery() {
+    return query;
+  }
+
   @Override
   public String toString() {
     return new StringBuilder("PagingRequest{")
         .append("routerRef='").append(routerRef).append('\'')
         .append(", token='").append(token).append('\'')
         .append(", perPage=").append(perPage)
+        .append(", sort=").append(sort)
+        .append(", query=").append(query)
         .append('}').toString();
   }
 

@@ -55,7 +55,8 @@ public class CorePlanServiceJpaTest extends TestBase {
         new RouterObjectRef(queueId, ROUTER_ID));
     planService.create(newCreatePlanArg("desctiption_one", "1==1", queueId), ROUTER_ID);
     planService.create(newCreatePlanArg("desctiption_two", "1==1", queueId), ROUTER_ID);
-    PaginatedList<PlanDto> plans = planService.list(new PagingRequest(ROUTER_ID, null, 10));
+    PaginatedList<PlanDto> plans = planService.list(
+        new PagingRequest(ROUTER_ID, null, 10, null,null));
     assertEquals(plans.getList().size(), 2);
   }
 
@@ -67,10 +68,12 @@ public class CorePlanServiceJpaTest extends TestBase {
     routerService.replace(newCreateRouterArg("router-name", ""), ROUTER_ID);
     queueService.replace(newCreateQueueArg("1==1", "queue 1"), new RouterObjectRef(queueId, id));
     planService.replace(newCreatePlanArg("desctiption_one", "1==1", queueId), id);
-    PaginatedList<PlanDto> plans = planService.list(new PagingRequest(id.getRouterRef(), null, 10));
+    PaginatedList<PlanDto> plans = planService.list(
+        new PagingRequest(id.getRouterRef(), null, 10, null,null));
     assertEquals(plans.getList().size(), 1);
     planService.delete(id);
-    plans = planService.list(new PagingRequest(id.getRouterRef(), null, 10));
+    plans = planService.list(
+        new PagingRequest(id.getRouterRef(), null, 10, null, null));
     assertEquals(plans.getList().size(), 0);
   }
 
@@ -83,7 +86,7 @@ public class CorePlanServiceJpaTest extends TestBase {
     queueService.replace(newCreateQueueArg("1==1", "queue 1"), new RouterObjectRef(queueId, ref));
     ApiObjectRef plan =
         planService.replace(newCreatePlanArg("desctiption_one", "1==1", queueId), ref);
-    PagingRequest pagingRequest = new PagingRequest("router-id", null, 0);
+    PagingRequest pagingRequest = new PagingRequest("router-id", null, 0, null, null);
     PaginatedList<PlanDto> list = planService.list(pagingRequest);
   }
 
