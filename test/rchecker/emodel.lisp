@@ -51,7 +51,6 @@
                (js-remkey key)))
        model)))
 
-
 (defparameter *tasks*
   (append
    (list* ;;  plans
@@ -186,6 +185,27 @@
                                                        ("state" "offline")
                                                        ("lastTimeAtBusyState" (get-internal-real-time))))
                        (js-extend (list "selected-agent" 0)))
+                      model)))
+
+         (action "create agent to handle selected queue"
+                 (fand
+                  (fhas-key "selected-router")
+                  (fhas-key "selected-queue")
+                  (for
+                   (fnot (fhas-key "agents"))
+                   (fand (fhas-kv "agents" 5 #'(lambda(js-val val)(< (length js-val) val))))))
+                 (mlet ((router-id (js-val "ref") (js-selected "selected-router" "routers"))
+                        (queue-id (js-val "ref") (js-selected "selected-queue" "queues")))
+                   (mstep (eagent-new :router-id router-id :capabilities (jsown:new-js ("queue" queue-id)))))
+                 #'(lambda(res model)
+                     (funcall
+                      (mlet ((queue-id (js-val "ref") (js-selected "selected-queue" "queues")))
+                        (mand
+                         (js-push "agents" (jsown:new-js ("ref" (jsown:val (first res) "ref"))
+                                                         ("state" "offline")
+                                                         ("queue" queue-id)
+                                                         ("lastTimeAtBusyState" (get-internal-real-time))))
+                         (js-extend (list "selected-agent" 0))))
                       model)))
 
          (action "set-agent ready if there are waiting tasks"
@@ -457,30 +477,21 @@
           (fand
            (fhas-key "selected-router")
            (fhas-key "selected-task")
-           (fnth "selected-task" "tasks" (fhas-kv "state" "waiting" #'equal))
-           )
+           (fnth "selected-task" "tasks" (fhas-kv "state" "waiting" #'equal)))
           (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
             (mstep (etask-set :id task-id :state "canceled"
                               :router-id router-id)))
           #'(lambda(res model)
               (funcall
-               (mlet((selected (js-val "selected-task"))
-                     (tasks (js-val "tasks"))
-                     (agents (js-val "agents")))
-                 (let*((task (nth selected tasks))
-                       (agent-id (jsown:val task "agent-id"))
-                       (agent-pos (position-if #'(lambda(agent) (equal (jsown:val agent "ref") agent-id))
-                                               agents))
-                       (agent (nth agent-pos agents)))
-                   (js-extend (list "agents" (set-nth agent-pos (copy-tree agents)
-                                                      (jsown::extend-js agent
-                                                        ("state" "ready")
-                                                        ("lastTimeAtBusyState" (get-internal-real-time))) ))
-                              (list "tasks" (set-nth selected (copy-tree tasks)
-                                                     (jsown::extend-js task
-                                                       ("state" "completed")
-                                                       ("agent-id" ())))))))
+               (mlet ((selected (js-val "selected-task"))
+                      (tasks (js-val "tasks")))
+                 (let* ((task (nth selected tasks)))
+                   (js-extend 
+                    (list "tasks" (set-nth selected (copy-tree tasks)
+                                           (jsown::extend-js task
+                                             ("state" "canceled")
+                                             ("agent-id" ())))))))
                model)))
 
          (action
@@ -561,12 +572,13 @@
            (fhas-key "selected-router")
            (fhas-key "selected-task")
            (fnth "selected-task" "tasks" (for(fhas-kv "state" "completed" #'equal)
+                                             (fhas-kv "state" "canceled" #'equal)
                                              (fhas-kv "state" "waiting" #'equal))) )
           (mlet ((task-id (js-val "ref") (js-selected "selected-task" "tasks"))
                  (router-id (js-val "ref") (js-selected "selected-router" "routers")))
-            (mstep (etask-del :id task-id
-                              :router-id router-id)) )
+            (mand (mstep (etask-del :id task-id
+                                    :router-id router-id))
+                  (mstep (eagent-all :router-id router-id))) )
 
           (del-resource "selected-task" "tasks")))
-   (select-actions "selected-task" "tasks")
-   ))
+   (select-actions "selected-task" "tasks")))

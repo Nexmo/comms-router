@@ -20,6 +20,8 @@ import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Router;
 
+import org.junit.*;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
@@ -32,20 +34,15 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-/**
- * Unit test for simple App.
- */
+/** Unit test for simple App. */
 public class BaseRouterTest {
 
-  @BeforeAll
-  public static void beforeAll() throws Exception {
-    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
+  @Before
+  public void beforeAll() throws Exception {
+    Assume.assumeTrue("autHost is set", System.getProperty("autHost") != null);
   }
 
   @Test
@@ -102,7 +99,7 @@ public class BaseRouterTest {
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
-    ApiObjectRef ref1 = r.replace(new CreateRouterArg());// replace with null values
+    ApiObjectRef ref1 = r.replace(new CreateRouterArg()); // replace with null values
     assertThat(ref.getRef(), is(ref1.getRef()));
     router = r.get();
     assertThat(router.getName(), nullValue());
@@ -111,7 +108,7 @@ public class BaseRouterTest {
     r.delete();
   }
 
-  @SuppressWarnings("unchecked")
+  // @SuppressWarnings("unchecked")
   @Test
   public void replaceRouterRouterResourcesAreThere() {
     // replace existing router and check that Queue is here after the replacement
@@ -133,8 +130,10 @@ public class BaseRouterTest {
     // replace with null values
     r.replaceResponse(new CreateRouterArg())
         .statusCode(500)
-        .body("error.description",
-                equalTo("Cannot delete or update 'router' as there is record in 'queue' that refer to it."));
+        .body(
+            "error.description",
+            equalTo(
+                "Cannot delete or update 'router' as there is record in 'queue' that refer to it."));
 
     // check that queue is still there
     QueueDto queue = q.get();
@@ -160,21 +159,21 @@ public class BaseRouterTest {
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
-    r.update(new CreateRouterArg());// should not change values
+    r.update(new CreateRouterArg()); // should not change values
     router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
     routerArg.setDescription("changed");
     routerArg.setName(null);
-    r.update(routerArg);// should change only description
+    r.update(routerArg); // should change only description
     router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is("changed"));
 
     routerArg.setDescription(null);
     routerArg.setName("changedName");
-    r.update(routerArg);// should change only description
+    r.update(routerArg); // should change only description
     router = r.get();
     assertThat(router.getName(), is("changedName"));
     assertThat(router.getDescription(), is("changed"));
@@ -184,7 +183,6 @@ public class BaseRouterTest {
 
   @Test
   public void doubleDeleteRouter() {
-    // replace existing router
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     String description = "Router description";
@@ -199,5 +197,4 @@ public class BaseRouterTest {
     r.delete();
     r.delete();
   }
-
 }

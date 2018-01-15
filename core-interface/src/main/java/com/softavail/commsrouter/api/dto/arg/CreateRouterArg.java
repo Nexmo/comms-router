@@ -41,4 +41,27 @@ public class CreateRouterArg {
     this.description = description;
   }
 
+  public static class Builder {
+
+    private CreateRouterArg arg = new CreateRouterArg();
+
+    public Builder() {
+      arg.setDescription("default");
+      arg.setName("default");
+    }
+
+    public Builder description(String description) {
+      arg.setDescription(description);
+      return this;
+    }
+
+    public Builder name(String name) {
+      arg.setName(name);
+      return this;
+    }
+
+    public CreateRouterArg build() {
+      return arg;
+    }
+  }
 }

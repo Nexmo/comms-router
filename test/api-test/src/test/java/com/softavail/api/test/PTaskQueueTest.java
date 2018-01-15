@@ -24,6 +24,7 @@ import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import org.junit.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
@@ -35,11 +36,6 @@ import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,11 +44,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Unit test for Task to queue mapping.
- */
-@DisplayName("Task to Queue mapping Tests")
-public class PTaskQueueTest {
+/** Unit test for Task to queue mapping. */
+// @DisplayName("Task to Queue mapping Tests")
+public class PTaskQueueTest extends BaseTest {
 
   private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
@@ -63,12 +57,7 @@ public class PTaskQueueTest {
   private String backupQueueId;
   private String mainQueueId;
 
-  @BeforeAll
-  public static void beforeAll() throws Exception {
-    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
-  }
-
-  @BeforeEach
+  @Before
   public void createRouterAndQueue() {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
@@ -80,94 +69,109 @@ public class PTaskQueueTest {
     queueArg.setDescription("queue description");
     queueArg.setPredicate(predicate);
     q = new Queue(state);
-    defaultQueueId = q.create(new CreateQueueArg.Builder()
-        .predicate(predicate)
-        .description("queue description").build())
-        .getRef();
+    defaultQueueId =
+        q.create(
+                new CreateQueueArg.Builder()
+                    .predicate(predicate)
+                    .description("queue description")
+                    .build())
+            .getRef();
 
-    backupQueueId = q.create(new CreateQueueArg.Builder()
-        .predicate(predicate)
-        .description("backup queue description").build())
-        .getRef();
+    backupQueueId =
+        q.create(
+                new CreateQueueArg.Builder()
+                    .predicate(predicate)
+                    .description("backup queue description")
+                    .build())
+            .getRef();
 
-    mainQueueId = q.create(new CreateQueueArg.Builder()
-                  .predicate(predicate)
-                  .description("queue description").build())
-        .getRef();
+    mainQueueId =
+        q.create(
+                new CreateQueueArg.Builder()
+                    .predicate(predicate)
+                    .description("queue description")
+                    .build())
+            .getRef();
   }
 
-    //@AfterEach
+  @After
   public void cleanup() {
     t.delete();
     p.delete();
     q.delete();
-    r.delete();
+    //r.delete();
   }
 
   private void addPlanTask(AttributeGroupDto requirements, String predicate)
       throws MalformedURLException {
-    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
-               .rules(Collections.singletonList(new RuleDto.Builder(predicate)
-                                                .routes(Arrays.asList(
-                                                            new RouteDto.Builder(mainQueueId).timeout(1L).build(),
-                                                            new RouteDto.Builder(backupQueueId).build()))
-                                                .build()))
-               .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
-               .build());
-    t.createWithPlan(new CreateTaskArg.Builder()
-                     .callback(new URL("http://localhost:8080"))
-                     .requirements(requirements)
-                     .build() );
+    p.create(
+        new CreatePlanArg.Builder("Rule with predicate " + predicate)
+            .rules(
+                Collections.singletonList(
+                    new RuleDto.Builder(predicate)
+                        .routes(
+                            Arrays.asList(
+                                new RouteDto.Builder(mainQueueId).timeout(1L).build(),
+                                new RouteDto.Builder(backupQueueId).build()))
+                        .build()))
+            .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+            .build());
+    t.createWithPlan(
+        new CreateTaskArg.Builder()
+            .callback(new URL("http://localhost:8080"))
+            .requirements(requirements)
+            .build());
   }
 
   @Test
-  @DisplayName("Add task with one attribute to queue.")
+  // @DisplayName("Add task with one attribute to queue.")
   public void addTaskOneAttribute() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    addPlanTask(new AttributeGroupDto()
-            .withKeyValue("lang", new StringAttributeValueDto("en"))
-        , "1==1");
+    addPlanTask(
+        new AttributeGroupDto().withKeyValue("lang", new StringAttributeValueDto("en")), "1==1");
     assertThat(q.size(), is(1));
   }
 
   @Test
-  @DisplayName("Add task with one attribute and predicate HAS with single item")
+  // @DisplayName("Add task with one attribute and predicate HAS with single item")
   public void addTaskHasOneItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    addPlanTask(new AttributeGroupDto()
-            .withKeyValue("age", new DoubleAttributeValueDto(20))
-        , "HAS([10],#{age})");
+    addPlanTask(
+        new AttributeGroupDto().withKeyValue("age", new DoubleAttributeValueDto(20)),
+        "HAS([10],#{age})");
     assertThat(q.size(), is(0));
     state.put(CommsRouterResource.QUEUE, defaultQueueId);
     assertThat(q.size(), is(1));
   }
 
   @Test
-  @DisplayName("Add task with one attribute and predicate HAS with no items")
+  // @DisplayName("Add task with one attribute and predicate HAS with no items")
   public void addTaskHasNoItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    addPlanTask(new AttributeGroupDto()
-            .withKeyValue("age", new DoubleAttributeValueDto(20))
-        , "HAS([],#{age})");
+    addPlanTask(
+        new AttributeGroupDto().withKeyValue("age", new DoubleAttributeValueDto(20)),
+        "HAS([],#{age})");
     assertThat(q.size(), is(0));
     state.put(CommsRouterResource.QUEUE, defaultQueueId);
     assertThat(q.size(), is(1));
   }
 
   @Test
-  @DisplayName("Add task with timed out queue")
+  // @DisplayName("Add task with timed out queue")
   public void addTaskTimedoutQueue() throws MalformedURLException, InterruptedException {
     assertThat(q.size(), is(0));
-    addPlanTask(new AttributeGroupDto()
-            .withKeyValue("age", new DoubleAttributeValueDto(20))
-        , "HAS([20],#{age})");
+    addPlanTask(
+        new AttributeGroupDto().withKeyValue("age", new DoubleAttributeValueDto(20)),
+        "HAS([20],#{age})");
     assertThat(q.size(), is(1));
     TimeUnit.SECONDS.sleep(2);
-    assertThat(String.format("Router %s. Check task is not in the queue after the timeout.",
-        state.get(CommsRouterResource.ROUTER)),
-        q.size(), is(0));
+    assertThat(
+        String.format(
+            "Router %s. Check task is not in the queue after the timeout.",
+            state.get(CommsRouterResource.ROUTER)),
+        q.size(),
+        is(0));
     state.put(CommsRouterResource.QUEUE, backupQueueId);
     assertThat(q.size(), is(1));
   }
-
 }

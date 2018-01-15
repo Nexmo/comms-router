@@ -3,10 +3,22 @@
   (format nil "~A~A" param q))
 
 (defun tapply(request)
-  #'(lambda()
-      (list (apply (funcall *endpoint* (cmd-curl)) (funcall request))
-            (apply (funcall *endpoint* (transport-drakma)) (funcall request)))))
+  (let ((req (funcall request)))
+    #'(lambda()
+        (list (apply (funcall *endpoint* (cmd-curl)) req)
+              (apply (funcall *endpoint* (content-json 
+                                          ;(dexador-client)
+                                          (drakma-client)
+                                          )) req)))))
+  
+  
 ;;; queue
+(defun equeue-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1)
+                    (checks (check-and (has-json))))
+  (tstep (format nil "List available queues page:~A."  page-number)
+         (tapply (http-get "/routers" router-id (format nil "queues?per_page=~A&page_num=~A" per-page page-number)))
+         checks) )
+
 (defun equeue-new (&key (router-id (get-event :router))
                      (description "description")
                      (predicate "1==1"))
@@ -95,8 +107,9 @@
                                                     ("description" description))))
          (check-and (has-json) (has-key "ref") (publish-id :router))))
 
-(defun erouter-all (&key (checks (check-and (has-json)))
-                      (q ""))
+
+(defun erouter-all (&key (checks (check-and (has-json))) (per-page 50) (page-number 1)
+                      (q (format nil "?per_page=~A&page_num=~A" per-page page-number))
   (tstep (format nil "List available routers.")
          (tapply (http-get (with-q "/routers" q)))
          checks))
@@ -280,3 +293,18 @@
   (tstep "List all plans"
          (tapply (http-get "/routers" router-id (with-q "plans" q)))
          (not-contains "error")))
+
+(defun all(&key (description "Get all items.") (list-fn #'etask-all) (checks (has-json)) )
+  (tstep (format nil description)
+         #'(lambda()
+             (list description 
+                   (loop for page from 1 
+                      for (data res log) = (funcall (funcall list-fn :page-number page)) 
+                      :while (or (not (jsown:keyp data "error")) (progn 
+                                                                   (unless (equal (jsown:val (jsown:val data "error") "code") 
+                                                                                  "ValidationException") 
+                                                                     (print-log (list data res log) )
+                                                                     )
+                                                                   nil)) 
+                      :append data )))
+         checks)  )
