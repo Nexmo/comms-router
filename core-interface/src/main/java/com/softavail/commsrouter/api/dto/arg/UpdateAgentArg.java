@@ -27,6 +27,8 @@ public class UpdateAgentArg {
   private String address;
   private AttributeGroupDto capabilities;
   private AgentState state;
+  private String name;
+  private String description;
 
   public String getAddress() {
     return address;
@@ -50,6 +52,22 @@ public class UpdateAgentArg {
 
   public void setState(AgentState state) {
     this.state = state;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
 }

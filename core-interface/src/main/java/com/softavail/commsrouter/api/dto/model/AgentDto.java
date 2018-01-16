@@ -32,6 +32,8 @@ public class AgentDto extends RouterObjectRef {
 
   private AttributeGroupDto capabilities;
   private String address;
+  private String name;
+  private String description;
   private AgentState state;
   private List<String> queueRefs;
   @JsonIgnore
@@ -53,6 +55,22 @@ public class AgentDto extends RouterObjectRef {
 
   public void setAddress(String address) {
     this.address = address;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public AgentState getState() {

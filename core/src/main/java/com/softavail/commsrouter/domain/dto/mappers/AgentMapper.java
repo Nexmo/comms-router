@@ -38,6 +38,8 @@ public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
     copyRef(dto, jpa);
     dto.setCapabilities(attributesMapper.toDto(jpa.getCapabilities()));
     dto.setAddress(jpa.getAddress());
+    dto.setName(jpa.getName());
+    dto.setDescription(jpa.getDescription());
     dto.setState(jpa.getState());
     dto.setQueueRefs(createIdList(jpa.getAgentQueueMappings()
             .stream()
