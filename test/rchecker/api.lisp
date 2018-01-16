@@ -298,8 +298,9 @@
            #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "ref")))))
 ;;; task
-(defun task-all(&key (router-id (get-event :router)) )
-  (tr-step (http-get "/routers" router-id "tasks")
+(defun task-all(&key (router-id (get-event :router))
+                  (per-page 50) (page-number 1))
+  (tr-step (http-get "/routers" router-id (format nil "tasks?per_page=~A&per_num" per-page page-number))
            #'(lambda(js) (and (listp js) (funcall (contains "ref") (first js))))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val (first js) "ref")))))
 
