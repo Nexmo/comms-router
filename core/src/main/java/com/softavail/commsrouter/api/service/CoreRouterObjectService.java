@@ -88,9 +88,10 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
       String simpleName = entityClass.getSimpleName();
 
       String countString = "SELECT COUNT(e.id) FROM " + simpleName + " e "
-          + "JOIN e.router r WHERE r.ref = :routerRef";
-      long totalCount =
-          (long) em.createQuery(countString).setParameter("routerRef", routerRef).getSingleResult();
+          + "JOIN e.router r WHERE r.ref = :routerRef ORDER BY r.id";
+      long totalCount = (long) em.createQuery(countString)
+          .setParameter("routerRef", routerRef)
+          .getSingleResult();
 
       int startPosition = (page * perPage) - perPage;
 
@@ -99,8 +100,10 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
       }
 
       String qlString =
-          "SELECT e FROM " + simpleName + " e JOIN e.router r WHERE r.ref = :routerRef";
-      List<ENTITYT> jpaResult = em.createQuery(qlString).setParameter("routerRef", routerRef)
+          "SELECT e FROM " + simpleName + " e JOIN e.router r "
+              + "WHERE r.ref = :routerRef ORDER BY r.id";
+      List<ENTITYT> jpaResult = em.createQuery(qlString)
+          .setParameter("routerRef", routerRef)
           .setFirstResult(startPosition)
           .setMaxResults(perPage)
           .getResultList();
