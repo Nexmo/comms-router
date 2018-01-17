@@ -277,9 +277,10 @@
                    (id (get-event :queue))
                    (description "description")
                    (predicate :null) )
-  (tr-step (http-post (list "/routers" router-id "queues" id) (jsown:new-js
-                                                               ("description" description)
-                                                               ("predicate" predicate)))
+  (tr-step (http-post (list "/routers" router-id "queues" id)
+                      (jsown:new-js
+                       ("description" description)
+                       ("predicate" predicate)))
            #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "ref")))))
 
