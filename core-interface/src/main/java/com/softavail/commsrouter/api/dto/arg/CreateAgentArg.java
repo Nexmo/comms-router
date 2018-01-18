@@ -61,4 +61,38 @@ public class CreateAgentArg {
     this.description = description;
   }
 
+  public static class Builder{
+    private CreateAgentArg agentArg = new CreateAgentArg();
+
+    public Builder(String name) {
+      agentArg.setDescription(name);
+      agentArg.setName(name);
+    }
+    
+    public Builder name(String name) {
+      agentArg.setName(name);
+      return this;
+    }
+    
+    public Builder description(String description) {
+      agentArg.setDescription(description);
+      return this;
+    }
+
+    public Builder address(String address) {
+      agentArg.setAddress(address);
+      return this;
+    }
+
+    public Builder capabilities(AttributeGroupDto capabilities) {
+      agentArg.setCapabilities(capabilities);
+      return this;
+    }
+    
+    public CreateAgentArg build() {
+      return agentArg;
+    }
+
+  }
+  
 }

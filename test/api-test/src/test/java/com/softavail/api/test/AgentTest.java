@@ -111,7 +111,7 @@ public class AgentTest {
   @Test
   //@DisplayName("Create new agent.")
   public void createAgent() {
-    a.create(new CreateAgentArg());
+    a.create(new CreateAgentArg.Builder("simpleAgent").build());
     AgentDto resource = a.get();
     assertThat(resource.getCapabilities(), nullValue());
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
