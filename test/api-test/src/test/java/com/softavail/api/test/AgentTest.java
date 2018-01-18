@@ -216,7 +216,7 @@ public class AgentTest extends BaseTest {
     t.createQueueTask(testServer());
     assertThat(q.size(), is(1));
     a.setState(AgentState.ready);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString((state.get(CommsRouterResource.TASK)))));
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
@@ -247,7 +247,7 @@ public class AgentTest extends BaseTest {
 
     a.setState(AgentState.ready);
 
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString((state.get(CommsRouterResource.TASK)))));
 
     AgentDto resource = a.get();
@@ -266,7 +266,7 @@ public class AgentTest extends BaseTest {
     //TimeUnit.SECONDS.sleep(1);
 
     a.setState(AgentState.ready);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString((state.get(CommsRouterResource.TASK)))));
 
 
@@ -347,7 +347,7 @@ public class AgentTest extends BaseTest {
 
     assertThat(q.size(), is(0));
 
-    assertThat(waitToConnect(3000),allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000),allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                          containsString((state.get(CommsRouterResource.TASK)))));
 
 
@@ -596,7 +596,7 @@ public class AgentTest extends BaseTest {
 
     assertThat(q.size(), is(3));
     a.setState(AgentState.ready);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task5.getRef())));
 
     assertThat(q.size(), is(2));
@@ -606,7 +606,7 @@ public class AgentTest extends BaseTest {
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task3.getRef())));
 
 
@@ -662,7 +662,7 @@ public class AgentTest extends BaseTest {
                                             .callback(testServer())
         .build());
     a.setState(AgentState.ready);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task5.getRef())));
 
     TaskDto task;
@@ -671,7 +671,7 @@ public class AgentTest extends BaseTest {
     assertThat(String.format("Check task with highest priority is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task3.getRef())));
 
     state.put(CommsRouterResource.TASK, task3.getRef());
@@ -679,7 +679,7 @@ public class AgentTest extends BaseTest {
     assertThat(String.format("Check task with priority 3 is assigned (%s).", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+    assertThat(waitToConnect(13000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task0.getRef())));
 
 
