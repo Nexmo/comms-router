@@ -68,7 +68,7 @@ import java.io.BufferedReader;
  */
 // @TestInstance(Lifecycle.PER_CLASS)
 //@DisplayName("Agent Test")
-public class AgentTest {
+public class AgentTest extends BaseTest {
 
   private static final Logger LOGGER = LogManager.getLogger(Agent.class);
 
