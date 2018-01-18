@@ -448,12 +448,13 @@
              (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id)
                                                     :capabilities (jsown:new-js ("language" (third id ))
                                                                                 ("department" (fourth id)))
-                                                    :description (fifth id)
-                                               :router-id router-id)
+                                                    :name (fifth id)
+                                                    :router-id router-id)
                                         (eagent-set :id (first id) :state "ready":address :null
                                                     :capabilities :null
+                                                    :name :null
                                                     :router-id router-id )))
-                     '(("en-es-support" "12312377880" ("en" "es") "Pablo Jenkins")
+                     '(("en-es-support" "12312377880" ("en" "es") "support" "Pablo Jenkins")
                        ("en-sales" "12017621651" ("en") "sales" "John Seller")
                        ("es-sales" "12017621652" ("es") "sales" "Domingo Secada")))
              (list (eplan-put :id "simple-menu"
