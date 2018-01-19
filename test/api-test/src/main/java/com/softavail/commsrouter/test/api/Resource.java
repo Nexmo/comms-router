@@ -31,7 +31,7 @@ public class Resource {
 
     if (System.getProperty("autHost") == null) {
       String host = env.get("AUT_HOST");
-      if (host != null){
+      if (host != null) {
         RestAssured.baseURI = host;
       } else {
         RestAssured.baseURI = "http://localhost:8080";
