@@ -16,6 +16,7 @@
  */
 
 package com.softavail.api.test;
+import io.restassured.RestAssured;
 
 import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.Plan;
@@ -79,11 +80,6 @@ public class AgentTest extends BaseTest {
   private Task t = new Task(state);
   private Plan p = new Plan(state);
   private ServerSocket server;
-  //@BeforeAll
-  public static void beforeAll() throws Exception {
-    Assume.assumeTrue( "autHost is set", System.getProperty("autHost") != null);
-  }
-
 
   @Before
   public void setup() throws IOException {
@@ -205,7 +201,7 @@ public class AgentTest extends BaseTest {
   }
 
   private URL testServer() throws MalformedURLException {
-    return new URL("http://localhost:" + server.getLocalPort());
+    return new URL(RestAssured.baseURI + server.getLocalPort());
   }
 
   @Test
