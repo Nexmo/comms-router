@@ -96,11 +96,16 @@ public class AgentTest extends BaseTest {
   private String waitToConnect(int timeout) throws IOException {
 
       server.setSoTimeout(timeout);
+      System.out.println("Waiting connection on " + server.getInetAddress() + ":" + server.getLocalPort());
+      
       Socket socket = server.accept();
       OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
       ow.write("HTTP1/0 200 OK\r\n\r\n");
-      return (new BufferedReader(new InputStreamReader(socket.getInputStream()))
-                         .lines().collect(Collectors.joining("\n")));
+      String result = (new BufferedReader(new InputStreamReader(socket.getInputStream()))
+                       .lines().collect(Collectors.joining("\n")));
+      System.out.println("Received:"+result);
+        
+      return result ;
   }
 
   @Test
@@ -200,8 +205,9 @@ public class AgentTest extends BaseTest {
   }
 
   private URL testServer() throws MalformedURLException {
-    return new URL( (System.getProperty("runTestsOn")!=null) ? System.getProperty("runTestsOn") : "http://localhost" 
-                    + ":" +  server.getLocalPort());
+    String host = (System.getProperty("runTestsOn")!=null) ? System.getProperty("runTestsOn") : "http://localhost";
+    System.out.println("Callback host:"+host);
+    return new URL( host + ":" +  server.getLocalPort());
   }
 
   @Test
