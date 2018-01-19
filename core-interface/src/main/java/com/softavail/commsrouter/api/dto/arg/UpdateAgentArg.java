@@ -70,4 +70,35 @@ public class UpdateAgentArg {
     this.description = description;
   }
 
+  public static class Builder {
+    private UpdateAgentArg arg = new UpdateAgentArg();
+
+    public Builder() {
+    }
+
+    public Builder name(String name) {
+      this.arg.setName(name);
+      return this;
+    }
+
+    public Builder description(String description) {
+      this.arg.setDescription(description);
+      return this;
+    }
+
+    public Builder address(String address) {
+      this.arg.setAddress(address);
+      return this;
+    }
+
+    public Builder state(AgentState state) {
+      this.arg.setState(state);
+      return this;
+    }
+      
+    public UpdateAgentArg build() {
+      return this.arg;
+    }
+  }
+  
 }

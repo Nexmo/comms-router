@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.allOf;
 import org.junit.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
@@ -96,14 +97,12 @@ public class AgentTest extends BaseTest {
   private String waitToConnect(int timeout) throws IOException {
 
       server.setSoTimeout(timeout);
-      System.out.println("Waiting connection on " + server.getInetAddress() + ":" + server.getLocalPort());
       
       Socket socket = server.accept();
       OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
       ow.write("HTTP1/0 200 OK\r\n\r\n");
       String result = (new BufferedReader(new InputStreamReader(socket.getInputStream()))
                        .lines().collect(Collectors.joining("\n")));
-      System.out.println("Received:"+result);
         
       return result ;
   }
@@ -118,6 +117,45 @@ public class AgentTest extends BaseTest {
         resource.getState(), is(AgentState.offline));
   }
 
+  @Test
+  //@DisplayName("Create new agent.")
+  public void createAgentNameDescription() {
+    String name = "simpleAgent";
+    String description = "agent description";
+    a.create(new CreateAgentArg.Builder(name).description(description).build());
+    AgentDto resource = a.get();
+    assertThat(resource.getCapabilities(), nullValue());
+    assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
+               resource.getState(), is(AgentState.offline));
+    assertThat(String.format("Check name (%s) to be set.", resource.getName()),
+               resource.getName(), is(name));
+    assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
+               resource.getDescription(), is(description));
+    
+  }
+
+  @Test
+  //@DisplayName("Create new agent.")
+  public void updateAgentNameDescription() {
+    String name = "newAgent";
+    String description = "newDescription";
+    a.create(new CreateAgentArg.Builder("agent").build());
+    a.update(new UpdateAgentArg.Builder()
+             .name(name)
+             .description(description)
+             .build());
+    AgentDto resource = a.get();
+    
+    assertThat(resource.getCapabilities(), nullValue());
+    assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
+               resource.getState(), is(AgentState.offline));
+    assertThat(String.format("Check name (%s) to be set.", resource.getName()),
+               resource.getName(), is(name));
+    assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
+               resource.getDescription(), is(description));
+    
+  }
+  
   @Test
   //@DisplayName("Create new agent and bind to queue.")
   public void createAgentWithCapabilities() {
@@ -206,7 +244,6 @@ public class AgentTest extends BaseTest {
 
   private URL testServer() throws MalformedURLException {
     String host = (System.getProperty("runTestsOn")!=null) ? System.getProperty("runTestsOn") : "http://localhost";
-    System.out.println("Callback host:"+host);
     return new URL( host + ":" +  server.getLocalPort());
   }
 
@@ -610,7 +647,6 @@ public class AgentTest extends BaseTest {
     t.setState(TaskState.completed);
     assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task3.getRef())));
-
 
     state.put(CommsRouterResource.TASK, task3.getRef());
     task = t.get();
