@@ -38,12 +38,7 @@ import com.softavail.commsrouter.api.dto.model.RouterDto;
 import java.util.HashMap;
 
 /** Unit test for simple App. */
-public class BaseRouterTest {
-
-  @Before
-  public void beforeAll() throws Exception {
-    Assume.assumeTrue("autHost is set", System.getProperty("autHost") != null);
-  }
+public class BaseRouterTest extends BaseTest{
 
   @Test
   public void createRouter() {
@@ -197,4 +192,46 @@ public class BaseRouterTest {
     r.delete();
     r.delete();
   }
+  @Test
+  public void twoRoutersWithEqualQueueIds() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef router1 = r.create(new CreateRouterArg());
+    ApiObjectRef router2 = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+
+    String description1 = "queue1 description";
+    String predicate1 = "1==1";
+    String description2 = "queue2 description";
+    String predicate2 = "2==2";
+    String queueRef = "Queue-ref";
+
+    state.put(CommsRouterResource.QUEUE, queueRef);
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    q.replace(new CreateQueueArg.Builder()
+              .description(description1)
+              .predicate(predicate1)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    q.replace(new CreateQueueArg.Builder()
+              .description(description2)
+              .predicate(predicate2)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    QueueDto queue = q.get();
+    assertThat(queue.getPredicate(), is(predicate1));
+    assertThat(queue.getDescription(), is(description1));
+    assertThat(queue.getRef(), is(queueRef));
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    queue = q.get();
+    assertThat(queue.getPredicate(), is(predicate2));
+    assertThat(queue.getDescription(), is(description2));
+    assertThat(queue.getRef(), is(queueRef));
+
+  }
+  
 }
