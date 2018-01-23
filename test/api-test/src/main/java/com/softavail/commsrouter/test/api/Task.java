@@ -106,7 +106,7 @@ public class Task extends Resource {
   }
 
   public CreatedTaskDto createQueueTask() throws MalformedURLException {
-    return createQueueTask(new URL("http://example.com"));
+    return createQueueTask(new URL("http://localhost:8080"));
   }
 
   public CreatedTaskDto createWithPlan(CreateTaskArg args) {

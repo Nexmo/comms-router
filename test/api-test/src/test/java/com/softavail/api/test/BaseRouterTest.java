@@ -16,12 +16,17 @@
 
 package com.softavail.api.test;
 
-import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Plan;
 import com.softavail.commsrouter.test.api.Router;
+import com.softavail.commsrouter.test.api.Task;
+import com.softavail.commsrouter.test.api.Queue;
 
 import org.junit.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
@@ -29,11 +34,23 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
-import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import java.util.Arrays;
+import java.util.Collections;
+
+import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
+import com.softavail.commsrouter.api.dto.model.PlanDto;
+import com.softavail.commsrouter.api.dto.model.RouteDto;
+import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
+import com.softavail.commsrouter.api.dto.model.TaskDto;
 
 import java.util.HashMap;
 
@@ -231,6 +248,140 @@ public class BaseRouterTest extends BaseTest{
     assertThat(queue.getPredicate(), is(predicate2));
     assertThat(queue.getDescription(), is(description2));
     assertThat(queue.getRef(), is(queueRef));
+
+  }
+
+  @Test
+  public void twoRoutersWithEqualAgentIds() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef router1 = r.create(new CreateRouterArg());
+    ApiObjectRef router2 = r.create(new CreateRouterArg());
+    Agent a = new Agent(state);
+
+    String description1 = "agent1d";
+    String name1 = "agent1n";
+    String description2 = "agent2d";
+    String name2 = "agent2n";
+    String agentRef = "Agent-ref";
+
+    state.put(CommsRouterResource.AGENT, agentRef);
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    a.replace(new CreateAgentArg.Builder(name1)
+              .description(description1)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    a.replace(new CreateAgentArg.Builder(name2)
+              .description(description2)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    AgentDto agent = a.get();
+    assertThat(agent.getName(), is(name1));
+    assertThat(agent.getDescription(), is(description1));
+    assertThat(agent.getRef(), is(agentRef));
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    agent = a.get();
+    assertThat(agent.getName(), is(name2));
+    assertThat(agent.getDescription(), is(description2));
+    assertThat(agent.getRef(), is(agentRef));
+  }
+
+  @Test
+  public void twoRoutersWithEqualTaskIds() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef router1 = r.create(new CreateRouterArg());
+    ApiObjectRef router2 = r.create(new CreateRouterArg());
+    Task t = new Task(state);
+    Queue q = new Queue(state);
+
+    String description1 = "task1d";
+    String name1 = "task1n";
+    String description2 = "task2d";
+    String name2 = "task2n";
+    String taskRef = "Task-ref";
+
+    state.put(CommsRouterResource.TASK, taskRef);
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    String queueRef1 = q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build()).getRef();
+      
+    t.replace(new CreateTaskArg.Builder()
+              .callback(new URL("http://localhost:8080"))
+              .requirements(new AttributeGroupDto())
+              .queue(queueRef1)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    String queueRef2 = q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build()).getRef();
+      
+    t.replace(new CreateTaskArg.Builder()
+              .callback(new URL("http://localhost:8080"))
+              .requirements(new AttributeGroupDto())
+              .queue(queueRef2)
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    TaskDto task = t.get();
+    assertThat(task.getQueueRef(), is(queueRef1));
+
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    task = t.get();
+    assertThat(task.getQueueRef(), is(queueRef2));
+
+  }
+
+  @Test
+  public void twoRoutersWithEqualPlanIds() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef router1 = r.create(new CreateRouterArg());
+    ApiObjectRef router2 = r.create(new CreateRouterArg());
+    Plan p = new Plan(state);
+    Queue q = new Queue(state);
+    
+    String description1 = "plan1d";
+    String description2 = "plan2d";
+    String planRef = "Plan-ref";
+
+    state.put(CommsRouterResource.PLAN, planRef);
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    String queueRef1 = q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build()).getRef();
+
+    p.replace(new CreatePlanArg.Builder(description1)
+              .rules(Collections.singletonList(new RuleDto.Builder("true")
+                                               .routes(Arrays.asList(
+                                                                     new RouteDto.Builder(queueRef1).timeout(1L).build(),
+                                                                     new RouteDto.Builder(queueRef1).build()))
+                                               .build()))
+              .defaultRoute(new RouteDto.Builder(queueRef1).build())
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    String queueRef2 = q.create(new CreateQueueArg.Builder().description("queue description").predicate("1==1").build()).getRef();
+
+    p.replace(new CreatePlanArg.Builder(description2)
+              .rules(Collections.singletonList(new RuleDto.Builder("true")
+                                               .routes(Arrays.asList(
+                                                                     new RouteDto.Builder(queueRef2).timeout(1L).build(),
+                                                                     new RouteDto.Builder(queueRef2).build()))
+                                               .build()))
+              .defaultRoute(new RouteDto.Builder(queueRef2).build())
+              .build());
+
+    state.put(CommsRouterResource.ROUTER, router1.getRef());
+    PlanDto plan = p.get();
+    assertThat(plan.getDescription(), is(description1));
+
+    state.put(CommsRouterResource.ROUTER, router2.getRef());
+    plan = p.get();
+    assertThat(plan.getDescription(), is(description2));
 
   }
   
