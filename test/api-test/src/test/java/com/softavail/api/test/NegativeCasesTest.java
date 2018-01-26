@@ -159,5 +159,100 @@ public class NegativeCasesTest extends BaseTest {
       .body("error.description",is("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
   }
 
+
+  @Test
+  public void deletePlanWithTask() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = state.get(CommsRouterResource.QUEUE);
+    String predicate = "true";
+    
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                                    new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                    new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+
+    Task task = new Task(state);
+    task.createWithPlan(new CreateTaskArg.Builder()
+                        .callback(new URL("http://localhost:8080"))
+                        .build());
+
+    ApiPlan api_p = new ApiPlan(state);
+    api_p.delete(state.get(CommsRouterResource.ROUTER),state.get(CommsRouterResource.PLAN))
+      .statusCode(500)
+      .body("error.description",is("Cannot delete or update 'route' as there is record in 'task' that refer to it."));
+  }
+
+  @Test
+  public void deletePlanWithCanceledTask() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = state.get(CommsRouterResource.QUEUE);
+    String predicate = "true";
+    
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                                    new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                    new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+
+    Task task = new Task(state);
+    task.createWithPlan(new CreateTaskArg.Builder()
+                        .callback(new URL("http://localhost:8080"))
+                        .build());
+    task.setState(TaskState.canceled);
+
+    ApiPlan api_p = new ApiPlan(state);
+    api_p.delete(state.get(CommsRouterResource.ROUTER),state.get(CommsRouterResource.PLAN))
+      .statusCode(204);
+  }
+
+
+  @Test
+  public void planWithInvalidQueue() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = "invalid";
+    String predicate = "true";
+    
+    ApiPlan api_p = new ApiPlan(state);
+
+    api_p.create(state.get(CommsRouterResource.ROUTER),
+                 new CreatePlanArg.Builder("Rule with predicate " + predicate)
+                 .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L)
+                                                                        .build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+                 .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+                 .build())
+      .statusCode(404)
+      .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid not found"));
+  }
   
 }
