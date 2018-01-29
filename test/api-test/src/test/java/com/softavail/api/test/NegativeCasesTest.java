@@ -228,7 +228,6 @@ public class NegativeCasesTest extends BaseTest {
       .statusCode(204);
   }
 
-
   @Test
   public void planWithInvalidQueue() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -253,6 +252,112 @@ public class NegativeCasesTest extends BaseTest {
                  .build())
       .statusCode(404)
       .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid not found"));
+  }
+
+
+  @Test
+  public void changeTaskStateWaiting2Assigned() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = state.get(CommsRouterResource.QUEUE);
+    String predicate = "true";
+    
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                                    new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                    new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+
+    Task task = new Task(state);
+    task.createWithPlan(new CreateTaskArg.Builder()
+                        .callback(new URL("http://localhost:8080"))
+                        .build());
+    ApiTask api_t = new ApiTask(state);
+    api_t.update(state.get(CommsRouterResource.ROUTER),
+                 state.get(CommsRouterResource.TASK),
+                 new UpdateTaskArg.Builder().state(TaskState.assigned).build())
+      .statusCode(400)
+      .body("error.description",is("Expected state: canceled, waiting or completed"));
+  }
+
+  @Test
+  public void changeTaskStateWaiting2Completed() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = state.get(CommsRouterResource.QUEUE);
+    String predicate = "true";
+    
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                                    new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                    new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+
+    Task task = new Task(state);
+    task.createWithPlan(new CreateTaskArg.Builder()
+                        .callback(new URL("http://localhost:8080"))
+                        .build());
+    ApiTask api_t = new ApiTask(state);
+    api_t.update(state.get(CommsRouterResource.ROUTER),
+                 state.get(CommsRouterResource.TASK),
+                 new UpdateTaskArg.Builder().state(TaskState.completed).build())
+      .statusCode(400)
+      .body("error.description",is("Current state cannot be switched to completed: waiting"));
+  }
+
+@Test
+  public void changeTaskStateWaiting2Waiting() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = state.get(CommsRouterResource.QUEUE);
+    String predicate = "true";
+    
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                                    new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                    new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+
+    Task task = new Task(state);
+    task.createWithPlan(new CreateTaskArg.Builder()
+                        .callback(new URL("http://localhost:8080"))
+                        .build());
+    ApiTask api_t = new ApiTask(state);
+    api_t.update(state.get(CommsRouterResource.ROUTER),
+                 state.get(CommsRouterResource.TASK),
+                 new UpdateTaskArg.Builder().state(TaskState.waiting).build())
+      .statusCode(400)
+      .body("error.description",is("Current state cannot be switched to waiting: waiting"));
   }
   
 }
