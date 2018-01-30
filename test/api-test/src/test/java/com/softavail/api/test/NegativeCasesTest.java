@@ -254,7 +254,6 @@ public class NegativeCasesTest extends BaseTest {
       .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid not found"));
   }
 
-
   @Test
   public void changeTaskStateWaiting2Assigned() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
