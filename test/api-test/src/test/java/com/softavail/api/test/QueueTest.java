@@ -58,6 +58,7 @@ public class QueueTest extends BaseTest{
     routerArg.setName(name);
     ApiObjectRef ref = r.create(routerArg);
   }
+  
   @After
   public void deleteRouter() {
     q.delete();
@@ -77,7 +78,6 @@ public class QueueTest extends BaseTest{
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-
   }
 
   @Test
@@ -96,7 +96,6 @@ public class QueueTest extends BaseTest{
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
     assertThat(queue.getRef(), is(queueRef));
-
   }
 
   @Test
@@ -245,7 +244,7 @@ public class QueueTest extends BaseTest{
   }
 
   @Test
-  //@DisplayName("it should not be allowed to replace queue with agents")
+  //@DisplayName("it should be allowed to replace queue with agents")
   public void queueWithAgentReplace() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
@@ -269,4 +268,37 @@ public class QueueTest extends BaseTest{
     a.delete();    
   }
 
+  @Test
+  public void queueWithPredicateAndNotMatchingTask() throws MalformedURLException {
+    String description = "queue description";
+    String predicate = "#{department}==1";
+    CreateQueueArg queueArg = new CreateQueueArg();
+    queueArg.setDescription(description);
+    queueArg.setPredicate(predicate);
+    ApiObjectRef ref = q.create(queueArg);
+
+    CreateTaskArg targ = new CreateTaskArg();
+    targ.setQueueRef(state.get(CommsRouterResource.QUEUE));
+    targ.setCallbackUrl(new URL("http://example.com"));
+    Task t = new Task(state);
+    assertThat(q.size(), is(0));
+    t.create(targ);
+    assertThat(q.tasks(), hasSize(1));
+    assertThat(q.size(), is(1));
+
+    queueArg.setDescription("qdescription");
+    queueArg.setPredicate("1==something1");
+
+    q.replaceResponse(queueArg).statusCode(500).body("error.description",
+        equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
+    QueueDto queue = q.get();
+    assertThat(queue.getPredicate(), is(predicate));
+    assertThat(queue.getDescription(), is(description));
+
+    assertThat(q.tasks(), hasSize(1));
+    assertThat(q.size(), is(1));
+
+    t.delete();
+  }
+  
 }

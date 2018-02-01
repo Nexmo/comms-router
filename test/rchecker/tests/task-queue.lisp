@@ -520,6 +520,44 @@
                     )
                 :delete #'(lambda(id) (funcall (erouter-del :id id)) )))
 
+(defun test-1000(&key (queues 4) (agents 8) (tasks 2000) (handle-time 0))
+  #'(lambda()
+      (router-new)
+      (let* ((queue-ids (mapcar (js-val "ref")
+                            (lparallel:pmapcar #'(lambda(i) (queue-new :predicate (format nil "#{department}=='~A'" i)))
+                                               (loop for i from 0 to (1- queues) :collect i))))
+             (agent-ids (mapcar (js-val "ref") (lparallel:pmapcar #'(lambda(i) (agent-new :capabilities (jsown:new-js ("department" (format nil "~A"(rem i queues))))))
+                                           (loop for i from 0 to agents :collect i))))
+             (rules   (mapcar #'(lambda(num queue-id) `(:OBJ ("tag" . ,(format nil "~A"num))
+                                                             ("predicate" . ,(format nil "#{department}=='~A'" num))
+                                                         ("routes"
+                                                          (:OBJ ("queueRef" . ,queue-id) ("priority" . 0) ("timeout" . 36000)))))
+                              (loop for x from 0 to queues :collect x) queue-ids))
+             (plan    (plan-new
+                                :queue-id (first queue-ids)
+                                :default-queue-id (first queue-ids)
+                                :rules rules ))
+             (start-time (get-internal-real-time)))
+        (time (progn
+                (format t "~%Filling tasks~%")
+                (time(lparallel:pmapcar 
+                  #'(lambda(x)(funcall (etask-new
+                                        :requirements (jsown:new-js ("department" (format nil "~A" (rem x queues))))
+                                        :queue-id :null 
+                                        :plan-id (jsown:val plan "ref")
+                                        :callback-url (format nil "http://192.168.1.171:4343/push-task?sleep=~A" handle-time)))) 
+                  (loop for x from 1 to tasks :collect x)))
+                (format t "~%In queues:~A"(mapcar (compose (js-val "size") #'(lambda(qid)(queue-size :id qid)) (js-val "ref")) (queue-all)))
+                (format t "~%Set agents to be ready")
+                (time(lparallel:pmapcar #'(lambda(agent-id)(agent-set :capabilities :null :state "ready" :address :null :id agent-id)) agent-ids))
+                (format t "~%Wait for complete")
+                (loop for sizes = (print (list* (queues:qsize *queue*) (mapcar (compose (js-val "size") #'(lambda(qid)(queue-size :id qid)) (js-val "ref")) (queue-all)))) :until (every #'zerop sizes) do 
+                     (loop for size = (queues:qsize *queue*) :while (> size 0) do
+                          (time (remove-if-not (compose #'null #'second) (lparallel:pmapcar #'(lambda(i) (destructuring-bind (router-id task-id delay start) (queues:qpop *queue*) (autocomplete-task router-id task-id))) (loop for x from 1 to (print size) :collect x))) ))
+                     ) )) )))
+(defun handle-tasks()
+  )
+
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()
       (router-new)

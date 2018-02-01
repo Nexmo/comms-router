@@ -159,7 +159,103 @@ public class NegativeCasesTest extends BaseTest {
       .body("error.description",is("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
   }
 
+  @Test
+  public void createQueueWrongPredicate() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("==true")
+                 .description("desc").build())
+      .statusCode(400)
+      .body("error.description",is("Predicate \"==true\" failed with error: Expression is invalid. "));
+  }
 
+  @Test
+  public void createQueueWrongPredicateConst() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("alabala")
+                 .description("desc").build())
+      .statusCode(400)
+      .body("error.description",is("Predicate \"alabala\" failed with error: Expression is invalid. For input string: \"alabala\""));
+  }
+  
+  @Test
+  public void createQueueWrongPredicateEmpty() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("")
+                 .description("desc").build())
+      .statusCode(400)
+      .body("error.description",is("Expression cannot be NULL or empty."));
+  }
+  
+  @Test
+  public void createQueueWrongPredicateSubexp() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("true==[invalidConstant")
+                 .description("desc").build())
+      .statusCode(400)
+      .body("error.description",is("Predicate \"true==[invalidConstant\" failed with error: Expression is invalid. For input string: \"[invalidConstant\""));
+  }
+  
+
+  @Test
+  public void createQueueWrongPredicateSubexp1() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("true==(invalidConstant)")
+                 .description("desc").build())
+      .statusCode(400)
+      .body("error.description",is("Predicate \"true==(invalidConstant)\" failed with error: Expression is invalid. For input string: \"invalidConstant\""));
+  }
+
+  @Test
+  public void createQueueWhyPass() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("true==[invalidConstant]")
+                 .description("desc").build())
+      .statusCode(201);
+  }
+  
+  @Test
+  public void createQueuePredicateSubExpression() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.create(state.get(CommsRouterResource.ROUTER)
+                 , new CreateQueueArg.Builder()
+                 .predicate("10+10==21+(11+[1])")
+                 .description("desc").build())
+      .statusCode(201);
+  }
+  
   @Test
   public void deletePlanWithTask() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
