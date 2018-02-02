@@ -142,7 +142,7 @@ public class NegativeCasesTest extends BaseTest {
   }
 
   @Test
-  public void deleteQueueTask() throws MalformedURLException {
+  public void deleteQueueWithTask() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
@@ -325,7 +325,69 @@ public class NegativeCasesTest extends BaseTest {
   }
 
   @Test
-  public void planWithInvalidQueue() throws MalformedURLException {
+  public void planWithInvalidDefaultQueue() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = "invalid";
+    String predicate = "true";
+
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+    
+    ApiPlan api_p = new ApiPlan(state);
+
+    api_p.create(state.get(CommsRouterResource.ROUTER),
+                 new CreatePlanArg.Builder("Rule with predicate " + predicate)
+                 .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).timeout(1L)
+                                                                        .build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+                 .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+                 .build())
+      .statusCode(404)
+      .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid not found"));
+  }
+
+  @Test
+  public void planWithInvalidRuleQueue() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+
+    Plan p = new Plan(state);
+    String defaultQueueId = "invalid";
+    String predicate = "true";
+
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder()
+             .predicate("true")
+             .description("desc").build());
+    
+    ApiPlan api_p = new ApiPlan(state);
+
+    api_p.create(state.get(CommsRouterResource.ROUTER),
+                 new CreatePlanArg.Builder("Rule with predicate " + predicate)
+                 .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L)
+                                                                        .build(),
+                                                                        new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).build()))
+                                              .build()))
+                 .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+                 .build())
+      .statusCode(404)
+      .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid not found"));
+  }
+
+  @Test
+  public void planWithInvalidQueues() throws MalformedURLException {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
@@ -455,4 +517,19 @@ public class NegativeCasesTest extends BaseTest {
       .body("error.description",is("Current state cannot be switched to waiting: waiting"));
   }
   
+  @Test
+  public void createTaskWithInvalidQueue() throws MalformedURLException {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    r.create(new CreateRouterArg.Builder().description(utfText).build());
+    ApiTask api_t = new ApiTask(state);
+    api_t.create(state.get(CommsRouterResource.ROUTER),
+                 new CreateTaskArg.Builder()
+                 .callback(new URL("http://localhost:8080"))
+                 .queue("invalid-queue-id")
+                 .build())
+      .statusCode(404)
+      .body("error.description",is("Queue " + state.get(CommsRouterResource.ROUTER) + ":invalid-queue-id not found"));
+  }
+
 }
