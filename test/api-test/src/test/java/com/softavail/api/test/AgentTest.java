@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
 
 import java.io.OutputStreamWriter;
 import org.hamcrest.Matchers;
@@ -131,7 +132,6 @@ public class AgentTest extends BaseTest {
                resource.getName(), is(name));
     assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
                resource.getDescription(), is(description));
-    
   }
 
   @Test
@@ -162,12 +162,11 @@ public class AgentTest extends BaseTest {
     a.create("en");
     AgentDto resource = a.get();
     assertThat(String.format("Check attribute language (%s) is 'en'.",
-        ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
-        ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue(),
-        is("en"));
+                             ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
+               ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue(),
+               is("en"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
         resource.getState(), is(AgentState.offline));
-
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
