@@ -11,6 +11,7 @@
                #:hunchentoot
                #:lparallel
 	       #:do-urlencode
+               #:queues.simple-cqueue
                #:check-it)
   :serial t
   :components ((:file "package")

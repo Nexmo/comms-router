@@ -40,10 +40,15 @@ public class ApiRouter extends Resource {
   }
 
   public ValidatableResponse list() {
+    return list("");
+  }
+
+  public ValidatableResponse list(String query) {
     return given()
-        .contentType("application/json")
-        .when().get("/routers")
-        .then();
+      .pathParam("query", query)
+      .contentType("application/json")
+      .when().get("/routers?{query}")
+      .then();
   }
 
   public ValidatableResponse get(String routerRef) {

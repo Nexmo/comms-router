@@ -170,7 +170,6 @@ public class AgentTest extends BaseTest {
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
-      //TimeUnit.SECONDS.sleep(2);
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
         resource.getState(), is(AgentState.busy));
@@ -187,9 +186,7 @@ public class AgentTest extends BaseTest {
         resource.getState(), is(AgentState.ready));
   }
 
-
   public void completeTaskAndCreateQueue() throws MalformedURLException, InterruptedException {
-      //TimeUnit.SECONDS.sleep(2);
     Integer last=50;
     while(last >0){
       AgentDto resource = a.get();
