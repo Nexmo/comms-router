@@ -921,3 +921,17 @@ databaseChangeLog:
         onUpdate: CASCADE
         referencedColumnNames: id
         referencedTableName: router
+- changeSet:
+    id: add-name-and-description
+    author: mapuo
+    changes:
+        - addColumn:
+            columns:
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: description
+                type: VARCHAR(255)
+            tableName: agent
+

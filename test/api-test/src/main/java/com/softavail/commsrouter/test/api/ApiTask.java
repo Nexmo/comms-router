@@ -41,11 +41,17 @@ public class ApiTask extends Resource {
   }
 
   public ValidatableResponse list(String routerRef) {
+    return list(routerRef, "");
+  }
+
+  
+  public ValidatableResponse list(String routerRef, String query) {
     return given()
-        .contentType("application/json")
-        .pathParam("routerRef", routerRef)
-        .when().get("/routers/{routerRef}/tasks")
-        .then();
+      .pathParam("query", query)
+      .contentType("application/json")
+      .pathParam("routerRef", routerRef)
+      .when().get("/routers/{routerRef}/tasks?{query}")
+      .then();
   }
 
   public ValidatableResponse get(String routerRef, String taskRef) {

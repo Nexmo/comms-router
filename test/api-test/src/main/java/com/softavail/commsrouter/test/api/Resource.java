@@ -28,13 +28,14 @@ public class Resource {
   public Resource(HashMap<CommsRouterResource, String> state) {
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     java.util.Map<String, String> env = System.getenv();
-    String host = env.get("AUT_HOST");
-    if (host != null){
-      System.setProperty("autHost", host);
-    }
 
     if (System.getProperty("autHost") == null) {
-      RestAssured.baseURI = "http://localhost:8080";
+      String host = env.get("AUT_HOST");
+      if (host != null) {
+        RestAssured.baseURI = host;
+      } else {
+        RestAssured.baseURI = "http://localhost:8080";
+      }
     } else {
       // you can specify it using -DautHost=http://localhost:8080
       RestAssured.baseURI = System.getProperty("autHost");
@@ -45,6 +46,12 @@ public class Resource {
 
   public HashMap<CommsRouterResource, String> state() {
     return this.state;
+  }
+
+  public String getLastPage(String last) {
+    String lastPage = last.substring(last.indexOf("page_num=")+9,
+                                     last.length() - ">; rel=\"last\"".length());
+    return lastPage;
   }
 
 }

@@ -26,6 +26,8 @@ public class CreateAgentArg {
 
   private String address;
   private AttributeGroupDto capabilities;
+  private String name;
+  private String description;
 
   public String getAddress() {
     return address;
@@ -43,4 +45,54 @@ public class CreateAgentArg {
     this.capabilities = capabilities;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public static class Builder{
+    private CreateAgentArg agentArg = new CreateAgentArg();
+
+    public Builder(String name) {
+      agentArg.setDescription(name);
+      agentArg.setName(name);
+    }
+    
+    public Builder name(String name) {
+      agentArg.setName(name);
+      return this;
+    }
+    
+    public Builder description(String description) {
+      agentArg.setDescription(description);
+      return this;
+    }
+
+    public Builder address(String address) {
+      agentArg.setAddress(address);
+      return this;
+    }
+
+    public Builder capabilities(AttributeGroupDto capabilities) {
+      agentArg.setCapabilities(capabilities);
+      return this;
+    }
+    
+    public CreateAgentArg build() {
+      return agentArg;
+    }
+
+  }
+  
 }

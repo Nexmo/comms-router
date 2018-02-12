@@ -438,20 +438,25 @@
     (apply #'tand
            (append (mapcar #'(lambda(id)(equeue-put :id (first id)
                                                     :predicate (second id)
+                                                    :description (third id)
                                                     :router-id router-id) )
-                     '(("en-support" "HAS(#{language},'en') && #{department}=='support'" )
-                       ("es-support" "HAS(#{language},'es') && #{department}=='support'")
-                       ("en-sales" "HAS(#{language},'en') && #{department}=='sales'")
-                       ("es-sales" "HAS(#{language},'es') && #{department}=='sales'")
-                       ("queue-ivr" "1==1")))
+                     '(("en-support" "HAS(#{language},'en') && #{department}=='support'" "Support in English")
+                       ("es-support" "HAS(#{language},'es') && #{department}=='support'" "Support in Spanish")
+                       ("en-sales" "HAS(#{language},'en') && #{department}=='sales'" "Sales in English")
+                       ("es-sales" "HAS(#{language},'es') && #{department}=='sales'" "Sales in Spanish")
+                       ("queue-ivr" "1==1" "Other")))
              (mapcar #'(lambda(id)(tand (eagent-put :id (first id) :address (second id)
                                                     :capabilities (jsown:new-js ("language" (third id ))
                                                                                 ("department" (fourth id)))
-                                               :router-id router-id)
-                                        (eagent-set :id (first id) :state "ready":address :null :capabilities :null :router-id router-id)))
-                     '(("en-es-support" "12312377880" ("en" "es") "support")
-                       ("en-sales" "12017621651" ("en") "sales")
-                       ("es-sales" "12017621652" ("es") "sales") ))
+                                                    :name (fifth id)
+                                                    :router-id router-id)
+                                        (eagent-set :id (first id) :state "ready":address :null
+                                                    :capabilities :null
+                                                    :name :null
+                                                    :router-id router-id )))
+                     '(("en-es-support" "12312377880" ("en" "es") "support" "Pablo Jenkins")
+                       ("en-sales" "12017621651" ("en") "sales" "John Seller")
+                       ("es-sales" "12017621652" ("es") "sales" "Domingo Secada")))
              (list (eplan-put :id "simple-menu"
                          :default-queue-id "queue-ivr"
                          :queue-id :null
@@ -514,6 +519,44 @@
                      :delete #'(lambda(id) (funcall (equeue-del :router-id router-id :id id)) ))
                     )
                 :delete #'(lambda(id) (funcall (erouter-del :id id)) )))
+
+(defun test-1000(&key (queues 4) (agents 8) (tasks 2000) (handle-time 0))
+  #'(lambda()
+      (router-new)
+      (let* ((queue-ids (mapcar (js-val "ref")
+                            (lparallel:pmapcar #'(lambda(i) (queue-new :predicate (format nil "#{department}=='~A'" i)))
+                                               (loop for i from 0 to (1- queues) :collect i))))
+             (agent-ids (mapcar (js-val "ref") (lparallel:pmapcar #'(lambda(i) (agent-new :capabilities (jsown:new-js ("department" (format nil "~A"(rem i queues))))))
+                                           (loop for i from 0 to agents :collect i))))
+             (rules   (mapcar #'(lambda(num queue-id) `(:OBJ ("tag" . ,(format nil "~A"num))
+                                                             ("predicate" . ,(format nil "#{department}=='~A'" num))
+                                                         ("routes"
+                                                          (:OBJ ("queueRef" . ,queue-id) ("priority" . 0) ("timeout" . 36000)))))
+                              (loop for x from 0 to queues :collect x) queue-ids))
+             (plan    (plan-new
+                                :queue-id (first queue-ids)
+                                :default-queue-id (first queue-ids)
+                                :rules rules ))
+             (start-time (get-internal-real-time)))
+        (time (progn
+                (format t "~%Filling tasks~%")
+                (time(lparallel:pmapcar 
+                  #'(lambda(x)(funcall (etask-new
+                                        :requirements (jsown:new-js ("department" (format nil "~A" (rem x queues))))
+                                        :queue-id :null 
+                                        :plan-id (jsown:val plan "ref")
+                                        :callback-url (format nil "http://192.168.1.171:4343/push-task?sleep=~A" handle-time)))) 
+                  (loop for x from 1 to tasks :collect x)))
+                (format t "~%In queues:~A"(mapcar (compose (js-val "size") #'(lambda(qid)(queue-size :id qid)) (js-val "ref")) (queue-all)))
+                (format t "~%Set agents to be ready")
+                (time(lparallel:pmapcar #'(lambda(agent-id)(agent-set :capabilities :null :state "ready" :address :null :id agent-id)) agent-ids))
+                (format t "~%Wait for complete")
+                (loop for sizes = (print (list* (queues:qsize *queue*) (mapcar (compose (js-val "size") #'(lambda(qid)(queue-size :id qid)) (js-val "ref")) (queue-all)))) :until (every #'zerop sizes) do 
+                     (loop for size = (queues:qsize *queue*) :while (> size 0) do
+                          (time (remove-if-not (compose #'null #'second) (lparallel:pmapcar #'(lambda(i) (destructuring-bind (router-id task-id delay start) (queues:qpop *queue*) (autocomplete-task router-id task-id))) (loop for x from 1 to (print size) :collect x))) ))
+                     ) )) )))
+(defun handle-tasks()
+  )
 
 (defun test-performance (&key (tasks 10)(queues 1) (agents 1) (handle-time 0))
   #'(lambda()

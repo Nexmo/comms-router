@@ -95,6 +95,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     Agent agent = new Agent(objectRef);
     agent.setRouter(router);
     agent.setAddress(createArg.getAddress());
+    agent.setName(createArg.getName());
+    agent.setDescription(createArg.getDescription());
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
     em.persist(agent);
@@ -192,6 +194,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
       boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
+      Fields.update(agent::setName, agent.getName(), updateArg.getName());
+      Fields.update(agent::setDescription, agent.getDescription(), updateArg.getDescription());
       if (!agentBecameAvailable) {
         return null;
       }

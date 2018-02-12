@@ -28,6 +28,28 @@
                                           ("predicate" predicate))))
          (check-and (has-json) (has-key "ref") (publish-id :queue))))
 
+(defun equeue-replace (&key (router-id (get-event :router))
+                     (id (get-event :queue))
+                     (description "description")
+                     (predicate :null))
+  (tstep (format nil "Create new queue with predicate ~A."  predicate)
+         (tapply (http-post (list "/routers" router-id "queues" id)
+                            (jsown:new-js
+                             ("description" description)
+                             ("predicate" predicate))))
+         (check-and (has-json) (has-key "ref") (publish-id :queue))))
+
+(defun equeue-put (&key (router-id (get-event :router))
+                     (id (get-event :queue))
+                     (description "description")
+                     (predicate :null))
+  (tstep (format nil "Create new queue with predicate ~A."  predicate)
+         (tapply (http-put (list "/routers" router-id "queues" id)
+                            (jsown:new-js
+                             ("description" description)
+                             ("predicate" predicate))))
+         (check-and (has-json) (has-key "ref") (publish-id :queue))))
+
 (defun equeue-size (&key (router-id (get-event :router))
                       (id (get-event :queue))
                       (description (format nil "Get size of the queue."))
@@ -70,17 +92,21 @@
 
 (defun eagent-put (&key (router-id (get-event :router))
                      (id (get-event :agent))
-                     (address "address")
-                     (capabilities (jsown:new-js ("language" "en"))))
+                     (address :null )
+                     (capabilities :null);;(jsown:new-js ("language" "en"))
+                     (name :null)
+                     )
   (tstep (format nil "Replace or create agent.")
          (tapply (http-put (list "/routers" router-id "agents" id) (jsown:new-js
                                                               ("address" address)
+                                                              ("name" name)
                                                               ("capabilities" capabilities))))
          (check-and (has-json) (has-key "ref") (publish-id :agent))))
 
 (defun eagent-set (&key (router-id (get-event :router))
                      (id (get-event :agent))
                      (address "address")
+                     (name :null)
                      (state "ready") ;; offline busy
                      (capabilities (jsown:new-js ("language" "en"))))
   (tstep (format nil "Set properties on agent ~A." (jsown:to-json (jsown:new-js
@@ -89,6 +115,7 @@
                                                                     ("capabilities" capabilities))))
          (tapply (http-post (list "/routers" router-id "agents" id) (jsown:new-js
                                                                ("address" address)
+                                                               ("name" name)
                                                                ("state" state)
                                                                ("capabilities" capabilities))))
          (check-and (is-equal "") #'(lambda(res) (funcall (fire-event :agent-state) state)

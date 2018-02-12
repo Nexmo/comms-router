@@ -45,7 +45,7 @@
             ;; Runs when 400 bad request returned
             )
           (dex:http-request-failed (e) ;; For other 4xx or 5xx
-            (format *error-output* "The server returned ~D" (dex:response-body e))
+            (format *error-output* "Dexador error: The server returned ~D" (dex:response-body e))
             (dex:response-body e))) ) ))
 
 (defun content-json(fn)

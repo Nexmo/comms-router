@@ -45,6 +45,10 @@ public class Agent extends RouterObject {
   @JoinColumn(name = "capabilities_attribute_group_id")
   private AttributeGroup capabilities;
 
+  private String name;
+
+  private String description;
+
   private String address;
 
   @Enumerated(EnumType.STRING)
@@ -69,6 +73,22 @@ public class Agent extends RouterObject {
 
   public void setCapabilities(AttributeGroup capabilities) {
     this.capabilities = capabilities;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public String getAddress() {

@@ -25,12 +25,10 @@ public class BaseTest {
 
   @BeforeClass
   public static void beforeAll() throws Exception {
+    
     java.util.Map<String, String> env = System.getenv();
     String host = env.get("AUT_HOST");
-    if (host != null){
-      System.setProperty("autHost", host);
-    }
 
-    Assume.assumeTrue("autHost is set", System.getProperty("autHost") != null);
+    Assume.assumeTrue("autHost is set", host!=null || System.getProperty("autHost") != null);
   }
 }
