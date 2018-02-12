@@ -38,6 +38,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
+
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
@@ -97,19 +98,18 @@ public class AgentTest extends BaseTest {
 
   private String waitToConnect(int timeout) throws IOException {
 
-      server.setSoTimeout(timeout);
+    server.setSoTimeout(timeout);
       
-      Socket socket = server.accept();
-      OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
-      ow.write("HTTP1/0 200 OK\r\n\r\n");
-      String result = (new BufferedReader(new InputStreamReader(socket.getInputStream()))
-                       .lines().collect(Collectors.joining("\n")));
+    Socket socket = server.accept();
+    OutputStreamWriter ow = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
+    ow.write("HTTP1/0 200 OK\r\n\r\n");
+    String result = (new BufferedReader(new InputStreamReader(socket.getInputStream()))
+                     .lines().collect(Collectors.joining("\n")));
         
-      return result ;
+    return result ;
   }
 
   @Test
-  //@DisplayName("Create new agent.")
   public void createAgent() {
     a.create(new CreateAgentArg.Builder("simpleAgent").build());
     AgentDto resource = a.get();
@@ -119,7 +119,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Create new agent.")
   public void createAgentNameDescription() {
     String name = "simpleAgent";
     String description = "agent description";
@@ -135,7 +134,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Create new agent.")
   public void updateAgentNameDescription() {
     String name = "newAgent";
     String description = "newDescription";
@@ -153,11 +151,9 @@ public class AgentTest extends BaseTest {
                resource.getName(), is(name));
     assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
                resource.getDescription(), is(description));
-    
   }
   
   @Test
-  //@DisplayName("Create new agent and bind to queue.")
   public void createAgentWithCapabilities() {
     a.create("en");
     AgentDto resource = a.get();
@@ -205,7 +201,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Create new agent and complete a task.")
   public void agentHandlesTask() throws MalformedURLException, InterruptedException {
     a.create("en");
     AgentDto resource = a.get();
@@ -226,7 +221,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Create new agent and complete two tasks.")
   public void agentHandlesTwoTasks() throws MalformedURLException, InterruptedException {
     a.create("en");
     a.setState(AgentState.ready);
@@ -238,13 +232,43 @@ public class AgentTest extends BaseTest {
     t.delete();
   }
 
+  @Test
+  public void agentHandlesTwoTasksDeleteAtEnd() throws MalformedURLException, InterruptedException {
+    a.create("en");
+    a.setState(AgentState.ready);
+    CreatedTaskDto task0 = t.createQueueTask();
+    completeTask();
+    t.createQueueTask();
+    completeTask();
+    t.delete();
+    state.put(CommsRouterResource.TASK,task0.getRef());
+    t.delete();
+  }
+
+  @Test
+  public void twoAgentsHandleTwoTasks() throws MalformedURLException, InterruptedException {
+    ApiObjectRef a1 = a.create("en");
+    a.setState(AgentState.ready);
+    ApiObjectRef a2 = a.create("en");
+    a.setState(AgentState.ready);
+    CreatedTaskDto task0 = t.createQueueTask();
+    t.createQueueTask();
+    completeTask();
+    t.delete();
+    state.put(CommsRouterResource.TASK,task0.getRef());
+    state.put(CommsRouterResource.AGENT,a1.getRef());
+    
+    completeTask();
+    t.delete();
+  }
+
+  
   private URL testServer() throws MalformedURLException {
     String host = (System.getProperty("runTestsOn")!=null) ? System.getProperty("runTestsOn") : "http://localhost";
     return new URL( host + ":" +  server.getLocalPort());
   }
 
   @Test
-  //@DisplayName("Create new agent task - no ready agents, set agent ready to complete task.")
   public void agentOfflineTaskReady() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -271,7 +295,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Create new agent and cancel the assigned task.")
   public void taskWithCancel() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -314,7 +337,6 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  //@DisplayName("Check that bad url does not influence processing task.")
   public void taskRejectedBadCallbackUrl() throws MalformedURLException, InterruptedException {
     a.create("en");
     assertThat(q.size(), is(0));
@@ -323,7 +345,7 @@ public class AgentTest extends BaseTest {
     assertThat(q.size(), is(1));
 
     a.setState(AgentState.ready);
-    // callback TimeUnit.SECONDS.sleep(1);
+    TimeUnit.SECONDS.sleep(1);
 
     AgentDto resource = a.get();
     assertThat(String.format("Check agent state (%s) to be busy.", resource.getState()),
