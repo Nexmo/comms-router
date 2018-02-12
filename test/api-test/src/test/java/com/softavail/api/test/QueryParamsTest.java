@@ -46,12 +46,35 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     ApiRouter api_r = new ApiRouter(state);
-    
-    String last = api_r.list("").extract().headers().get("Link").toString(); // it looks like Link=<routers/routers?page_num=36>; rel="last"
-    String lastPage = last.substring("Link=<routers/routers?page_num=".length(),last.length() - ">; rel=\"last\"".length());
-    assertThat( api_r.list("page_num="+lastPage).extract().asString(), containsString(ref.getRef()));
-
+    assert(api_r.list("q=ref=="+ref.getRef()).extract().asString().contains(ref.getRef()));
     r.delete();
+    r.delete();
+  }
+  @Test
+  public void crudNotFound() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    ApiRouter api_r = new ApiRouter(state);
+    assert(api_r.list("q=ref==notExisting").extract().asString().contains("[]"));
+    r.delete();
+  }
+  @Test
+  public void crudRouterSort() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    ApiRouter api_r = new ApiRouter(state);
+    assert(api_r.list("q=ref=="+ref.getRef() + "&sort=ref").extract().asString().contains("Sort params should start with - or + followed by property name and can't be more than 3"));
+    r.delete();
+  }
+  @Test
+  public void crudRouterSortDesc() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    ApiRouter api_r = new ApiRouter(state);
+    api_r.list("q=ref=="+ref.getRef() + "&sort=-ref").extract().asString().contains(ref.getRef());
     r.delete();
   }
 

@@ -48,10 +48,4 @@ public class Resource {
     return this.state;
   }
 
-  public String getLastPage(String last) {
-    String lastPage = last.substring(last.indexOf("page_num=")+9,
-                                     last.length() - ">; rel=\"last\"".length());
-    return lastPage;
-  }
-
 }
