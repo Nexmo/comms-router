@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,55 +23,28 @@ import java.util.List;
  */
 public class PaginatedList<ENTITYT> {
 
-  private List<ENTITYT> list;
-  private int page;
-  private int perPage;
-  private long totalCount;
+  private final List<ENTITYT> list;
+  private final String nextToken;
 
-  public PaginatedList() {
-  }
-
-  public PaginatedList(PagingRequest request, List<ENTITYT> list, long totalCount) {
-    this(list, request.getPage(), request.getPerPage(), totalCount);
-  }
-
-  public PaginatedList(List<ENTITYT> list, int page, int perPage, long totalCount) {
+  public PaginatedList(List<ENTITYT> list, String nextToken) {
     this.list = list;
-    this.page = page;
-    this.perPage = perPage;
-    this.totalCount = totalCount;
+    this.nextToken = nextToken;
   }
 
   public List<ENTITYT> getList() {
     return list;
   }
 
-  public void setList(List<ENTITYT> list) {
-    this.list = list;
+  public String getNextToken() {
+    return nextToken;
   }
 
-  public int getPage() {
-    return page;
-  }
-
-  public void setPage(int page) {
-    this.page = page;
-  }
-
-  public int getPerPage() {
-    return perPage;
-  }
-
-  public void setPerPage(int perPage) {
-    this.perPage = perPage;
-  }
-
-  public long getTotalCount() {
-    return totalCount;
-  }
-
-  public void setTotalCount(long totalCount) {
-    this.totalCount = totalCount;
+  @Override
+  public String toString() {
+    return new StringBuilder("PaginatedList{")
+        .append("list=").append(list)
+        .append(", nextToken='").append(nextToken).append('\'')
+        .append('}').toString();
   }
 
 }

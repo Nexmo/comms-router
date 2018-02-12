@@ -19,6 +19,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
@@ -26,7 +27,6 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 
-import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.UriBuilder;
@@ -70,13 +70,10 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectRef>
   }
 
   @Override
-  public List<PlanDto> list(String routerId) {
-    return getList(routerId);
-  }
-
-  @Override
-  public PaginatedList<PlanDto> list(String routerId, int page, int perPage) {
-    return getList(routerId, page, perPage);
+  public PaginatedList<PlanDto> list(PagingRequest request) {
+    PagingRequest pagingRequest =
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
+    return getList(pagingRequest);
   }
 
   @Override

@@ -4,13 +4,16 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
+import static org.junit.Assert.assertEquals;
+
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
@@ -37,8 +40,9 @@ public class CoreAgentServiceJpaTest extends TestBase {
     routerService.replace(newCreateRouterArg("router-name", ""), routerRef);
     queueService.create(newCreateQueueArg("1==1", "description_one"), routerRef);
     agentService.create(newCreateAgentArg("address_one"), routerRef);
-    List<AgentDto> agent = agentService.list(routerRef);
-    assertEquals(agent.get(0).getAddress(), "address_one");
+    PaginatedList<AgentDto> agent = agentService.list(
+        new PagingRequest(routerRef, null, 10, null,null));
+    assertEquals(agent.getList().get(0).getAddress(), "address_one");
   }
 
   // Testing the update method

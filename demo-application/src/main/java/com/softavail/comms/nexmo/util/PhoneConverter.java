@@ -2,7 +2,7 @@ package com.softavail.comms.nexmo.util;
 
 public class PhoneConverter {
 
-  static public String machineReadable(String phoneNumber) {
+  public static String machineReadable(String phoneNumber) {
 
     if (null == phoneNumber) {
       return null;
@@ -25,7 +25,7 @@ public class PhoneConverter {
     return machineReadable.toString();
   }
 
-  static public String normalize(String phoneNumber) {
+  public static String normalize(String phoneNumber) {
     
     if (phoneNumber != null && phoneNumber.length() > 9) {
       if (phoneNumber.charAt(0) != '+') {

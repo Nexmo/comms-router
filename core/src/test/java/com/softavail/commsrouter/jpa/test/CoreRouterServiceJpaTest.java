@@ -5,12 +5,14 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
+import static org.junit.Assert.assertEquals;
+
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -29,18 +31,18 @@ public class CoreRouterServiceJpaTest extends TestBase {
     //Testing the list method inherited from CoreApiObjectService
     @Test
     public void listTest() throws CommsRouterException {
-        List<RouterDto> routers = routerService.list();
-        assertEquals(2,routers.size());
+        PaginatedList<RouterDto> routers = routerService.list(new PagingRequest());
+        assertEquals(2,routers.getList().size());
     }
 
     //Testing the delete method inherited from CoreApiObjectService
     @Test
     public void deleteTest() throws CommsRouterException {
-        List<RouterDto> routers = routerService.list();
-        assertEquals(2,routers.size());
+        PaginatedList<RouterDto> routers = routerService.list(new PagingRequest());
+        assertEquals(2,routers.getList().size());
         routerService.delete("01");
-        routers = routerService.list();
-        assertEquals(1,routers.size());
+        routers = routerService.list(new PagingRequest());
+        assertEquals(1,routers.getList().size());
     }
 
     //Testing the replace method

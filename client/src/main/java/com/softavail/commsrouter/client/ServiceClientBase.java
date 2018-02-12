@@ -20,7 +20,7 @@ import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
-import com.softavail.commsrouter.api.interfaces.RouterObjectService;
+import com.softavail.commsrouter.api.interfaces.PaginatedService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -145,10 +145,15 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   }
 
   protected PaginatedList<T> getList(PagingRequest request) {
-    URI uri = getApiUrl().clone()
-        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, request.getPage())
-        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, request.getPerPage())
-        .build();
+    UriBuilder uriBuilder = getApiUrl().clone()
+        .queryParam(PaginatedService.TOKEN_PARAM, request.getToken())
+        .queryParam(PaginatedService.ITEMS_PER_PAGE_PARAM, request.getPerPage());
+    URI uri;
+    if (request.isRouterRefAvailable()) {
+      uri = uriBuilder.build(request.getRouterRef());
+    } else {
+      uri = uriBuilder.build();
+    }
 
     Response response = getClient()
         .target(uri)
@@ -156,37 +161,9 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .get();
 
     List<T> list = response.readEntity(new GenericType<List<T>>() {});
-    Long totalCount = Long.valueOf(
-        response.getHeaderString(RouterObjectService.TOTAL_COUNT_HEADER));
+    String nextToken = response.getHeaderString(PaginatedService.NEXT_TOKEN_HEADER);
 
-    return new PaginatedList<>(request, list, totalCount);
-  }
-
-  protected List<T> getList(String routerId) {
-    URI uri = getApiUrl().clone()
-        .build(routerId);
-
-    return getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .get(new GenericType<List<T>>() {});
-  }
-
-  protected PaginatedList<T> getList(String routerRef, int page, int perPage) {
-    URI uri = getApiUrl().clone()
-        .queryParam(RouterObjectService.PAGE_NUMBER_PARAM, page)
-        .queryParam(RouterObjectService.ITEMS_PER_PAGE_PARAM, perPage).build(routerRef);
-
-    Response response = getClient()
-        .target(uri)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .get();
-
-    List<T> list = response.readEntity(new GenericType<List<T>>() {});
-    Long totalCount = Long.valueOf(
-        response.getHeaderString(RouterObjectService.TOTAL_COUNT_HEADER));
-
-    return new PaginatedList<>(list, page, perPage, totalCount);
+    return new PaginatedList<>(list, nextToken);
   }
 
   protected void deleteRequest(ApiObjectRef ref) {

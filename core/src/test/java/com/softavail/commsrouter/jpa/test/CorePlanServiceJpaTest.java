@@ -4,13 +4,14 @@
  */
 package com.softavail.commsrouter.jpa.test;
 
+import static org.junit.Assert.assertEquals;
+
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -54,8 +55,9 @@ public class CorePlanServiceJpaTest extends TestBase {
         new RouterObjectRef(queueId, ROUTER_ID));
     planService.create(newCreatePlanArg("desctiption_one", "1==1", queueId), ROUTER_ID);
     planService.create(newCreatePlanArg("desctiption_two", "1==1", queueId), ROUTER_ID);
-    List<PlanDto> plans = planService.list(ROUTER_ID);
-    assertEquals(plans.size(), 2);
+    PaginatedList<PlanDto> plans = planService.list(
+        new PagingRequest(ROUTER_ID, null, 10, null,null));
+    assertEquals(plans.getList().size(), 2);
   }
 
   // Testing method delete from CoreRouterObjectService
@@ -66,11 +68,13 @@ public class CorePlanServiceJpaTest extends TestBase {
     routerService.replace(newCreateRouterArg("router-name", ""), ROUTER_ID);
     queueService.replace(newCreateQueueArg("1==1", "queue 1"), new RouterObjectRef(queueId, id));
     planService.replace(newCreatePlanArg("desctiption_one", "1==1", queueId), id);
-    List<PlanDto> plans = planService.list(id.getRouterRef());
-    assertEquals(plans.size(), 1);
+    PaginatedList<PlanDto> plans = planService.list(
+        new PagingRequest(id.getRouterRef(), null, 10, null,null));
+    assertEquals(plans.getList().size(), 1);
     planService.delete(id);
-    plans = planService.list(id.getRouterRef());
-    assertEquals(plans.size(), 0);
+    plans = planService.list(
+        new PagingRequest(id.getRouterRef(), null, 10, null, null));
+    assertEquals(plans.getList().size(), 0);
   }
 
   // Testing PaginatedList (list method from CoreRouterService)
@@ -82,7 +86,8 @@ public class CorePlanServiceJpaTest extends TestBase {
     queueService.replace(newCreateQueueArg("1==1", "queue 1"), new RouterObjectRef(queueId, ref));
     ApiObjectRef plan =
         planService.replace(newCreatePlanArg("desctiption_one", "1==1", queueId), ref);
-    PaginatedList<PlanDto> list = planService.list("router-id", 0, 0);
+    PagingRequest pagingRequest = new PagingRequest("router-id", null, 0, null, null);
+    PaginatedList<PlanDto> list = planService.list(pagingRequest);
   }
 
 }

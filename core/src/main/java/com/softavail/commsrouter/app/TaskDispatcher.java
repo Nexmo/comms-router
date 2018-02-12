@@ -98,7 +98,8 @@ public class TaskDispatcher {
   }
 
   private void process(Long routerId, Long queueId) {
-    queueProcessorManager.processQueue(routerId, queueId, db, mappers, this, configuration, threadPool);
+    queueProcessorManager
+        .processQueue(routerId, queueId, db, mappers, this, configuration, threadPool);
   }
 
   public void close() {
