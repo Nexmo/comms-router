@@ -41,7 +41,7 @@ import java.util.HashMap;
 public class QueryParamsTest extends BaseTest {
 
   @Test
-  public void crudRouter() {
+  public void filterRouter() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
@@ -51,7 +51,7 @@ public class QueryParamsTest extends BaseTest {
     r.delete();
   }
   @Test
-  public void crudNotFound() {
+  public void filterNotFound() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
@@ -60,7 +60,7 @@ public class QueryParamsTest extends BaseTest {
     r.delete();
   }
   @Test
-  public void crudRouterSort() {
+  public void filterSortRouter() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
@@ -69,7 +69,7 @@ public class QueryParamsTest extends BaseTest {
     r.delete();
   }
   @Test
-  public void crudRouterSortDesc() {
+  public void filterSortDesc() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
@@ -78,25 +78,82 @@ public class QueryParamsTest extends BaseTest {
     r.delete();
   }
 
-  /*  @Test
-  public void crdQueue() {
+  @Test
+  public void sortDesc() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
-    r.create(new CreateRouterArg());
-
-    Queue q = new Queue(state);
-    ApiObjectRef ref = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
-    QueueDto queue = q.get();
-    assertThat(queue.getDescription(), nullValue());
-
-    ApiQueue api_q = new ApiQueue(state);
-    String last = api_q.list(state.get(CommsRouterResource.ROUTER)).extract().headers().get("Link").toString(); // it looks like Link=<routers/routers?page_num=36>; rel="last"
-    String lastPage = api_q.getLastPage(last);
-    assertThat( api_q.list(state.get(CommsRouterResource.ROUTER), "page_num="+lastPage).extract().asString(), containsString(ref.getRef()));
-
-    q.delete();
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    ApiRouter api_r = new ApiRouter(state);
+    api_r.list("sort=-ref").body("[1].ref", response -> lessThan(response.path("[0].ref")));
     r.delete();
   }
+
+  @Test
+  public void sortAsc() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    ApiRouter api_r = new ApiRouter(state);
+    api_r.list("sort=+ref").body("[0].ref", response -> lessThan(response.path("[1].ref")));
+    r.delete();
+  }
+
+  @Test
+  public void sortQueueDesc() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder().predicate("2").build());
+    q.create(new CreateQueueArg.Builder().predicate("1").build());
+    q.create(new CreateQueueArg.Builder().predicate("3").build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.list(ref.getRef(),"sort=-predicate").body("[1].predicate", response -> lessThan(response.path("[0].predicate")));
+    //r.delete();
+  }
+
+  @Test
+  public void filterQueueNegative() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder().predicate("2").build());
+    q.create(new CreateQueueArg.Builder().predicate("1").build());
+    q.create(new CreateQueueArg.Builder().predicate("10").build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.list(ref.getRef(), "q=predicate!=1").body("size()",is(2));
+    //r.delete();
+  }
+  
+  public void filterQueueEmpty() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder().predicate("2").build());
+    q.create(new CreateQueueArg.Builder().predicate("1").build());
+    q.create(new CreateQueueArg.Builder().predicate("10").build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.list(ref.getRef(), "q=predicate!=").body("size()",is(2));
+    //r.delete();
+  }
+
+  @Test
+  public void filterQueue() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Queue q = new Queue(state);
+    q.create(new CreateQueueArg.Builder().predicate("2").build());
+    q.create(new CreateQueueArg.Builder().predicate("1").build());
+    q.create(new CreateQueueArg.Builder().predicate("3").build());
+    ApiQueue api_q = new ApiQueue(state);
+    api_q.list(ref.getRef(), "q=predicate==1").body("[0].predicate", is("1"));
+    //r.delete();
+  }
+
+  /*  
 
   @Test
   public void crdPlan() {
