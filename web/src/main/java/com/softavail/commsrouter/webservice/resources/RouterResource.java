@@ -320,4 +320,20 @@ public class RouterResource {
     return resource;
   }
 
+  @Path("{routerRef}/skills")
+  @ApiOperation(
+      value = "Skills sub-resource",
+      response = AgentResource.class,
+      tags = "skills")
+  public SkillResource skillResource(@PathParam("routerRef") String routerRef) {
+    LOGGER.debug("Router {} skills", routerRef);
+
+    SkillResource resource = resourceContext.getResource(SkillResource.class);
+    resource.setRouterRef(routerRef);
+    UriBuilder agentResource =
+        UriBuilder.fromResource(this.getClass()).path(this.getClass(), "skillResource");
+    resource.setEntryPoint(agentResource);
+    return resource;
+  }
+
 }
