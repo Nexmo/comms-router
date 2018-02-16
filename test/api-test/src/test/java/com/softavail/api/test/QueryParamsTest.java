@@ -37,7 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 
-/** Unit test for simple App. */
+/** Unit test for query params. */
 public class QueryParamsTest extends BaseTest {
 
   @Test
@@ -50,6 +50,7 @@ public class QueryParamsTest extends BaseTest {
     r.delete();
     r.delete();
   }
+  
   @Test
   public void filterNotFound() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -59,6 +60,7 @@ public class QueryParamsTest extends BaseTest {
     assert(api_r.list("q=ref==notExisting").extract().asString().contains("[]"));
     r.delete();
   }
+  
   @Test
   public void filterSortRouter() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -68,6 +70,7 @@ public class QueryParamsTest extends BaseTest {
     assert(api_r.list("q=ref=="+ref.getRef() + "&sort=ref").extract().asString().contains("Sort params should start with - or + followed by property name and can't be more than 3"));
     r.delete();
   }
+  
   @Test
   public void filterSortDesc() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -125,7 +128,7 @@ public class QueryParamsTest extends BaseTest {
     api_q.list(ref.getRef(), "q=predicate!=1").body("size()",is(2));
     //r.delete();
   }
-  
+
   public void filterQueueEmpty() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
@@ -152,6 +155,62 @@ public class QueryParamsTest extends BaseTest {
     api_q.list(ref.getRef(), "q=predicate==1").body("[0].predicate", is("1"));
     //r.delete();
   }
+
+  @Test
+  public void sortAgentDesc() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Agent a = new Agent(state);
+    a.create(new CreateAgentArg.Builder("Agent").address("2").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("1").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("3").build());
+    ApiAgent api_a = new ApiAgent(state);
+    api_a.list(ref.getRef(),"sort=-address").body("[1].address", response -> lessThan(response.path("[0].address")));
+    //r.delete();
+  }
+
+  @Test
+  public void filterAgentNegative() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Agent a = new Agent(state);
+    a.create(new CreateAgentArg.Builder("Agent").address("2").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("1").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("10").build());
+    ApiAgent api_a = new ApiAgent(state);
+    api_a.list(ref.getRef(), "q=address!=1").body("size()",is(2));
+    //r.delete();
+  }
+
+  public void filterAgentEmpty() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Agent a = new Agent(state);
+    a.create(new CreateAgentArg.Builder("Agent").address("2").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("1").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("10").build());
+    ApiAgent api_a = new ApiAgent(state);
+    api_a.list(ref.getRef(), "q=address!=").body("size()",is(2));
+    //r.delete();
+  }
+
+  @Test
+  public void filterAgent() {
+    HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
+    Router r = new Router(state);
+    ApiObjectRef ref = r.create(new CreateRouterArg());
+    Agent a = new Agent(state);
+    a.create(new CreateAgentArg.Builder("Agent").address("2").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("1").build());
+    a.create(new CreateAgentArg.Builder("Agent").address("3").build());
+    ApiAgent api_a = new ApiAgent(state);
+    api_a.list(ref.getRef(), "q=address==1").body("[0].address", is("1"));
+    //r.delete();
+  }
+
 
   /*  
 

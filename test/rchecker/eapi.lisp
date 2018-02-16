@@ -136,7 +136,7 @@
 
 
 (defun erouter-all (&key (checks (check-and (has-json))) (per-page 50) (page-number 1)
-                      (q (format nil "?per_page=~A&page_num=~A" per-page page-number))
+                      (q (format nil "?per_page=~A&page_num=~A" per-page page-number)))
   (tstep (format nil "List available routers.")
          (tapply (http-get (with-q "/routers" q)))
          checks))
@@ -226,12 +226,14 @@
                     (description (format nil "Set state=~A of the agent"state ))
                     (router-id (get-event :router))
                     (id (get-event :agent))
+                    (name "name")
                     (address "address")
                     (capabilities (jsown:new-js ("language" "en"))))
   (tstep description
          (tapply (http-post (list "/routers" router-id "agents" id)
                             (jsown:new-js
                               ("address" address)
+                              ("name" name)
                               ("state" state)
                               ("capabilities" capabilities))))
          (is-equal "")))
