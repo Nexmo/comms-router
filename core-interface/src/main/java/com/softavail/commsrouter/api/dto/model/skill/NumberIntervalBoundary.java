@@ -16,6 +16,10 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
+
 /**
  *
  * @author ikrustev
@@ -29,6 +33,8 @@ public class NumberIntervalBoundary {
           = new NumberIntervalBoundary(Double.NEGATIVE_INFINITY);
 
   private Double boundary;
+
+  @JsonProperty
   private Boolean inclusive;
 
   public NumberIntervalBoundary() {}
@@ -42,6 +48,20 @@ public class NumberIntervalBoundary {
     this.inclusive = inclusive;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof NumberIntervalBoundary)) {
+      return false;
+    }
+    NumberIntervalBoundary rhs = (NumberIntervalBoundary)o;
+    return Objects.equals(boundary, rhs.boundary) && (isInclusive() == rhs.isInclusive());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.boundary, isInclusive() ? Boolean.TRUE : Boolean.FALSE);
+  }
+
   public Double getBoundary() {
     return boundary;
   }
@@ -50,7 +70,12 @@ public class NumberIntervalBoundary {
     this.boundary = boundary;
   }
 
-  public Boolean isInclusive() {
+  @JsonIgnore
+  public boolean isInclusive() {
+    return inclusive != null && inclusive;
+  }
+
+  public Boolean getInclusive() {
     return inclusive;
   }
 

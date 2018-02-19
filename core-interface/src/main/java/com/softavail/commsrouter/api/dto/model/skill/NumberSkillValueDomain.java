@@ -22,22 +22,27 @@ import java.util.List;
  *
  * @author ikrustev
  */
-public class EnumerationSkillDto extends SkillDto {
+public class NumberSkillValueDomain extends SkillValueDomain {
 
-  private List<String> values;
+  private List<NumberInterval> intervals;
 
-  public EnumerationSkillDto() {}
+  public NumberSkillValueDomain() {}
 
-  public SkillType getType() {
-    return SkillType.enumeration;
+  public NumberSkillValueDomain(List<NumberInterval> intervals) {
+    this.intervals = intervals;
   }
 
-  public List<String> getValues() {
-    return values;
+  @Override
+  public SkillValueType getType() {
+    return SkillValueType.number;
   }
 
-  public void setValues(List<String> values) {
-    this.values = values;
+  public List<NumberInterval> getIntervals() {
+    return intervals;
+  }
+
+  public void setIntervals(List<NumberInterval> intervals) {
+    this.intervals = intervals;
   }
 
 }

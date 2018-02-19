@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.softavail.commsrouter.api.dto.model.skill;
+package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
+import com.softavail.commsrouter.api.dto.model.skill.SkillValueDomain;
+
 
 /**
  *
  * @author ikrustev
  */
-public class SkillDto extends RouterObjectRef {
+public class CreateSkillArg {
 
   private String description;
   private Boolean multivalue;
   private SkillValueDomain domain;
-
-  public SkillDto() {}
 
   public String getDescription() {
     return description;

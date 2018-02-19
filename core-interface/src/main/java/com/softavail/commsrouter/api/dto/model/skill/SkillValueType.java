@@ -16,28 +16,12 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import java.util.List;
-
 /**
  *
  * @author ikrustev
  */
-public class NumberSkillDto extends SkillDto {
+public enum SkillValueType {
 
-  public NumberSkillDto() {}
-
-  private List<NumberInterval> intervals;
-
-  public SkillType getType() {
-    return SkillType.number;
-  }
-
-  public List<NumberInterval> getIntervals() {
-    return intervals;
-  }
-
-  public void setIntervals(List<NumberInterval> intervals) {
-    this.intervals = intervals;
-  }
+  enumeration, number, string
 
 }

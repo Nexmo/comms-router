@@ -16,18 +16,18 @@
 
 package com.softavail.commsrouter.webservice.resources;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
-import com.softavail.commsrouter.api.dto.model.skill.EnumerationSkillDto;
+import com.softavail.commsrouter.api.dto.model.skill.EnumerationSkillValueDomain;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
-import com.softavail.commsrouter.api.dto.model.skill.NumberSkillDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberSkillValueDomain;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
-import com.softavail.commsrouter.api.dto.model.skill.StringSkillDto;
+import com.softavail.commsrouter.api.dto.model.skill.StringSkillValueDomain;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExceptionPresentation;
 import com.softavail.commsrouter.api.interfaces.PaginatedService;
@@ -122,31 +122,36 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
 
     List<SkillDto> list = new ArrayList<>();
 
-    EnumerationSkillDto enumerationSkill;
+    SkillDto skill;
+    EnumerationSkillValueDomain enumerationDomain;
+    NumberSkillValueDomain numberDomain;
+    StringSkillValueDomain stringDomain;
 
-    enumerationSkill = new EnumerationSkillDto();
-    enumerationSkill.setRouterRef(routerRef);
-    enumerationSkill.setRef("language");
-    enumerationSkill.setDescription("Representes the set of languages spoken by an agent");
-    enumerationSkill.setMultivalue(true);
-    enumerationSkill.setValues(Arrays.asList("en", "es"));
-    list.add(enumerationSkill);
+    skill = new SkillDto();
+    skill.setRouterRef(routerRef);
+    skill.setRef("language");
+    skill.setDescription("Representes the set of languages spoken by an agent");
+    skill.setMultivalue(true);
+    enumerationDomain = new EnumerationSkillValueDomain();
+    enumerationDomain.setValues(Arrays.asList("en", "es"));
+    skill.setDomain(enumerationDomain);
+    list.add(skill);
 
-    enumerationSkill = new EnumerationSkillDto();
-    enumerationSkill.setRouterRef(routerRef);
-    enumerationSkill.setRef("service");
-    enumerationSkill.setDescription("Representes the set of services that an agent could be capable of");
-    enumerationSkill.setMultivalue(true);
-    enumerationSkill.setValues(Arrays.asList("support", "sale", "help"));
-    list.add(enumerationSkill);
+    skill = new SkillDto();
+    skill.setRouterRef(routerRef);
+    skill.setRef("service");
+    skill.setDescription("Representes the set of services that an agent could be capable of");
+    skill.setMultivalue(true);
+    enumerationDomain = new EnumerationSkillValueDomain();
+    enumerationDomain.setValues(Arrays.asList("support", "sale", "help"));
+    skill.setDomain(enumerationDomain);
+    list.add(skill);
 
-    NumberSkillDto numberSkill;
-
-    numberSkill = new NumberSkillDto();
-    numberSkill.setRouterRef(routerRef);
-    numberSkill.setRef("age");
-    numberSkill.setDescription("Representes the age of an agent");
-    numberSkill.setMultivalue(false);
+    skill = new SkillDto();
+    skill.setRouterRef(routerRef);
+    skill.setRef("age");
+    skill.setDescription("Representes the age of an agent");
+    skill.setMultivalue(false);
 
     NumberInterval teens = new NumberInterval();
     teens.setLow(new NumberIntervalBoundary(13.0, true));
@@ -156,18 +161,20 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
     seniors.setLow(new NumberIntervalBoundary(60.0, Boolean.FALSE));
     seniors.setHigh(NumberIntervalBoundary.POSITIVE_INFINITY);
 
-    numberSkill.setIntervals(Arrays.asList(teens, seniors));
-    list.add(numberSkill);
+    numberDomain = new NumberSkillValueDomain();
+    numberDomain.setIntervals(Arrays.asList(teens, seniors));
+    skill.setDomain(numberDomain);
+    list.add(skill);
 
-    StringSkillDto stringSkill;
-
-    stringSkill = new StringSkillDto();
-    stringSkill.setRouterRef(routerRef);
-    stringSkill.setRef("external-agent-id");
-    stringSkill.setDescription("Representes some external ID of an agent and can be used by the task to express preference toward particular agent");
-    stringSkill.setMultivalue(false);
-    stringSkill.setRegexp("id-.+");
-    list.add(stringSkill);
+    skill = new SkillDto();
+    skill.setRouterRef(routerRef);
+    skill.setRef("external-agent-id");
+    skill.setDescription("Representes some external ID of an agent and can be used by the task to express preference toward particular agent");
+    skill.setMultivalue(false);
+    stringDomain = new StringSkillValueDomain();
+    stringDomain.setRegex("id-.+");
+    skill.setDomain(stringDomain);
+    list.add(skill);
 
     PaginatedList<SkillDto> pagedList = new PaginatedList<>(list, "next-page-token");
 
@@ -182,6 +189,8 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
         .build();
   }
 
+  private SkillDto skillDtoForTesting;
+
   @GET
   @Path("{resourceRef}")
   @ApiOperation(value = "Get resource by ID", notes = "Returns resource by the given ID")
@@ -192,7 +201,16 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
 
     LOGGER.debug("Getting {}", routerObjectId);
 
-    return getService().get(routerObjectId);
+    if (skillDtoForTesting == null) {
+      skillDtoForTesting = new SkillDto();
+      skillDtoForTesting.setDescription("Some sample skill");
+      skillDtoForTesting.setRef("some");
+      StringSkillValueDomain domain = new StringSkillValueDomain();
+      domain.setRegex("some regexp");
+      skillDtoForTesting.setDomain(domain);
+    }
+
+    return skillDtoForTesting; // getService().get(routerObjectId);
   }
 
   @POST
@@ -201,44 +219,60 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
       notes = "Add new Skill and associate it with a Router")
   @ApiResponses({
       @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
-  public Response create(CreateAgentArg agentArg) throws CommsRouterException {
+  public Response create(CreateSkillArg skillArg) throws CommsRouterException {
 
-    LOGGER.debug("Creating skill {}", agentArg);
+    LOGGER.debug("Creating skill {}", skillArg);
 
-    ApiObjectRef agent = service.create(agentArg, routerRef);
+//    ApiObjectRef agent = service.create(skillArg, routerRef);
+//
+    skillDtoForTesting = new SkillDto();
+    skillDtoForTesting.setDescription(skillArg.getDescription());
+    skillDtoForTesting.setMultivalue(skillArg.getMultivalue());
+    skillDtoForTesting.setDomain(skillArg.getDomain());
+    skillDtoForTesting.setRef(routerRef);
+    skillDtoForTesting.setRouterRef(routerRef);
+    skillDtoForTesting.setRef("some-generated-ref");
 
-    return createResponse(agent);
+    return createResponse(skillDtoForTesting);
   }
 
   @PUT
-  @Path("{resourceId}")
+  @Path("{resourceRef}")
   @ApiOperation(
-      value = "Replace an existing Agent",
-      notes = "If the agent with the specified id does not exist, it creates it")
+      value = "Replace an existing Skill",
+      notes = "If no skill with the specified ref exists, it creates it")
   @ApiResponses({
       @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
-      @ApiResponse(code = 400, message = "Invalid ID supplied",
-          response = ExceptionPresentation.class),
-      @ApiResponse(code = 404, message = "Agent not found",
+      @ApiResponse(code = 400, message = "Invalid ref supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public Response create(
-      @ApiParam(value = "The id of the agent to be replaced", required = true)
-      @PathParam("resourceId")
-          String resourceId,
-      @ApiParam(value = "CreateAgentArg object specifying all the parameters")
-          CreateAgentArg agentArg)
+      @ApiParam(value = "The ref of the skill to be replaced", required = true)
+      @PathParam("resourceRef")
+          String resourceRef,
+      @ApiParam(value = "CreateSkillArg object specifying all the parameters")
+          CreateSkillArg skillArg)
       throws CommsRouterException {
 
-    LOGGER.debug("Replacing agent: {}, with id: {}", agentArg, resourceId);
+    LOGGER.debug("Replacing skill: {}, with ref: {}", skillArg, resourceRef);
 
-    RouterObjectRef objectRef =
-        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
+//    RouterObjectRef objectRef =
+//        RouterObjectRef.builder().setRef(resourceRef).setRouterRef(routerRef).build();
+//
+//    ApiObjectRef agent = service.replace(skillArg, objectRef);
+//
+//    return createResponse(agent);
 
-    ApiObjectRef agent = service.replace(agentArg, objectRef);
+    skillDtoForTesting = new SkillDto();
+    skillDtoForTesting.setDescription(skillArg.getDescription());
+    skillDtoForTesting.setMultivalue(skillArg.getMultivalue());
+    skillDtoForTesting.setDomain(skillArg.getDomain());
+    skillDtoForTesting.setRef(routerRef);
+    skillDtoForTesting.setRouterRef(routerRef);
+    skillDtoForTesting.setRef(resourceRef);
 
-    return createResponse(agent);
+    return createResponse(skillDtoForTesting);
   }
 
   @POST

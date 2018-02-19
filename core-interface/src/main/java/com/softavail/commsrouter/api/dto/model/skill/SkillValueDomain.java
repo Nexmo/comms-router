@@ -16,42 +16,15 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  *
  * @author ikrustev
  */
-public class SkillDto extends RouterObjectRef {
+@JsonDeserialize(using = SkillValueDomainDeserializer.class)
+public abstract class SkillValueDomain {
 
-  private String description;
-  private Boolean multivalue;
-  private SkillValueDomain domain;
-
-  public SkillDto() {}
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Boolean getMultivalue() {
-    return multivalue;
-  }
-
-  public void setMultivalue(Boolean multivalue) {
-    this.multivalue = multivalue;
-  }
-
-  public SkillValueDomain getDomain() {
-    return domain;
-  }
-
-  public void setDomain(SkillValueDomain domain) {
-    this.domain = domain;
-  }
+  public abstract SkillValueType getType();
 
 }

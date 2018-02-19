@@ -20,8 +20,27 @@ package com.softavail.commsrouter.api.dto.model.skill;
  *
  * @author ikrustev
  */
-public enum SkillType {
+public class StringSkillValueDomain extends SkillValueDomain {
 
-  enumeration, number, string
+  private String regex;
+
+  public StringSkillValueDomain() {}
+
+  public StringSkillValueDomain(String regex) {
+    this.regex = regex;
+  }
+
+  @Override
+  public SkillValueType getType() {
+    return SkillValueType.string;
+  }
+
+  public String getRegex() {
+    return regex;
+  }
+
+  public void setRegex(String regex) {
+    this.regex = regex;
+  }
 
 }

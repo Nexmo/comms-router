@@ -99,3 +99,4 @@ Servers/
 
 **/liquibase.properties
 **/application.properties
+/core-interface/nbproject/

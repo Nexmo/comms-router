@@ -16,26 +16,33 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import java.util.List;
+
 /**
  *
  * @author ikrustev
  */
-public class StringSkillDto extends SkillDto {
+public class EnumerationSkillValueDomain extends SkillValueDomain {
 
-  private String regexp;
+  private List<String> values;
 
-  public StringSkillDto() {}
+  public EnumerationSkillValueDomain() {}
 
-  public SkillType getType() {
-    return SkillType.string;
+  public EnumerationSkillValueDomain(List<String> values) {
+    this.values = values;
   }
 
-  public String getRegexp() {
-    return regexp;
+  @Override
+  public SkillValueType getType() {
+    return SkillValueType.enumeration;
   }
 
-  public void setRegexp(String regexp) {
-    this.regexp = regexp;
+  public List<String> getValues() {
+    return values;
+  }
+
+  public void setValues(List<String> values) {
+    this.values = values;
   }
 
 }

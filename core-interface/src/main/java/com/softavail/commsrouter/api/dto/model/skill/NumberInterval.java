@@ -16,6 +16,8 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import java.util.Objects;
+
 /**
  *
  * @author ikrustev
@@ -26,6 +28,20 @@ public class NumberInterval {
   private NumberIntervalBoundary high;
 
   public NumberInterval() {}
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof NumberInterval)) {
+      return false;
+    }
+    NumberInterval rhs = (NumberInterval)o;
+    return Objects.equals(low, rhs.low) && Objects.equals(high, rhs.high);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.low, this.high);
+  }
 
   public NumberIntervalBoundary getLow() {
     return low;
