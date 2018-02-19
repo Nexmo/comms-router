@@ -25,9 +25,13 @@ import com.google.common.collect.Lists;
 import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.ApiObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,10 +47,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Base64;
 
 /**
  * Created by @author mapuo on 04/12/17.
@@ -74,36 +74,23 @@ public class PaginationHelper {
     SeekToken seekToken = SeekToken.parseToken(classz.getSimpleName(), request.getToken());
     Map<String, OrderType> sortOrder = parseSortOrder(request.getSort());
 
-    ImmutableList.Builder<Predicate> predicatesBuilder = ImmutableList.builder();
+    List<Predicate> predicates = seekToken.getSortParameters().entrySet().stream()
+        .map(entry -> {
+          String key = entry.getKey();
+          String value = entry.getValue();
 
-    seekToken.getSortParameters().forEach((key, value) -> {
-
-      Path<Object> path = root.get(key);
-      Class<?> javaType = path.getJavaType();
-
-      LOGGER.debug("javaType: {}", javaType);
-
-      if (javaType == Long.class) {
-        Long num = Long.valueOf(value);
-
-        Predicate predicate;
-        if (sortOrder.get(key) == OrderType.ASCENDING) {
-          predicate = cb.gt(root.get(key), num);
-        } else {
-          predicate = cb.lt(root.get(key), num);
-        }
-
-        predicatesBuilder.add(predicate);
-      }
-
-      if (javaType == String.class) {
-        // TODO
-        // String str = String.valueOf(value);
-        // predicatesBuilder.add(cb.equal(root.get(key), str));
-      }
-    });
-
-    ImmutableList<Predicate> predicates = predicatesBuilder.build();
+          Predicate predicate;
+          if (sortOrder.get(key) == OrderType.ASCENDING) {
+            predicate = cb.greaterThan(root.get(key), value);
+          } else {
+            predicate = cb.lessThan(root.get(key), value);
+          }
+          return predicate;
+        })
+        .collect(
+            Builder<Predicate>::new,
+            Builder<Predicate>::add,
+            (b1, b2) -> b1.addAll(b2.build())).build();
 
     LOGGER.debug("predicates: {}", predicates);
 
@@ -232,7 +219,6 @@ public class PaginationHelper {
           .findFirst()
           .orElse(null);
     }
-
   }
 
   private static class SeekToken {
