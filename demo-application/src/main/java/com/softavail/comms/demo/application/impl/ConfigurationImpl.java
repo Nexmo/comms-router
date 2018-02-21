@@ -63,9 +63,9 @@ public class ConfigurationImpl implements Configuration {
     // set music on hold URL
     musicOnHoldUrl = properties.musicOnHoldUrl();
     
-    commsQueueId = properties.commsQueueID();
+    commsQueueId = properties.commsQueueId();
     
-    commsPlanId = properties.commsPlanID();
+    commsPlanId = properties.commsPlanId();
   }
 
   @Override

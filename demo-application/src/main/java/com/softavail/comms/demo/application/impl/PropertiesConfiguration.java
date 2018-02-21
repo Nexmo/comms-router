@@ -93,12 +93,12 @@ public class PropertiesConfiguration implements ConfigurationProperties {
   }
 
   @Override
-  public String commsQueueID() {
+  public String commsQueueId() {
     return properties.getProperty(COMMS_QUEUE_ID);
   }
 
   @Override
-  public String commsPlanID() {
+  public String commsPlanId() {
     return properties.getProperty(COMMS_PLAN_ID);
   }
 
