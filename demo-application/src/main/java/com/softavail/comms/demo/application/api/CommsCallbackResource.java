@@ -4,7 +4,7 @@ import com.nexmo.client.NexmoClientException;
 import com.nexmo.client.voice.Call;
 import com.nexmo.client.voice.CallEvent;
 import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.model.VoiceEndpoint;
+import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.util.PhoneConverter;
@@ -87,8 +87,8 @@ public class CommsCallbackResource {
 
       String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
       String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
-      Endpoint epAgent = new VoiceEndpoint(toNumber);
-      Endpoint epFrom = new VoiceEndpoint(fromNumber);
+      Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
+      Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
 
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
@@ -165,10 +165,10 @@ public class CommsCallbackResource {
       // obtain agent's endpoint to be called
       String toNumber = agent.getAddress();//PhoneConverter.normalize(agent.getAddress());
       String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
-      Endpoint epAgent = new VoiceEndpoint(toNumber);
-      Endpoint epFrom = new VoiceEndpoint(fromNumber);
+      Endpoint epAgent = NexMoModelFactory.createEndpoint(toNumber);
+      Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
 
-      new VoiceEndpoint(configuration.getAssociatedPhone().toLog());
+      NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog());
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_agent")
@@ -258,8 +258,8 @@ public class CommsCallbackResource {
    * conversationId); wouldConnectAgent = false; break; }
    *
    * // obtain agent's endpoint to be called Endpoint epAgent =
-   * new VoiceEndpoint(agent.getAddress()); Endpoint epFrom =
-   * new VoiceEndpoint(configuration.getAssociatedPhone().toLog()); String answerUrl
+   * NexMoModelFactory.createEndpoint(agent.getAddress()); Endpoint epFrom =
+   * NexMoModelFactory.createEndpoint(configuration.getAssociatedPhone().toLog()); String answerUrl
    * = configuration.getNexmoCallbackBaseUrl() + "answer_outbound/" + conversation.getId(); //
    * prepare to start a call to the agent Call callRequest = new Call(epAgent, epFrom, answerUrl);
    * try {

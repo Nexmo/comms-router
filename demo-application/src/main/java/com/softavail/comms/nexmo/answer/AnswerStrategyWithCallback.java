@@ -10,7 +10,7 @@ import com.nexmo.client.voice.ncco.Ncco;
 import com.nexmo.client.voice.ncco.TalkNcco;
 import com.nexmo.client.voice.servlet.NccoResponse;
 import com.nexmo.client.voice.servlet.NccoResponseBuilder;
-import com.softavail.comms.demo.application.model.VoiceEndpoint;
+import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.ncco.NccoFactory;
@@ -1115,8 +1115,8 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
       // obtain agent's endpoint to be called
       String toNumber = number;//PhoneConverter.normalize(number);
       String fromNumber = PhoneConverter.normalize(configuration.getAssociatedPhone().toLog());
-      Endpoint epTo = new VoiceEndpoint(toNumber);
-      Endpoint epFrom = new VoiceEndpoint(fromNumber);
+      Endpoint epTo = NexMoModelFactory.createEndpoint(toNumber);
+      Endpoint epFrom = NexMoModelFactory.createEndpoint(fromNumber);
       URI uri = UriBuilder.fromPath(configuration.getNexmoCallbackBaseUrl())
           .path("answer_outbound")
           .queryParam("kind", "callback_customer")
