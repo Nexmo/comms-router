@@ -1,5 +1,14 @@
 (in-package #:rchecker)
-
+(defun delete-tasks(router-id)
+  (delete-items 
+   :all #'(lambda() (task-all :router-id router-id))
+   :complete #'(lambda(task-id)
+                 (let ((task-state (jsown:val (task :router-id router-id :id task-id) "state"))) 
+                   (cond ((equal  task-state "assigned")
+                          (funcall (etask-set :router-id router-id :id task-id :state "completed")) )
+                         ((equal task-state "waiting")
+                          (funcall (etask-set :router-id router-id  :id task-id :state "canceled")) )) ))
+   :delete #'(lambda(task-id) (funcall (etask-del :router-id router-id :id task-id)) )))
 (defun setup-rqpt (&key (qpredicate "1==1")
                      (tpredicate "1")
                      (task-req (jsown:new-js ("bool" t)
