@@ -69,4 +69,3 @@ public class VoiceEndpoint implements Endpoint {
   }
 
 }
-
