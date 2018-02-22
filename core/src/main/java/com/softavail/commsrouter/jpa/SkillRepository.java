@@ -14,35 +14,17 @@
  * limitations under the License.
  */
 
-package com.softavail.commsrouter.api.dto.model.skill;
+package com.softavail.commsrouter.jpa;
 
-import java.util.List;
+import com.softavail.commsrouter.domain.Skill;
 
 /**
- *
  * @author ikrustev
  */
-public class NumberSkillValueDomain extends SkillValueDomain {
+public class SkillRepository extends RouterObjectRepository<Skill> {
 
-  private List<NumberInterval> intervals;
-
-  public NumberSkillValueDomain() {}
-
-  public NumberSkillValueDomain(List<NumberInterval> intervals) {
-    this.intervals = intervals;
-  }
-
-  @Override
-  public SkillValueType getType() {
-    return SkillValueType.number;
-  }
-
-  public List<NumberInterval> getIntervals() {
-    return intervals;
-  }
-
-  public void setIntervals(List<NumberInterval> intervals) {
-    this.intervals = intervals;
+  public SkillRepository(JpaTransactionManager transactionManager) {
+    super(transactionManager);
   }
 
 }

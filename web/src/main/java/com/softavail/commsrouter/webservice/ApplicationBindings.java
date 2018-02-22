@@ -20,11 +20,13 @@ import com.softavail.commsrouter.api.interfaces.AgentService;
 import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.api.interfaces.RouterService;
+import com.softavail.commsrouter.api.interfaces.SkillService;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 import com.softavail.commsrouter.api.service.CoreAgentService;
 import com.softavail.commsrouter.api.service.CorePlanService;
 import com.softavail.commsrouter.api.service.CoreQueueService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.api.service.CoreSkillService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.providers.ClientFactory;
@@ -66,6 +68,10 @@ public class ApplicationBindings extends AbstractBinder {
     bind(new CoreAgentService(context))
         .to(AgentService.class)
         .to(CoreAgentService.class);
+
+    bind(new CoreSkillService(context))
+        .to(SkillService.class)
+        .to(CoreSkillService.class);
 
     bind(new CoreRouterService(context))
         .to(RouterService.class)

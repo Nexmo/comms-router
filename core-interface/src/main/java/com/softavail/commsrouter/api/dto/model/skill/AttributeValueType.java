@@ -20,7 +20,7 @@ package com.softavail.commsrouter.api.dto.model.skill;
  *
  * @author ikrustev
  */
-public enum SkillValueType {
+public enum AttributeValueType {
 
   enumeration, number, string
 
