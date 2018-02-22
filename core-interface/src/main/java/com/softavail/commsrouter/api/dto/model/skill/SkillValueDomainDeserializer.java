@@ -27,12 +27,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
  * @author ikrustev
  */
-public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDomain> {
+public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValueDomainDto> {
 
   private static final Logger LOGGER = LogManager.getLogger(SkillValueDomainDeserializer.class);
 
@@ -45,7 +46,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
   }
 
   @Override
-  public SkillValueDomain deserialize(JsonParser jp, DeserializationContext ctxt)
+  public AttributeValueDomainDto deserialize(JsonParser jp, DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
 
     JsonToken currentToken = jp.getCurrentToken();
@@ -54,7 +55,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
     }
     
     String type = null;
-    List<String> values = null;
+    Set<String> values = null;
     List<NumberInterval> intervals = null;
     String regex = null;
 
@@ -75,7 +76,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
             throw new IllegalArgumentException("Duplicate field: values");
           }
           jp.nextValue();
-          values = jp.readValueAs(new TypeReference<List<String>>() {});
+          values = jp.readValueAs(new TypeReference<Set<String>>() {});
           break;
         case "intervals":
           if (intervals != null) {
@@ -112,7 +113,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
         if (regex != null) {
           throw new IllegalArgumentException("Unknown field for domain 'enumeration': regex");
         }
-        return new EnumerationSkillValueDomain(values);
+        return new EnumerationAttributeValueDomainDto(values);
       case "number":
         if (values != null) {
           throw new IllegalArgumentException("Unknown field for domain 'number': values");
@@ -120,7 +121,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
         if (regex != null) {
           throw new IllegalArgumentException("Unknown field for domain 'number': regex");
         }
-        return new NumberSkillValueDomain(intervals);
+        return new NumberAttributeValueDomainDto(intervals);
       case "string":
         if (intervals != null) {
           throw new IllegalArgumentException("Unknown field for domain 'string': intervals");
@@ -128,7 +129,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<SkillValueDoma
         if (values != null) {
           throw new IllegalArgumentException("Unknown field for domain 'string': values");
         }
-        return new StringSkillValueDomain(regex);
+        return new StringAttributeValueDomainDto(regex);
       default:
         throw new IllegalArgumentException("Invalid domain type: " + type);
     }

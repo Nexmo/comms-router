@@ -16,31 +16,17 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 /**
  *
  * @author ikrustev
  */
-public class StringSkillValueDomain extends SkillValueDomain {
+@JsonDeserialize(using = SkillValueDomainDeserializer.class)
+public abstract class AttributeValueDomainDto {
 
-  private String regex;
+  public abstract AttributeValueType getType();
 
-  public StringSkillValueDomain() {}
-
-  public StringSkillValueDomain(String regex) {
-    this.regex = regex;
-  }
-
-  @Override
-  public SkillValueType getType() {
-    return SkillValueType.string;
-  }
-
-  public String getRegex() {
-    return regex;
-  }
-
-  public void setRegex(String regex) {
-    this.regex = regex;
-  }
+  public abstract void accept(AttributeValueDomainDtoVisitor visitor);
 
 }

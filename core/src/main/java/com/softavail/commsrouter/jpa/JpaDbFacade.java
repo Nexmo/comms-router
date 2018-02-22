@@ -19,6 +19,7 @@ package com.softavail.commsrouter.jpa;
 import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.Plan;
+import com.softavail.commsrouter.domain.Skill;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -37,6 +38,7 @@ public class JpaDbFacade {
   public final RouterObjectRepository<Plan> plan;
   public final RouterObjectRepository<Agent> agent;
   public final TaskRepository task;
+  public final RouterObjectRepository<Skill> skill;
 
   public JpaDbFacade() {
     this(CoreConfiguration.DEFAULT, PERSISTENCE_UNIT);
@@ -61,6 +63,7 @@ public class JpaDbFacade {
     this.plan = new PlanRepository(transactionManager);
     this.agent = new AgentRepository(transactionManager);
     this.task = new TaskRepository(transactionManager);
+    this.skill = new SkillRepository(transactionManager);
 
   }
 

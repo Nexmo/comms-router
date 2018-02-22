@@ -16,42 +16,38 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
+import java.util.List;
 
 /**
  *
  * @author ikrustev
  */
-public class SkillDto extends RouterObjectRef {
+public class NumberAttributeValueDomainDto extends AttributeValueDomainDto {
 
-  private String description;
-  private Boolean multivalue;
-  private AttributeValueDomainDto domain;
+  private List<NumberInterval> intervals;
 
-  public SkillDto() {}
+  public NumberAttributeValueDomainDto() {}
 
-  public String getDescription() {
-    return description;
+  public NumberAttributeValueDomainDto(List<NumberInterval> intervals) {
+    this.intervals = intervals;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  @Override
+  public AttributeValueType getType() {
+    return AttributeValueType.number;
   }
 
-  public Boolean getMultivalue() {
-    return multivalue;
+  @Override
+  public void accept(AttributeValueDomainDtoVisitor visitor) {
+    visitor.handleNumberIntervals(intervals);
   }
 
-  public void setMultivalue(Boolean multivalue) {
-    this.multivalue = multivalue;
+  public List<NumberInterval> getIntervals() {
+    return intervals;
   }
 
-  public AttributeValueDomainDto getDomain() {
-    return domain;
-  }
-
-  public void setDomain(AttributeValueDomainDto domain) {
-    this.domain = domain;
+  public void setIntervals(List<NumberInterval> intervals) {
+    this.intervals = intervals;
   }
 
 }

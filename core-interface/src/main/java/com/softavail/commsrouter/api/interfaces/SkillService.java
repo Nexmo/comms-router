@@ -16,8 +16,8 @@
 
 package com.softavail.commsrouter.api.interfaces;
 
-import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
-import com.softavail.commsrouter.api.dto.arg.UpdateAgentArg;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateSkillArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
@@ -29,12 +29,12 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
  */
 public interface SkillService extends RouterObjectService<SkillDto> {
 
-  ApiObjectRef create(CreateAgentArg createArg, String routerRef)
+  ApiObjectRef create(CreateSkillArg createArg, String routerRef)
       throws CommsRouterException;
 
-  ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
+  ApiObjectRef replace(CreateSkillArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateAgentArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;
+  void update(UpdateSkillArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;
 
 }

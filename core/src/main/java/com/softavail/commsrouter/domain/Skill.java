@@ -14,21 +14,41 @@
  * limitations under the License.
  */
 
-package com.softavail.commsrouter.api.dto.model.skill;
+package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.Size;
+
 /**
- *
  * @author ikrustev
  */
-public class SkillDto extends RouterObjectRef {
+@Entity
+@Table(name = "skill")
+public class Skill extends RouterObject {
 
+  @Column(name = "description")
+  @Size(max = 255, message = "{domain.Skill.description.size}")
   private String description;
-  private Boolean multivalue;
-  private AttributeValueDomainDto domain;
 
-  public SkillDto() {}
+  @Column(name = "multivalue")
+  private Boolean multivalue;
+
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "attribute_value_domain_id")
+  private AttributeValueDomain domain;
+
+  public Skill() {}
+
+  public Skill(RouterObjectRef objectRef) {
+    super(objectRef.getRef());
+  }
 
   public String getDescription() {
     return description;
@@ -46,11 +66,11 @@ public class SkillDto extends RouterObjectRef {
     this.multivalue = multivalue;
   }
 
-  public AttributeValueDomainDto getDomain() {
+  public AttributeValueDomain getDomain() {
     return domain;
   }
 
-  public void setDomain(AttributeValueDomainDto domain) {
+  public void setDomain(AttributeValueDomain domain) {
     this.domain = domain;
   }
 
