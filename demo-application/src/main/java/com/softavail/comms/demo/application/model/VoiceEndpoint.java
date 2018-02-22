@@ -16,6 +16,8 @@ public class VoiceEndpoint implements Endpoint {
 
   private static final PhoneNumberUtil PNU = PhoneNumberUtil.getInstance();
   private static final String UNKNOWN_REGION = "ZZ";
+  private static final char PLUS_SIGN_CHAR = '+';
+  private static final String PLUS_SIGN_PREFIX = String.valueOf(PLUS_SIGN_CHAR);
 
   private Endpoint endpoint;
 
@@ -32,8 +34,8 @@ public class VoiceEndpoint implements Endpoint {
       return parsePhone(phoneNumber);
     }
 
-    if (!phoneNumber.startsWith("+")) {
-      String phoneNumberWithPrefix = "+" + phoneNumber;
+    if (!phoneNumber.startsWith(PLUS_SIGN_PREFIX)) {
+      String phoneNumberWithPrefix = PLUS_SIGN_PREFIX + phoneNumber;
       return formatPhone(phoneNumberWithPrefix); // Recursion
     }
 
@@ -43,7 +45,9 @@ public class VoiceEndpoint implements Endpoint {
   private String parsePhone(final String numberToParse) {
     try {
       PhoneNumber phoneNumber = PNU.parseAndKeepRawInput(numberToParse, UNKNOWN_REGION);
-      return PNU.format(phoneNumber, PhoneNumberFormat.E164);
+      return PNU.format(phoneNumber, PhoneNumberFormat.E164)
+          // Strip leading '+' as the Nexmo doesn't expect it
+          .replace(PLUS_SIGN_CHAR, Character.MIN_VALUE);
     } catch (NumberParseException ignore) {
       // Nothing to do
     }
