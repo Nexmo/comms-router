@@ -22,8 +22,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,8 +32,6 @@ import java.util.Set;
  * @author ikrustev
  */
 public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValueDomainDto> {
-
-  private static final Logger LOGGER = LogManager.getLogger(SkillValueDomainDeserializer.class);
 
   public SkillValueDomainDeserializer() {
     this(null);

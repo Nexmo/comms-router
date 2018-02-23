@@ -24,6 +24,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -44,6 +46,7 @@ public class AttributeValueDomain implements Serializable {
   private Long id;
 
   @Column(name = "type")
+  @Enumerated(EnumType.STRING)
   private AttributeValueType type;
 
   @OneToMany(mappedBy = "attributeValueDomain", cascade = CascadeType.ALL, orphanRemoval = true)

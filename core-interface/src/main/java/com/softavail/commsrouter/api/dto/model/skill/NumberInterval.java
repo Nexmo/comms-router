@@ -29,6 +29,11 @@ public class NumberInterval {
 
   public NumberInterval() {}
 
+  public NumberInterval(NumberIntervalBoundary low, NumberIntervalBoundary high) {
+    this.low = low;
+    this.high = high;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof NumberInterval)) {

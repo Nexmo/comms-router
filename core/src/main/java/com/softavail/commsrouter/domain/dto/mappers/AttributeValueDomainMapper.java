@@ -107,7 +107,7 @@ public class AttributeValueDomainMapper {
   }
 
   static private NumberInterval getLastIncompleteInterval(ArrayList<NumberInterval> list) {
-    int size = list.size() - 1;
+    int size = list.size();
     if (size >= 1) {
       NumberInterval last = list.get(size - 1);
       if (last.getHigh() == null) {

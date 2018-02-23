@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.api.dto.model.skill;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -30,6 +31,20 @@ public class NumberAttributeValueDomainDto extends AttributeValueDomainDto {
 
   public NumberAttributeValueDomainDto(List<NumberInterval> intervals) {
     this.intervals = intervals;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof NumberAttributeValueDomainDto)) {
+      return false;
+    }
+    NumberAttributeValueDomainDto rhs = (NumberAttributeValueDomainDto)o;
+    return Objects.equals(intervals, rhs.intervals);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(intervals);
   }
 
   @Override
