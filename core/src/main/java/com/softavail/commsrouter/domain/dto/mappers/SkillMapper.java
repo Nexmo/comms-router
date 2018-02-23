@@ -37,6 +37,7 @@ public class SkillMapper extends RouterObjectEntityMapper<SkillDto, Skill> {
     copyRef(dto, jpa);
     dto.setDomain(attributesMapper.toDto(jpa.getDomain()));
     dto.setDescription(jpa.getDescription());
+    dto.setMultivalue(jpa.getMultivalue());
     return dto;
   }
 
