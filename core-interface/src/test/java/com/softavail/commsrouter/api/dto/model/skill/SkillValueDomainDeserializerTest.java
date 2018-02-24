@@ -270,13 +270,16 @@ public class SkillValueDomainDeserializerTest {
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
     assertEquals(AttributeValueType.enumeration, testBean.domain.getType());
-    assertEquals(new HashSet(Arrays.asList("en", "es")), ((EnumerationAttributeValueDomainDto)testBean.domain).getValues());
+    assertEquals(
+            new HashSet<>(Arrays.asList("en", "es")),
+            ((EnumerationAttributeValueDomainDto)testBean.domain).getValues()
+    );
   }
 
   @Test
   public void testEnumerationSerializeDeserialize() throws IOException, Throwable {
     EnumerationAttributeValueDomainDto expected = new EnumerationAttributeValueDomainDto();
-    expected.setValues(new HashSet(Arrays.asList("some", "enum", "value")));
+    expected.setValues(new HashSet<>(Arrays.asList("some", "enum", "value")));
 
     String asString = objectMapper.writeValueAsString(new TestBean(expected));
 
