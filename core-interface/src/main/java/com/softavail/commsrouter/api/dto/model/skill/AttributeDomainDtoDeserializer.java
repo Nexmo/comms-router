@@ -31,18 +31,18 @@ import java.util.Set;
  *
  * @author ikrustev
  */
-public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValueDomainDto> {
+public class AttributeDomainDtoDeserializer extends StdDeserializer<AttributeDomainDto> {
 
-  public SkillValueDomainDeserializer() {
+  public AttributeDomainDtoDeserializer() {
     this(null);
   }
 
-  public SkillValueDomainDeserializer(Class<?> vc) {
+  public AttributeDomainDtoDeserializer(Class<?> vc) {
     super(vc);
   }
 
   @Override
-  public AttributeValueDomainDto deserialize(JsonParser jp, DeserializationContext ctxt)
+  public AttributeDomainDto deserialize(JsonParser jp, DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
 
     JsonToken currentToken = jp.getCurrentToken();
@@ -109,7 +109,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValue
         if (regex != null) {
           throw new IllegalArgumentException("Unknown field for domain 'enumeration': regex");
         }
-        return new EnumerationAttributeValueDomainDto(values);
+        return new EnumerationAttributeDomainDto(values);
       case "number":
         if (values != null) {
           throw new IllegalArgumentException("Unknown field for domain 'number': values");
@@ -117,7 +117,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValue
         if (regex != null) {
           throw new IllegalArgumentException("Unknown field for domain 'number': regex");
         }
-        return new NumberAttributeValueDomainDto(intervals);
+        return new NumberAttributeDomainDto(intervals);
       case "string":
         if (intervals != null) {
           throw new IllegalArgumentException("Unknown field for domain 'string': intervals");
@@ -125,7 +125,7 @@ public class SkillValueDomainDeserializer extends StdDeserializer<AttributeValue
         if (values != null) {
           throw new IllegalArgumentException("Unknown field for domain 'string': values");
         }
-        return new StringAttributeValueDomainDto(regex);
+        return new StringAttributeDomainDto(regex);
       default:
         throw new IllegalArgumentException("Invalid domain type: " + type);
     }

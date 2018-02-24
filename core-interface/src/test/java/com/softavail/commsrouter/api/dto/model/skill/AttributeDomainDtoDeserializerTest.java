@@ -34,15 +34,15 @@ import org.junit.Test;
  *
  * @author ikrustev
  */
-public class SkillValueDomainDeserializerTest {
+public class AttributeDomainDtoDeserializerTest {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
   private static class TestBean {
 
-    public AttributeValueDomainDto domain;
+    public AttributeDomainDto domain;
 
-    public TestBean(AttributeValueDomainDto domain) {
+    public TestBean(AttributeDomainDto domain) {
       this.domain = domain;
     }
 
@@ -269,24 +269,24 @@ public class SkillValueDomainDeserializerTest {
               + "}"
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
-    assertEquals(AttributeValueType.enumeration, testBean.domain.getType());
+    assertEquals(AttributeType.enumeration, testBean.domain.getType());
     assertEquals(
             new HashSet<>(Arrays.asList("en", "es")),
-            ((EnumerationAttributeValueDomainDto)testBean.domain).getValues()
+            ((EnumerationAttributeDomainDto)testBean.domain).getValues()
     );
   }
 
   @Test
   public void testEnumerationSerializeDeserialize() throws IOException, Throwable {
-    EnumerationAttributeValueDomainDto expected = new EnumerationAttributeValueDomainDto();
+    EnumerationAttributeDomainDto expected = new EnumerationAttributeDomainDto();
     expected.setValues(new HashSet<>(Arrays.asList("some", "enum", "value")));
 
     String asString = objectMapper.writeValueAsString(new TestBean(expected));
 
     TestBean actualTestBean = objectMapper.readValue(asString, TestBean.class);
-    assertThat(actualTestBean.domain, instanceOf(EnumerationAttributeValueDomainDto.class));
+    assertThat(actualTestBean.domain, instanceOf(EnumerationAttributeDomainDto.class));
 
-    EnumerationAttributeValueDomainDto actual = (EnumerationAttributeValueDomainDto)actualTestBean.domain;
+    EnumerationAttributeDomainDto actual = (EnumerationAttributeDomainDto)actualTestBean.domain;
 
     assertEquals(expected.getType(), actual.getType());
     assertEquals(expected.getValues(), actual.getValues());
@@ -334,8 +334,8 @@ public class SkillValueDomainDeserializerTest {
               + "}"
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
-    assertEquals(AttributeValueType.number, testBean.domain.getType());
-    assertNull(((NumberAttributeValueDomainDto)testBean.domain).getIntervals());
+    assertEquals(AttributeType.number, testBean.domain.getType());
+    assertNull(((NumberAttributeDomainDto)testBean.domain).getIntervals());
   }
 
   @Test
@@ -348,9 +348,9 @@ public class SkillValueDomainDeserializerTest {
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
     
-    assertEquals(AttributeValueType.number, testBean.domain.getType());
+    assertEquals(AttributeType.number, testBean.domain.getType());
 
-    List<NumberInterval> actual = ((NumberAttributeValueDomainDto)testBean.domain).getIntervals();
+    List<NumberInterval> actual = ((NumberAttributeDomainDto)testBean.domain).getIntervals();
 
     NumberInterval interval = new NumberInterval();
     interval.setLow(new NumberIntervalBoundary(13.4));
@@ -369,15 +369,15 @@ public class SkillValueDomainDeserializerTest {
     interval2.setLow(new NumberIntervalBoundary(13.4, false));
     interval2.setHigh(NumberIntervalBoundary.POSITIVE_INFINITY);
 
-    NumberAttributeValueDomainDto expected = new NumberAttributeValueDomainDto();
+    NumberAttributeDomainDto expected = new NumberAttributeDomainDto();
     expected.setIntervals(Arrays.asList(interval1, interval2));
 
     String asString = objectMapper.writeValueAsString(new TestBean(expected));
 
     TestBean actualTestBean = objectMapper.readValue(asString, TestBean.class);
-    assertThat(actualTestBean.domain, instanceOf(NumberAttributeValueDomainDto.class));
+    assertThat(actualTestBean.domain, instanceOf(NumberAttributeDomainDto.class));
 
-    NumberAttributeValueDomainDto actual = (NumberAttributeValueDomainDto)actualTestBean.domain;
+    NumberAttributeDomainDto actual = (NumberAttributeDomainDto)actualTestBean.domain;
 
     assertEquals(expected.getType(), actual.getType());
     assertThat(actual.getIntervals(),
@@ -428,8 +428,8 @@ public class SkillValueDomainDeserializerTest {
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
 
-    assertEquals(AttributeValueType.string, testBean.domain.getType());
-    assertNull(((StringAttributeValueDomainDto)testBean.domain).getRegex());
+    assertEquals(AttributeType.string, testBean.domain.getType());
+    assertNull(((StringAttributeDomainDto)testBean.domain).getRegex());
   }
 
   @Test
@@ -442,21 +442,21 @@ public class SkillValueDomainDeserializerTest {
             + "}";
     TestBean testBean = objectMapper.readValue(content, TestBean.class);
 
-    assertEquals(AttributeValueType.string, testBean.domain.getType());
-    assertEquals("prefix-.*", ((StringAttributeValueDomainDto)testBean.domain).getRegex());
+    assertEquals(AttributeType.string, testBean.domain.getType());
+    assertEquals("prefix-.*", ((StringAttributeDomainDto)testBean.domain).getRegex());
   }
 
   @Test
   public void testStringSerializeDeserialize() throws IOException, Throwable {
-    StringAttributeValueDomainDto expected = new StringAttributeValueDomainDto();
+    StringAttributeDomainDto expected = new StringAttributeDomainDto();
     expected.setRegex("prefix-.*");
 
     String asString = objectMapper.writeValueAsString(new TestBean(expected));
 
     TestBean actualTestBean = objectMapper.readValue(asString, TestBean.class);
-    assertThat(actualTestBean.domain, instanceOf(StringAttributeValueDomainDto.class));
+    assertThat(actualTestBean.domain, instanceOf(StringAttributeDomainDto.class));
 
-    StringAttributeValueDomainDto actual = (StringAttributeValueDomainDto)actualTestBean.domain;
+    StringAttributeDomainDto actual = (StringAttributeDomainDto)actualTestBean.domain;
 
     assertEquals(expected.getType(), actual.getType());
     assertEquals(expected.getRegex(), actual.getRegex());

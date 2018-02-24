@@ -20,23 +20,23 @@ package com.softavail.commsrouter.api.dto.model.skill;
  *
  * @author ikrustev
  */
-public class StringAttributeValueDomainDto extends AttributeValueDomainDto {
+public class StringAttributeDomainDto extends AttributeDomainDto {
 
   private String regex;
 
-  public StringAttributeValueDomainDto() {}
+  public StringAttributeDomainDto() {}
 
-  public StringAttributeValueDomainDto(String regex) {
+  public StringAttributeDomainDto(String regex) {
     this.regex = regex;
   }
 
   @Override
-  public AttributeValueType getType() {
-    return AttributeValueType.string;
+  public AttributeType getType() {
+    return AttributeType.string;
   }
 
   @Override
-  public void accept(AttributeValueDomainDtoVisitor visitor) {
+  public void accept(AttributeDomainDtoVisitor visitor) {
     visitor.handleRegex(regex);
   }
 

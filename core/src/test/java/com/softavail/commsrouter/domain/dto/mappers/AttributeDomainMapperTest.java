@@ -15,12 +15,12 @@
  */
 package com.softavail.commsrouter.domain.dto.mappers;
 
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueDomainDto;
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueType;
-import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeValueDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
+import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
-import com.softavail.commsrouter.domain.AttributeValueDefinition;
+import com.softavail.commsrouter.domain.AttributeDomainDefinition;
 import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -30,33 +30,33 @@ import org.junit.Test;
  *
  * @author ikrustev
  */
-public class AttributeValueDomainMapperTest {
+public class AttributeDomainMapperTest {
 
-  private final AttributeValueDomainMapper mapper;
+  private final AttributeDomainMapper mapper;
 
-  public AttributeValueDomainMapperTest() {
-    this.mapper = new AttributeValueDomainMapper();
+  public AttributeDomainMapperTest() {
+    this.mapper = new AttributeDomainMapper();
   }
 
   @Test
-  public void testGetAttributeValueType() {
-    AttributeValueType actual;
-    AttributeValueDefinition def;
+  public void testGetAttributeType() {
+    AttributeType actual;
+    AttributeDomainDefinition def;
 
-    def = new AttributeValueDefinition();
+    def = new AttributeDomainDefinition();
     def.setEnumValue("enum-value");
-    actual = AttributeValueDomainMapper.getAttributeValueType(def);
-    assertEquals(AttributeValueType.enumeration, actual);
+    actual = AttributeDomainMapper.getAttributeType(def);
+    assertEquals(AttributeType.enumeration, actual);
 
-    def = new AttributeValueDefinition();
+    def = new AttributeDomainDefinition();
     def.setBoundary(Double.POSITIVE_INFINITY);
-    actual = AttributeValueDomainMapper.getAttributeValueType(def);
-    assertEquals(AttributeValueType.number, actual);
+    actual = AttributeDomainMapper.getAttributeType(def);
+    assertEquals(AttributeType.number, actual);
 
-    def = new AttributeValueDefinition();
+    def = new AttributeDomainDefinition();
     def.setRegex("regex-value");
-    actual = AttributeValueDomainMapper.getAttributeValueType(def);
-    assertEquals(AttributeValueType.string, actual);
+    actual = AttributeDomainMapper.getAttributeType(def);
+    assertEquals(AttributeType.string, actual);
   }
 
   @Test
@@ -84,8 +84,8 @@ public class AttributeValueDomainMapperTest {
         )
     );
 
-    NumberAttributeValueDomainDto expected = new NumberAttributeValueDomainDto(intevals);
-    AttributeValueDomainDto actual = mapper.toDto(mapper.fromDto(expected));
+    NumberAttributeDomainDto expected = new NumberAttributeDomainDto(intevals);
+    AttributeDomainDto actual = mapper.toDto(mapper.fromDto(expected));
     assertEquals(expected, actual);
   }
 

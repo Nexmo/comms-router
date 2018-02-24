@@ -26,7 +26,7 @@ public class SkillDto extends RouterObjectRef {
 
   private String description;
   private Boolean multivalue;
-  private AttributeValueDomainDto domain;
+  private AttributeDomainDto domain;
 
   public SkillDto() {}
 
@@ -46,11 +46,11 @@ public class SkillDto extends RouterObjectRef {
     this.multivalue = multivalue;
   }
 
-  public AttributeValueDomainDto getDomain() {
+  public AttributeDomainDto getDomain() {
     return domain;
   }
 
-  public void setDomain(AttributeValueDomainDto domain) {
+  public void setDomain(AttributeDomainDto domain) {
     this.domain = domain;
   }
 

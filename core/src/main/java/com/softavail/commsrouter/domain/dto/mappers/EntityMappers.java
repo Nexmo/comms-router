@@ -28,7 +28,7 @@ public class EntityMappers {
   public final QueueMapper queue;
   public final RouterMapper router;
   public final TaskMapper task;
-  public final AttributeValueDomainMapper attributeDomain;
+  public final AttributeDomainMapper attributeDomain;
   public final SkillMapper skill;
 
   public EntityMappers() {
@@ -38,7 +38,7 @@ public class EntityMappers {
     queue = new QueueMapper();
     router = new RouterMapper();
     task = new TaskMapper(attributes);
-    attributeDomain = new AttributeValueDomainMapper();
+    attributeDomain = new AttributeDomainMapper();
     skill = new SkillMapper(attributeDomain);
   }
 

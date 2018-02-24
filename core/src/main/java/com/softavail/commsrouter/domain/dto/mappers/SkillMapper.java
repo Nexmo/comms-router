@@ -25,9 +25,9 @@ import com.softavail.commsrouter.domain.Skill;
  */
 public class SkillMapper extends RouterObjectEntityMapper<SkillDto, Skill> {
 
-  public final AttributeValueDomainMapper attributesMapper;
+  public final AttributeDomainMapper attributesMapper;
 
-  public SkillMapper(AttributeValueDomainMapper domainMapper) {
+  public SkillMapper(AttributeDomainMapper domainMapper) {
     this.attributesMapper = domainMapper;
   }
 

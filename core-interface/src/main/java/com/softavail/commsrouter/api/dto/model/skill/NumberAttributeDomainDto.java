@@ -23,22 +23,22 @@ import java.util.Objects;
  *
  * @author ikrustev
  */
-public class NumberAttributeValueDomainDto extends AttributeValueDomainDto {
+public class NumberAttributeDomainDto extends AttributeDomainDto {
 
   private List<NumberInterval> intervals;
 
-  public NumberAttributeValueDomainDto() {}
+  public NumberAttributeDomainDto() {}
 
-  public NumberAttributeValueDomainDto(List<NumberInterval> intervals) {
+  public NumberAttributeDomainDto(List<NumberInterval> intervals) {
     this.intervals = intervals;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof NumberAttributeValueDomainDto)) {
+    if (!(o instanceof NumberAttributeDomainDto)) {
       return false;
     }
-    NumberAttributeValueDomainDto rhs = (NumberAttributeValueDomainDto)o;
+    NumberAttributeDomainDto rhs = (NumberAttributeDomainDto)o;
     return Objects.equals(intervals, rhs.intervals);
   }
 
@@ -48,12 +48,12 @@ public class NumberAttributeValueDomainDto extends AttributeValueDomainDto {
   }
 
   @Override
-  public AttributeValueType getType() {
-    return AttributeValueType.number;
+  public AttributeType getType() {
+    return AttributeType.number;
   }
 
   @Override
-  public void accept(AttributeValueDomainDtoVisitor visitor) {
+  public void accept(AttributeDomainDtoVisitor visitor) {
     visitor.handleNumberIntervals(intervals);
   }
 

@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.domain;
 
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueType;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,8 +38,8 @@ import javax.persistence.Table;
  * @author ikrustev
  */
 @Entity
-@Table(name = "attribute_value_domain")
-public class AttributeValueDomain implements Serializable {
+@Table(name = "attribute_domain")
+public class AttributeDomain implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,11 +47,11 @@ public class AttributeValueDomain implements Serializable {
 
   @Column(name = "type")
   @Enumerated(EnumType.STRING)
-  private AttributeValueType type;
+  private AttributeType type;
 
-  @OneToMany(mappedBy = "attributeValueDomain", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "attributeDomain", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderColumn(name = "list_order")
-  private List<AttributeValueDefinition> valueDefinitions = new ArrayList<>();
+  private List<AttributeDomainDefinition> definitions = new ArrayList<>();
 
   public Long getId() {
     return id;
@@ -61,42 +61,42 @@ public class AttributeValueDomain implements Serializable {
     this.id = id;
   }
 
-  public AttributeValueType getType() {
+  public AttributeType getType() {
     return type;
   }
 
-  public void setType(AttributeValueType type) {
+  public void setType(AttributeType type) {
     this.type = type;
   }
 
-  public List<AttributeValueDefinition> getValueDefinitions() {
-    return valueDefinitions;
+  public List<AttributeDomainDefinition> getDefinitions() {
+    return definitions;
   }
 
-  public void setValueDefinitions(List<AttributeValueDefinition> valueDefinitions) {
-    this.valueDefinitions = valueDefinitions;
+  public void setDefinitions(List<AttributeDomainDefinition> definitions) {
+    this.definitions = definitions;
   }
 
   public void addEnumValue(String enumValue) {
-    AttributeValueDefinition def = new AttributeValueDefinition();
-    def.setAttributeValueDomain(this);
+    AttributeDomainDefinition def = new AttributeDomainDefinition();
+    def.setAttributeDomain(this);
     def.setEnumValue(enumValue);
-    valueDefinitions.add(def);
+    definitions.add(def);
   }
 
   public void addIntervalBoundary(NumberIntervalBoundary intervalBoundary) {
-    AttributeValueDefinition def = new AttributeValueDefinition();
-    def.setAttributeValueDomain(this);
+    AttributeDomainDefinition def = new AttributeDomainDefinition();
+    def.setAttributeDomain(this);
     def.setBoundary(intervalBoundary.getBoundary());
     def.setInclusive(intervalBoundary.getInclusive());
-    valueDefinitions.add(def);
+    definitions.add(def);
   }
 
   public void addRegex(String regex) {
-    AttributeValueDefinition def = new AttributeValueDefinition();
-    def.setAttributeValueDomain(this);
+    AttributeDomainDefinition def = new AttributeDomainDefinition();
+    def.setAttributeDomain(this);
     def.setRegex(regex);
-    valueDefinitions.add(def);
+    definitions.add(def);
   }
 
 }

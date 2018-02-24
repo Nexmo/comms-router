@@ -17,46 +17,46 @@
 package com.softavail.commsrouter.domain.dto.mappers;
 
 
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueType;
-import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeValueDomainDto;
-import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeValueDomainDto;
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueDomainDto;
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueDomainDtoVisitor;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
+import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
-import com.softavail.commsrouter.api.dto.model.skill.StringAttributeValueDomainDto;
-import com.softavail.commsrouter.domain.AttributeValueDefinition;
-import com.softavail.commsrouter.domain.AttributeValueDomain;
+import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
+import com.softavail.commsrouter.domain.AttributeDomainDefinition;
+import com.softavail.commsrouter.domain.AttributeDomain;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDtoVisitor;
 
 /**
  *
  * @author ikrustev
  */
-public class AttributeValueDomainMapper {
+public class AttributeDomainMapper {
 
-  public static AttributeValueType getAttributeValueType(AttributeValueDefinition jpa) {
+  public static AttributeType getAttributeType(AttributeDomainDefinition jpa) {
     if (jpa.getEnumValue() != null) {
       assert jpa.getBoundary() == null && jpa.getInclusive() == null && jpa.getRegex() == null;
-      return AttributeValueType.enumeration;
+      return AttributeType.enumeration;
     }
     if (jpa.getBoundary() != null) {
       assert jpa.getEnumValue() == null && jpa.getRegex() == null;
-      return AttributeValueType.number;
+      return AttributeType.number;
     }
     if (jpa.getRegex() != null) {
       assert jpa.getEnumValue() == null && jpa.getBoundary() == null && jpa.getInclusive() == null;
-      return AttributeValueType.string;
+      return AttributeType.string;
     }
-    throw new RuntimeException("AttributeValueDefinition with no value: " + jpa.getId());
+    throw new RuntimeException("AttributeDomainDefinition with no value: " + jpa.getId());
   }
 
-  public AttributeValueDomainDto toDto(AttributeValueDomain jpa) {
+  public AttributeDomainDto toDto(AttributeDomain jpa) {
     if (jpa == null) {
       return null;
     }
@@ -68,23 +68,23 @@ public class AttributeValueDomainMapper {
       case string:
         return toStringDto(jpa);
     }
-    throw new RuntimeException("Unexpected attribute value domain type: " + jpa.getType());
+    throw new RuntimeException("Unexpected attribute type: " + jpa.getType());
   }
 
-  private EnumerationAttributeValueDomainDto toEnumerationDto(AttributeValueDomain jpa) {
-    Set<String> values = jpa.getValueDefinitions().stream()
+  private EnumerationAttributeDomainDto toEnumerationDto(AttributeDomain jpa) {
+    Set<String> values = jpa.getDefinitions().stream()
             .map(def -> {
-              assert getAttributeValueType(def) == jpa.getType();
+              assert getAttributeType(def) == jpa.getType();
               return def.getEnumValue();
             })
             .collect(Collectors.toSet());
-    return new EnumerationAttributeValueDomainDto(values);
+    return new EnumerationAttributeDomainDto(values);
   }
 
-  private NumberAttributeValueDomainDto toNumberDto(AttributeValueDomain jpa) {
-    ArrayList<NumberInterval> intervals = jpa.getValueDefinitions().stream()
+  private NumberAttributeDomainDto toNumberDto(AttributeDomain jpa) {
+    ArrayList<NumberInterval> intervals = jpa.getDefinitions().stream()
             .map(def -> {
-              assert getAttributeValueType(def) == jpa.getType();
+              assert getAttributeType(def) == jpa.getType();
               return new NumberIntervalBoundary(def.getBoundary(), def.getInclusive());
             })
             .collect(Collector.of(
@@ -103,7 +103,7 @@ public class AttributeValueDomainMapper {
                     Collector.Characteristics.IDENTITY_FINISH)
             );
     assert getLastIncompleteInterval(intervals) == null;
-    return new NumberAttributeValueDomainDto(intervals);
+    return new NumberAttributeDomainDto(intervals);
   }
 
   static private NumberInterval getLastIncompleteInterval(ArrayList<NumberInterval> list) {
@@ -117,23 +117,23 @@ public class AttributeValueDomainMapper {
     return null;
   }
 
-  private StringAttributeValueDomainDto toStringDto(AttributeValueDomain jpa) {
-    assert jpa.getValueDefinitions().size() <= 1;
-    String regEx = jpa.getValueDefinitions().stream()
+  private StringAttributeDomainDto toStringDto(AttributeDomain jpa) {
+    assert jpa.getDefinitions().size() <= 1;
+    String regEx = jpa.getDefinitions().stream()
             .findFirst()
             .map(def -> def.getRegex())
             .orElse(null);
-    return new StringAttributeValueDomainDto(regEx);
+    return new StringAttributeDomainDto(regEx);
   }
 
-  public AttributeValueDomain fromDto(AttributeValueDomainDto dto) {
+  public AttributeDomain fromDto(AttributeDomainDto dto) {
     if (dto == null) {
       return null;
     }
-    AttributeValueDomain jpa = new AttributeValueDomain();
+    AttributeDomain jpa = new AttributeDomain();
     jpa.setType(dto.getType());
 
-    dto.accept(new AttributeValueDomainDtoVisitor() {
+    dto.accept(new AttributeDomainDtoVisitor() {
 
       @Override
       public void handleEnumerationValues(Set<String> values) {

@@ -16,17 +16,38 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Set;
 
 /**
  *
  * @author ikrustev
  */
-@JsonDeserialize(using = SkillValueDomainDeserializer.class)
-public abstract class AttributeValueDomainDto {
+public class EnumerationAttributeDomainDto extends AttributeDomainDto {
 
-  public abstract AttributeValueType getType();
+  private Set<String> values;
 
-  public abstract void accept(AttributeValueDomainDtoVisitor visitor);
+  public EnumerationAttributeDomainDto() {}
+
+  public EnumerationAttributeDomainDto(Set<String> values) {
+    this.values = values;
+  }
+
+  @Override
+  public AttributeType getType() {
+    return AttributeType.enumeration;
+  }
+
+  @Override
+  public void accept(AttributeDomainDtoVisitor visitor) {
+    visitor.handleEnumerationValues(values);
+  }
+
+  public Set<String> getValues() {
+    return values;
+  }
+
+  public void setValues(Set<String> values) {
+    this.values = values;
+  }
 
 }

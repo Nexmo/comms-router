@@ -23,7 +23,7 @@ import java.util.Set;
  *
  * @author ikrustev
  */
-public interface AttributeValueDomainDtoVisitor {
+public interface AttributeDomainDtoVisitor {
 
   void handleEnumerationValues(Set<String> values);
 

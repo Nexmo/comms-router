@@ -16,38 +16,12 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import java.util.Set;
-
 /**
  *
  * @author ikrustev
  */
-public class EnumerationAttributeValueDomainDto extends AttributeValueDomainDto {
+public enum AttributeType {
 
-  private Set<String> values;
-
-  public EnumerationAttributeValueDomainDto() {}
-
-  public EnumerationAttributeValueDomainDto(Set<String> values) {
-    this.values = values;
-  }
-
-  @Override
-  public AttributeValueType getType() {
-    return AttributeValueType.enumeration;
-  }
-
-  @Override
-  public void accept(AttributeValueDomainDtoVisitor visitor) {
-    visitor.handleEnumerationValues(values);
-  }
-
-  public Set<String> getValues() {
-    return values;
-  }
-
-  public void setValues(Set<String> values) {
-    this.values = values;
-  }
+  enumeration, number, string
 
 }

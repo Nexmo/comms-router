@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.api.dto.arg;
 
-import com.softavail.commsrouter.api.dto.model.skill.AttributeValueDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
 
 /**
  *
@@ -26,7 +26,7 @@ public class UpdateSkillArg {
   private String name;
   private String description;
   private Boolean multivalue;
-  private AttributeValueDomainDto domain;
+  private AttributeDomainDto domain;
 
   public String getName() {
     return name;
@@ -52,11 +52,11 @@ public class UpdateSkillArg {
     this.multivalue = multivalue;
   }
 
-  public AttributeValueDomainDto getDomain() {
+  public AttributeDomainDto getDomain() {
     return domain;
   }
 
-  public void setDomain(AttributeValueDomainDto domain) {
+  public void setDomain(AttributeDomainDto domain) {
     this.domain = domain;
   }
 

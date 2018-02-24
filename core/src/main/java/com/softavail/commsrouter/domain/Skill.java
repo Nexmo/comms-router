@@ -41,8 +41,8 @@ public class Skill extends RouterObject {
   private Boolean multivalue;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "attribute_value_domain_id")
-  private AttributeValueDomain domain;
+  @JoinColumn(name = "attribute_domain_id")
+  private AttributeDomain domain;
 
   public Skill() {}
 
@@ -66,11 +66,11 @@ public class Skill extends RouterObject {
     this.multivalue = multivalue;
   }
 
-  public AttributeValueDomain getDomain() {
+  public AttributeDomain getDomain() {
     return domain;
   }
 
-  public void setDomain(AttributeValueDomain domain) {
+  public void setDomain(AttributeDomain domain) {
     this.domain = domain;
   }
 

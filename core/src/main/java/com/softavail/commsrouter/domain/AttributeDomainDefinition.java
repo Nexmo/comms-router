@@ -36,15 +36,15 @@ import javax.validation.constraints.Size;
  * @author ikrustev
  */
 @Entity
-@Table(name = "attribute_value_definition")
-public class AttributeValueDefinition implements Serializable {
+@Table(name = "attribute_domain_definition")
+public class AttributeDomainDefinition implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(name = "enum_value")
-  @Size(max = 255, message = "{domain.AttributeValueDefinition.value.size}")
+  @Size(max = 255, message = "{domain.AttributeDomainDefinition.value.size}")
   private String enumValue;
 
   @Column(name = "is_inclusive")
@@ -54,12 +54,12 @@ public class AttributeValueDefinition implements Serializable {
   private Double boundary;
 
   @Column(name = "regex")
-  @Size(max = 255, message = "{domain.AttributeValueDefinition.regex.size}")
+  @Size(max = 255, message = "{domain.AttributeDomainDefinition.regex.size}")
   private String regex;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "attribute_value_domain_id")
-  private AttributeValueDomain attributeValueDomain;
+  @JoinColumn(name = "attribute_domain_id")
+  private AttributeDomain attributeDomain;
 
   @PrePersist
   @PreUpdate
@@ -92,12 +92,12 @@ public class AttributeValueDefinition implements Serializable {
     this.id = id;
   }
 
-  public AttributeValueDomain getAttributeValueDomain() {
-    return attributeValueDomain;
+  public AttributeDomain getAttributeDomain() {
+    return attributeDomain;
   }
 
-  public void setAttributeValueDomain(AttributeValueDomain attributelValueDomain) {
-    this.attributeValueDomain = attributelValueDomain;
+  public void setAttributeDomain(AttributeDomain attributelValueDomain) {
+    this.attributeDomain = attributelValueDomain;
   }
 
   public String getEnumValue() {

@@ -965,11 +965,11 @@ databaseChangeLog:
             name: multivalue
             type: BOOLEAN
         - column:
-            name: attribute_value_domain_id
+            name: attribute_domain_id
             type: BIGINT
         tableName: skill
 - changeSet:
-    id: add_attribute_value_domain
+    id: add_attribute_domain
     author: ikrustev
     changes:
     - createTable:
@@ -978,15 +978,15 @@ databaseChangeLog:
             autoIncrement: true
             constraints:
               primaryKey: true
-              primaryKeyName: attribute_value_domain_pkey
+              primaryKeyName: attribute_domain_pkey
             name: id
             type: BIGINT
         - column:
             name: type
             type: VARCHAR(255)
-        tableName: attribute_value_domain
+        tableName: attribute_domain
 - changeSet:
-    id: add_attribute_value_definition
+    id: add_attribute_domain_definition
     author: ikrustev
     changes:
     - createTable:
@@ -995,7 +995,7 @@ databaseChangeLog:
             autoIncrement: true
             constraints:
               primaryKey: true
-              primaryKeyName: attribute_value_definition_pkey
+              primaryKeyName: attribute_domain_definition_pkey
             name: id
             type: BIGINT
         - column:
@@ -1011,12 +1011,12 @@ databaseChangeLog:
             name: regex
             type: VARCHAR(255)
         - column:
-            name: attribute_value_domain_id
+            name: attribute_domain_id
             type: BIGINT
         - column:
             name: list_order
             type: INT
-        tableName: attribute_value_definition
+        tableName: attribute_domain_definition
 - changeSet:
     id: add_skill_unique_router_ref
     author: ikrustev
@@ -1026,14 +1026,14 @@ databaseChangeLog:
         constraintName: skill_unique_router_ref
         tableName: skill
 - changeSet:
-    id: add_fkidx__skill__attribute_value_domain_id
+    id: add_fkidx__skill__attribute_domain_id
     author: ikrustev
     changes:
     - createIndex:
         columns:
         - column:
-            name: attribute_value_domain_id
-        indexName: fkidx__skill__attribute_value_domain_id
+            name: attribute_domain_id
+        indexName: fkidx__skill__attribute_domain_id
         tableName: skill
 - changeSet:
     id: add_fkidx_skill__router
@@ -1046,19 +1046,19 @@ databaseChangeLog:
         indexName: fkidx_skill__router
         tableName: skill
 - changeSet:
-    id: add_fk_skill__attribute_value_domain
+    id: add_fk_skill__attribute_domain
     author: ikrustev
     changes:
     - addForeignKeyConstraint:
-        baseColumnNames: attribute_value_domain_id
+        baseColumnNames: attribute_domain_id
         baseTableName: skill
-        constraintName: fk_skill__attribute_value_domain
+        constraintName: fk_skill__attribute_domain
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
         onUpdate: NO ACTION
         referencedColumnNames: id
-        referencedTableName: attribute_value_domain
+        referencedTableName: attribute_domain
 - changeSet:
     id: fk_skill__router
     author: ikrustev
@@ -1074,26 +1074,26 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: router
 - changeSet:
-    id: add_fkidx_attribute_value_definition__attribute_value_domain
+    id: add_fkidx_attribute_domain_definition__attribute_domain
     author: ikrustev
     changes:
     - createIndex:
         columns:
         - column:
-            name: attribute_value_domain_id
-        indexName: fkidx_attribute_value_definition__attribute_value_domain
-        tableName: attribute_value_definition
+            name: attribute_domain_id
+        indexName: fkidx_attribute_domain_definition__attribute_domain
+        tableName: attribute_domain_definition
 - changeSet:
-    id: add_fk_attribute_value_definition__attribute_value_domain
+    id: add_fk_attribute_domain_definition__attribute_domain
     author: ikrustev
     changes:
     - addForeignKeyConstraint:
-        baseColumnNames: attribute_value_domain_id
-        baseTableName: attribute_value_definition
-        constraintName: fk_attribute_value_definition__attribute_value_domain
+        baseColumnNames: attribute_domain_id
+        baseTableName: attribute_domain_definition
+        constraintName: fk_attribute_domain_definition__attribute_domain
         deferrable: false
         initiallyDeferred: false
         onDelete: NO ACTION
         onUpdate: NO ACTION
         referencedColumnNames: id
-        referencedTableName: attribute_value_domain
+        referencedTableName: attribute_domain

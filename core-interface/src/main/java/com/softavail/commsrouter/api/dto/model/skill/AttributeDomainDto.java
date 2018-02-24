@@ -16,12 +16,17 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 /**
  *
  * @author ikrustev
  */
-public enum AttributeValueType {
+@JsonDeserialize(using = AttributeDomainDtoDeserializer.class)
+public abstract class AttributeDomainDto {
 
-  enumeration, number, string
+  public abstract AttributeType getType();
+
+  public abstract void accept(AttributeDomainDtoVisitor visitor);
 
 }
