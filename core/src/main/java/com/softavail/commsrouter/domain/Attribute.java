@@ -117,42 +117,4 @@ public class Attribute implements Serializable {
     this.isScalar = isScalar;
   }
 
-  public static class Builder {
-
-    private String key;
-
-    public Builder() {}
-
-    public Builder setKey(String key) {
-      this.key = key;
-      return this;
-    }
-
-    public Attribute build(Double value) {
-      Attribute attr = new Attribute();
-      attr.setName(key);
-      attr.setDoubleValue(value);
-      return attr;
-    }
-
-    public Attribute build(String value) {
-      Attribute attr = new Attribute();
-      attr.setName(key);
-      attr.setStringValue(value);
-      return attr;
-    }
-
-    public Attribute build(Boolean value) {
-      Attribute attr = new Attribute();
-      attr.setName(key);
-      attr.setBooleanValue(value);
-      return attr;
-    }
-
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
-
 }
