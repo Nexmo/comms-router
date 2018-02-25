@@ -16,15 +16,27 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  *
  * @author ikrustev
  */
-@JsonDeserialize(using = AttributeDomainDtoDeserializer.class)
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = "type")
+@JsonSubTypes({
+  @Type(value = EnumerationAttributeDomainDto.class, name = "enumeration"),
+  @Type(value = NumberAttributeDomainDto.class, name = "number"),
+  @Type(value = StringAttributeDomainDto.class, name = "string")
+})
 public abstract class AttributeDomainDto {
 
+  @JsonIgnore
   public abstract AttributeType getType();
 
   public abstract void accept(AttributeDomainDtoVisitor visitor);
