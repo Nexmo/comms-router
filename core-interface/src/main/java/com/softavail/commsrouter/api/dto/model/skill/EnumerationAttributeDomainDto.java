@@ -42,6 +42,9 @@ public class EnumerationAttributeDomainDto extends AttributeDomainDto {
     visitor.handleEnumerationValues(values);
   }
 
+  @Override
+  public void validate() {}
+
   public Set<String> getValues() {
     return values;
   }

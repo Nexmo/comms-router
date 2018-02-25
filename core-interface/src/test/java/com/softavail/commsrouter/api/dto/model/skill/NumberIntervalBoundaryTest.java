@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 ikrustev.
+ * Copyright 2017 - 2018 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  */
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.softavail.commsrouter.api.exception.BadValueException;
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -133,6 +137,28 @@ public class NumberIntervalBoundaryTest {
     NumberIntervalBoundary instance = new NumberIntervalBoundary(0.0, true);
     instance.setInclusive(Boolean.TRUE);
     assertTrue(instance.isInclusive());
+  }
+
+  @Test
+  public void testCompareBoundaryTo() {
+    NumberIntervalBoundary instance = new NumberIntervalBoundary(0.0);
+    assertThat(instance.compareBoundaryTo(new NumberIntervalBoundary(0.0)), comparesEqualTo(0));
+    assertThat(instance.compareBoundaryTo(new NumberIntervalBoundary(-5.0)), greaterThan(0));
+    assertThat(instance.compareBoundaryTo(NumberIntervalBoundary.NEGATIVE_INFINITY), greaterThan(0));
+    assertThat(instance.compareBoundaryTo(new NumberIntervalBoundary(5.0)), lessThan(0));
+    assertThat(instance.compareBoundaryTo(NumberIntervalBoundary.POSITIVE_INFINITY), lessThan(0));
+  }
+
+  @Test
+  public void testValidateValid() throws Exception {
+    NumberIntervalBoundary instance = new NumberIntervalBoundary(0.0);
+    instance.validate();
+  }
+
+  @Test(expected = BadValueException.class)
+  public void testValidateInvalid() throws Exception {
+    NumberIntervalBoundary instance = new NumberIntervalBoundary();
+    instance.validate();
   }
 
 }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.softavail.commsrouter.api.exception.BadValueException;
 
 /**
  *
@@ -40,5 +41,7 @@ public abstract class AttributeDomainDto {
   public abstract AttributeType getType();
 
   public abstract void accept(AttributeDomainDtoVisitor visitor);
+
+  public abstract void validate() throws BadValueException;
 
 }

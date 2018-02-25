@@ -40,6 +40,9 @@ public class StringAttributeDomainDto extends AttributeDomainDto {
     visitor.handleRegex(regex);
   }
 
+  @Override
+  public void validate() {}
+
   public String getRegex() {
     return regex;
   }

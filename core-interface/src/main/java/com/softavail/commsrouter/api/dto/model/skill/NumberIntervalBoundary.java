@@ -18,6 +18,7 @@ package com.softavail.commsrouter.api.dto.model.skill;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.softavail.commsrouter.api.exception.BadValueException;
 import java.util.Objects;
 
 /**
@@ -60,6 +61,16 @@ public class NumberIntervalBoundary {
   @Override
   public int hashCode() {
     return Objects.hash(this.boundary, isInclusive() ? Boolean.TRUE : Boolean.FALSE);
+  }
+
+  public int compareBoundaryTo(NumberIntervalBoundary rhs) {
+    return boundary.compareTo(rhs.getBoundary());
+  }
+
+  public void validate() throws BadValueException {
+    if (boundary == null) {
+      throw new BadValueException("NumberIntervalBoundary.boundary is required");
+    }
   }
 
   public Double getBoundary() {

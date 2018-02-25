@@ -16,6 +16,7 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.softavail.commsrouter.api.exception.BadValueException;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,6 +56,31 @@ public class NumberAttributeDomainDto extends AttributeDomainDto {
   @Override
   public void accept(AttributeDomainDtoVisitor visitor) {
     visitor.handleNumberIntervals(intervals);
+  }
+
+  @Override
+  public void validate() throws BadValueException {
+    if (intervals == null) {
+      return;
+    }
+    for (NumberInterval interval : intervals) {
+      interval.validate();
+    }
+    int size = intervals.size();
+    int i = 0;
+    for (NumberInterval interval : intervals) {
+      validateNoOverlap(interval, intervals.subList(++i, size));
+    }
+  }
+
+  private static void validateNoOverlap(NumberInterval interval, List<NumberInterval> list)
+          throws BadValueException {
+
+    for (NumberInterval rhs : list) {
+      if (interval.overlaps(rhs)) {
+        throw new BadValueException("Intervals overlap: " + interval + " and " + rhs);
+      }
+    }
   }
 
   public List<NumberInterval> getIntervals() {
