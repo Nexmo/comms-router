@@ -30,7 +30,6 @@ import com.softavail.commsrouter.domain.AttributeDomain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDtoVisitor;
 
@@ -82,26 +81,21 @@ public class AttributeDomainMapper {
   }
 
   private NumberAttributeDomainDto toNumberDto(AttributeDomain jpa) {
-    ArrayList<NumberInterval> intervals = jpa.getDefinitions().stream()
-            .map(def -> {
-              assert getAttributeType(def) == jpa.getType();
-              return new NumberIntervalBoundary(def.getBoundary(), def.getInclusive());
-            })
-            .collect(Collector.of(
-                    () -> new ArrayList<>(),
-                    (result, boundary) -> {
-                      NumberInterval incomplete = getLastIncompleteInterval(result);
-                      if (incomplete == null) {
-                        NumberInterval interval = new NumberInterval();
-                        interval.setLow(boundary);
-                        result.add(interval);
-                      } else {
-                        incomplete.setHigh(boundary);
-                      }
-                    },
-                    (result1, result2) -> result1,
-                    Collector.Characteristics.IDENTITY_FINISH)
-            );
+    ArrayList<NumberInterval> intervals = new ArrayList<>();
+    jpa.getDefinitions().stream().forEachOrdered(
+        def -> {
+          NumberIntervalBoundary boundary =
+                  new NumberIntervalBoundary(def.getBoundary(), def.getInclusive());
+          NumberInterval incomplete = getLastIncompleteInterval(intervals);
+          if (incomplete == null) {
+            NumberInterval interval = new NumberInterval();
+            interval.setLow(boundary);
+            intervals.add(interval);
+          } else {
+            incomplete.setHigh(boundary);
+          }
+        }
+    );
     assert getLastIncompleteInterval(intervals) == null;
     return new NumberAttributeDomainDto(intervals);
   }
