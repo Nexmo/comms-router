@@ -561,7 +561,7 @@ public class AgentTest extends BaseTest {
     assertThat(String.format("Check task state (%s) to be assigned.", task.getState()),
         task.getState(), is(TaskState.assigned));
     t.setState(TaskState.completed);
-    callcack TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(2);
 
     resource = a.get();
     assertThat(String
