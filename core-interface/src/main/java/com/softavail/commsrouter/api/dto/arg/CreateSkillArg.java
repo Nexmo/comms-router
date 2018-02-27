@@ -62,4 +62,30 @@ public class CreateSkillArg {
     this.domain = domain;
   }
 
+  public static class Builder{
+    private CreateSkillArg skillArg = new CreateSkillArg();
+
+    public Builder() {}
+    
+    public Builder description(String description) {
+      skillArg.setDescription(description);
+      return this;
+    }
+
+    public Builder multivalue(Boolean multi) {
+      skillArg.setMultivalue(multi);
+      return this;
+    }
+
+    public Builder domain(AttributeDomainDto domain) {
+      skillArg.setDomain(domain);
+      return this;
+    }
+    
+    public CreateSkillArg build() {
+      return skillArg;
+    }
+
+  }
+  
 }

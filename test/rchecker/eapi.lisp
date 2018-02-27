@@ -136,7 +136,7 @@
 
 
 (defun erouter-all (&key (checks (check-and (has-json))) (per-page 50) (page-number 1)
-                      (q (format nil "?per_page=~A&page_num=~A" per-page page-number))
+                      (q (format nil "?per_page=~A&page_num=~A" per-page page-number)))
   (tstep (format nil "List available routers.")
          (tapply (http-get (with-q "/routers" q)))
          checks))

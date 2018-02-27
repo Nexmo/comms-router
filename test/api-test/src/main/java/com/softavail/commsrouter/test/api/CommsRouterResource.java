@@ -22,6 +22,7 @@ public enum CommsRouterResource {
   PLAN,
   QUEUE,
   AGENT,
+  SKILL,
   TASK;
 
   @Override

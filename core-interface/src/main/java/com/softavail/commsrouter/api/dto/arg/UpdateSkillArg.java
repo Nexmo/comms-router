@@ -23,18 +23,9 @@ import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
  * @author ikrustev
  */
 public class UpdateSkillArg {
-  private String name;
   private String description;
   private Boolean multivalue;
   private AttributeDomainDto domain;
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
 
   public String getDescription() {
     return description;
@@ -58,6 +49,31 @@ public class UpdateSkillArg {
 
   public void setDomain(AttributeDomainDto domain) {
     this.domain = domain;
+  }
+  static public class Builder {
+    private UpdateSkillArg skillArg = new UpdateSkillArg();
+
+    public Builder() {}
+    
+    public Builder description(String description) {
+      skillArg.setDescription(description);
+      return this;
+    }
+
+    public Builder multivalue(Boolean multi) {
+      skillArg.setMultivalue(multi);
+      return this;
+    }
+
+    public Builder domain(AttributeDomainDto domain) {
+      skillArg.setDomain(domain);
+      return this;
+    }
+    
+    public UpdateSkillArg build() {
+      return skillArg;
+    }
+
   }
 
 }

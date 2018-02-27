@@ -44,7 +44,6 @@ public class ApiAgent extends Resource {
     return list(routerRef,"");
   }
   
-
   public ValidatableResponse list(String routerRef, String query) {
     return given()
       .pathParam("query", query)

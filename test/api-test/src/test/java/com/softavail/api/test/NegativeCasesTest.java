@@ -252,7 +252,6 @@ public class NegativeCasesTest extends BaseTest {
       .body("error.description",is("Predicate \"true==[invalidConstant\" failed with error: Expression is invalid. For input string: \"[invalidConstant\""));
   }
   
-
   @Test
   public void createQueueWrongPredicateSubexp1() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
