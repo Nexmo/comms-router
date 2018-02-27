@@ -87,12 +87,12 @@ public class Cfg4jConfiguration implements ConfigurationProperties {
   }
 
   @Override
-  public String commsQueueID() {
+  public String commsQueueId() {
     return provider.getProperty("comms.queueId", String.class);
   }
 
   @Override
-  public String commsPlanID() {
+  public String commsPlanId() {
     return provider.getProperty("comms.planId", String.class);
   }
 }

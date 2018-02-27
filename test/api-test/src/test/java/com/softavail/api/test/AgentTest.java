@@ -221,13 +221,17 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  public void agentHandlesTwoTasks() throws MalformedURLException, InterruptedException {
+  public void agentHandlesTwoTasks() throws MalformedURLException, InterruptedException, IOException {
     a.create("en");
     a.setState(AgentState.ready);
-    t.createQueueTask();
+    t.createQueueTask(testServer());
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString((state.get(CommsRouterResource.TASK)))));
     completeTask();
     t.delete();
-    t.createQueueTask();
+    t.createQueueTask(testServer());
+    assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
+                                          containsString((state.get(CommsRouterResource.TASK)))));
     completeTask();
     t.delete();
   }

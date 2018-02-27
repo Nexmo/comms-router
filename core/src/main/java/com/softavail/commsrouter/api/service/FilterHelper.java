@@ -21,6 +21,7 @@ import com.github.tennaito.rsql.jpa.JpaPredicateVisitor;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Predicate;
@@ -31,13 +32,13 @@ import javax.persistence.criteria.Root;
  */
 public class FilterHelper {
 
-  public static Optional<Predicate> filterPredicate(String requestQuery, Root root, EntityManager em) {
-    if (requestQuery != null && !requestQuery.isEmpty()) {
+  public static Optional<Predicate> filterPredicate(String query, Root root, EntityManager em) {
+    if (query != null && !query.isEmpty()) {
       // Create the JPA Visitors
       RSQLVisitor<Predicate, EntityManager> visitor = new JpaPredicateVisitor<>().defineRoot(root);
 
       // Parse a RSQL into a Node
-      Node rootNode = new RSQLParser().parse(requestQuery);
+      Node rootNode = new RSQLParser().parse(query);
 
       // Visit the node to retrieve CriteriaQuery
       Predicate predicate = rootNode.accept(visitor, em);

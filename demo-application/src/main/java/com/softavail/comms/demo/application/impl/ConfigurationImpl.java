@@ -4,7 +4,7 @@ import com.google.common.io.Resources;
 
 import com.nexmo.client.auth.JWTAuthMethod;
 import com.nexmo.client.voice.Endpoint;
-import com.softavail.comms.demo.application.model.VoiceEndpoint;
+import com.softavail.comms.demo.application.factory.NexMoModelFactory;
 import com.softavail.comms.demo.application.services.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +22,7 @@ public class ConfigurationImpl implements Configuration {
   private static final Logger LOGGER = LogManager.getLogger(ConfigurationImpl.class);
 
   private final ConfigurationProperties properties;
-  private final VoiceEndpoint phoneEndpoint;
+  private final Endpoint phoneEndpoint;
   private final JWTAuthMethod jwtAuthMethod;
   private final String commsApiEndpoint;
   private final String commsRouterId;
@@ -47,7 +47,7 @@ public class ConfigurationImpl implements Configuration {
 
     commsRouterId = properties.commsRouterId();
 
-    phoneEndpoint = new VoiceEndpoint(properties.phone());
+    phoneEndpoint = NexMoModelFactory.createEndpoint(properties.phone());
     LOGGER.debug("phoneEndpoint: {}", phoneEndpoint);
 
     try {
@@ -62,10 +62,10 @@ public class ConfigurationImpl implements Configuration {
 
     // set music on hold URL
     musicOnHoldUrl = properties.musicOnHoldUrl();
-    
-    commsQueueId = properties.commsQueueID();
-    
-    commsPlanId = properties.commsPlanID();
+
+    commsQueueId = properties.commsQueueId();
+
+    commsPlanId = properties.commsPlanId();
   }
 
   @Override

@@ -226,12 +226,14 @@
                     (description (format nil "Set state=~A of the agent"state ))
                     (router-id (get-event :router))
                     (id (get-event :agent))
+                    (name "name")
                     (address "address")
                     (capabilities (jsown:new-js ("language" "en"))))
   (tstep description
          (tapply (http-post (list "/routers" router-id "agents" id)
                             (jsown:new-js
                               ("address" address)
+                              ("name" name)
                               ("state" state)
                               ("capabilities" capabilities))))
          (is-equal "")))
