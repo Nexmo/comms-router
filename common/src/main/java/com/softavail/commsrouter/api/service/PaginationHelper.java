@@ -107,7 +107,7 @@ public class PaginationHelper {
 
     String collect = sortOrder.keySet().stream()
         .map(key -> {
-          Object get = Arrays.stream(entityClass.getDeclaredMethods())
+          Object get = Arrays.stream(entityClass.getMethods())
               .filter(method -> method.getName().startsWith("get"))
               .filter(method -> method.getName().substring(3).equalsIgnoreCase(key))
               .findFirst()
