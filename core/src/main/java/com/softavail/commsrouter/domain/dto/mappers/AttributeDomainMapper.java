@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDtoVisitor;
+import com.softavail.commsrouter.api.dto.model.skill.BoolAttributeDomainDto;
 
 /**
  *
@@ -66,6 +67,8 @@ public class AttributeDomainMapper {
         return toNumberDto(jpa);
       case string:
         return toStringDto(jpa);
+      case bool:
+        return toBoolDto(jpa);
     }
     throw new RuntimeException("Unexpected attribute type: " + jpa.getType());
   }
@@ -118,6 +121,11 @@ public class AttributeDomainMapper {
             .map(def -> def.getRegex())
             .orElse(null);
     return new StringAttributeDomainDto(regEx);
+  }
+
+  private AttributeDomainDto toBoolDto(AttributeDomain jpa) {
+    assert jpa.getDefinitions().isEmpty();
+    return new BoolAttributeDomainDto();
   }
 
   public AttributeDomain fromDto(AttributeDomainDto dto) {

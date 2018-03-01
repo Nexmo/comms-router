@@ -20,8 +20,20 @@ package com.softavail.commsrouter.api.dto.model.skill;
  *
  * @author ikrustev
  */
-public enum AttributeType {
+public class BoolAttributeDomainDto extends AttributeDomainDto {
 
-  enumeration, number, string, bool
+  public BoolAttributeDomainDto() {}
+
+  @Override
+  public AttributeType getType() {
+    return AttributeType.bool;
+  }
+
+  @Override
+  public void accept(AttributeDomainDtoVisitor visitor) {
+  }
+
+  @Override
+  public void validate() {}
 
 }

@@ -33,7 +33,8 @@ import com.softavail.commsrouter.api.exception.BadValueException;
 @JsonSubTypes({
   @Type(value = EnumerationAttributeDomainDto.class, name = "enumeration"),
   @Type(value = NumberAttributeDomainDto.class, name = "number"),
-  @Type(value = StringAttributeDomainDto.class, name = "string")
+  @Type(value = StringAttributeDomainDto.class, name = "string"),
+  @Type(value = BoolAttributeDomainDto.class, name = "bool")
 })
 public abstract class AttributeDomainDto {
 

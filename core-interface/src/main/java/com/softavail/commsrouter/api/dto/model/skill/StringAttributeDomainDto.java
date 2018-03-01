@@ -16,6 +16,10 @@
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
+import com.softavail.commsrouter.api.exception.BadValueException;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 /**
  *
  * @author ikrustev
@@ -41,7 +45,16 @@ public class StringAttributeDomainDto extends AttributeDomainDto {
   }
 
   @Override
-  public void validate() {}
+  public void validate() throws BadValueException {
+    if (regex == null) {
+      return;
+    }
+    try {
+      Pattern.compile(regex);
+    } catch (PatternSyntaxException ex) {
+      throw new BadValueException("Invalid regex: " + ex.getMessage(), ex);
+    }
+  }
 
   public String getRegex() {
     return regex;

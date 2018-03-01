@@ -214,4 +214,30 @@ public class AttributeDomainDtoSerializationTest {
     assertEquals(expected.getRegex(), actual.getRegex());
   }
 
+  @Test
+  public void testBool() throws IOException, Throwable {
+    String content = "{"
+              + "\"domain\":{"
+                + "\"type\":\"bool\""
+              + "}"
+            + "}";
+    TestBean testBean = objectMapper.readValue(content, TestBean.class);
+
+    assertEquals(AttributeType.bool, testBean.domain.getType());
+  }
+
+  @Test
+  public void testBoolSerializeDeserialize() throws IOException, Throwable {
+    BoolAttributeDomainDto expected = new BoolAttributeDomainDto();
+
+    String asString = objectMapper.writeValueAsString(new TestBean(expected));
+
+    TestBean actualTestBean = objectMapper.readValue(asString, TestBean.class);
+    assertThat(actualTestBean.domain, instanceOf(BoolAttributeDomainDto.class));
+
+    BoolAttributeDomainDto actual = (BoolAttributeDomainDto)actualTestBean.domain;
+
+    assertEquals(expected.getType(), actual.getType());
+  }
+
 }

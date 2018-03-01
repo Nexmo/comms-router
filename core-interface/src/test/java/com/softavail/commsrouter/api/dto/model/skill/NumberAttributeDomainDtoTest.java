@@ -17,7 +17,6 @@ package com.softavail.commsrouter.api.dto.model.skill;
 
 import com.softavail.commsrouter.api.exception.BadValueException;
 import java.util.Arrays;
-import static org.junit.Assert.fail;
 import org.junit.Test;
 
 /**
@@ -27,15 +26,6 @@ import org.junit.Test;
 public class NumberAttributeDomainDtoTest {
 
   public NumberAttributeDomainDtoTest() {
-  }
-
-  //@Test
-  public void testAccept() {
-    System.out.println("accept");
-    AttributeDomainDtoVisitor visitor = null;
-    NumberAttributeDomainDto instance = new NumberAttributeDomainDto();
-    instance.accept(visitor);
-    fail("The test case is a prototype.");
   }
 
   @Test

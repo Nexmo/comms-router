@@ -21,6 +21,7 @@ import com.softavail.commsrouter.api.dto.arg.UpdateSkillArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
+import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.interfaces.SkillService;
 import com.softavail.commsrouter.app.AppContext;
@@ -73,6 +74,11 @@ public class CoreSkillService extends CoreRouterObjectService<SkillDto, Skill>
       RouterObjectRef objectRef)
       throws CommsRouterException {
 
+    if (createArg.getDomain() == null) {
+      throw new BadValueException("Field 'domain' is required.");
+    }
+    createArg.getDomain().validate();
+
     Router router = getRouter(em, objectRef);
     Skill skill = new Skill(objectRef);
     skill.setRouter(router);
@@ -86,6 +92,10 @@ public class CoreSkillService extends CoreRouterObjectService<SkillDto, Skill>
   @Override
   public void update(UpdateSkillArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
+
+    if (updateArg.getDomain() != null) {
+      updateArg.getDomain().validate();
+    }
 
     app.db.transactionManager.executeVoid((em) -> {
       Skill skill = app.db.skill.get(em, objectRef);
