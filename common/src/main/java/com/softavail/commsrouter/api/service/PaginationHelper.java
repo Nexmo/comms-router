@@ -81,10 +81,10 @@ public class PaginationHelper {
           String value = entry.getValue();
 
           Predicate predicate;
-          if (sortOrder.get(key) == OrderType.ASCENDING) {
-            predicate = cb.greaterThan(root.get(key), value);
-          } else {
+          if (sortOrder.get(key) == OrderType.DESCENDING) {
             predicate = cb.lessThan(root.get(key), value);
+          } else {
+            predicate = cb.greaterThan(root.get(key), value);
           }
           return predicate;
         })
@@ -233,6 +233,7 @@ public class PaginationHelper {
     }
 
     private static SeekToken parseToken(String className, String token) {
+      ImmutableMap.Builder<String, String> identityBuilder = ImmutableMap.builder();
       ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
 
       decodeToken(token).ifPresent(decodedToken -> {
@@ -242,6 +243,8 @@ public class PaginationHelper {
           String value = matcher.group(TOKEN_VALUE);
           if (key.equals(className)) {
             key = ENTITY_ID_ATTR;
+            identityBuilder.put(key, value);
+            continue;
           }
           paramsBuilder.put(key, value);
         }
@@ -249,8 +252,9 @@ public class PaginationHelper {
 
       ImmutableMap<String, String> parameters = paramsBuilder.build();
 
-      if (!parameters.containsKey(ENTITY_ID_ATTR)) {
-        // TODO throw Exception?
+      // If there is no sorting for any param then sort it by id
+      if (parameters.size() == 0) {
+        parameters = identityBuilder.build();
       }
 
       return new SeekToken(className, parameters);
