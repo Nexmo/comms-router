@@ -11,7 +11,6 @@
                                           (drakma-client)
                                           )) req)))))
   
-  
 ;;; queue
 (defun equeue-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1)
                     (checks (check-and (has-json))))
@@ -126,6 +125,63 @@
   (tstep (format nil "Delete agent ~A." id)
          (tapply (http-del  "/routers" router-id "agents" id))
          (check-and (is-equal "") (remove-id :agent))))
+
+;;; skill
+(defun eskill-all(&key (router-id (get-event :router))
+                    (per-page 50))
+  (tstep (format nil "List all skills.")
+         (tapply (http-get  "/routers" router-id "skills"))
+         (check-and (has-json) )))
+
+(defun eskill(&key (router-id (get-event :router))
+                (id (get-event :skill)))
+  (tstep (format nil "Get skill ~A." id)
+         (tapply (http-del  "/routers" router-id "skills" id))
+         (check-and (has-json) (has-key "ref") (publish-id :skill))))
+
+(defun eskill-new (&key (router-id (get-event :router))
+                     (description "description")
+                     (multivalue :true)
+                     (domain (jsown:new-js ("values" '("en" "es"))
+                                           ("type" "enumeration"))))
+  (tstep (format nil "Create new skill with domain ~A."  (jsown:to-json domain))
+         (tapply (http-post (list "/routers" router-id "skills") (jsown:new-js
+                                                                   ("description" description)
+                                                                   ("domain" domain)
+                                                                   ("multivalue" multivalue))))
+         (check-and (has-json) (has-key "ref") (publish-id :skill))))
+
+(defun eskill-put (&key (router-id (get-event :router))
+                     (id (get-event :skill))
+                     (description "description")
+                     (multivalue :true)
+                     (domain (jsown:new-js ("values" '("en" "es"))
+                                           ("type" "enumeration"))))
+  (tstep (format nil "Replace or create skill.")
+         (tapply (http-put (list "/routers" router-id "skills" id) (jsown:new-js
+                                                                     ("description" description)
+                                                                     ("domain" domain)
+                                                                     ("multivalue" multivalue))))
+         (check-and (has-json) (has-key "ref") (publish-id :skill))))
+
+(defun eskill-set (&key (router-id (get-event :router))
+                     (id (get-event :skill))
+                     (description :null)
+                     (multivalue :null)
+                     (domain :null))
+  (tstep (format nil "Set properties on skill ~A - ~S." id (jsown:to-json domain))
+                 (tapply (http-post (list "/routers" router-id "skills" id) (jsown:new-js
+                                                                              ("description" description)
+                                                                              ("domain" domain)
+                                                                              ("multivalue" multivalue))))
+                 (is-equal "")))
+
+(defun eskill-del(&key (router-id (get-event :router))
+                    (id (get-event :skill)))
+  (tstep (format nil "Delete skill ~A." id)
+         (tapply (http-del  "/routers" router-id "skills" id))
+         (check-and (is-equal "") (remove-id :skill))))
+
 
 ;;; router
 (defun erouter-new (&key (name "name") (description "description"))

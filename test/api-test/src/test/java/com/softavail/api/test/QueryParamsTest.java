@@ -87,7 +87,7 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     ApiRouter api_r = new ApiRouter(state);
-    api_r.list("sort=-ref").body("[0].ref", response -> greaterThan(response.path("[1].ref")));
+    api_r.list("sort=-ref").body("[0].ref.toUpperCase()", response -> greaterThan(response.path("[1].ref.toUpperCase()")));
     r.delete();
   }
 
@@ -97,7 +97,7 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     ApiRouter api_r = new ApiRouter(state);
-    api_r.list("sort=+ref").body("[0].ref", response -> lessThan(response.path("[1].ref")));
+    api_r.list("sort=+ref").body("[0].ref.toUpperCase()", response -> lessThan(response.path("[1].ref.toUpperCase()")));
     r.delete();
   }
 
