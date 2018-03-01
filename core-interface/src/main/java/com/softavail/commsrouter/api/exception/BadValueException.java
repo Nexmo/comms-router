@@ -16,6 +16,8 @@
 
 package com.softavail.commsrouter.api.exception;
 
+import java.util.regex.PatternSyntaxException;
+
 /**
  *
  * @author ikrustev
@@ -24,6 +26,10 @@ public class BadValueException extends CommsRouterException {
 
   public BadValueException(String message) {
     super(message);
+  }
+
+  public BadValueException(String message, PatternSyntaxException ex) {
+    super(message, ex);
   }
 
 }
