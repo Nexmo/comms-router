@@ -171,7 +171,6 @@ public class SkillTest extends BaseTest {
     s.delete();
   }
 
-
   @Test
   public void createWithBoolean(){
     
@@ -184,6 +183,21 @@ public class SkillTest extends BaseTest {
     
     assertThat(resource.getDomain().getType(),is(AttributeType.bool));
     assertThat(resource.getMultivalue(), is(false));
+    s.delete();
+  }
+
+  @Test
+  public void createWithBooleanMulti(){
+    
+    String id= s.create(new CreateSkillArg.Builder()
+                        .description("domain")
+                        .domain( new BoolAttributeDomainDto())
+                        .multivalue(true)
+                        .build()).getRef();
+    SkillDto resource = s.get();
+    
+    assertThat(resource.getDomain().getType(),is(AttributeType.bool));
+    assertThat(resource.getMultivalue(), is(true));
     s.delete();
   }
 }

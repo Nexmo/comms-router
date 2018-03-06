@@ -46,6 +46,7 @@ import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -163,6 +164,19 @@ public class AgentTest extends BaseTest {
                is("en"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
         resource.getState(), is(AgentState.offline));
+  }
+
+  
+  @Test
+  public void createAgentWithCapabilitiesStrangeSymbols() {
+    a.create(new CreateAgentArg.Builder("capabilities").capabilities(new AttributeGroupDto().withKeyValue("l-t.&$/'%@! ype", new StringAttributeValueDto("language"))).build());
+    AgentDto resource = a.get();
+    assertThat(String.format("Check attribute language (%s) is 'en'.",
+                             ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
+               ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue(),
+               is("en"));
+    assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
+               resource.getState(), is(AgentState.offline));
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
