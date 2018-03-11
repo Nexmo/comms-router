@@ -117,4 +117,11 @@ public class Attribute implements Serializable {
     this.isScalar = isScalar;
   }
 
+  public Object getValue() {
+      return doubleValue != null ? doubleValue : (booleanValue != null ? booleanValue : stringValue);
+  }
+
+  public String toString() {
+      return "(" + name + ":" + getValue() + ")";
+  }
 }
