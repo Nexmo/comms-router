@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 jungle.
+ * Copyright 2018 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.apache.logging.log4j.LogManager;
 
 /**
  *
- * @author jungle
+ * @author Vladislav Todorov
  * @param <Boolean>
  * @param <String>
  */

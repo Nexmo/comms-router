@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 jungle.
+ * Copyright 2018 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import cz.jirutka.rsql.parser.ast.Node;
 
 /**
  *
- * @author jungle
+ * @author Vladislav Todorov
  */
 public class CommsRouterEvaluatorRsql {
 
