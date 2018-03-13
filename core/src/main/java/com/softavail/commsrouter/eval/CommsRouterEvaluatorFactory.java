@@ -26,8 +26,7 @@ public class CommsRouterEvaluatorFactory {
   private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluatorFactory.class);
 
   public CommsRouterEvaluator provide(String predicate) {
-    CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
-    evaluator.init(predicate);
+    JEvalEvaluator evaluator = new JEvalEvaluator(predicate);
     LOGGER.debug(" *** Created evaluator and validator: {}", evaluator);
 
     return evaluator;
