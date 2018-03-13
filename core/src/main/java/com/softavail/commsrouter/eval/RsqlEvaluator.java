@@ -15,11 +15,8 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.service.EvalRSQLVisitor;
 import com.softavail.commsrouter.domain.AttributeGroup;
-import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.Node;
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 /**
  *
@@ -27,12 +24,12 @@ import cz.jirutka.rsql.parser.ast.RSQLVisitor;
  */
 public class RsqlEvaluator {
 
-    private Node rootNode;
-    private EvalRSQLVisitor visitor;
+    private final EvalRSQLVisitor visitor;
+    private final Node rootNode;
 
-    public RsqlEvaluator(String expression) {
+    public RsqlEvaluator(Node rootNode) {
         visitor = new EvalRSQLVisitor();
-        rootNode = new RSQLParser().parse(expression);
+        this.rootNode = rootNode;
     }
 
     public boolean evaluate(AttributeGroup attributeGroup) {

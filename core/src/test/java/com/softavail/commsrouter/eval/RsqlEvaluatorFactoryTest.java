@@ -26,14 +26,14 @@ import org.junit.Test;
  *
  * @author Vladislav Todorov
  */
-public class RsqlParserTest {
+public class RsqlEvaluatorFactoryTest {
 
-    RsqlParser rsqlParser;
+    RsqlEvaluatorFactory rsqlEvaluatorFactory;
     AttributeGroup attributeGroupe;
 
-    public RsqlParserTest() {
+    public RsqlEvaluatorFactoryTest() {
         attributeGroupe = new AttributeGroup();
-        rsqlParser = new RsqlParser();
+        rsqlEvaluatorFactory = new RsqlEvaluatorFactory();
     }
 
     @Before
@@ -62,13 +62,13 @@ public class RsqlParserTest {
         String predicateOK2 = "language==bg,price<100;boolFalse==false";
         String predicateOK3 = "language=in=(en,fr,es);prices==30,color==blue";
 
-        assertTrue(rsqlParser.evaluate(predicateOK1, attributeGroupe));
-        assertTrue(rsqlParser.evaluate(predicateOK2, attributeGroupe));
-        assertTrue(rsqlParser.evaluate(predicateOK3, attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.evaluate(predicateOK1, attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.evaluate(predicateOK2, attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.evaluate(predicateOK3, attributeGroupe));
 
-        assertTrue(rsqlParser.parse(predicateOK1).evaluate(attributeGroupe));
-        assertTrue(rsqlParser.parse(predicateOK2).evaluate(attributeGroupe));
-        assertTrue(rsqlParser.parse(predicateOK3).evaluate(attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.create(predicateOK1).evaluate(attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.create(predicateOK2).evaluate(attributeGroupe));
+        assertTrue(rsqlEvaluatorFactory.create(predicateOK3).evaluate(attributeGroupe));
     }
 
     @Test
@@ -78,19 +78,19 @@ public class RsqlParserTest {
         String predicateNOK2 = "language==bg,price<30,boolFalse==true";
         String predicateNOK3 = "language=in=(bg,fr,es);color==red;prices==30";
 
-        assertFalse(rsqlParser.evaluate(predicateNOK1, attributeGroupe));
-        assertFalse(rsqlParser.evaluate(predicateNOK2, attributeGroupe));
-        assertFalse(rsqlParser.evaluate(predicateNOK3, attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.evaluate(predicateNOK1, attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.evaluate(predicateNOK2, attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.evaluate(predicateNOK3, attributeGroupe));
 
-        assertFalse(rsqlParser.parse(predicateNOK1).evaluate(attributeGroupe));
-        assertFalse(rsqlParser.parse(predicateNOK2).evaluate(attributeGroupe));
-        assertFalse(rsqlParser.parse(predicateNOK3).evaluate(attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.create(predicateNOK1).evaluate(attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.create(predicateNOK2).evaluate(attributeGroupe));
+        assertFalse(rsqlEvaluatorFactory.create(predicateNOK3).evaluate(attributeGroupe));
     }
 
     @Test(expected = NullPointerException.class)
     public void evaluateExpressionInvalidAttributesNumber() throws Exception {
         String predicate = "languages=gt=en";
-        rsqlParser.evaluate(predicate, attributeGroupe);
+        rsqlEvaluatorFactory.evaluate(predicate, attributeGroupe);
     }
 
     @Test
@@ -100,26 +100,26 @@ public class RsqlParserTest {
         String predicateOK2 = "language==bg,price<100;boolFalse==false";
         String predicateOK3 = "language=in=(en,fr,es);prices==30,color==blue";
 
-        rsqlParser.validate(predicateOK1);
-        rsqlParser.validate(predicateOK2);
-        rsqlParser.validate(predicateOK3);
+        rsqlEvaluatorFactory.validate(predicateOK1);
+        rsqlEvaluatorFactory.validate(predicateOK2);
+        rsqlEvaluatorFactory.validate(predicateOK3);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid1() throws Exception {
         String predicateNOK1 = "language===en";
-        rsqlParser.validate(predicateNOK1);
+        rsqlEvaluatorFactory.validate(predicateNOK1);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid2() throws Exception {
         String predicateNOK2 = "language==bg:boolFalse==true";
-        rsqlParser.validate(predicateNOK2);
+        rsqlEvaluatorFactory.validate(predicateNOK2);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid3() throws Exception {
         String predicateNOK3 = "language==in=(bg,fr,es)";
-        rsqlParser.validate(predicateNOK3);
+        rsqlEvaluatorFactory.validate(predicateNOK3);
     }
 }

@@ -77,7 +77,7 @@ public class AttributeGroup implements Serializable {
               return attribute;
           }
       }
-      
+
       return null;
   }
 
