@@ -15,42 +15,28 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.api.service.EvalRSQLVisitor;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import cz.jirutka.rsql.parser.RSQLParser;
-import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.Node;
+import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 /**
  *
  * @author Vladislav Todorov
  */
-public class CommsRouterEvaluatorRsql {
+public class RsqlEvaluator {
 
-    private RSQLParser parser;
+    private Node rootNode;
     private EvalRSQLVisitor visitor;
 
-    public CommsRouterEvaluatorRsql () {
-        parser = new RSQLParser();
+    public RsqlEvaluator(String expression) {
         visitor = new EvalRSQLVisitor();
+        rootNode = new RSQLParser().parse(expression);
     }
-    
-    public void validate(String expression) throws EvaluatorException {
-        try {
-            parser.parse(expression);
-        } catch(RSQLParserException ex) {
-            throw new EvaluatorException("Invalid expression: " + expression , ex);
-        }
-    }
-    
-    public boolean evaluate(String expression, AttributeGroup attributeGroup) {
-        Node rootNode = parser.parse(expression);
+
+    public boolean evaluate(AttributeGroup attributeGroup) {
         return rootNode.accept(visitor, attributeGroup);
     }
-    
-    public boolean evaluate(AttributeGroup attributeGroup) {
-        return false;
-    }
-    
+
 }

@@ -26,26 +26,26 @@ import org.junit.Test;
  *
  * @author Vladislav Todorov
  */
-public class CommsRouterEvaluatorRsqlTest {
+public class RsqlParserTest {
 
-    CommsRouterEvaluatorRsql commsRouterEvaluator;
+    RsqlParser rsqlParser;
     AttributeGroup attributeGroupe;
-    
-    public CommsRouterEvaluatorRsqlTest() {
+
+    public RsqlParserTest() {
         attributeGroupe = new AttributeGroup();
-        commsRouterEvaluator = new CommsRouterEvaluatorRsql();
+        rsqlParser = new RsqlParser();
     }
-    
+
     @Before
     public void setUp() {
-        
+
         attributeGroupe.add("language", "en");
         attributeGroupe.add("nickname", "The Stone");
         attributeGroupe.add("color", "red");
         attributeGroupe.add("price", 30d);
         attributeGroupe.add("boolTrue", true);
         attributeGroupe.add("boolFalse", false);
-        
+
         attributeGroupe.addArrayItem("languages", "en");
         attributeGroupe.addArrayItem("languages", "es");
         attributeGroupe.addArrayItem("languages", "fr");
@@ -57,15 +57,18 @@ public class CommsRouterEvaluatorRsqlTest {
 
     @Test
     public void evaluateExpressionTrue() throws Exception {
-        
+
         String predicateOK1 = "language==en;price=in=(20,30,40);price=gt=10;boolTrue==true";
         String predicateOK2 = "language==bg,price<100;boolFalse==false";
         String predicateOK3 = "language=in=(en,fr,es);prices==30,color==blue";
 
-        assertTrue(commsRouterEvaluator.evaluate(predicateOK1, attributeGroupe));
-        assertTrue(commsRouterEvaluator.evaluate(predicateOK2, attributeGroupe));
-        assertTrue(commsRouterEvaluator.evaluate(predicateOK3, attributeGroupe));
+        assertTrue(rsqlParser.evaluate(predicateOK1, attributeGroupe));
+        assertTrue(rsqlParser.evaluate(predicateOK2, attributeGroupe));
+        assertTrue(rsqlParser.evaluate(predicateOK3, attributeGroupe));
 
+        assertTrue(rsqlParser.parse(predicateOK1).evaluate(attributeGroupe));
+        assertTrue(rsqlParser.parse(predicateOK2).evaluate(attributeGroupe));
+        assertTrue(rsqlParser.parse(predicateOK3).evaluate(attributeGroupe));
     }
 
     @Test
@@ -75,15 +78,19 @@ public class CommsRouterEvaluatorRsqlTest {
         String predicateNOK2 = "language==bg,price<30,boolFalse==true";
         String predicateNOK3 = "language=in=(bg,fr,es);color==red;prices==30";
 
-        assertFalse(commsRouterEvaluator.evaluate(predicateNOK1, attributeGroupe));
-        assertFalse(commsRouterEvaluator.evaluate(predicateNOK2, attributeGroupe));
-        assertFalse(commsRouterEvaluator.evaluate(predicateNOK3, attributeGroupe));
+        assertFalse(rsqlParser.evaluate(predicateNOK1, attributeGroupe));
+        assertFalse(rsqlParser.evaluate(predicateNOK2, attributeGroupe));
+        assertFalse(rsqlParser.evaluate(predicateNOK3, attributeGroupe));
+
+        assertFalse(rsqlParser.parse(predicateNOK1).evaluate(attributeGroupe));
+        assertFalse(rsqlParser.parse(predicateNOK2).evaluate(attributeGroupe));
+        assertFalse(rsqlParser.parse(predicateNOK3).evaluate(attributeGroupe));
     }
 
     @Test(expected = NullPointerException.class)
     public void evaluateExpressionInvalidAttributesNumber() throws Exception {
         String predicate = "languages=gt=en";
-        commsRouterEvaluator.evaluate(predicate, attributeGroupe);
+        rsqlParser.evaluate(predicate, attributeGroupe);
     }
 
     @Test
@@ -93,27 +100,26 @@ public class CommsRouterEvaluatorRsqlTest {
         String predicateOK2 = "language==bg,price<100;boolFalse==false";
         String predicateOK3 = "language=in=(en,fr,es);prices==30,color==blue";
 
-        commsRouterEvaluator.validate(predicateOK1);
-        commsRouterEvaluator.validate(predicateOK2);
-        commsRouterEvaluator.validate(predicateOK3);
-        
+        rsqlParser.validate(predicateOK1);
+        rsqlParser.validate(predicateOK2);
+        rsqlParser.validate(predicateOK3);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid1() throws Exception {
         String predicateNOK1 = "language===en";
-        commsRouterEvaluator.validate(predicateNOK1);
+        rsqlParser.validate(predicateNOK1);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid2() throws Exception {
         String predicateNOK2 = "language==bg:boolFalse==true";
-        commsRouterEvaluator.validate(predicateNOK2);
+        rsqlParser.validate(predicateNOK2);
     }
 
     @Test(expected = EvaluatorException.class)
     public void validateExpressionInalid3() throws Exception {
         String predicateNOK3 = "language==in=(bg,fr,es)";
-        commsRouterEvaluator.validate(predicateNOK3);
+        rsqlParser.validate(predicateNOK3);
     }
 }
