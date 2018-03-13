@@ -169,7 +169,12 @@ public class AgentTest extends BaseTest {
   
   @Test
   public void createAgentWithCapabilitiesStrangeSymbols() {
-    a.create(new CreateAgentArg.Builder("capabilities").capabilities(new AttributeGroupDto().withKeyValue("l-t.&$/'%@! ype", new StringAttributeValueDto("language"))).build());
+    a.create(new CreateAgentArg.Builder("capabilities")
+             .capabilities(
+                           new AttributeGroupDto()
+                           .withKeyValue("l-t.&$/'%@! ype",
+                                         new StringAttributeValueDto("language")))
+             .build());
     AgentDto resource = a.get();
     assertThat(String.format("Check attribute language (%s) is 'en'.",
                              ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
