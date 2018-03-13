@@ -18,19 +18,18 @@ package com.softavail.commsrouter.api.service;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
-import com.softavail.commsrouter.eval.CommsRouterEvaluator;
+import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper.JpaAttributeValueType;
+import static com.softavail.commsrouter.domain.dto.mappers.AttributesMapper.getJpaAttributeValueType;
 import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 
 
@@ -95,41 +94,37 @@ public class EvalRSQLVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
     
     private Boolean comapre(String selector, ComparisonOperator comparisonOperator, List<String> arguments, AttributeGroup attributeGroup) throws EvaluatorException {
 
-        List<Object> attributeValues = attributeGroup.getAttributeValues(selector);
+        List<Attribute> attributes = attributeGroup.getAttributes(selector);
+        List<Object>    attributeValues = attributes.stream().map(a -> a.getValue()).collect(Collectors.toList());
 
-        if (attributeValues.isEmpty()) {
-            throw new EvaluatorException("AttributeGroup is empty. selector:" + selector +
+        validateArguments(comparisonOperator.getSymbol(), arguments);
+        validateAttributes(comparisonOperator.getSymbol(), attributeGroup.getAttributes(selector));
+
+        if (attributes.isEmpty()) {
+            throw new EvaluatorException("AttributeGroup is empty. Undefined attribute:" + selector +
                     ", comparisionOperator:" + comparisonOperator + ", arguments:" + arguments);
         }
 
-        Boolean isScalar = attributeGroup.isScalar(selector);
+        JpaAttributeValueType type = getJpaAttributeValueType(attributes.get(0));
+        List<Object> parsedArguments = parseArguments(arguments, type);
 
-        List<Object> parsedArguments = parseArguments(arguments, attributeValues.get(0));
         switch (comparisonOperator.getSymbol()) {
             case "==":
-                if (isScalar) {
-                    return attributeValues.get(0).equals(parsedArguments.get(0));
-                } else {
-                    return attributeValues.contains(parsedArguments.get(0));
-                }
+                return attributeValues.contains(parsedArguments.get(0));
             case "!=":
-                if (isScalar) {
-                    return attributeValues.get(0).equals(parsedArguments.get(0));
-                } else {
-                    return !attributeValues.contains(parsedArguments.get(0));
-                }
+                return !attributeValues.contains(parsedArguments.get(0));
             case "=gt=": 
-            case ">": 
-                return (Double)attributeValues.get(0) > (Double)parsedArguments.get(0);
+            case ">":
+                return compare(attributes.get(0), arguments.get(0), type) > 0;
             case "=ge=": 
-            case ">=": 
-                return (Double)attributeValues.get(0) >= (Double)parsedArguments.get(0);
+            case ">=":
+                return compare(attributes.get(0), arguments.get(0), type) >= 0;
             case "=lt=": 
             case "<": 
-                return (Double)attributeValues.get(0) < (Double)parsedArguments.get(0);
+                return compare(attributes.get(0), arguments.get(0), type) < 0;
             case "=le=": 
             case "<=": 
-                return (Double)attributeValues.get(0) <= (Double)parsedArguments.get(0);
+                return compare(attributes.get(0), arguments.get(0), type) <= 0;
             case "=in=": 
                 return parsedArguments.contains(attributeValues.get(0));
             case "=out=": 
@@ -138,31 +133,72 @@ public class EvalRSQLVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
                 throw new EvaluatorException("Unsupported operator: " + comparisonOperator.getSymbol());
         }
     }
-    
-    private List<Object> parseArguments(List<String> arguments, Object attributeValue) {
+
+    private List<Object> parseArguments(List<String> arguments, JpaAttributeValueType type) {
+
         List<Object> parsedArguments = new ArrayList<>();
-        if (attributeValue instanceof Double) {
-            for (String argument : arguments) {
-                parsedArguments.add(Double.parseDouble(argument));
-            }
-        } else if (attributeValue instanceof Boolean) {
-            for (String argument : arguments) {
-                parsedArguments.add(Boolean.parseBoolean(argument));
-            }
-        } else if (attributeValue instanceof String) {
-            for (String argument : arguments) {
-                parsedArguments.add(argument);
-            }
+        switch (type) {
+            case STRING:
+                arguments.forEach((argument) -> {parsedArguments.add(argument);});
+                break;
+            case DOUBLE:
+                arguments.forEach((argument) -> {parsedArguments.add(Double.parseDouble(argument));});
+                break;
+            case BOOLEAN:
+                arguments.forEach((argument) -> {parsedArguments.add(Boolean.parseBoolean(argument));});
+                break;
         }
         return parsedArguments;
     }
 
-    private List<Object> getAttributesValues(List<Attribute> attributes) {
-        List<Object> attributeValues = new ArrayList<>();
-        attributes.stream().forEachOrdered((attribute)->{
-            attributeValues.add(attribute.getValue());
-        });
-        return attributeValues;
+    private int compare(Attribute attribute, String argument, JpaAttributeValueType type) {
+        switch (type) {
+            case STRING:
+                return attribute.getStringValue().compareTo(argument);
+            case DOUBLE:
+                return attribute.getDoubleValue().compareTo(Double.parseDouble(argument));
+            case BOOLEAN:
+                return attribute.getBooleanValue().compareTo(Boolean.parseBoolean(argument));
+            default:
+                throw new RuntimeException("Unexpected attribute value type " + type + " for " + attribute.getName()
+                  + "in " + attribute.getAttributeGroup().getId());
+        }
     }
-    
+
+    private void validateArguments(String operator, List<String> arguments) throws EvaluatorException {
+        switch (operator) {
+            case "==":
+            case "!=":
+            case "=gt=":
+            case ">":
+            case "=ge=":
+            case ">=":
+            case "=lt=":
+            case "<":
+            case "=le=":
+            case "<=":
+                if (arguments.size() != 1) {
+                    throw new EvaluatorException("Invalid arguments number. Expected 1 but found " + arguments.size());
+                }
+        }
+    }
+
+    private void validateAttributes(String operator, List<Attribute> attributes) throws EvaluatorException {
+        switch (operator) {
+            case "!=":
+            case "=gt=":
+            case ">":
+            case "=ge=":
+            case ">=":
+            case "=lt=":
+            case "<":
+            case "=le=":
+            case "<=":
+            case "=in=":
+            case "=out=":
+                if (attributes.size() != 1) {
+                    throw new EvaluatorException("Invalid attributes number. Expected 1 but found " + attributes.size());
+                }
+        }
+    }
 }
