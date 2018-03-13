@@ -30,20 +30,25 @@ import org.apache.logging.log4j.Logger;
  */
 public class JEvalEvaluator implements CommsRouterEvaluator {
 
+  private final CommsRouterEvaluatorFactory factory;
   private ExpressionEvaluator evaluator;
 
   private static final Logger LOGGER = LogManager.getLogger(JEvalEvaluator.class);
 
-  public JEvalEvaluator(String predicate) {
+  public JEvalEvaluator(CommsRouterEvaluatorFactory factory, String predicate) {
+    this.factory = factory;
     evaluator = new ExpressionEvaluator();
     evaluator.init(predicate);
   }
 
   @Override
-  public JEvalEvaluator changeExpression(String predicate) {
+  public CommsRouterEvaluator changeExpression(String expression) throws EvaluatorException {
+    return factory.changeExpression(this, expression);
+  }
+
+  void replaceExpression(String expression) {
     evaluator = new ExpressionEvaluator();
-    evaluator.init(predicate);
-    return this;
+    evaluator.init(expression);
   }
 
   /**
@@ -66,7 +71,7 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
    * @throws CommsRouterException .
    */
   @Override
-  public Boolean evaluate(AttributeGroup attributesGroup) throws CommsRouterException {
+  public boolean evaluate(AttributeGroup attributesGroup) throws CommsRouterException {
     if (evaluator == null) {
       throw new EvaluatorException("Predicate evaluator is not initialized with expression value. "
           + "Please call 'init(String predicate)' first.");

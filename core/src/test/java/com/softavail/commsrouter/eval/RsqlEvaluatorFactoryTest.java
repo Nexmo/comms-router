@@ -33,7 +33,7 @@ public class RsqlEvaluatorFactoryTest {
 
     public RsqlEvaluatorFactoryTest() {
         attributeGroupe = new AttributeGroup();
-        rsqlEvaluatorFactory = new RsqlEvaluatorFactory();
+        rsqlEvaluatorFactory = new RsqlEvaluatorFactory(null);
     }
 
     @Before

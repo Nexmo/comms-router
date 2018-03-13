@@ -36,6 +36,10 @@ import javax.validation.constraints.Size;
 @Table(name = "attribute")
 public class Attribute implements Serializable {
 
+  public static enum Type {
+    STRING, DOUBLE, BOOLEAN
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -119,6 +123,22 @@ public class Attribute implements Serializable {
 
   public Object getValue() {
       return doubleValue != null ? doubleValue : (booleanValue != null ? booleanValue : stringValue);
+  }
+
+  public Type getType() {
+    if (getStringValue() != null) {
+      assert getBooleanValue() == null && getDoubleValue() == null;
+      return Type.STRING;
+    }
+    if (getDoubleValue() != null) {
+      assert getBooleanValue() == null && getStringValue() == null;
+      return Type.DOUBLE;
+    }
+    if (getBooleanValue() != null) {
+      assert getStringValue() == null && getDoubleValue() == null;
+      return Type.BOOLEAN;
+    }
+    throw new RuntimeException("Attribute with no value: " + getId() + " / " + getName());
   }
 
   public String toString() {

@@ -40,26 +40,6 @@ public class AttributesMapper {
 
   private static final Logger LOGGER = LogManager.getLogger(AttributesMapper.class);
 
-  public static enum JpaAttributeValueType {
-    STRING, DOUBLE, BOOLEAN
-  }
-
-  public static JpaAttributeValueType getJpaAttributeValueType(Attribute jpa) {
-    if (jpa.getStringValue() != null) {
-      assert jpa.getBooleanValue() == null && jpa.getDoubleValue() == null;
-      return JpaAttributeValueType.STRING;
-    }
-    if (jpa.getDoubleValue() != null) {
-      assert jpa.getBooleanValue() == null && jpa.getStringValue() == null;
-      return JpaAttributeValueType.DOUBLE;
-    }
-    if (jpa.getBooleanValue() != null) {
-      assert jpa.getStringValue() == null && jpa.getDoubleValue() == null;
-      return JpaAttributeValueType.BOOLEAN;
-    }
-    throw new RuntimeException("Attribute with no value: " + jpa.getId() + " / " + jpa.getName());
-  }
-
   public AttributeGroupDto toDto(AttributeGroup jpa) {
     if (jpa == null) {
       return null;
@@ -68,8 +48,8 @@ public class AttributesMapper {
     AttributeGroupDto dto = new AttributeGroupDto();
     jpa.getAttributes().stream().forEach(jpaAttribute -> {
       String name = jpaAttribute.getName();
-      JpaAttributeValueType valueType = getJpaAttributeValueType(jpaAttribute);
-      switch (valueType) {
+      Attribute.Type type = jpaAttribute.getType();
+      switch (type) {
         case STRING:
           if (jpaAttribute.isScalar()) {
             dto.add(name, jpaAttribute.getStringValue());
@@ -89,7 +69,7 @@ public class AttributesMapper {
           assert jpaAttribute.isScalar();
           break;
         default:
-          throw new RuntimeException("Unexpected attribute value type " + valueType + " for " + name
+          throw new RuntimeException("Unexpected attribute value type " + type + " for " + name
               + "in " + jpa.getId());
       }
     });

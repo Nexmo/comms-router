@@ -79,13 +79,6 @@ public class JEvalEvaluatorTest {
     System.out.println("evaluate");
     CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
 
-    // validation should be failed cases
-    try {
-      ef.provide(null).validate();
-      assertTrue(false);
-    } catch (EvaluatorException ex) {
-    }
-
     try {
       ef.provide("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}").validate();
       assertTrue(false);
@@ -138,7 +131,9 @@ public class JEvalEvaluatorTest {
   public void testEvaluateJpa() throws Exception {
     System.out.println("evaluateJpa");
 
-    JEvalEvaluator instance = new JEvalEvaluator(null);
+    CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+
+    JEvalEvaluator instance = new JEvalEvaluator(ef, null);
 
     Boolean expResult = true;
     Boolean result = instance.changeExpression(predicateOK1).evaluate(requirements);

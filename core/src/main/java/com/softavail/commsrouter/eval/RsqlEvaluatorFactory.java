@@ -27,6 +27,12 @@ import cz.jirutka.rsql.parser.ast.Node;
  */
 public class RsqlEvaluatorFactory {
 
+  private final CommsRouterEvaluatorFactory factory;
+
+  public RsqlEvaluatorFactory(CommsRouterEvaluatorFactory factory) {
+    this.factory = factory;
+  }
+
   public Node parse(String expression) {
       return new RSQLParser().parse(expression);
   }
@@ -40,7 +46,7 @@ public class RsqlEvaluatorFactory {
   }
 
   public RsqlEvaluator create(String expression) throws EvaluatorException {
-      return new RsqlEvaluator(parse(expression));
+      return new RsqlEvaluator(factory, parse(expression));
   }
 
   public boolean evaluate(String expression, AttributeGroup attributeGroup) throws EvaluatorException {

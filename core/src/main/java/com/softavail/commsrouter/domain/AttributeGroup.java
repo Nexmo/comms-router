@@ -62,14 +62,6 @@ public class AttributeGroup implements Serializable {
       return result;
   }
 
-  public List<Object> getAttributeValues(String attributeName) {
-      List<Object> result = new ArrayList<>();
-      attributes.stream().filter((attribute) -> (attribute.getName().equals(attributeName))).forEachOrdered((attribute) -> {
-          result.add(attribute.getValue());
-      });
-      return result;
-  }
-
   public Attribute getFirstAttribute(String attributeName) {
 
       for (Attribute attribute : attributes) {

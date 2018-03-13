@@ -21,7 +21,6 @@ import com.google.common.collect.ListMultimap;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
-import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import java.util.Iterator;
 import java.util.List;
 import net.sourceforge.jeval.EvaluationConstants;
@@ -152,8 +151,7 @@ public class ExpressionEvaluator extends Evaluator {
     ListMultimap<String, Object> attributesMap = ArrayListMultimap.create();
     attributes.forEach(jpaAttribute -> {
       String name = jpaAttribute.getName();
-      AttributesMapper.JpaAttributeValueType valueType =
-          AttributesMapper.getJpaAttributeValueType(jpaAttribute);
+      Attribute.Type valueType = jpaAttribute.getType();
       switch (valueType) {
         case STRING:
           if (jpaAttribute.isScalar()) {
