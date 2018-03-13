@@ -78,7 +78,12 @@ public class CommsRouterEvaluatorRsqlTest {
         assertFalse(commsRouterEvaluator.evaluate(predicateNOK1, attributeGroupe));
         assertFalse(commsRouterEvaluator.evaluate(predicateNOK2, attributeGroupe));
         assertFalse(commsRouterEvaluator.evaluate(predicateNOK3, attributeGroupe));
-        
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void evaluateExpressionInvalidAttributesNumber() throws Exception {
+        String predicate = "languages=gt=en";
+        commsRouterEvaluator.evaluate(predicate, attributeGroupe);
     }
 
     @Test

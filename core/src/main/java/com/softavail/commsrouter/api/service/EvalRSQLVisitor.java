@@ -98,7 +98,7 @@ public class EvalRSQLVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
         List<Object>    attributeValues = attributes.stream().map(a -> a.getValue()).collect(Collectors.toList());
 
         validateArguments(comparisonOperator.getSymbol(), arguments);
-        validateAttributes(comparisonOperator.getSymbol(), attributeGroup.getAttributes(selector));
+        validateAttributes(comparisonOperator.getSymbol(), attributes);
 
         if (attributes.isEmpty()) {
             throw new EvaluatorException("AttributeGroup is empty. Undefined attribute:" + selector +
