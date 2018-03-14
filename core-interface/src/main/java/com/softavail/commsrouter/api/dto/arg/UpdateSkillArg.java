@@ -50,7 +50,8 @@ public class UpdateSkillArg {
   public void setDomain(AttributeDomainDto domain) {
     this.domain = domain;
   }
-  static public class Builder {
+  
+  public static class Builder {
     private UpdateSkillArg skillArg = new UpdateSkillArg();
 
     public Builder() {}

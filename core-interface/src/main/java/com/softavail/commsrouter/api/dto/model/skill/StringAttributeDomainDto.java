@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.api.dto.model.skill;
 
 import com.softavail.commsrouter.api.exception.BadValueException;
+
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
