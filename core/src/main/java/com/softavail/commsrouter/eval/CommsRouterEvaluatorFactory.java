@@ -22,7 +22,9 @@ import com.softavail.commsrouter.api.exception.EvaluatorException;
  */
 public class CommsRouterEvaluatorFactory {
 
-  private static enum ExpressionType { FALSE, TRUE, JEVAL, RSQL }
+  private static enum ExpressionType {
+    FALSE, TRUE, JEVAL, RSQL
+  }
 
   private final RsqlEvaluatorFactory rsqlFactory = new RsqlEvaluatorFactory(this);
 
@@ -36,8 +38,8 @@ public class CommsRouterEvaluatorFactory {
       return ExpressionType.FALSE;
     } else if (expression.equals("true")) {
       return ExpressionType.TRUE;
-    } else if (expression.contains("#{") || expression.contains("contains(") || expression.contains("has(")
-            || (expression.contains("in") && !expression.contains("=in=")) || expression.equals("1==1")) {
+    } else if (expression.contains("#{") || expression.contains("contains(")
+        || expression.contains("has(") || expression.contains("in(") || expression.equals("1==1")) {
       return ExpressionType.JEVAL;
     } else {
       return ExpressionType.RSQL;
@@ -49,17 +51,18 @@ public class CommsRouterEvaluatorFactory {
       case JEVAL:
         return new JEvalEvaluator(this, predicate);
       case RSQL:
-        rsqlFactory.create(predicate);
+        return rsqlFactory.create(predicate);
       case FALSE:
         return new FalseEvaluator(this);
       case TRUE:
         return new TrueEvaluator(this);
+      default:
+        throw new RuntimeException("Unexpected expression type: " + determineType(predicate));
     }
-    throw new RuntimeException("Unexpected expression type: " + determineType(predicate));
   }
 
   CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression)
-          throws EvaluatorException {
+      throws EvaluatorException {
 
     ExpressionType type = determineType(expression);
     if (type == ExpressionType.JEVAL) {
@@ -70,7 +73,7 @@ public class CommsRouterEvaluatorFactory {
   }
 
   CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression)
-          throws EvaluatorException {
+      throws EvaluatorException {
 
     return provide(expression);
   }

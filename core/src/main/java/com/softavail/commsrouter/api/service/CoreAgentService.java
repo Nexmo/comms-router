@@ -194,10 +194,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
         agent = app.db.agent.get(em, objectRef);
       }
 
-      boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
       Fields.update(agent::setName, agent.getName(), updateArg.getName());
       Fields.update(agent::setDescription, agent.getDescription(), updateArg.getDescription());
+      boolean agentBecameAvailable = updateState(agent, updateArg.getState());
       if (!agentBecameAvailable) {
         return null;
       }
