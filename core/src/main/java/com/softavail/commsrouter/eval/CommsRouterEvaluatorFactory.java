@@ -37,7 +37,7 @@ public class CommsRouterEvaluatorFactory {
     } else if (expression.equals("true")) {
       return ExpressionType.TRUE;
     } else if (expression.contains("#{") || expression.contains("contains(") || expression.contains("has(")
-            || expression.contains("in") || expression.equals("1==1")) {
+            || (expression.contains("in") && !expression.contains("=in=")) || expression.equals("1==1")) {
       return ExpressionType.JEVAL;
     } else {
       return ExpressionType.RSQL;
