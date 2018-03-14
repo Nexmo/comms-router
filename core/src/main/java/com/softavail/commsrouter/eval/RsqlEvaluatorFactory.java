@@ -46,7 +46,11 @@ public class RsqlEvaluatorFactory {
   }
 
   public RsqlEvaluator create(String expression) throws EvaluatorException {
-      return new RsqlEvaluator(factory, parse(expression));
+      try {
+        return new RsqlEvaluator(factory, parse(expression));
+      } catch(RSQLParserException ex) {
+          throw new EvaluatorException("Invalid expression: " + ex.getMessage());
+      }
   }
 
   public boolean evaluate(String expression, AttributeGroup attributeGroup) throws EvaluatorException {
