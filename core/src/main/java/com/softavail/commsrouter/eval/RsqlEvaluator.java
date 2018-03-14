@@ -15,30 +15,34 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.AttributeGroup;
+import cz.jirutka.rsql.parser.ast.Node;
 
 /**
  *
- * @author ikrustev
+ * @author Vladislav Todorov
  */
-public interface CommsRouterEvaluator {
+public class RsqlEvaluator extends EvaluatorBase {
 
-  CommsRouterEvaluator changeExpression(String expression) throws EvaluatorException;
+  private final EvalRSQLVisitor visitor;
+  private final Node rootNode;
 
-  /**
-   *
-   * @param attributes - contains values for the variables used in the expression
-   * @return true - if match success
-   * @throws CommsRouterException .
-   */
-  boolean evaluate(AttributeGroup attributes) throws CommsRouterException;
+  public RsqlEvaluator(CommsRouterEvaluatorFactory factory, Node rootNode) {
+    super(factory);
+    visitor = new EvalRSQLVisitor();
+    this.rootNode = rootNode;
+  }
 
-  /**
-   *
-   * @throws EvaluatorException .
-   */
-  void validate() throws EvaluatorException;
+  @Override
+  public boolean evaluate(AttributeGroup attributeGroup) {
+    return rootNode.accept(visitor, attributeGroup);
+  }
+
+  @Override
+  public void validate() throws EvaluatorException {
+    // for now the sole existence of the evaluator validates the corresponding expression
+    // later on we will try run it via some attributes
+  }
 
 }

@@ -84,7 +84,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
-    evaluator.validate(createArg.getPredicate());
+    evaluator.validate();
 
     Router router = getRouter(em, objectRef);
     Queue queue = new Queue(objectRef);
@@ -106,7 +106,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     List<Agent> agents = app.db.agent.list(em, queue.getRouter().getRef());
     for (Agent agent : agents) {
       try {
-        if (evaluator.evaluateJpa(agent.getCapabilities())) {
+        if (evaluator.evaluate(agent.getCapabilities())) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedAgentsCount;
@@ -161,7 +161,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getRef());
 
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
-    evaluator.validate(predicate);
+    evaluator.validate();
 
     queue.setPredicate(predicate);
     queue.getAgentQueueMappings().clear();

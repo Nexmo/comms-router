@@ -32,6 +32,7 @@ import com.softavail.commsrouter.app.AgentDispatchInfo;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.AgentQueueMapping;
+import com.softavail.commsrouter.domain.AttributeGroup;
 import com.softavail.commsrouter.domain.Queue;
 import com.softavail.commsrouter.domain.Router;
 import com.softavail.commsrouter.eval.CommsRouterEvaluator;
@@ -100,20 +101,21 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
     em.persist(agent);
-    attachQueues(em, agent, createArg.getCapabilities(), true);
+    attachQueues(em, agent, true);
     return agent.cloneApiObjectRef();
   }
 
-  void attachQueues(EntityManager em, Agent agent, AttributeGroupDto capabilities,
-      boolean isNewAgent) throws CommsRouterException {
+  void attachQueues(EntityManager em, Agent agent, boolean isNewAgent) throws CommsRouterException {
 
     LOGGER.info("Agent {}: attaching queues...", agent.getRef());
+
+    final AttributeGroup capabilities = agent.getCapabilities();
 
     int attachedQueuesCount = 0;
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getRef())) {
       try {
-        if (evaluator.init(queue.getPredicate()).evaluate(capabilities)) {
+        if (evaluator.changeExpression(queue.getPredicate()).evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;
@@ -248,7 +250,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     agent.setCapabilities(app.entityMapper.attributes.fromDto(newCapabilities));
     agent.getAgentQueueMappings().clear();
-    attachQueues(em, agent, newCapabilities, false);
+    attachQueues(em, agent, false);
   }
 
   @Override

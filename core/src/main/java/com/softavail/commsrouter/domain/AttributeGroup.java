@@ -54,6 +54,25 @@ public class AttributeGroup implements Serializable {
     return attributes;
   }
 
+  public List<Attribute> getAttributes(String attributeName) {
+      List<Attribute> result = new ArrayList<>();
+      attributes.stream().filter((attribute) -> (attribute.getName().equals(attributeName))).forEachOrdered((attribute) -> {
+          result.add(attribute);
+      });
+      return result;
+  }
+
+  public Attribute getFirstAttribute(String attributeName) {
+
+      for (Attribute attribute : attributes) {
+          if (attribute.getName().equals(attributeName)) {
+              return attribute;
+          }
+      }
+
+      return null;
+  }
+
   public void setAttributes(List<Attribute> attributes) {
     this.attributes = attributes;
   }
@@ -86,6 +105,14 @@ public class AttributeGroup implements Serializable {
     Attribute attribute = createAttribute(name, value);
     attribute.setIsScalar(Boolean.FALSE);
     attributes.add(attribute);
+  }
+
+  public Boolean isScalar(String name) {
+      Attribute attribute = getFirstAttribute(name);
+      if(attribute != null) {
+          return attribute.isScalar();
+      }
+      return null;
   }
 
   private Attribute createAttribute(String name, Double value) {

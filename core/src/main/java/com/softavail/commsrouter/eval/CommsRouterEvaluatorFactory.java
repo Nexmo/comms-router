@@ -14,8 +14,7 @@
 
 package com.softavail.commsrouter.eval;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.softavail.commsrouter.api.exception.EvaluatorException;
 
 /**
  *
@@ -23,15 +22,57 @@ import org.apache.logging.log4j.Logger;
  */
 public class CommsRouterEvaluatorFactory {
 
-  private static final Logger LOGGER = LogManager.getLogger(CommsRouterEvaluatorFactory.class);
+  private static enum ExpressionType { FALSE, TRUE, JEVAL, RSQL }
 
-  public CommsRouterEvaluator provide(String predicate) {
-    CommsRouterEvaluator evaluator = new CommsRouterEvaluator();
-    evaluator.init(predicate);
-    LOGGER.debug(" *** Created evaluator and validator: {}", evaluator);
+  private final RsqlEvaluatorFactory rsqlFactory = new RsqlEvaluatorFactory(this);
 
-    return evaluator;
+  private ExpressionType determineType(String expression) {
+
+    if (expression == null) {
+      return ExpressionType.FALSE;
+    }
+    expression = expression.trim().toLowerCase();
+    if (expression.isEmpty() || expression.equals("false")) {
+      return ExpressionType.FALSE;
+    } else if (expression.equals("true")) {
+      return ExpressionType.TRUE;
+    } else if (expression.contains("#{") || expression.contains("contains(") || expression.contains("has(")
+            || expression.contains("in") || expression.equals("1==1")) {
+      return ExpressionType.JEVAL;
+    } else {
+      return ExpressionType.RSQL;
+    }
   }
 
+  public CommsRouterEvaluator provide(String predicate) throws EvaluatorException {
+    switch (determineType(predicate)) {
+      case JEVAL:
+        return new JEvalEvaluator(this, predicate);
+      case RSQL:
+        rsqlFactory.create(predicate);
+      case FALSE:
+        return new FalseEvaluator(this);
+      case TRUE:
+        return new TrueEvaluator(this);
+    }
+    throw new RuntimeException("Unexpected expression type: " + determineType(predicate));
+  }
+
+  CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression)
+          throws EvaluatorException {
+
+    ExpressionType type = determineType(expression);
+    if (type == ExpressionType.JEVAL) {
+      evaluator.replaceExpression(expression);
+      return evaluator;
+    }
+    return provide(expression);
+  }
+
+  CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression)
+          throws EvaluatorException {
+
+    return provide(expression);
+  }
 
 }
