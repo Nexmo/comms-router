@@ -133,11 +133,9 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
       case "<=":
         return compareSingleElement(attributes, arguments, operator) <= 0;
       case "=in=":
-        assertSingleAttribute(operator, attributes);
-        return parseArguments(arguments, type).contains(attributes.get(0).getValue());
+        return compareIn(attributes, parseArguments(arguments, type));
       case "=out=":
-        assertSingleAttribute(operator, attributes);
-        return !parseArguments(arguments, type).contains(attributes.get(0).getValue());
+        return !compareIn(attributes, parseArguments(arguments, type));
       default:
         throw new EvaluatorException("Unsupported operator: " + comparisonOperator.getSymbol());
     }
@@ -180,7 +178,7 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
     assertSingleAttribute(operator, attributes);
     return compare(attributes.get(0), arguments.get(0));
   }
-  
+
   private int compare(Attribute attribute, String argument) {
     switch (attribute.getType()) {
       case STRING:
@@ -194,6 +192,10 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
                 + " for " + attribute.getName()
                 + "in " + attribute.getAttributeGroup().getId());
     }
+  }
+
+  private boolean compareIn(List<Attribute> attributes, List<Object> arguments) {
+    return attributes.stream().anyMatch(attribute -> arguments.contains(attribute.getValue()));
   }
   
   private void assertSingleArgument(String operator, List<String> arguments) 
