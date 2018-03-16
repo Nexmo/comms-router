@@ -22,9 +22,11 @@ import com.softavail.commsrouter.test.api.Plan;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import org.junit.Assume;
+
+import org.junit.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
@@ -47,20 +49,16 @@ import java.util.HashMap;
  */
 
 //@DisplayName("Task to Queue mapping Tests")
-public class TaskQueueTest {
+public class TaskQueueTest extends BaseTest {
 
   private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
   private Queue q = new Queue(state);
   private Plan p = new Plan(state);
   private Task t = new Task(state);
+  private String defaultQ;
 
-  //@BeforeAll
-  public static void beforeAll() throws Exception {
-    Assume.assumeTrue("autHost is set", System.getProperty("autHost") != null);
-  }
-
-  //@BeforeEach
+  @Before
   public void createRouterAndQueue() {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
@@ -69,16 +67,23 @@ public class TaskQueueTest {
 
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
-    queueArg.setDescription("queue description");
     queueArg.setPredicate(predicate);
     q = new Queue(state);
-    ref = q.create(queueArg);
+    queueArg.setPredicate(predicate);
+    queueArg.setDescription("default queue");
+    defaultQ = q.create(queueArg).getRef();
+
+    queueArg.setPredicate(predicate);
+    queueArg.setDescription("queue description");
+    q.create(queueArg);
   }
 
-  //@AfterEach
+  //  @After
   public void cleanup() {
     t.delete();
     p.delete();
+    q.delete();
+    state.put(CommsRouterResource.QUEUE,defaultQ);
     q.delete();
     r.delete();
   }
@@ -92,7 +97,12 @@ public class TaskQueueTest {
     route.setQueueRef(state.get(CommsRouterResource.QUEUE));
     rule.getRoutes().add(route);
     arg.setRules(Collections.singletonList(rule));
-    arg.setDefaultRoute(route);
+
+    RouteDto defaultRoute = new RouteDto();
+    defaultRoute.setQueueRef(defaultQ);
+
+    arg.setDefaultRoute(defaultRoute);
+
     ApiObjectRef ref = p.create(arg);
   }
 
@@ -109,22 +119,38 @@ public class TaskQueueTest {
     createTask(requirements);
   }
 
-  //@Test
-  //@DisplayName("Add task with no attribs queue.")
+  @SuppressWarnings("unchecked")
+  @Test
   public void addTask() throws MalformedURLException {
-    assertThat(q.size(), is(0));
+    q.checkSize(0);
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     addPlanTask(taskAttribs, "1==1");
-    assertThat(q.size(), is(1));
+    q.checkSize(1);
   }
 
-  //@Test
-  //@DisplayName("Add task with one attribute to queue.")
+  @Test
+  public void addTaskDoNotMatch() throws MalformedURLException {
+    q.checkSize(0);
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    addPlanTask(taskAttribs, "1==2");
+    q.checkSize(0);
+  }
+
+  @Test
   public void addTaskOneAttribute() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("lang", new StringAttributeValueDto("en"));
     addPlanTask(taskAttribs, "1==1");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
+  public void addTaskOneAttributeMatch() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "lang==en");
     assertThat(q.size(), is(1));
   }
 

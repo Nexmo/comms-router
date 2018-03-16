@@ -19,6 +19,7 @@ package com.softavail.commsrouter.test.api;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
@@ -114,6 +115,13 @@ public class Queue extends Resource {
     return given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref).when().get("/routers/{routerRef}/queues/{ref}/size").then()
         .statusCode(200).extract().path("size");
+  }
+
+  public void checkSize(Integer size) {
+    String ref = state().get(CommsRouterResource.QUEUE);
+    given().pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+      .pathParam("ref", ref).when().get("/routers/{routerRef}/queues/{ref}/size").then()
+      .statusCode(200).body("size",is(size));
   }
 
   public List<TaskDto> tasks() {

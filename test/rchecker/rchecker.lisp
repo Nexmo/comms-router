@@ -361,6 +361,24 @@
     (check-it (generator(tuple simple
                                (list (tuple (or "&&" "||") simple)) ))
               (match-task))))
+(def-generator rsql-or ()
+  (let*((r-value (generator (or "one" "'two'" "1" "\"1\"")))
+        (r-list (generator (tuple "(" r-value (list (tuple "," r-value)) ")")))
+        (r-args (generator (or r-list r-value)))
+        (r-compare (generator (or "==" "!=" "=lt=" "<" "=le=" "<=" "=gt=" ">"
+                                  "=ge=" ">="  "=in=" "=out="))) ;; 
+        (r-compare-list (generator (or "=in=" "=out=")))
+        (r-selector  (generator (or "language" "department" "s" "not_reserved")))
+        (r-comparison (generator ;(tuple r-selector r-compare r-args)
+                       (or (tuple r-selector r-compare r-value)
+                           (tuple r-selector r-compare-list r-list))))
+        (r-group (generator (tuple "(" (rsql-or) ")")))
+        (r-constraint (generator (or r-group r-comparison)))
+        (r-and (generator (tuple r-constraint (list (tuple ";" r-constraint))))))
+    (generator (tuple r-and (list (tuple "," r-and))))))
+
+(defun test-task-rsql()
+  (let ((*list-size* 2)) (check-it (generator (rsql-or)) (match-task))))
 
 (defun test-router()
   (check-it (generator

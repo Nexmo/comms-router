@@ -120,7 +120,7 @@ public class BaseRouterTest extends BaseTest{
     r.delete();
   }
 
-  // @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked")
   @Test
   public void replaceRouterRouterResourcesAreThere() {
     // replace existing router and check that Queue is here after the replacement

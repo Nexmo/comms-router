@@ -207,7 +207,7 @@ public class NegativeCasesTest extends BaseTest {
                  .predicate("==true")
                  .description("desc").build())
       .statusCode(400)
-      .body("error.description",is("Predicate \"==true\" failed with error: Expression is invalid. "));
+      .body("error.description",startsWith("Invalid expression: cz.jirutka.rsql.parser.ParseException: Encountered "));
   }
 
   @Test
@@ -221,7 +221,7 @@ public class NegativeCasesTest extends BaseTest {
                  .predicate("alabala")
                  .description("desc").build())
       .statusCode(400)
-      .body("error.description",is("Predicate \"alabala\" failed with error: Expression is invalid. For input string: \"alabala\""));
+      .body("error.description",startsWith("Invalid expression: cz.jirutka.rsql.parser.ParseException: "));
   }
   
   @Test
@@ -234,8 +234,8 @@ public class NegativeCasesTest extends BaseTest {
                  , new CreateQueueArg.Builder()
                  .predicate("")
                  .description("desc").build())
-      .statusCode(400)
-      .body("error.description",is("Expression cannot be NULL or empty."));
+      .statusCode(201)
+      .body("ref",notNullValue());
   }
   
   @Test
@@ -248,8 +248,8 @@ public class NegativeCasesTest extends BaseTest {
                  , new CreateQueueArg.Builder()
                  .predicate("true==[invalidConstant")
                  .description("desc").build())
-      .statusCode(400)
-      .body("error.description",is("Predicate \"true==[invalidConstant\" failed with error: Expression is invalid. For input string: \"[invalidConstant\""));
+      .statusCode(201)
+      .body("ref",notNullValue());
   }
   
   @Test
@@ -262,8 +262,8 @@ public class NegativeCasesTest extends BaseTest {
                  , new CreateQueueArg.Builder()
                  .predicate("true==(invalidConstant)")
                  .description("desc").build())
-      .statusCode(400)
-      .body("error.description",is("Predicate \"true==(invalidConstant)\" failed with error: Expression is invalid. For input string: \"invalidConstant\""));
+      .statusCode(201)
+      .body("ref",notNullValue());
   }
 
   @Test
@@ -289,7 +289,7 @@ public class NegativeCasesTest extends BaseTest {
                  , new CreateQueueArg.Builder()
                  .predicate("10+10==21+(11+[1])")
                  .description("desc").build())
-      .statusCode(201);
+      .statusCode(400).body("error.description", containsString("Invalid expression: cz.jirutka.rsql.parser.ParseException: Encountered "));
   }
   
   @Test
