@@ -17,22 +17,23 @@
 package com.softavail.commsrouter.domain.dto.mappers;
 
 
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDtoVisitor;
 import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
+import com.softavail.commsrouter.api.dto.model.skill.BoolAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
-import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
-import com.softavail.commsrouter.domain.AttributeDomainDefinition;
 import com.softavail.commsrouter.domain.AttributeDomain;
+import com.softavail.commsrouter.domain.AttributeDomainDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.softavail.commsrouter.api.dto.model.skill.AttributeDomainDtoVisitor;
-import com.softavail.commsrouter.api.dto.model.skill.BoolAttributeDomainDto;
+
 
 /**
  *
@@ -69,8 +70,9 @@ public class AttributeDomainMapper {
         return toStringDto(jpa);
       case bool:
         return toBoolDto(jpa);
+      default:
+        throw new RuntimeException("Unexpected attribute type: " + jpa.getType());
     }
-    throw new RuntimeException("Unexpected attribute type: " + jpa.getType());
   }
 
   private EnumerationAttributeDomainDto toEnumerationDto(AttributeDomain jpa) {
@@ -103,7 +105,7 @@ public class AttributeDomainMapper {
     return new NumberAttributeDomainDto(intervals);
   }
 
-  static private NumberInterval getLastIncompleteInterval(ArrayList<NumberInterval> list) {
+  private static NumberInterval getLastIncompleteInterval(ArrayList<NumberInterval> list) {
     int size = list.size();
     if (size >= 1) {
       NumberInterval last = list.get(size - 1);

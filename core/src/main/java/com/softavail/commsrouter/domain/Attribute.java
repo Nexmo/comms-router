@@ -122,7 +122,7 @@ public class Attribute implements Serializable {
   }
 
   public Object getValue() {
-      return doubleValue != null ? doubleValue : (booleanValue != null ? booleanValue : stringValue);
+    return doubleValue != null ? doubleValue : (booleanValue != null ? booleanValue : stringValue);
   }
 
   public Type getType() {
@@ -142,6 +142,6 @@ public class Attribute implements Serializable {
   }
 
   public String toString() {
-      return "(" + name + ":" + getValue() + ")";
+    return "(" + name + ":" + getValue() + ")";
   }
 }
