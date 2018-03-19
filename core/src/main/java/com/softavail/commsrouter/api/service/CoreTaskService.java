@@ -225,10 +225,10 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       Plan plan = app.db.plan.get(em, RouterObjectRef.builder().setRef(createArg.getPlanRef())
           .setRouterRef(objectId.getRouterRef()).build());
       Route matchedRoute = null;
+      CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
       List<Rule> rules = plan.getRules();
       for (Rule rule : rules) {
-        CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(rule.getPredicate());
-        // evaluator.changeExpression(rule.getPredicate());
+        evaluator = evaluator.changeExpression(rule.getPredicate());
         matchedRoute = getMatchedRoute(task.getRef(), task.getRequirements(), rule, evaluator);
         if (matchedRoute != null) {
           task.setRule(rule);
