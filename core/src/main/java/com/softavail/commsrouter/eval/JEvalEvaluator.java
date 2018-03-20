@@ -31,7 +31,7 @@ import org.apache.logging.log4j.Logger;
 public class JEvalEvaluator implements CommsRouterEvaluator {
 
   private final CommsRouterEvaluatorFactory factory;
-  private ExpressionEvaluator evaluator;
+  private final ExpressionEvaluator evaluator;
 
   private static final Logger LOGGER = LogManager.getLogger(JEvalEvaluator.class);
 
@@ -47,8 +47,7 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
   }
 
   void replaceExpression(String expression) {
-    evaluator = new ExpressionEvaluator();
-    evaluator.init(expression);
+    evaluator.setPredicate(expression);
   }
 
   /**

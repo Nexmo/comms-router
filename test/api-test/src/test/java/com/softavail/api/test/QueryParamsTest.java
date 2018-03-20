@@ -107,9 +107,9 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    q.create(new CreateQueueArg.Builder().predicate("2").build());
-    q.create(new CreateQueueArg.Builder().predicate("1").build());
-    q.create(new CreateQueueArg.Builder().predicate("3").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==2").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==1").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==3").build());
     ApiQueue api_q = new ApiQueue(state);
     api_q.list(ref.getRef(),"sort=-predicate").body("[1].predicate", response -> lessThan(response.path("[0].predicate")));
     //r.delete();
@@ -121,11 +121,11 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    q.create(new CreateQueueArg.Builder().predicate("2").build());
-    q.create(new CreateQueueArg.Builder().predicate("1").build());
-    q.create(new CreateQueueArg.Builder().predicate("10").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==2").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==1").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==10").build());
     ApiQueue api_q = new ApiQueue(state);
-    api_q.list(ref.getRef(), "q=predicate!=1").body("size()",is(2));
+    api_q.list(ref.getRef(), "q=predicate!='num==1'").body("size()",is(2));
     //r.delete();
   }
 
@@ -134,11 +134,11 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    q.create(new CreateQueueArg.Builder().predicate("2").build());
-    q.create(new CreateQueueArg.Builder().predicate("1").build());
-    q.create(new CreateQueueArg.Builder().predicate("10").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==2").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==1").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==10").build());
     ApiQueue api_q = new ApiQueue(state);
-    api_q.list(ref.getRef(), "q=predicate!=").body("size()",is(2));
+    api_q.list(ref.getRef(), "q=predicate!=").body("size()",is("num==2"));
     //r.delete();
   }
 
@@ -148,11 +148,11 @@ public class QueryParamsTest extends BaseTest {
     Router r = new Router(state);
     ApiObjectRef ref = r.create(new CreateRouterArg());
     Queue q = new Queue(state);
-    q.create(new CreateQueueArg.Builder().predicate("2").build());
-    q.create(new CreateQueueArg.Builder().predicate("1").build());
-    q.create(new CreateQueueArg.Builder().predicate("3").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==2").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==1").build());
+    q.create(new CreateQueueArg.Builder().predicate("num==3").build());
     ApiQueue api_q = new ApiQueue(state);
-    api_q.list(ref.getRef(), "q=predicate==1").body("[0].predicate", is("1"));
+    api_q.list(ref.getRef(), "q=predicate=='num==1'").body("[0].predicate", is("num==1"));
     //r.delete();
   }
 

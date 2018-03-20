@@ -298,7 +298,7 @@
                 (id (get-event :agent)) (checks (has-kv "ref" id))
                 (q ""))
   (tstep description
-         (tapply (http-get "/routers" router-id "agents" (with-q id)))
+         (tapply (http-get "/routers" router-id "agents" (with-q id q)))
          checks))
 
 (defun eagent-del(&key (router-id (get-event :router))
