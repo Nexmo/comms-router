@@ -40,8 +40,7 @@ public class RsqlEvaluator extends EvaluatorBase {
 
   @Override
   public void validate() throws EvaluatorException {
-    // for now the sole existence of the evaluator validates the corresponding expression
-    // later on we will try run it via some attributes
+    rootNode.accept(new ValidateRsqlVisitor(null));
   }
 
 }

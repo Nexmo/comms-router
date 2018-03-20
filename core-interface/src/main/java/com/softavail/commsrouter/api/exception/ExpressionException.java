@@ -1,5 +1,5 @@
-/* 
- * Copyright 2017 SoftAvail Inc.
+/*
+ * Copyright 2018 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.softavail.commsrouter.api.exception;
 
 /**
  *
- * @author Ergyun Syuleyman
+ * @author vladislav
  */
-public class EvaluatorException extends ExpressionException {
-
-  public EvaluatorException(String message) {
+public class ExpressionException extends CommsRouterException {
+  public ExpressionException(String message) {
     super(message);
   }
 
-  public EvaluatorException(String message, Throwable cause) {
+  public ExpressionException(String message, Throwable cause) {
     super(message, cause);
   }
-
 }

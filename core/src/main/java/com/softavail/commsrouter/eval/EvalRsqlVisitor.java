@@ -16,9 +16,11 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
+import static com.softavail.commsrouter.eval.ValidationUtils.validateArguments;
+import static com.softavail.commsrouter.eval.ValidationUtils.validateAttributes;
 import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
@@ -38,56 +40,59 @@ import java.util.stream.Collectors;
  * @author Vladislav Todorov
  */
 public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
-  
+
   private static final org.apache.logging.log4j.Logger LOGGER
           = LogManager.getLogger(EvalRsqlVisitor.class);
-  
+
   @Override
   public Boolean visit(AndNode andNode, AttributeGroup attributeGroup) {
-    
+
     Boolean result = true;
     Iterator<Node> nodes = andNode.iterator();
-    
+
     while (result && nodes.hasNext()) {
       result = result && nodes.next().accept(this, attributeGroup);
     }
-    
+
     return result;
   }
-  
+
   @Override
   public Boolean visit(OrNode orNode, AttributeGroup attributeGroup) {
-    
+
     Boolean result = false;
     Iterator<Node> nodes = orNode.iterator();
-    
+
     while (!result && nodes.hasNext()) {
       result = result || nodes.next().accept(this, attributeGroup);
     }
-    
+
     return result;
   }
-  
+
   @Override
   public Boolean visit(ComparisonNode comparisonNode, AttributeGroup attributeGroup) {
-    
+
     Boolean result = null;
     try {
-      result = comapre(comparisonNode.getSelector(), comparisonNode.getOperator(), 
-                       comparisonNode.getArguments(), attributeGroup);
-    } catch (EvaluatorException ex) {
+      result = comapre(comparisonNode.getSelector(), comparisonNode.getOperator(),
+          comparisonNode.getArguments(), attributeGroup);
+    } catch (ExpressionException ex) {
       LOGGER.error(ex.getMessage(), ex);
     }
-    
+
     return result;
   }
-  
-  private Boolean comapre(String selector, ComparisonOperator comparisonOperator, 
-          List<String> arguments, AttributeGroup attributeGroup) throws EvaluatorException {
-    
+
+  private Boolean comapre(String selector, ComparisonOperator comparisonOperator,
+      List<String> arguments, AttributeGroup attributeGroup) throws ExpressionException {
+
     List<Attribute> attributes = attributeGroup.getAttributes(selector);
     String operator = comparisonOperator.getSymbol();
-    
+
+    validateArguments(operator, arguments);
+    validateAttributes(operator, attributes);
+
     if (attributes.isEmpty()) {
       switch (operator) {
         case "==":
@@ -99,52 +104,48 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
         case "<":
         case "=le=":
         case "<=":
-          assertSingleArgument(operator, arguments);
-          return false;
-        case "!=":
-          assertSingleArgument(operator, arguments);
-          return true;
         case "=in=":
           return false;
+        case "!=":
         case "=out=":
           return true;
         default:
-          throw new EvaluatorException("Unsupported operator: " + comparisonOperator.getSymbol());
+          throw new ExpressionException("Unsupported operator: " + comparisonOperator.getSymbol());
       }
     }
-    
+
     Attribute.Type type = attributes.get(0).getType();
-    
+
     switch (operator) {
       case "==":
-        return getValues(attributes).contains(parseSingleArgument(operator, arguments, type));
+        return getValues(attributes).contains(parseArgument(arguments.get(0), type));
       case "!=":
-        return !getValues(attributes).contains(parseSingleArgument(operator, arguments, type));
+        return !getValues(attributes).contains(parseArgument(arguments.get(0), type));
       case "=gt=":
       case ">":
-        return compareSingleElement(attributes, arguments, operator) > 0;
+        return compare(attributes.get(0), arguments.get(0)) > 0;
       case "=ge=":
       case ">=":
-        return compareSingleElement(attributes, arguments, operator) >= 0;
+        return compare(attributes.get(0), arguments.get(0)) >= 0;
       case "=lt=":
       case "<":
-        return compareSingleElement(attributes, arguments, operator) < 0;
+        return compare(attributes.get(0), arguments.get(0)) < 0;
       case "=le=":
       case "<=":
-        return compareSingleElement(attributes, arguments, operator) <= 0;
+        return compare(attributes.get(0), arguments.get(0)) <= 0;
       case "=in=":
         return compareIn(attributes, parseArguments(arguments, type));
       case "=out=":
         return !compareIn(attributes, parseArguments(arguments, type));
       default:
-        throw new EvaluatorException("Unsupported operator: " + comparisonOperator.getSymbol());
+        throw new ExpressionException("Unsupported operator: " + comparisonOperator.getSymbol());
     }
   }
-  
+
   private List<Object> getValues(List<Attribute> attributes) {
     return attributes.stream().map(a -> a.getValue()).collect(Collectors.toList());
   }
-  
+
   private Object parseArgument(String argument, Attribute.Type type) {
     switch (type) {
       case STRING:
@@ -157,26 +158,10 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
         throw new RuntimeException("Unexpected argument type");
     }
   }
-  
-  private Object parseSingleArgument(String operator, List<String> arguments, Attribute.Type type)
-          throws EvaluatorException {
-    assertSingleArgument(operator, arguments);
-    return parseArgument(arguments.get(0), type);
-  }
-  
+
   private List<Object> parseArguments(List<String> arguments, Attribute.Type type) {
-    return arguments.stream()
-            .sequential()
-            .map(argument -> parseArgument(argument, type))
-            .collect(Collectors.toList());
-  }
-  
-  private int compareSingleElement(List<Attribute> attributes, 
-          List<String> arguments, String operator)
-          throws EvaluatorException {
-    assertSingleArgument(operator, arguments);
-    assertSingleAttribute(operator, attributes);
-    return compare(attributes.get(0), arguments.get(0));
+    return arguments.stream().sequential().map(argument -> parseArgument(argument, type))
+        .collect(Collectors.toList());
   }
 
   private int compare(Attribute attribute, String argument) {
@@ -188,29 +173,12 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
       case BOOLEAN:
         return attribute.getBooleanValue().compareTo(Boolean.parseBoolean(argument));
       default:
-        throw new RuntimeException("Unexpected attribute type " + attribute.getType()
-                + " for " + attribute.getName()
-                + "in " + attribute.getAttributeGroup().getId());
+        throw new RuntimeException("Unexpected attribute type " + attribute.getType() + " for "
+            + attribute.getName() + "in " + attribute.getAttributeGroup().getId());
     }
   }
 
   private boolean compareIn(List<Attribute> attributes, List<Object> arguments) {
     return attributes.stream().anyMatch(attribute -> arguments.contains(attribute.getValue()));
-  }
-  
-  private void assertSingleArgument(String operator, List<String> arguments) 
-          throws EvaluatorException {
-    if (arguments.size() != 1) {
-      throw new EvaluatorException("Invalid arguments number for operator '" + operator
-              + "'. Expected 1 but found " + arguments.size());
-    }
-  }
-  
-  private void assertSingleAttribute(String operator, List<Attribute> attributes)
-          throws EvaluatorException {
-    if (attributes.size() != 1) {
-      throw new EvaluatorException("Invalid attributes number for operator '"
-              + operator + "'. Expected no more than 1 but found " + attributes.size());
-    }
   }
 }
