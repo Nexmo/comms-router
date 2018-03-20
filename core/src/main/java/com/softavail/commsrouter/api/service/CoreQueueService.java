@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.EntityManager;
 
 /**
@@ -154,7 +155,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private void updatePredicate(EntityManager em, Queue queue, String predicate)
       throws CommsRouterException {
 
-    if (queue.getPredicate().equals(predicate)) {
+    if (Objects.equals(queue.getPredicate(), predicate)) {
       LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getRef());
       return;
     }
