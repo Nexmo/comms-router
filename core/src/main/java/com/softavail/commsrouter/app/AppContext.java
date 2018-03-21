@@ -16,6 +16,7 @@
 
 package com.softavail.commsrouter.app;
 
+import com.softavail.commsrouter.api.service.Services;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
@@ -30,6 +31,7 @@ public class AppContext {
   public final CommsRouterEvaluatorFactory evaluatorFactory;
   public final TaskDispatcher taskDispatcher;
   public final EntityMappers entityMapper;
+  public final Services svc;
 
   public AppContext(JpaDbFacade db, CommsRouterEvaluatorFactory evaluatorFactory,
       TaskDispatcher taskDispatcher,
@@ -38,6 +40,7 @@ public class AppContext {
     this.evaluatorFactory = evaluatorFactory;
     this.taskDispatcher = taskDispatcher;
     this.entityMapper = dtoMappers;
+    this.svc = new Services(this);
   }
 
 }
