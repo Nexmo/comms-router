@@ -1,5 +1,6 @@
 (in-package :rchecker)
 (defparameter *times* ())
+(defparameter *queue* (queues:make-queue :simple-cqueue))
 (defun autocomplete-task(router-id task-id)
   (destructuring-bind (response check description)
 		      (funcall (tand
@@ -48,6 +49,20 @@
                                 "ERROR"
                                 (push (get-internal-real-time) *times*))))
                       :name "auto-completer")
+      ;;(hunchentoot:log-message* 'ready "completed in ~A" (- (get-internal-real-time) start-time))
+      "OK")))
+
+(hunchentoot:define-easy-handler (push-task :uri "/push-task") (data)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (let ((body (when (hunchentoot:raw-post-data)(babel:octets-to-string (hunchentoot:raw-post-data)))))
+    ;;(hunchentoot:log-message* 'task-requ "~(~A~):~A Body:~A" "app" (hunchentoot:query-string*) body)
+    (let* ((start-time (get-internal-real-time))
+           (task-info (jsown:parse body))
+           (task (jsown:val task-info "task"))
+           (task-id (jsown:val task "ref"))
+           (router-id (jsown:val task "routerRef"))
+           (delay (hunchentoot:parameter "sleep")))
+      (queues:qpush *queue* (list router-id task-id delay (get-internal-real-time)))
       ;;(hunchentoot:log-message* 'ready "completed in ~A" (- (get-internal-real-time) start-time))
       "OK")))
 

@@ -40,7 +40,7 @@ import java.util.ArrayList;
  */
 public class HasFunction implements Function {
 
-  final private ExpressionEvaluator exprEvaluator;
+  private final ExpressionEvaluator exprEvaluator;
 
   public HasFunction(ExpressionEvaluator evaluator) {
     this.exprEvaluator = evaluator;

@@ -95,6 +95,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     Agent agent = new Agent(objectRef);
     agent.setRouter(router);
     agent.setAddress(createArg.getAddress());
+    agent.setName(createArg.getName());
+    agent.setDescription(createArg.getDescription());
     agent.setCapabilities(app.entityMapper.attributes.fromDto(createArg.getCapabilities()));
     agent.setState(AgentState.offline);
     em.persist(agent);
@@ -145,9 +147,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
           "Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
 
-    boolean updateState = updateArg.getState() != null;
-    boolean updateProperties = updateArg.getAddress() != null
-            || updateArg.getCapabilities() != null;
+    boolean updateState = updateArg.isStateUpdate();
+    boolean updateProperties = updateArg.isPropertiesUpdate();
 
     if (updateState && updateProperties) {
       throw new BadValueException("Agent's state change must be in an update of its own.");
@@ -220,6 +221,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       }
       updateCapabilities(em, agent, updateArg.getCapabilities());
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());
+      Fields.update(agent::setName, agent.getName(), updateArg.getName());
+      Fields.update(agent::setDescription, agent.getDescription(), updateArg.getDescription());
     });
   }
 

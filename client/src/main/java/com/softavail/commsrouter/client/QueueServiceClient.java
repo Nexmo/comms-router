@@ -19,6 +19,7 @@ package com.softavail.commsrouter.client;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.misc.PaginatedList;
+import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.misc.SizeDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
@@ -30,7 +31,6 @@ import com.softavail.commsrouter.api.interfaces.QueueService;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
@@ -73,13 +73,10 @@ public class QueueServiceClient extends ServiceClientBase<QueueDto, ApiObjectRef
   }
 
   @Override
-  public List<QueueDto> list(String routerRef) {
-    return getList(routerRef);
-  }
-
-  @Override
-  public PaginatedList<QueueDto> list(String routerId, int page, int perPage) {
-    return getList(routerId, page, perPage);
+  public PaginatedList<QueueDto> list(PagingRequest request) {
+    PagingRequest pagingRequest =
+        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
+    return getList(pagingRequest);
   }
 
   @Override

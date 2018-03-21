@@ -16,10 +16,8 @@
 
 package com.softavail.commsrouter.api.service;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.interfaces.ApiObjectService;
+import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
-import com.softavail.commsrouter.jpa.GenericRepository;
 import com.softavail.commsrouter.jpa.JpaTransactionManager;
 
 import java.lang.reflect.ParameterizedType;
@@ -29,36 +27,28 @@ import java.util.List;
 /**
  * @author ikrustev
  */
-public class CoreApiObjectService<DTOENTITYT, ENTITYT>
-    implements ApiObjectService<DTOENTITYT> {
+public class CoreApiObjectService<DTOENTITYT, ENTITYT extends ApiObject> {
 
   protected final Class<DTOENTITYT> dtoEntityClass;
+  protected final Class<ENTITYT> entityClass;
   protected final JpaTransactionManager transactionManager;
-  protected final GenericRepository<ENTITYT> repository;
   protected final EntityMapper<DTOENTITYT, ENTITYT> entityMapper;
 
   @SuppressWarnings("unchecked")
-  public CoreApiObjectService(JpaTransactionManager transactionManager,
-      GenericRepository<ENTITYT> repository, EntityMapper<DTOENTITYT, ENTITYT> entityMapper) {
+  public CoreApiObjectService(
+      JpaTransactionManager transactionManager, EntityMapper<DTOENTITYT, ENTITYT> entityMapper) {
+
     this.transactionManager = transactionManager;
-    this.repository = repository;
     this.entityMapper = entityMapper;
 
     Type tp = getClass().getGenericSuperclass();
     ParameterizedType pt = (ParameterizedType) tp;
     this.dtoEntityClass = (Class<DTOENTITYT>) (pt.getActualTypeArguments()[0]);
+    this.entityClass = (Class<ENTITYT>) (pt.getActualTypeArguments()[1]);
   }
 
   public Class<DTOENTITYT> getDtoEntityClass() {
     return dtoEntityClass;
-  }
-
-  @Override
-  public List<DTOENTITYT> list() throws CommsRouterException {
-    return transactionManager.execute((em) -> {
-      List<ENTITYT> list = repository.list(em);
-      return entityMapper.toDto(list);
-    });
   }
 
 }

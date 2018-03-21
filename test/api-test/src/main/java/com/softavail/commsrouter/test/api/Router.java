@@ -50,6 +50,16 @@ public class Router extends Resource {
     return Arrays.asList(routers);
   }
 
+  public List<RouterDto> list(String query) {
+    RouterDto[] routers = given()
+      .pathParam("query", query)
+      .when().get("/routers?{query}")
+      .then().statusCode(200)
+      .extract()
+      .as(RouterDto[].class);
+    return Arrays.asList(routers);
+  }
+
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
     return given()

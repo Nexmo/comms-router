@@ -30,35 +30,27 @@ import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import com.softavail.commsrouter.test.api.Agent;
 
+import org.junit.*;
+
 /**
  * Unit test for simple App.
  */
 // @TestInstance(Lifecycle.PER_CLASS)
-@DisplayName("Queue Test")
-public class QueueTest {
+//@DisplayName("Queue Test")
+public class QueueTest extends BaseTest{
 
   private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
+  private Queue q = new Queue(state);
 
-  @BeforeAll
-  public static void beforeAll() throws Exception {
-    Assumptions.assumeTrue(System.getProperty("autHost") != null, "autHost is set");
-  }
-
-  @BeforeEach
+  @Before
   public void createRouter() {
-    // best case
     String description = "Router description";
     String name = "router-name";
     CreateRouterArg routerArg = new CreateRouterArg();
@@ -66,9 +58,15 @@ public class QueueTest {
     routerArg.setName(name);
     ApiObjectRef ref = r.create(routerArg);
   }
+  
+  @After
+  public void deleteRouter() {
+    q.delete();
+    r.delete();
+  }
 
   @Test
-  @DisplayName("Create new queue.")
+  //@DisplayName("Create new queue.")
   public void createQueue() {
     // best case
     String description = "queue description";
@@ -76,16 +74,14 @@ public class QueueTest {
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
-    q.delete();
   }
 
   @Test
-  @DisplayName("Create queue with specified id")
+  //@DisplayName("Create queue with specified id")
   public void createQueueWithSpecifiedId() {
     // put request to not existing queue
     String description = "queue description";
@@ -94,19 +90,16 @@ public class QueueTest {
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     state.put(CommsRouterResource.QUEUE, queueRef);
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(description));
     assertThat(queue.getRef(), is(queueRef));
-
-    q.delete();
   }
 
   @Test
-  @DisplayName("Replace existing queue")
+  //@DisplayName("Replace existing queue")
   public void replaceExistingQueue() {
     // put request to not existing queue
     String description = "queue description";
@@ -115,7 +108,6 @@ public class QueueTest {
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     state.put(CommsRouterResource.QUEUE, queueRef);
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
@@ -132,18 +124,16 @@ public class QueueTest {
     assertThat(queue.getDescription(), is("newDescription"));
     assertThat(queue.getRef(), is(queueRef));
 
-    q.delete();
   }
 
   @Test
-  @DisplayName("Set parameters")
-  void updateParameters() {
+  //@DisplayName("Set parameters")
+  public void updateParameters() {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
@@ -172,47 +162,40 @@ public class QueueTest {
     queue = q.get();
     assertThat(queue.getPredicate(), is(newPredicate));
     assertThat(queue.getDescription(), is(newDescription));
-
-    q.delete();
   }
 
   @Test
-  @DisplayName("empty queue - size is 0")
-  void emptyQueueSize() {
+  //@DisplayName("empty queue - size is 0")
+  public void emptyQueueSize() {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
     assertThat(q.size(), is(0));
-    q.delete();
   }
 
   @Test
-  @DisplayName("empty queue - no tasks")
-  void emptyQueueNoTasks() {
+  //@DisplayName("empty queue - no tasks")
+  public void emptyQueueNoTasks() {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
     assertThat(q.size(), is(0));
-    q.delete();
   }
 
   @Test
-  @DisplayName("queue with a task")
-  void queueWithTask() throws MalformedURLException {
+  //@DisplayName("queue with a task")
+  public void queueWithTask() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
@@ -224,18 +207,16 @@ public class QueueTest {
     assertThat(q.tasks(), hasSize(1));
     assertThat(q.size(), is(1));
     t.delete();
-    q.delete();
   }
 
   @Test
-  @DisplayName("it should be allowed to replace queue with tasks")
-  void queueWithTaskReplace() throws MalformedURLException {
+  //@DisplayName("it should be allowed to replace queue with tasks")
+  public void queueWithTaskReplace() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
 
     CreateTaskArg targ = new CreateTaskArg();
@@ -260,18 +241,16 @@ public class QueueTest {
     assertThat(q.size(), is(1));
 
     t.delete();
-    q.delete();
   }
 
   @Test
-  @DisplayName("it should not be allowed to replace queue with agents")
-  void queueWithAgentReplace() throws MalformedURLException {
+  //@DisplayName("it should be allowed to replace queue with agents")
+  public void queueWithAgentReplace() throws MalformedURLException {
     String description = "queue description";
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    Queue q = new Queue(state);
     ApiObjectRef ref = q.create(queueArg);
 
     Agent a = new Agent(state);
@@ -286,6 +265,40 @@ public class QueueTest {
     assertThat(queue.getPredicate(), is("2==2"));
     assertThat(queue.getDescription(), is("qdescription"));
     assertThat(queue.getRef(), is(ref.getRef()));
+    a.delete();    
   }
 
+  @Test
+  public void queueWithPredicateAndNotMatchingTask() throws MalformedURLException {
+    String description = "queue description";
+    String predicate = "#{department}==1";
+    CreateQueueArg queueArg = new CreateQueueArg();
+    queueArg.setDescription(description);
+    queueArg.setPredicate(predicate);
+    ApiObjectRef ref = q.create(queueArg);
+
+    CreateTaskArg targ = new CreateTaskArg();
+    targ.setQueueRef(state.get(CommsRouterResource.QUEUE));
+    targ.setCallbackUrl(new URL("http://example.com"));
+    Task t = new Task(state);
+    assertThat(q.size(), is(0));
+    t.create(targ);
+    assertThat(q.tasks(), hasSize(1));
+    assertThat(q.size(), is(1));
+
+    queueArg.setDescription("qdescription");
+    queueArg.setPredicate("1==something1");
+
+    q.replaceResponse(queueArg).statusCode(500).body("error.description",
+        equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
+    QueueDto queue = q.get();
+    assertThat(queue.getPredicate(), is(predicate));
+    assertThat(queue.getDescription(), is(description));
+
+    assertThat(q.tasks(), hasSize(1));
+    assertThat(q.size(), is(1));
+
+    t.delete();
+  }
+  
 }

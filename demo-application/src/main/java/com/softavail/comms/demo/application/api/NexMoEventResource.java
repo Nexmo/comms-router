@@ -10,6 +10,7 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
@@ -100,8 +101,27 @@ public class NexMoEventResource {
       TaskDto task = getTaskByTag(tag);
 
       if (null != task) {
-        // cancel the task if it is still waiting 
-        if (task.getState() == TaskState.waiting) {
+        boolean goodCallbackTask = false;
+        AttributeGroupDto userContext = task.getUserContext();
+        if (null != userContext) {
+          AttributeValueDto kindDto = userContext.get("kind");
+          AttributeValueDto stateDto = userContext.get("callback_state");
+          
+          if (null != kindDto && null != stateDto) {
+            String kind = getStringFromAttributeValueDto(kindDto);
+            String state = getStringFromAttributeValueDto(stateDto);
+            
+            if (kind.equalsIgnoreCase("callback") && state.equalsIgnoreCase("completed")) {
+              goodCallbackTask = true;
+            }
+          }
+        }
+        
+        // cancel the task if it is not turned into completed callback
+        // and the state is still waiting
+        if (!goodCallbackTask && task.getState() == TaskState.waiting) {
+          // by canceling a waiting (non-good callback or regular) task we remove it form the 
+          // queue so it wont be assigned to an agent
           updateTaskServiceState(task.getRef(), TaskState.canceled);
         }
 

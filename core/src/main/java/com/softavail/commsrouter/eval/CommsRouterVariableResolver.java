@@ -25,7 +25,7 @@ import net.sourceforge.jeval.function.FunctionException;
  */
 public class CommsRouterVariableResolver implements VariableResolver {
 
-  final private ExpressionEvaluator evaluator;
+  private final ExpressionEvaluator evaluator;
 
   public CommsRouterVariableResolver(ExpressionEvaluator evaluator) {
     this.evaluator = evaluator;

@@ -27,6 +27,16 @@ public class UpdateAgentArg {
   private String address;
   private AttributeGroupDto capabilities;
   private AgentState state;
+  private String name;
+  private String description;
+
+  public boolean isStateUpdate() {
+    return state != null;
+  }
+
+  public boolean isPropertiesUpdate() {
+    return address != null || capabilities != null || name != null || description != null;
+  }
 
   public String getAddress() {
     return address;
@@ -52,4 +62,52 @@ public class UpdateAgentArg {
     this.state = state;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public static class Builder {
+    private UpdateAgentArg arg = new UpdateAgentArg();
+
+    public Builder() {
+    }
+
+    public Builder name(String name) {
+      this.arg.setName(name);
+      return this;
+    }
+
+    public Builder description(String description) {
+      this.arg.setDescription(description);
+      return this;
+    }
+
+    public Builder address(String address) {
+      this.arg.setAddress(address);
+      return this;
+    }
+
+    public Builder state(AgentState state) {
+      this.arg.setState(state);
+      return this;
+    }
+      
+    public UpdateAgentArg build() {
+      return this.arg;
+    }
+
+  }
+  
 }

@@ -25,18 +25,22 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 /**
  * Created by @author mapuo on 04.09.17.
  */
-public interface RouterService extends ApiObjectService<RouterDto> {
+public interface RouterService
+    extends PaginatedService<RouterDto> {
 
   ApiObjectRef create(CreateRouterArg createArg)
       throws CommsRouterException;
 
-  ApiObjectRef replace(CreateRouterArg createArg, String routerRef) throws CommsRouterException;
+  ApiObjectRef replace(CreateRouterArg createArg, String routerRef)
+      throws CommsRouterException;
 
   void update(UpdateRouterArg updateArg, String routerId)
       throws CommsRouterException;
 
-  RouterDto get(String ref) throws CommsRouterException;
+  RouterDto get(String ref)
+      throws CommsRouterException;
 
-  void delete(String ref) throws CommsRouterException;
+  void delete(String ref)
+      throws CommsRouterException;
 
 }

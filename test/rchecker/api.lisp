@@ -105,6 +105,57 @@
   (tr-step (http-del "/routers" id)
            #'(lambda(js) (equal js ""))
            #'(lambda(js) (clear-event :router))) )
+;;; skill
+(defun skill-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1))
+  (tr-step (http-get "/routers" router-id (format nil "skills?per_page=~A&page_num=~A" per-page page-number))
+           #'(lambda(js) (and (listp js) (funcall (contains "ref") (first js))))
+           #'(lambda(js) (funcall (fire-event :skill) (jsown:val (first js) "ref")))))
+
+(defun skill(&key (router-id (get-event :router))
+               (id (get-event :skill)))
+  (tr-step (http-get "/routers" router-id "skills" id)
+           #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
+           #'(lambda(js) (funcall (fire-event :skill) (jsown:val js "ref")))))
+
+(defun skill-del(&key (router-id (get-event :router))
+                   (id (get-event :skill)) )
+  (tr-step (http-del  "/routers" router-id "skills" id)
+           #'(lambda(js) (equal js ""))
+           #'(lambda(js) (clear-event :skill))))
+
+(defun skill-new(&key (router-id (get-event :router))
+                   (description "description")
+                   (multivalue :true)
+                   (domain (jsown:new-js ("values" '("en" "es"))
+                                         ("type" "enumeration"))))
+  (tr-step (http-post (list "/routers" router-id "skills") (jsown:new-js
+                                                             ("description" description)
+                                                             ("domain" domain)
+                                                             ("multivalue" multivalue)))
+           #'(lambda(js)(and (listp js) (funcall (contains "ref") js)) )
+           #'(lambda(js)(funcall (fire-event :skill) (jsown:val js "ref")))))
+
+(defun skill-put(&key (router-id (get-event :router))
+                   (id (get-event :skill))
+                   (address "address")
+                   (capabilities (jsown:new-js ("language" "en"))))
+  (tr-step (http-put (list "/routers" router-id "skills" id) (jsown:new-js
+                                                               ("address" address)
+                                                               ("capabilities" capabilities) ))
+           #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
+           #'(lambda(js) (funcall (fire-event :skill) (jsown:val js "ref")))))
+(defun skill-set(&key (router-id (get-event :router))
+                   (id (get-event :skill))
+                   (address "address")
+                   (state "ready") ;; offline busy
+                   (capabilities (jsown:new-js ("language" "en"))))
+  (tr-step (http-post (list "/routers" router-id "skills" id) (jsown:new-js
+                                                                ("address" address)
+                                                                ("state" state)
+                                                                ("capabilities" capabilities)))
+           #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
+           #'(lambda(js) (funcall (fire-event :skill) (jsown:val js "ref")))))
+
 ;;; agent
 (defun agent-all(&key (router-id (get-event :router)) (per-page 50) (page-number 1))
   (tr-step (http-get "/routers" router-id (format nil "agents?per_page=~A&page_num=~A" per-page page-number))
@@ -277,9 +328,10 @@
                    (id (get-event :queue))
                    (description "description")
                    (predicate :null) )
-  (tr-step (http-post (list "/routers" router-id "queues" id) (jsown:new-js
-                                                               ("description" description)
-                                                               ("predicate" predicate)))
+  (tr-step (http-post (list "/routers" router-id "queues" id)
+                      (jsown:new-js
+                       ("description" description)
+                       ("predicate" predicate)))
            #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "ref")))))
 
@@ -298,8 +350,9 @@
            #'(lambda(js) (and (listp js) (funcall (contains "ref") js)))
            #'(lambda(js) (funcall (fire-event :queue) (jsown:val js "ref")))))
 ;;; task
-(defun task-all(&key (router-id (get-event :router)) )
-  (tr-step (http-get "/routers" router-id "tasks")
+(defun task-all(&key (router-id (get-event :router))
+                  (per-page 50) (page-number 1))
+  (tr-step (http-get "/routers" router-id (format nil "tasks?per_page=~A&per_num" per-page page-number))
            #'(lambda(js) (and (listp js) (funcall (contains "ref") (first js))))
            #'(lambda(js) (funcall (fire-event :task) (jsown:val (first js) "ref")))))
 

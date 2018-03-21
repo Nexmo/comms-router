@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,11 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 /**
  * Created by @author mapuo on 10.10.17.
  */
-public interface PaginatedService<DTOENTITYT> extends ApiObjectService<DTOENTITYT> {
+public interface PaginatedService<DTOENTITYT> {
 
-  String TOTAL_COUNT_HEADER = "X-Total-Count";
-  String PAGE_NUMBER_PARAM = "page_num";
+  String NEXT_TOKEN_HEADER = "X-Next-Token";
   String ITEMS_PER_PAGE_PARAM = "per_page";
+  String TOKEN_PARAM = "token";
 
   PaginatedList<DTOENTITYT> list(PagingRequest request)
       throws CommsRouterException;
