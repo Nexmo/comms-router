@@ -41,7 +41,7 @@ public interface Configuration {
 
     @Override
     public Boolean getClientEnableSkillValidation() {
-      return true;
+      return false;
     }
   };
 
