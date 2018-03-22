@@ -80,42 +80,42 @@ public class JEvalEvaluatorTest {
     CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
 
     try {
-      ef.provide("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}").validate();
+      ef.provide("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}", null).validate();
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      ef.provide("#{boolTrue} && #{price}>10 && #{$price}^10").validate();
+      ef.provide("#{boolTrue} && #{price}>10 && #{$price}^10", null).validate();
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     try {
-      ef.provide("#{color}$'red'").validate();
+      ef.provide("#{color}$'red'", null).validate();
       assertTrue(false);
     } catch (EvaluatorException ex) {
     }
 
     // validation should be passed
     try {
-      ef.provide("true").validate();
+      ef.provide("true", null).validate();
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
 
     try {
-      ef.provide(predicateOK3).validate();
+      ef.provide(predicateOK3, null).validate();
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      ef.provide("CONTAINS([10, 20, 30], 20)").validate();
+      ef.provide("CONTAINS([10, 20, 30], 20)", null).validate();
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
     try {
-      ef.provide("IN('fr', ['en','fr'])").validate();
+      ef.provide("IN('fr', ['en','fr'])", null).validate();
     } catch (EvaluatorException ex) {
       assertTrue(false);
     }
@@ -132,76 +132,77 @@ public class JEvalEvaluatorTest {
     System.out.println("evaluateJpa");
 
     CommsRouterEvaluatorFactory ef = new CommsRouterEvaluatorFactory();
+    ef.setRsqlValidator(new RsqlDummyValidator());
 
     JEvalEvaluator instance = new JEvalEvaluator(ef, null);
 
     Boolean expResult = true;
-    Boolean result = instance.changeExpression(predicateOK1).evaluate(requirements);
+    Boolean result = instance.changeExpression(predicateOK1, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.changeExpression(predicateOK2).evaluate(requirements);
+    result = instance.changeExpression(predicateOK2, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.changeExpression(predicateOK3).evaluate(requirements);
+    result = instance.changeExpression(predicateOK3, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.changeExpression("1==1").evaluate(null);
+    result = instance.changeExpression("1==1", null).evaluate(null);
     assertEquals(expResult, result);
     expResult = true;
-    result = instance.changeExpression("HAS(#{language}, 'en')").evaluate(requirements);
+    result = instance.changeExpression("HAS(#{language}, 'en')", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("2==3").evaluate(new AttributeGroup());
+    result = instance.changeExpression("2==3", null).evaluate(new AttributeGroup());
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression(null).evaluate(requirements);
+    result = instance.changeExpression(null, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression(predicateFailed1).evaluate(requirements);
+    result = instance.changeExpression(predicateFailed1, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression(predicateFailed2).evaluate(requirements);
+    result = instance.changeExpression(predicateFailed2, null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("CONTAINS('Sto')").evaluate(requirements);
+    result = instance.changeExpression("CONTAINS('Sto')", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("CONTAINS(#{nickname}, #Stone)").evaluate(requirements);
+    result = instance.changeExpression("CONTAINS(#{nickname}, #Stone)", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("HAS(100)").evaluate(requirements);
+    result = instance.changeExpression("HAS(100)", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("HAS([false, 'true'], #{true}) && #{'true'}").evaluate(requirements);
+    result = instance.changeExpression("HAS([false, 'true'], #{true}) && #{'true'}", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
     requirements.add("departments", "sales; support");
-    result = instance.changeExpression("HAS(#{departments}, 'sales')").evaluate(requirements);
+    result = instance.changeExpression("HAS(#{departments}, 'sales')", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("HAS(#{languages}, 100)").evaluate(requirements);
+    result = instance.changeExpression("HAS(#{languages}, 100)", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("IN(#{language}, 'en]')").evaluate(requirements);
+    result = instance.changeExpression("IN(#{language}, 'en]')", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("IN(200, #{languages})").evaluate(requirements);
+    result = instance.changeExpression("IN(200, #{languages})", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("IN(50)").evaluate(requirements);
+    result = instance.changeExpression("IN(50)", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression("IN(#{false}, [true, 'true']) && #{'false'}").evaluate(requirements);
+    result = instance.changeExpression("IN(#{false}, [true, 'true']) && #{'false'}", null).evaluate(requirements);
     assertEquals(expResult, result);
     expResult = false;
-    result = instance.changeExpression(predicateFailed3).evaluate(requirements);
+    result = instance.changeExpression(predicateFailed3, null).evaluate(requirements);
     assertEquals(expResult, result);
 
     // validation should be failed cases
     try {
       requirements.addArrayItem("allowedBools", true);
       requirements.addArrayItem("allowedBools", false);
-      instance.changeExpression(predicateOK1).evaluate(requirements);
+      instance.changeExpression(predicateOK1, null).evaluate(requirements);
       assertTrue(false);
     } catch (EvaluatorException | RuntimeException ex) {
     }

@@ -19,7 +19,6 @@ package com.softavail.commsrouter.eval;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
-import static com.softavail.commsrouter.eval.ValidationUtils.validateArguments;
 import static com.softavail.commsrouter.eval.ValidationUtils.validateAttributes;
 import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
@@ -78,7 +77,7 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
       result = comapre(comparisonNode.getSelector(), comparisonNode.getOperator(),
           comparisonNode.getArguments(), attributeGroup);
     } catch (ExpressionException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      throw new RuntimeException(ex.getMessage(), ex);
     }
 
     return result;
@@ -90,7 +89,6 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
     List<Attribute> attributes = attributeGroup.getAttributes(selector);
     String operator = comparisonOperator.getSymbol();
 
-    validateArguments(operator, arguments);
     validateAttributes(operator, attributes);
 
     if (attributes.isEmpty()) {

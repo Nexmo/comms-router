@@ -42,8 +42,8 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
   }
 
   @Override
-  public CommsRouterEvaluator changeExpression(String expression) throws EvaluatorException {
-    return factory.changeExpression(this, expression);
+  public CommsRouterEvaluator changeExpression(String expression, String routerRef) throws EvaluatorException {
+    return factory.changeExpression(this, expression, routerRef);
   }
 
   void replaceExpression(String expression) {

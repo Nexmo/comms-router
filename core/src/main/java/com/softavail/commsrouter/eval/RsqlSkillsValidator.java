@@ -25,14 +25,11 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.service.CoreSkillService;
-import com.softavail.commsrouter.domain.AttributeGroup;
-import static com.softavail.commsrouter.eval.ValidationUtils.validateArguments;
 import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -41,19 +38,19 @@ import org.apache.logging.log4j.LogManager;
  *
  * @author vladislav
  */
-public class ValidateRsqlVisitor implements RSQLVisitor<Void, AttributeGroup> {
+public class RsqlSkillsValidator implements RsqlValidator {
 
   private static final org.apache.logging.log4j.Logger LOGGER
-          = LogManager.getLogger(ValidateRsqlVisitor.class);
+          = LogManager.getLogger(RsqlValidator.class);
 
   private final CoreSkillService coreSkillService;
 
-  public ValidateRsqlVisitor(CoreSkillService coreSkillService) {
+  public RsqlSkillsValidator (CoreSkillService coreSkillService) {
     this.coreSkillService = coreSkillService;
   }
 
   @Override
-  public Void visit(AndNode andNode, AttributeGroup param) {
+  public Void visit(AndNode andNode, String routerRef) {
     Iterator<Node> nodes = andNode.iterator();
     while (nodes.hasNext()) {
       nodes.next().accept(this, null);
@@ -62,7 +59,7 @@ public class ValidateRsqlVisitor implements RSQLVisitor<Void, AttributeGroup> {
   }
 
   @Override
-  public Void visit(OrNode orNode, AttributeGroup param) {
+  public Void visit(OrNode orNode, String routerRef) {
     Iterator<Node> nodes = orNode.iterator();
     while (nodes.hasNext()) {
       nodes.next().accept(this, null);
@@ -71,32 +68,29 @@ public class ValidateRsqlVisitor implements RSQLVisitor<Void, AttributeGroup> {
   }
 
   @Override
-  public Void visit(ComparisonNode comparisonNode, AttributeGroup param) {
+  public Void visit(ComparisonNode comparisonNode, String routerRef) {
     try {
       validate(comparisonNode.getSelector(), comparisonNode.getOperator(),
-              comparisonNode.getArguments());
+              comparisonNode.getArguments(), routerRef);
     } catch (ExpressionException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      throw new RuntimeException(ex.getMessage(), ex);
     }
     return null;
   }
 
-  private void validate(String selector, ComparisonOperator operator, List<String> arguments)
+  private void validate(String selector, ComparisonOperator operator, List<String> arguments, String routerRef)
       throws ExpressionException {
 
     // validate existance
     SkillDto skillDto;
     try {
-      skillDto = coreSkillService.get(new RouterObjectRef("ref", "routerRef"));
+      skillDto = coreSkillService.get(new RouterObjectRef(selector, routerRef));
     } catch (NotFoundException ex) {
       throw new ExpressionException("Skill " + selector + " was not found.", ex);
     } catch (CommsRouterException ex) {
       throw new ExpressionException("Error while retrieving skill " + selector + " from database.",
           ex);
     }
-
-    // validate operator restrictions
-    validateArguments(operator.getSymbol(), arguments);
 
     // validate arguments
     AttributeDomainDto attributeDomainDto = skillDto.getDomain();
@@ -118,7 +112,7 @@ public class ValidateRsqlVisitor implements RSQLVisitor<Void, AttributeGroup> {
           for (String argument : arguments) {
             if (!argument.matches(regExp)) {
               throw new ExpressionException(
-                  "Value '" + argument + "' not valid for skill " + selector + ".");
+                  argument + "' is not a valid value for skill " + selector + ".");
             }
           }
           break;
@@ -127,7 +121,7 @@ public class ValidateRsqlVisitor implements RSQLVisitor<Void, AttributeGroup> {
             if (!((EnumerationAttributeDomainDto) attributeDomainDto).getValues()
                 .contains(argument)) {
               throw new ExpressionException(
-                  "Value '" + argument + "' not valid for skill " + selector + ".");
+                  argument + "' is not a valid value for skill " + selector + ".");
             }
           }
           break;

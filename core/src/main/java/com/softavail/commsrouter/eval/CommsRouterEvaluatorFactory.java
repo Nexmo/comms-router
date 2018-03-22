@@ -27,6 +27,7 @@ public class CommsRouterEvaluatorFactory {
   }
 
   private final RsqlEvaluatorFactory rsqlFactory = new RsqlEvaluatorFactory(this);
+  private RsqlValidator rsqlValidator;
 
   private ExpressionType determineType(String expression) {
 
@@ -46,12 +47,12 @@ public class CommsRouterEvaluatorFactory {
     }
   }
 
-  public CommsRouterEvaluator provide(String predicate) throws EvaluatorException {
+  public CommsRouterEvaluator provide(String predicate, String routerRef) throws EvaluatorException {
     switch (determineType(predicate)) {
       case JEVAL:
         return new JEvalEvaluator(this, predicate);
       case RSQL:
-        return rsqlFactory.create(predicate);
+        return rsqlFactory.create(predicate, routerRef);
       case FALSE:
         return new FalseEvaluator(this);
       case TRUE:
@@ -61,7 +62,7 @@ public class CommsRouterEvaluatorFactory {
     }
   }
 
-  CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression)
+  CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression, String routerRef)
       throws EvaluatorException {
 
     ExpressionType type = determineType(expression);
@@ -69,13 +70,21 @@ public class CommsRouterEvaluatorFactory {
       evaluator.replaceExpression(expression);
       return evaluator;
     }
-    return provide(expression);
+    return provide(expression, routerRef);
   }
 
-  CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression)
+  CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression, String routerRef)
       throws EvaluatorException {
 
-    return provide(expression);
+    return provide(expression, routerRef);
+  }
+
+  public RsqlValidator getRsqlValidator() {
+    return rsqlValidator;
+  }
+
+  public void setRsqlValidator(RsqlValidator rsqlValidator) {
+    this.rsqlValidator = rsqlValidator;
   }
 
 }

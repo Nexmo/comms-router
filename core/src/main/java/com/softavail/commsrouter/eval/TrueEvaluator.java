@@ -14,7 +14,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 
 /**
@@ -31,9 +30,4 @@ public class TrueEvaluator extends EvaluatorBase {
   public boolean evaluate(AttributeGroup attributeGroup) {
     return true;
   }
-
-  @Override
-  public void validate() throws EvaluatorException {
-  }
-
 }

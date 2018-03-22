@@ -14,7 +14,7 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import cz.jirutka.rsql.parser.ast.Node;
 
@@ -26,21 +26,33 @@ public class RsqlEvaluator extends EvaluatorBase {
 
   private final EvalRsqlVisitor visitor;
   private final Node rootNode;
+  private final RsqlValidator rsqlValidator;
+  private final String routerRef;
 
-  public RsqlEvaluator(CommsRouterEvaluatorFactory factory, Node rootNode) {
+  public RsqlEvaluator(CommsRouterEvaluatorFactory factory, Node rootNode, String routerRef) {
     super(factory);
-    visitor = new EvalRsqlVisitor();
+    this.visitor = new EvalRsqlVisitor();
     this.rootNode = rootNode;
+    this.rsqlValidator = factory.getRsqlValidator();
+    this.routerRef =   routerRef;
   }
 
   @Override
-  public boolean evaluate(AttributeGroup attributeGroup) {
-    return rootNode.accept(visitor, attributeGroup);
+  public boolean evaluate(AttributeGroup attributeGroup) throws ExpressionException {
+    try {
+      return rootNode.accept(visitor, attributeGroup);
+    } catch (RuntimeException ex) {
+      throw new ExpressionException(ex.getMessage(), ex);
+    }
   }
 
   @Override
-  public void validate() throws EvaluatorException {
-    rootNode.accept(new ValidateRsqlVisitor(null));
+  public void validate() throws ExpressionException {
+    try {
+      rootNode.accept(rsqlValidator, routerRef);
+    } catch (RuntimeException ex) {
+      throw new ExpressionException(ex.getMessage(), ex);
+    }
   }
 
 }

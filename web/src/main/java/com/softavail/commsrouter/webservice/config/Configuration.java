@@ -38,6 +38,11 @@ public interface Configuration {
     public Boolean getClientFollowRedirects() {
       return true;
     }
+
+    @Override
+    public Boolean getClientEnableSkillValidation() {
+      return true;
+    }
   };
 
 
@@ -46,5 +51,7 @@ public interface Configuration {
   Integer getClientReadTimeout();
 
   Boolean getClientFollowRedirects();
+
+  Boolean getClientEnableSkillValidation();
 
 }

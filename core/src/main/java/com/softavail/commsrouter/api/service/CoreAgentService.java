@@ -112,10 +112,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     final AttributeGroup capabilities = agent.getCapabilities();
 
     int attachedQueuesCount = 0;
-    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null);
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null, null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getRef())) {
       try {
-        if (evaluator.changeExpression(queue.getPredicate()).evaluate(capabilities)) {
+        if (evaluator.changeExpression(queue.getPredicate(), queue.getRouter().getRef()).evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;

@@ -89,7 +89,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     if (createArg.getRules() != null) {
       for (RuleDto rule : createArg.getRules()) {
-        app.evaluatorFactory.provide(rule.getPredicate()).validate();
+        app.evaluatorFactory.provide(rule.getPredicate(), objectRef.getRouterRef()).validate();
       }
     }
 
