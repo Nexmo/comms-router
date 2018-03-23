@@ -50,10 +50,13 @@ import javax.persistence.EntityManager;
 public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     implements AgentService {
 
+  private SkillValidator skillValidator;
+
   private static final Logger LOGGER = LogManager.getLogger(CoreAgentService.class);
 
   public CoreAgentService(AppContext app) {
     super(app, app.db.agent, app.entityMapper.agent);
+    skillValidator = new SkillValidator();
   }
 
   @Override
@@ -91,6 +94,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       throws CommsRouterException {
 
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
+
+    // validate capabilities
+    skillValidator.validateCapabilities(createArg.getCapabilities(), objectRef.getRouterRef());
 
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
