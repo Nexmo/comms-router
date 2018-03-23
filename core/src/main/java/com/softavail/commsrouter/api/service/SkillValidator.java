@@ -50,7 +50,7 @@ class SkillValidator {
   @Inject
   private RsqlSkillsValidator rsqlSkillsValidator;
 
-  public void validateCapabilities(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
+  public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
 //    try {
 //      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
 //        validateCapability(capability.getKey(), capability.getValue(), routerRef);
