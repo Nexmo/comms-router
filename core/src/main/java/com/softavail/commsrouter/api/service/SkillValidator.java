@@ -32,7 +32,6 @@ import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.eval.RsqlSkillsValidator;
 import java.io.IOException;
-import java.util.Map;
 import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,13 +51,13 @@ class SkillValidator {
   private RsqlSkillsValidator rsqlSkillsValidator;
 
   public void validateCapabilities(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
-    try {
-      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
-        validateCapability(capability.getKey(), capability.getValue(), routerRef);
-      }
-    } catch (IOException ex) {
-      throw new CommsRouterException(ex);
-    }
+//    try {
+//      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
+//        validateCapability(capability.getKey(), capability.getValue(), routerRef);
+//      }
+//    } catch (IOException ex) {
+//      throw new CommsRouterException(ex);
+//    }
   }
 
   private void validateCapability(String skill, AttributeValueDto value, String routerRef) throws IOException {

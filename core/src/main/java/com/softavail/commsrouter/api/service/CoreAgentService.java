@@ -192,6 +192,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
       Agent agent;
       if (updateArg.getCapabilities() != null) {
+
+        // validate capabilities
+        skillValidator.validateCapabilities(updateArg.getCapabilities(), objectRef.getRouterRef());
+
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
         agent = app.db.agent.get(em, objectRef);
