@@ -29,7 +29,6 @@ public class RsqlDummyValidator implements RsqlValidator {
 
   @Override
   public void validate(Node node, String routerRef) throws ExpressionException {
-    LOGGER.debug("Dummy validation of \"" + node.toString() + "\" for router " + routerRef + ". Validation OK.");
   }
 
 }
