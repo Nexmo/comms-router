@@ -19,7 +19,7 @@ package com.softavail.commsrouter.eval;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import net.sourceforge.jeval.EvaluationConstants;
@@ -100,15 +100,15 @@ public class ExpressionEvaluator extends Evaluator {
     this.isValidation = isValidation;
   }
 
-  public void validateImpl() throws EvaluatorException {
+  public void validateImpl() throws ExpressionException {
     if (getPredicate() == null || getPredicate().isEmpty()) {
-      throw new EvaluatorException("Expression cannot be NULL or empty.");
+      throw new ExpressionException("Expression cannot be NULL or empty.");
     }
     try {
       this.setIsValidation(true);
       super.evaluate(predicate);
     } catch (EvaluationException ex) {
-      throw new EvaluatorException("Predicate \"" + getPredicate() + "\" failed with error: "
+      throw new ExpressionException("Predicate \"" + getPredicate() + "\" failed with error: "
           + EvaluatorHelpers.getDetailedMessage(ex), ex);
     }
   }

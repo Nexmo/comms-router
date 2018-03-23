@@ -18,7 +18,7 @@ package com.softavail.commsrouter.eval;
 
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +31,7 @@ import org.apache.logging.log4j.Logger;
 public class JEvalEvaluator implements CommsRouterEvaluator {
 
   private final CommsRouterEvaluatorFactory factory;
-  private ExpressionEvaluator evaluator;
+  private final ExpressionEvaluator evaluator;
 
   private static final Logger LOGGER = LogManager.getLogger(JEvalEvaluator.class);
 
@@ -42,21 +42,20 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
   }
 
   @Override
-  public CommsRouterEvaluator changeExpression(String expression, String routerRef) throws EvaluatorException {
+  public CommsRouterEvaluator changeExpression(String expression, String routerRef) throws ExpressionException {
     return factory.changeExpression(this, expression, routerRef);
   }
 
   void replaceExpression(String expression) {
-    evaluator = new ExpressionEvaluator();
-    evaluator.init(expression);
+    evaluator.setPredicate(expression);
   }
 
   /**
    *
-   * @throws EvaluatorException .
+   * @throws ExpressionException .
    */
   @Override
-  public void validate() throws EvaluatorException {
+  public void validate() throws ExpressionException {
 
     long millis = System.currentTimeMillis();
     evaluator.validateImpl();
@@ -73,7 +72,7 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
   @Override
   public boolean evaluate(AttributeGroup attributesGroup) throws CommsRouterException {
     if (evaluator == null) {
-      throw new EvaluatorException("Predicate evaluator is not initialized with expression value. "
+      throw new ExpressionException("Predicate evaluator is not initialized with expression value. "
           + "Please call 'init(String predicate)' first.");
     }
     if (evaluator.evaluate(attributesGroup)) {

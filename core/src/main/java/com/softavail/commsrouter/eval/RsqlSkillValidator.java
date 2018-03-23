@@ -30,23 +30,29 @@ import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
+import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
 
 /**
  *
  * @author vladislav
  */
-public class RsqlSkillsValidator implements RsqlValidator {
-
-  private static final org.apache.logging.log4j.Logger LOGGER
-          = LogManager.getLogger(RsqlValidator.class);
+public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, String>{
 
   private final CoreSkillService coreSkillService;
 
-  public RsqlSkillsValidator (CoreSkillService coreSkillService) {
+  public RsqlSkillValidator (CoreSkillService coreSkillService) {
     this.coreSkillService = coreSkillService;
+  }
+
+  @Override
+  public void validate(Node rootNode, String routerRef) throws ExpressionException {
+    try {
+      rootNode.accept(this, routerRef);
+    } catch (RuntimeException ex) {
+      throw new ExpressionException(ex.getMessage(), ex);
+    }
   }
 
   @Override

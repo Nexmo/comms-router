@@ -14,7 +14,7 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 
 /**
  *
@@ -47,7 +47,7 @@ public class CommsRouterEvaluatorFactory {
     }
   }
 
-  public CommsRouterEvaluator provide(String predicate, String routerRef) throws EvaluatorException {
+  public CommsRouterEvaluator provide(String predicate, String routerRef) throws ExpressionException {
     switch (determineType(predicate)) {
       case JEVAL:
         return new JEvalEvaluator(this, predicate);
@@ -63,7 +63,7 @@ public class CommsRouterEvaluatorFactory {
   }
 
   CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression, String routerRef)
-      throws EvaluatorException {
+      throws ExpressionException {
 
     ExpressionType type = determineType(expression);
     if (type == ExpressionType.JEVAL) {
@@ -74,7 +74,7 @@ public class CommsRouterEvaluatorFactory {
   }
 
   CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression, String routerRef)
-      throws EvaluatorException {
+      throws ExpressionException {
 
     return provide(expression, routerRef);
   }

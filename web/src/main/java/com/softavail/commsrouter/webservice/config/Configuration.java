@@ -39,10 +39,6 @@ public interface Configuration {
       return true;
     }
 
-    @Override
-    public Boolean getClientEnableSkillValidation() {
-      return false;
-    }
   };
 
 
@@ -51,7 +47,5 @@ public interface Configuration {
   Integer getClientReadTimeout();
 
   Boolean getClientFollowRedirects();
-
-  Boolean getClientEnableSkillValidation();
 
 }
