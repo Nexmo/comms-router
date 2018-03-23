@@ -15,7 +15,7 @@
 package com.softavail.commsrouter.eval;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 
@@ -25,7 +25,7 @@ import com.softavail.commsrouter.domain.AttributeGroup;
  */
 public interface CommsRouterEvaluator {
 
-  CommsRouterEvaluator changeExpression(String expression, String routerRef) throws EvaluatorException;
+  CommsRouterEvaluator changeExpression(String expression, String routerRef) throws ExpressionException;
 
   /**
    *
@@ -37,7 +37,7 @@ public interface CommsRouterEvaluator {
 
   /**
    *
-   * @throws EvaluatorException .
+   * @throws ExpressionException .
    */
   void validate() throws ExpressionException;
 

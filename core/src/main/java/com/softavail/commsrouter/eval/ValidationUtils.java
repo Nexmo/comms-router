@@ -15,7 +15,7 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import java.util.List;
 
@@ -71,9 +71,9 @@ public class ValidationUtils {
   }
 
   public static void assertSingleParameter(String operator, List element)
-      throws EvaluatorException {
+      throws ExpressionException {
     if (element.size() != 1) {
-      throw new EvaluatorException("Invalid arguments number for operator '" + operator
+      throw new ExpressionException("Invalid arguments number for operator '" + operator
           + "'. Expected 1 but found " + element.size());
     }
   }

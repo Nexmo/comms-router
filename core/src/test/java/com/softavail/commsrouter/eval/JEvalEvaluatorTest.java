@@ -5,7 +5,7 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,41 +82,41 @@ public class JEvalEvaluatorTest {
     try {
       ef.provide("HAS(#{allowedBools}, true) && IN(true, #{allowedBools}) && #{~bool}", null).validate();
       assertTrue(false);
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
     }
 
     try {
       ef.provide("#{boolTrue} && #{price}>10 && #{$price}^10", null).validate();
       assertTrue(false);
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
     }
 
     try {
       ef.provide("#{color}$'red'", null).validate();
       assertTrue(false);
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
     }
 
     // validation should be passed
     try {
       ef.provide("true", null).validate();
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
       assertTrue(false);
     }
 
     try {
       ef.provide(predicateOK3, null).validate();
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
       assertTrue(false);
     }
     try {
       ef.provide("CONTAINS([10, 20, 30], 20)", null).validate();
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
       assertTrue(false);
     }
     try {
       ef.provide("IN('fr', ['en','fr'])", null).validate();
-    } catch (EvaluatorException ex) {
+    } catch (ExpressionException ex) {
       assertTrue(false);
     }
   }
@@ -204,7 +204,7 @@ public class JEvalEvaluatorTest {
       requirements.addArrayItem("allowedBools", false);
       instance.changeExpression(predicateOK1, null).evaluate(requirements);
       assertTrue(false);
-    } catch (EvaluatorException | RuntimeException ex) {
+    } catch (ExpressionException | RuntimeException ex) {
     }
 
   }

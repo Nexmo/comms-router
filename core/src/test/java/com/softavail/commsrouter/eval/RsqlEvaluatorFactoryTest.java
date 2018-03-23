@@ -15,7 +15,7 @@
  */
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import static junit.framework.Assert.assertFalse;
@@ -58,32 +58,32 @@ public class RsqlEvaluatorFactoryTest {
 
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionGtMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill>(1,2,3)", "routerRef");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionGeMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill>=(1,2,3)", "routerRef");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionLtMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill<(1,2,3)", "routerRef");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionLeMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill<=(1,2,3)", "routerRef");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionEqMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill==(1,2,3)", "routerRef");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = ExpressionException.class)
     public void comparisionNeMultyArgTest() throws Exception {
         rsqlEvaluatorFactory.create("skill!=(1,2,3)", "routerRef");
     }
