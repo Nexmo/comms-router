@@ -78,19 +78,19 @@ public class ValidationUtils {
     }
   }
 
-  public static Boolean parseBoolean(String bool) throws ExpressionException {
+  public static void assertBoolean(String bool) throws ExpressionException {
     if (bool != null) {
       String b = bool.toLowerCase();
       if (b.equals("true") || b.equals("false")) {
-        return Boolean.parseBoolean(b);
+        return;
       }
     }
     throw new ExpressionException("Invalid boolean argument:" + bool);
   }
 
-  public static Double parseNumber(String number) throws ExpressionException {
+  public static void assertNumber(String number) throws ExpressionException {
     try {
-      return Double.parseDouble(number);
+      Double.parseDouble(number);
     } catch (NumberFormatException ex) {
       throw new ExpressionException("Invalid number argument:" + number);
     }

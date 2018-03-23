@@ -99,12 +99,12 @@ public class RsqlSkillsValidator implements RsqlValidator {
       switch (attributeType) {
         case bool:
           for (String argument : arguments) {
-            ValidationUtils.parseBoolean(argument);
+            ValidationUtils.assertBoolean(argument);
           }
           break;
         case number:
           for (String argument : arguments) {
-            ValidationUtils.parseNumber(argument);
+            ValidationUtils.assertNumber(argument);
           }
           break;
         case string:
