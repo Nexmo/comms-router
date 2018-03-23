@@ -56,7 +56,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
   public CoreAgentService(AppContext app) {
     super(app, app.db.agent, app.entityMapper.agent);
-    skillValidator = new SkillValidator();
+    skillValidator = new SkillValidator(app.svc.skill);
   }
 
   @Override

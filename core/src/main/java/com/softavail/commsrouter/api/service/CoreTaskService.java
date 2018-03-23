@@ -65,7 +65,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
   public CoreTaskService(AppContext app) {
     super(app, app.db.task, app.entityMapper.task);
-    skillValidator = new SkillValidator();
+    skillValidator = new SkillValidator(app.svc.skill);
   }
 
   @Override

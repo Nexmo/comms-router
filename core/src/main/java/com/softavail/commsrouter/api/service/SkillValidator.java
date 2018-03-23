@@ -30,9 +30,7 @@ import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
-import com.softavail.commsrouter.eval.RsqlSkillsValidator;
 import java.io.IOException;
-import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,11 +42,11 @@ class SkillValidator {
 
   private static final Logger LOGGER = LogManager.getLogger(SkillValidator.class);
 
-  @Inject
   private CoreSkillService coreSkillService;
 
-  @Inject
-  private RsqlSkillsValidator rsqlSkillsValidator;
+  public SkillValidator(CoreSkillService coreSkillService) {
+    this.coreSkillService = coreSkillService;
+  }
 
   public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
 //    try {
