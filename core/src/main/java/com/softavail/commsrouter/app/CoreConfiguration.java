@@ -67,6 +67,16 @@ public interface CoreConfiguration {
       return false;
     }
 
+    @Override
+    public Boolean getApiEnableAgentCapabilitiesValidation() {
+      return false;
+    }
+
+    @Override
+    public Boolean getApiEnableTaskRequirementsValidation() {
+      return false;
+    }
+
   };
 
   Integer getBackoffDelay();
@@ -87,4 +97,7 @@ public interface CoreConfiguration {
 
   Boolean getApiEnableExpressionSkillValidation();
 
+  Boolean getApiEnableAgentCapabilitiesValidation();
+
+  Boolean getApiEnableTaskRequirementsValidation();
 }
