@@ -15,11 +15,13 @@
  */
 package com.softavail.commsrouter.eval;
 
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import com.softavail.commsrouter.api.exception.ExpressionException;
+import cz.jirutka.rsql.parser.ast.Node;
 
 /**
  *
  * @author vladislav
  */
-public interface RsqlValidator  extends RSQLVisitor<Void, String>{
+public interface RsqlValidator {
+  void validate(Node node, String routerRef) throws ExpressionException;
 }

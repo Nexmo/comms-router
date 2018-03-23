@@ -23,7 +23,7 @@ import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.eval.RsqlValidator;
-import com.softavail.commsrouter.eval.RsqlSkillsValidator;
+import com.softavail.commsrouter.eval.RsqlSkillValidator;
 import com.softavail.commsrouter.eval.RsqlDummyValidator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
@@ -119,8 +119,8 @@ public class ApplicationContext {
   }
 
   private RsqlValidator createRsqlValidator() {
-    if (configuration.getClientEnableSkillValidation()) {
-      return new RsqlSkillsValidator(coreContext.svc.skill);
+    if (configuration.getApiEnableExpressionSkillValidation()) {
+      return new RsqlSkillValidator(coreContext.svc.skill);
     } else {
       return new RsqlDummyValidator();
     }

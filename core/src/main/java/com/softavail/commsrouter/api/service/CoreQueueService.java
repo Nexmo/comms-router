@@ -24,7 +24,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -125,7 +125,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       } catch (CommsRouterException | RuntimeException ex) {
         LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getRef(), agent.getRef(), ex,
             ex);
-        throw new EvaluatorException(ex.getMessage(), ex);
+        throw new ExpressionException(ex.getMessage(), ex);
       }
     }
 
