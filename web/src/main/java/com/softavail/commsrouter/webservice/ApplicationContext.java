@@ -119,7 +119,7 @@ public class ApplicationContext {
   }
 
   private RsqlValidator createRsqlValidator() {
-    if (configuration.getClientEnableSkillValidation()) {
+    if (configuration.getApiEnableExpressionSkillValidation()) {
       return new RsqlSkillValidator(coreContext.svc.skill);
     } else {
       return new RsqlDummyValidator();

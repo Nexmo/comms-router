@@ -118,6 +118,11 @@ public class TestBase {
       public Integer getJpaLockRetryCount() {
         return CoreConfiguration.DEFAULT.getJpaLockRetryCount();
       }
+
+      @Override
+      public Boolean getApiEnableExpressionSkillValidation() {
+        return false;
+      }
     }, null);
     EntityMappers enm = new EntityMappers();
     app = new AppContext(db, evf, td, enm);
