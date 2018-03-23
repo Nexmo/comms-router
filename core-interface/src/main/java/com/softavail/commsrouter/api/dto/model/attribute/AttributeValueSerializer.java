@@ -19,7 +19,7 @@ package com.softavail.commsrouter.api.dto.model.attribute;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import java.io.IOException;
 
 
@@ -48,42 +48,66 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
   public void serialize(AttributeValueDto av, JsonGenerator gen, SerializerProvider sp)
       throws IOException {
 
-    av.accept(new AttributeValueVisitor() {
-      @Override
-      public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-        gen.writeBoolean(value.getValue());
-      }
-
-      @Override
-      public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-        gen.writeNumber(value.getValue());
-      }
-
-      @Override
-      public void handleStringValue(StringAttributeValueDto value) throws IOException {
-        gen.writeString(value.getValue());
-      }
-
-      @Override
-      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
-          throws IOException {
-        gen.writeStartArray();
-        for (Object object : value.getValue()) {
-          gen.writeObject(object);
+    try {
+      av.accept(new AttributeValueVisitor() {
+        @Override
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
+          try {
+            gen.writeBoolean(value.getValue());
+          } catch (IOException ex) {
+            throw new CommsRouterException("Problem while writing value " + value, ex);
+          }
         }
-        gen.writeEndArray();
-      }
 
-      @Override
-      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-          throws IOException {
-        gen.writeStartArray();
-        for (Object object : value.getValue()) {
-          gen.writeObject(object);
+        @Override
+        public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
+          try {
+            gen.writeNumber(value.getValue());
+          } catch (IOException ex) {
+            throw new CommsRouterException("Problem while writing value " + value, ex);
+          }
         }
-        gen.writeEndArray();
-      }
-    });
+
+        @Override
+        public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
+          try {
+            gen.writeString(value.getValue());
+          } catch (IOException ex) {
+            throw new CommsRouterException("Problem while writing value " + value, ex);
+          }
+        }
+
+        @Override
+        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+            throws CommsRouterException {
+          try {
+            gen.writeStartArray();
+            for (Object object : value.getValue()) {
+              gen.writeObject(object);
+            }
+            gen.writeEndArray();
+          } catch (IOException ex) {
+            throw new CommsRouterException("Problem while writing value " + value, ex);
+          }
+        }
+
+        @Override
+        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+            throws CommsRouterException {
+          try {
+            gen.writeStartArray();
+            for (Object object : value.getValue()) {
+              gen.writeObject(object);
+            }
+            gen.writeEndArray();
+          } catch (IOException ex) {
+            throw new CommsRouterException("Problem while writing value " + value, ex);
+          }
+        }
+      });
+    } catch (CommsRouterException ex) {
+      throw (IOException)ex.getCause();
+    }
   }
 
 }

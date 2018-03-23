@@ -1056,37 +1056,37 @@ public class AnswerStrategyWithCallback implements AnswerStrategy {
 
       valueDto.accept( new AttributeValueVisitor() {
         @Override
-        public void handleStringValue(StringAttributeValueDto value) throws IOException {
+        public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
           result.add(value.getValue());
         }
 
         @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+        public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
         public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
-            throws IOException {
+            throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
         public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-            throws IOException {
+            throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
       });
-    } catch (IOException e) {
+    } catch (CommsRouterException e) {
       LOGGER.error(e.getLocalizedMessage());
     }
 
