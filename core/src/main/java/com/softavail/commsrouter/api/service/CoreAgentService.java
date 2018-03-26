@@ -50,13 +50,10 @@ import javax.persistence.EntityManager;
 public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     implements AgentService {
 
-  private SkillValidator skillValidator;
-
   private static final Logger LOGGER = LogManager.getLogger(CoreAgentService.class);
 
   public CoreAgentService(AppContext app) {
     super(app, app.db.agent, app.entityMapper.agent);
-    skillValidator = new SkillValidator(app.svc.skill);
   }
 
   @Override
@@ -96,7 +93,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
     // validate capabilities
-    skillValidator.validate(createArg.getCapabilities(), objectRef.getRouterRef());
+    app.validators.agentCapabilitiesValidator.validate(createArg.getCapabilities(), objectRef.getRouterRef());
 
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
@@ -194,7 +191,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       if (updateArg.getCapabilities() != null) {
 
         // validate capabilities
-        skillValidator.validate(updateArg.getCapabilities(), objectRef.getRouterRef());
+        app.validators.agentCapabilitiesValidator.validate(updateArg.getCapabilities(), objectRef.getRouterRef());
 
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());

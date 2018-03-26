@@ -61,11 +61,8 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
 
   private static final Logger LOGGER = LogManager.getLogger(CoreTaskService.class);
 
-  private SkillValidator skillValidator;
-
   public CoreTaskService(AppContext app) {
     super(app, app.db.task, app.entityMapper.task);
-    skillValidator = new SkillValidator(app.svc.skill);
   }
 
   @Override
@@ -201,7 +198,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throws CommsRouterException {
 
     // validate requirements
-    skillValidator.validate(createArg.getRequirements(), obj.getRef());
+    app.validators.taskRequirementsValidator.validate(createArg.getRequirements(), obj.getRef());
 
     Task task = fromPlan(em, createArg, obj);
     task.setState(TaskState.waiting);

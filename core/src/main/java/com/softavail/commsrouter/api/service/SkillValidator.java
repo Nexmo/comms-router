@@ -38,7 +38,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @author vladislav
  */
-class SkillValidator {
+public class SkillValidator {
 
   private static final Logger LOGGER = LogManager.getLogger(SkillValidator.class);
 

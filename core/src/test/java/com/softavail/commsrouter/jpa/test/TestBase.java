@@ -135,7 +135,7 @@ public class TestBase {
       }
     }, null);
     EntityMappers enm = new EntityMappers();
-    app = new AppContext(db, evf, td, enm);
+    app = new AppContext(db, evf, td, enm, CoreConfiguration.DEFAULT);
     // Instantiating all of the services
     queueService = new CoreQueueService(app);
     taskService = new CoreTaskService(app);

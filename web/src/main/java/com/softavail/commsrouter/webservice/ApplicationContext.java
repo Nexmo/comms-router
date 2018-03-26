@@ -61,8 +61,7 @@ public class ApplicationContext {
     EntityMappers mappers = new EntityMappers();
     TaskDispatcher taskDispatcher =
         new TaskDispatcher(db, mappers, configuration, this::handleAssignment);
-
-    coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers);
+    coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers, configuration);
     evaluatorFactory.setRsqlValidator(createRsqlValidator());
   }
 
