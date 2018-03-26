@@ -31,6 +31,7 @@ import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,20 +43,20 @@ public class SkillValidator {
 
   private static final Logger LOGGER = LogManager.getLogger(SkillValidator.class);
 
-  private CoreSkillService coreSkillService;
+  private final CoreSkillService coreSkillService;
 
   public SkillValidator(CoreSkillService coreSkillService) {
     this.coreSkillService = coreSkillService;
   }
 
   public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
-//    try {
-//      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
-//        validateCapability(capability.getKey(), capability.getValue(), routerRef);
-//      }
-//    } catch (IOException ex) {
-//      throw new CommsRouterException(ex);
-//    }
+    try {
+      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
+        validateCapability(capability.getKey(), capability.getValue(), routerRef);
+      }
+    } catch (IOException ex) {
+      throw new CommsRouterException(ex);
+    }
   }
 
   private void validateCapability(String skill, AttributeValueDto value, String routerRef) throws IOException {
