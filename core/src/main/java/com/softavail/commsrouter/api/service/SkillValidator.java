@@ -156,62 +156,58 @@ public class SkillValidator {
     }
   }
   private void validateValuesRestrictions(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto) throws IOException {
-    try {
-      attributeValueDto.accept( new AttributeValueVisitor() {
-        @Override
-        public void handleStringValue(StringAttributeValueDto value) throws IOException {
-          switch (skillDto.getDomain().getType()) {
-            case string:
-              String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
-              if (!value.getValue().matches(regExp)) {
-                throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
-              }
-              break;
-            case enumeration:
-              if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(value.getValue())) {
-                throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
-              }
-              break;
-            default:
-              throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
-          }
+    attributeValueDto.accept( new AttributeValueVisitor() {
+      @Override
+      public void handleStringValue(StringAttributeValueDto value) throws IOException {
+        switch (skillDto.getDomain().getType()) {
+          case string:
+            String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
+            if (!value.getValue().matches(regExp)) {
+              throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
+            }
+            break;
+          case enumeration:
+            if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(value.getValue())) {
+              throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
+            }
+            break;
+          default:
+            throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
         }
-        @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-        }
-        @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-        }
-        @Override
-        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException{
-          switch (skillDto.getDomain().getType()) {
-            case string:
-              String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
-              for (String v : value.getValue()) {
-                if (!v.matches(regExp)) {
-                  throw new IOException("Invalid value for skill " + skill + ": " + v);
-                }
+      }
+      @Override
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+      }
+      @Override
+      public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+      }
+      @Override
+      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException{
+        switch (skillDto.getDomain().getType()) {
+          case string:
+            String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
+            for (String v : value.getValue()) {
+              if (!v.matches(regExp)) {
+                throw new IOException("Invalid value for skill " + skill + ": " + v);
               }
-              break;
-            case enumeration:
-              for (String v : value.getValue()) {
-                if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
-                  throw new IOException("Invalid value for skill " + skill + ": " + v);
-                }
+            }
+            break;
+          case enumeration:
+            for (String v : value.getValue()) {
+              if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
+                throw new IOException("Invalid value for skill " + skill + ": " + v);
               }
-              break;
-            default:
-              throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
-          }
+            }
+            break;
+          default:
+            throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
         }
-        @Override
-        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
+      }
+      @Override
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
 
-        }
-      });
-    } catch (IOException ex) {
-      LOGGER.error("Unexpected exception", ex);
-    }
+      }
+    });
   }
 
 }
