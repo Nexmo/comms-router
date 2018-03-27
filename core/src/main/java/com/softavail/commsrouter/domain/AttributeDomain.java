@@ -18,6 +18,7 @@ package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

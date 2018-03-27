@@ -53,27 +53,27 @@ public class ApplicationBindings extends AbstractBinder {
         .to(Client.class)
         .in(Singleton.class);
 
-    bind(new CoreTaskService(context))
+    bind(context.svc.task)
         .to(TaskService.class)
         .to(CoreTaskService.class);
 
-    bind(new CorePlanService(context))
+    bind(context.svc.plan)
         .to(PlanService.class)
         .to(CorePlanService.class);
 
-    bind(new CoreQueueService(context))
+    bind(context.svc.queue)
         .to(QueueService.class)
         .to(CoreQueueService.class);
 
-    bind(new CoreAgentService(context))
+    bind(context.svc.agent)
         .to(AgentService.class)
         .to(CoreAgentService.class);
 
-    bind(new CoreSkillService(context))
+    bind(context.svc.skill)
         .to(SkillService.class)
         .to(CoreSkillService.class);
 
-    bind(new CoreRouterService(context))
+    bind(context.svc.router)
         .to(RouterService.class)
         .to(CoreRouterService.class);
 

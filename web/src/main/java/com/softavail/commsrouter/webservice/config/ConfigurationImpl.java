@@ -60,6 +60,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
       "queue.remove.idleDelaySeconds";
   private static final String JPA_OPTIMISTIC_LOCK_RETRY_COUNT =
       "jpa.optimisticLock.retryCount";
+  private static final String API_ENABLE_EXPRESSION_SKILL_VALIDATION =
+      "api.enableExpressionSkillValidation";
 
   private static final Properties defaultProperties;
 
@@ -82,6 +84,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
         String.valueOf(CoreConfiguration.DEFAULT.getQueueProcessRetryDelay()));
     defaultProperties.setProperty(JPA_OPTIMISTIC_LOCK_RETRY_COUNT,
         String.valueOf(CoreConfiguration.DEFAULT.getJpaLockRetryCount()));
+    defaultProperties.setProperty(API_ENABLE_EXPRESSION_SKILL_VALIDATION,
+        String.valueOf(CoreConfiguration.DEFAULT.getApiEnableExpressionSkillValidation()));
 
     defaultProperties.setProperty(CLIENT_TIMEOUT_CONNECT,
         String.valueOf(Configuration.DEFAULT.getClientConnectTimeout()));
@@ -150,6 +154,11 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   @Override
   public Boolean getClientFollowRedirects() {
     return provider.getProperty(CLIENT_FOLLOW_REDIRECTS, Boolean.class);
+  }
+
+  @Override
+  public Boolean getApiEnableExpressionSkillValidation() {
+    return provider.getProperty(API_ENABLE_EXPRESSION_SKILL_VALIDATION, Boolean.class);
   }
 
   @Override

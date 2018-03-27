@@ -17,6 +17,7 @@
 package com.softavail.commsrouter.api.dto.model.skill;
 
 import com.softavail.commsrouter.api.exception.BadValueException;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -35,11 +36,11 @@ public class NumberAttributeDomainDto extends AttributeDomainDto {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof NumberAttributeDomainDto)) {
+  public boolean equals(Object obj) {
+    if (!(obj instanceof NumberAttributeDomainDto)) {
       return false;
     }
-    NumberAttributeDomainDto rhs = (NumberAttributeDomainDto)o;
+    NumberAttributeDomainDto rhs = (NumberAttributeDomainDto) obj;
     return Objects.equals(intervals, rhs.intervals);
   }
 
@@ -67,9 +68,9 @@ public class NumberAttributeDomainDto extends AttributeDomainDto {
       interval.validate();
     }
     int size = intervals.size();
-    int i = 0;
+    int count = 0;
     for (NumberInterval interval : intervals) {
-      validateNoOverlap(interval, intervals.subList(++i, size));
+      validateNoOverlap(interval, intervals.subList(++count, size));
     }
   }
 

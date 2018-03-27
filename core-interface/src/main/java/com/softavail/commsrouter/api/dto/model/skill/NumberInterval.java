@@ -1,22 +1,21 @@
 /*
  * Copyright 2017 - 2018 SoftAvail Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.softavail.commsrouter.api.dto.model.skill;
 
 import com.softavail.commsrouter.api.exception.BadValueException;
+
 import java.util.Objects;
 
 /**
@@ -36,11 +35,11 @@ public class NumberInterval {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof NumberInterval)) {
+  public boolean equals(Object obj) {
+    if (!(obj instanceof NumberInterval)) {
       return false;
     }
-    NumberInterval rhs = (NumberInterval)o;
+    NumberInterval rhs = (NumberInterval) obj;
     return Objects.equals(low, rhs.low) && Objects.equals(high, rhs.high);
   }
 
@@ -95,13 +94,13 @@ public class NumberInterval {
 
   public boolean doesNotOverlap(NumberInterval rhs) {
     int compareLowRhsToHigh = low.compareBoundaryTo(rhs.getHigh());
-    if (compareLowRhsToHigh > 0 ||
-            compareLowRhsToHigh == 0 && (!low.isInclusive() || !rhs.getHigh().isInclusive())) {
+    if (compareLowRhsToHigh > 0
+        || compareLowRhsToHigh == 0 && (!low.isInclusive() || !rhs.getHigh().isInclusive())) {
       return true;
     }
     int compareRhsLowToHigh = rhs.getLow().compareBoundaryTo(high);
-    return compareRhsLowToHigh > 0 ||
-            compareRhsLowToHigh == 0 && (!rhs.getLow().isInclusive() || !high.isInclusive());
+    return compareRhsLowToHigh > 0
+        || compareRhsLowToHigh == 0 && (!rhs.getLow().isInclusive() || !high.isInclusive());
   }
 
   public NumberIntervalBoundary getLow() {

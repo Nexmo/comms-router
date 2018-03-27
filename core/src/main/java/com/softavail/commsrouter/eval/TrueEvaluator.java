@@ -14,31 +14,20 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.ExpressionException;
-import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 
 /**
  *
  * @author ikrustev
  */
-public interface CommsRouterEvaluator {
+public class TrueEvaluator extends EvaluatorBase {
 
-  CommsRouterEvaluator changeExpression(String expression, String routerRef) throws ExpressionException;
+  public TrueEvaluator(CommsRouterEvaluatorFactory factory) {
+    super(factory);
+  }
 
-  /**
-   *
-   * @param attributes - contains values for the variables used in the expression
-   * @return true - if match success
-   * @throws CommsRouterException .
-   */
-  boolean evaluate(AttributeGroup attributes) throws CommsRouterException;
-
-  /**
-   *
-   * @throws ExpressionException .
-   */
-  void validate() throws ExpressionException;
-
+  @Override
+  public boolean evaluate(AttributeGroup attributeGroup) {
+    return true;
+  }
 }

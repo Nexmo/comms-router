@@ -24,7 +24,7 @@ import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.interfaces.QueueService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Agent;
@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.EntityManager;
 
 /**
@@ -83,8 +84,8 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
 
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
-    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate());
-    evaluator.validate(createArg.getPredicate());
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(createArg.getPredicate(), objectRef.getRouterRef());
+    evaluator.validate();
 
     Router router = getRouter(em, objectRef);
     Queue queue = new Queue(objectRef);
@@ -106,7 +107,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
     List<Agent> agents = app.db.agent.list(em, queue.getRouter().getRef());
     for (Agent agent : agents) {
       try {
-        if (evaluator.evaluateJpa(agent.getCapabilities())) {
+        if (evaluator.evaluate(agent.getCapabilities())) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedAgentsCount;
@@ -124,7 +125,7 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
       } catch (CommsRouterException | RuntimeException ex) {
         LOGGER.error("Queue {}: failure attaching agent {}: {}", queue.getRef(), agent.getRef(), ex,
             ex);
-        throw new EvaluatorException(ex.getMessage(), ex);
+        throw new ExpressionException(ex.getMessage(), ex);
       }
     }
 
@@ -154,14 +155,14 @@ public class CoreQueueService extends CoreRouterObjectService<QueueDto, Queue>
   private void updatePredicate(EntityManager em, Queue queue, String predicate)
       throws CommsRouterException {
 
-    if (queue.getPredicate().equals(predicate)) {
+    if (Objects.equals(queue.getPredicate(), predicate)) {
       LOGGER.info("Queue {}: no predicate change - will keep current agents", queue.getRef());
       return;
     }
     LOGGER.info("Queue {}: detaching all agents due to predicate change", queue.getRef());
 
-    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate);
-    evaluator.validate(predicate);
+    CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(predicate, queue.getRouter().getRef());
+    evaluator.validate();
 
     queue.setPredicate(predicate);
     queue.getAgentQueueMappings().clear();

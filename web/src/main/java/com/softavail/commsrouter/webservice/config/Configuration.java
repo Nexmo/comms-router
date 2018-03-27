@@ -38,6 +38,7 @@ public interface Configuration {
     public Boolean getClientFollowRedirects() {
       return true;
     }
+
   };
 
 
