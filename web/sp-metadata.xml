@@ -5,26 +5,28 @@
             <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
                 <ds:X509Data>
                     <ds:X509Certificate>MIIDojCCAoqgAwIBAgIGAWIqNstLMA0GCSqGSIb3DQEBCwUAMIGRMQswCQYDVQQGEwJVUzETMBEG
-    A1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEU
-    MBIGA1UECwwLU1NPUHJvdmlkZXIxEjAQBgNVBAMMCXNvZnRhdmFpbDEcMBoGCSqGSIb3DQEJARYN
-    aW5mb0Bva3RhLmNvbTAeFw0xODAzMTUxNTA5NTZaFw0yODAzMTUxNTEwNTZaMIGRMQswCQYDVQQG
-    EwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UE
-    CgwET2t0YTEUMBIGA1UECwwLU1NPUHJvdmlkZXIxEjAQBgNVBAMMCXNvZnRhdmFpbDEcMBoGCSqG
-    SIb3DQEJARYNaW5mb0Bva3RhLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAIyZ
-    jInRr/RumK1zev7yHuDhfebZ7VK9pnxGRv4pMJFo1vnQEkr0PTRoa/OB3KPGPM1vFbzVT+/ofEpp
-    CoZ1bbsciHKlIo9eDpZoJRg9ZehhVF0FxenBzeyWrYBk+nXFjXfjeCHFloJ7XHMYyz2Kgm6XwKcr
-    m8+HCzE6VhVMVUAjuDg+Ovv06nHgNcQn0DLkNpxZTdnxdYgRf46i1mDCB93vw8vaVe5lgLzXi5tj
-    +tmpmbK5ijqIBSZK6AgxUoqQbS3FA1sYJ9o9IUZW+DcnOZutNx96Slm80h2d0YBrmMf22JqOO1gj
-    EtiHc+A3l0xiRybPkrnc2dA2VW11eFm1LJcCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAVzigm0Pf
-    cF6Uli7iRf/ZhD24IXkpIT9iHHbWmEelXDmW+jjPi53ORGUz1aLJwWgGGdCVcANjRkVKyvE5anG5
-    9tdkc8bIQ76KYJTv+tPAu7t/+Kw2Zo6p6FWxqE6iZKhp70SsGSu+PhmCUf7UAtniIt7qtMLmdSXL
-    +Qs5IzzpShVquVWr/AmvS/SpH1DSMInuROkDuEfOszMcP5cztCNSbRj5+n5QhKff7fymlThoWH2x
-    GOKdAch2DGizARkbHyCCuzntD/fftaiwULufUNEXY2NEWiGgV1/GHCtkZRMjlr0LsVfBS1xHmUKM
-    Cp/O3OkPSfbSNHWFyK+sATCxWRpf1Q==
+                    A1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEU
+                    MBIGA1UECwwLU1NPUHJvdmlkZXIxEjAQBgNVBAMMCXNvZnRhdmFpbDEcMBoGCSqGSIb3DQEJARYN
+                    aW5mb0Bva3RhLmNvbTAeFw0xODAzMTUxNTA5NTZaFw0yODAzMTUxNTEwNTZaMIGRMQswCQYDVQQG
+                    EwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UE
+                    CgwET2t0YTEUMBIGA1UECwwLU1NPUHJvdmlkZXIxEjAQBgNVBAMMCXNvZnRhdmFpbDEcMBoGCSqG
+                    SIb3DQEJARYNaW5mb0Bva3RhLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAIyZ
+                    jInRr/RumK1zev7yHuDhfebZ7VK9pnxGRv4pMJFo1vnQEkr0PTRoa/OB3KPGPM1vFbzVT+/ofEpp
+                    CoZ1bbsciHKlIo9eDpZoJRg9ZehhVF0FxenBzeyWrYBk+nXFjXfjeCHFloJ7XHMYyz2Kgm6XwKcr
+                    m8+HCzE6VhVMVUAjuDg+Ovv06nHgNcQn0DLkNpxZTdnxdYgRf46i1mDCB93vw8vaVe5lgLzXi5tj
+                    +tmpmbK5ijqIBSZK6AgxUoqQbS3FA1sYJ9o9IUZW+DcnOZutNx96Slm80h2d0YBrmMf22JqOO1gj
+                    EtiHc+A3l0xiRybPkrnc2dA2VW11eFm1LJcCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAVzigm0Pf
+                    cF6Uli7iRf/ZhD24IXkpIT9iHHbWmEelXDmW+jjPi53ORGUz1aLJwWgGGdCVcANjRkVKyvE5anG5
+                    9tdkc8bIQ76KYJTv+tPAu7t/+Kw2Zo6p6FWxqE6iZKhp70SsGSu+PhmCUf7UAtniIt7qtMLmdSXL
+                    +Qs5IzzpShVquVWr/AmvS/SpH1DSMInuROkDuEfOszMcP5cztCNSbRj5+n5QhKff7fymlThoWH2x
+                    GOKdAch2DGizARkbHyCCuzntD/fftaiwULufUNEXY2NEWiGgV1/GHCtkZRMjlr0LsVfBS1xHmUKM
+                    Cp/O3OkPSfbSNHWFyK+sATCxWRpf1Q==
                     </ds:X509Certificate>
                 </ds:X509Data>
             </ds:KeyInfo>
         </md:KeyDescriptor>
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://softavail.okta.com/app/softavail_commsrouterweb_1/exkuefqelKIrscVqi2p6/slo/saml"/>
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://softavail.okta.com/app/softavail_commsrouterweb_1/exkuefqelKIrscVqi2p6/slo/saml"/>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
         <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://softavail.okta.com/app/softavail_commsrouterweb_1/exkuefqelKIrscVqi2p6/sso/saml"/>

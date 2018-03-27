@@ -26,8 +26,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Context;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.mgt.DefaultSecurityManager;
 
 /**
  * Created by @author mapuo on 31.08.17.
@@ -64,11 +62,6 @@ public class CommsRouterApplication extends ResourceConfig {
     beanConfig.setResourcePackage("com.softavail.commsrouter.webservice.resources");
     beanConfig.setScan(true);
     beanConfig.setPrettyPrint(true);
-
-
-    DefaultSecurityManager securityManager = new DefaultSecurityManager();
-    SecurityUtils.setSecurityManager(securityManager);
-
 
     LOGGER.debug("Application started!");
   }
