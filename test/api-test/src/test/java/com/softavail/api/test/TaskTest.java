@@ -37,14 +37,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 
-import org.junit.Assume;
+import org.junit.*;
 
 /**
  * Unit test for Task to queue mapping.
  */
 
 // @DisplayName("Task related tests")
-public class TaskTest {
+public class TaskTest extends BaseTest{
 
   private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
@@ -52,12 +52,8 @@ public class TaskTest {
   private Plan p = new Plan(state);
   private Task t = new Task(state);
 
-  //@BeforeAll
-  public static void beforeAll() throws Exception {
-    Assume.assumeTrue( "autHost is set", System.getProperty("autHost") != null);
-  }
 
-  //@BeforeEach
+  @Before
   public void createRouterAndQueue() {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
@@ -72,14 +68,14 @@ public class TaskTest {
     ref = q.create(queueArg);
   }
 
-  //@AfterEach
+  @After
   public void cleanup() {
     t.delete();
     q.delete();
     r.delete();
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with queue.")
   public void addTask() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -92,7 +88,7 @@ public class TaskTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with context.")
   public void addTaskWithContext() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -107,7 +103,7 @@ public class TaskTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with tag.")
   public void addTaskWithTag() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -124,7 +120,7 @@ public class TaskTest {
     assertThat(t.list("?tag="+uniqueTag).size(),is(1));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with existing tag.")
   public void addTaskWithExistingTag() throws MalformedURLException {
     assertThat(q.size(), is(0));
