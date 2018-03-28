@@ -146,10 +146,12 @@ public class AttributeDomainMapper {
 
       @Override
       public void handleNumberIntervals(List<NumberInterval> intervals) {
-        intervals.forEach(interval -> {
-          jpa.addIntervalBoundary(interval.getLow());
-          jpa.addIntervalBoundary(interval.getHigh());
-        });
+        if (intervals != null) {
+          intervals.forEach(interval -> {
+            jpa.addIntervalBoundary(interval.getLow());
+            jpa.addIntervalBoundary(interval.getHigh());
+          });
+        }
       }
 
       @Override
