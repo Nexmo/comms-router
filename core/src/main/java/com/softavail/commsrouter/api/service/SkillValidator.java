@@ -166,7 +166,7 @@ public class SkillValidator {
         switch (skillDto.getDomain().getType()) {
           case string:
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
-            if (!value.getValue().matches(regExp)) {
+            if (regExp != null && !value.getValue().matches(regExp)) {
               throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
             }
             break;
