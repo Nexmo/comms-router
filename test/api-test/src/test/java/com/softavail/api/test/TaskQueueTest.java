@@ -154,7 +154,7 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it - ==.")
   public void addTaskOneAttributeEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -164,7 +164,17 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it - ==.")
+  public void addTaskOneAttributeEqualsRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "lang=='en'");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with float attribute and predicate to check it - ==.")
   public void addTaskFloatAttributeEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -174,7 +184,17 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with float attribute and predicate to check it - ==.")
+  public void addTaskFloatAttributeEqualsRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("float", new DoubleAttributeValueDto(0.05));
+    addPlanTask(taskAttribs, "float==0.05");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it - !=.")
   public void addTaskOneAttributeNotEquals() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -184,7 +204,17 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it - !=.")
+  public void addTaskOneAttributeNotEqualsRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
+    addPlanTask(taskAttribs, "lang!='bg'");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it - number >.")
   public void addTaskOneAttributeCompare() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -194,7 +224,17 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it - number >.")
+  public void addTaskOneAttributeCompareRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "age>18 and age<33");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it - with parents.")
   public void addTaskOneAttributeParents() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -204,93 +244,103 @@ public class TaskQueueTest extends BaseTest {
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it - with parents.")
+  public void addTaskOneAttributeParentsRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "(age>18 and age<33)");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it - or.")
   public void addTaskOneAttributeOr() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "1 || 0");
+    addPlanTask(taskAttribs, "(HAS([10,20,30],#{age}) || HAS([10,20,30],#{age}))");
     assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it - or.")
+  public void addTaskOneAttributeOrRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "age>1 or age=lt=1");
+    assertThat(q.size(), is(1));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate to check it 1 && 1")
   public void addTaskOneAttributeAndOnly() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "1 && 1");
+    addPlanTask(taskAttribs, "HAS([10,20,30],#{age}) && HAS([10,20,30],#{age})");
     assertThat(q.size(), is(1));
   }
 
-  //@Test
-  //@DisplayName("Add task with one attribute and predicate to check it true && true")
-  public void addTaskTrue() throws MalformedURLException {
+  @Test
+  //@DisplayName("Add task with one attribute and predicate to check it 1 && 1")
+  public void addTaskOneAttributeAndOnlyRSQL() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "true && true");
+    addPlanTask(taskAttribs, "age=in=(10,20,30) and age=out=(10,2,30)");
     assertThat(q.size(), is(1));
   }
 
-  //@Test
-  //@DisplayName("Add task with one attribute and predicate HAS")
-  public void addTaskHasExpression() throws MalformedURLException {
-    assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "HAS([10,20,30],#{age})");
-    assertThat(q.size(), is(1));
-  }
-
-  //@Test
+  @Test
   //@DisplayName("Add task with one attribute and predicate HAS with single item")
   public void addTaskHasOneItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "HAS([10],#{age})");
-    assertThat(q.size(), is(1));
+    assertThat(q.size(), is(0));
   }
 
-  //@Test
+  @Test
+  //@DisplayName("Add task with one attribute and predicate HAS with single item")
+  public void addTaskHasOneItemExpressionRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "age=in=(10)");
+    assertThat(q.size(), is(0));
+  }
+
+  @Test
+  //@DisplayName("Add task with one attribute and predicate HAS with single item")
+  public void addTaskOutOneItemExpressionRSQL() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("age", new DoubleAttributeValueDto(20));
+    addPlanTask(taskAttribs, "age=out=(20)");
+    assertThat(q.size(), is(0));
+  }
+
+  @Test
   //@DisplayName("Add task with one attribute and predicate HAS with no items")
   public void addTaskHasNoItemExpression() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "HAS([],#{age})");
-    assertThat(q.size(), is(1));
-  }
-
-  //@Test
-  //@DisplayName("Add task with one attribute and predicate HAS that should fail.")
-  public void addTaskHasFailed() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "HAS([9],#{age})");
-    assertThat(q.size(), is(1));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Add task with one attribute and predicate IN")
   public void addTaskExpressionIn() throws MalformedURLException {
     assertThat(q.size(), is(0));
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
     taskAttribs.put("age", new DoubleAttributeValueDto(20));
     addPlanTask(taskAttribs, "IN(#{age},[10,20,30])");
-    assertThat(q.size(), is(1));
-  }
-
-  //@Test
-  //@DisplayName("Add task with one attribute and predicate to check it false || true || false")
-  public void addTaskTrueFalseExpression() throws MalformedURLException {
-    assertThat(q.size(), is(0));
-    AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    taskAttribs.put("age", new DoubleAttributeValueDto(20));
-    addPlanTask(taskAttribs, "false || true || false");
     assertThat(q.size(), is(1));
   }
 
