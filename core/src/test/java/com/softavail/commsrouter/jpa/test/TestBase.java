@@ -25,7 +25,9 @@ import com.softavail.commsrouter.api.service.CoreAgentService;
 import com.softavail.commsrouter.api.service.CorePlanService;
 import com.softavail.commsrouter.api.service.CoreQueueService;
 import com.softavail.commsrouter.api.service.CoreRouterService;
+import com.softavail.commsrouter.api.service.CoreSkillService;
 import com.softavail.commsrouter.api.service.CoreTaskService;
+import com.softavail.commsrouter.api.service.SkillValidator;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.CoreConfiguration;
 import com.softavail.commsrouter.app.TaskDispatcher;
@@ -36,6 +38,7 @@ import com.softavail.commsrouter.domain.dto.mappers.AttributesMapper;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
+import static com.softavail.commsrouter.jpa.test.TestBase.skillValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -62,6 +65,8 @@ public class TestBase {
   protected static CoreAgentService agentService;
   protected static CoreRouterService routerService;
   protected static CorePlanService planService;
+  protected static CoreSkillService skillService;
+  protected static SkillValidator skillValidator;
   protected static AppContext app;
 
   // Connects to the in-memory h2 database.
@@ -142,6 +147,8 @@ public class TestBase {
     agentService = new CoreAgentService(app);
     routerService = new CoreRouterService(app);
     planService = new CorePlanService(app);
+    skillService = new CoreSkillService(app);
+    skillValidator = new SkillValidator(skillService);
   }
 
   @After
