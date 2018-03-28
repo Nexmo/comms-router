@@ -30,9 +30,9 @@ import java.util.List;
  */
 public final class RouterCustomAuthorizer extends ProfileAuthorizer<CommonProfile> {
 
-    @Override
+  @Override
     public boolean isAuthorized(final WebContext context, final List<CommonProfile> profiles) throws HttpAction {
-        return isAnyAuthorized(context, profiles);
+    return isAnyAuthorized(context, profiles);
     }
 
     @Override
@@ -40,6 +40,6 @@ public final class RouterCustomAuthorizer extends ProfileAuthorizer<CommonProfil
         if (profile == null) {
             return false;
         }
-        return StringUtils.startsWith(profile.getUsername(), "jle");
+        return (!profile.getUsername().isEmpty() && profile.getAttribute("roles") != null);
     }
 }
