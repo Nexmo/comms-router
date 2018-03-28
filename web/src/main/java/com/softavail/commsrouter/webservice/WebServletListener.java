@@ -16,18 +16,28 @@
 
 package com.softavail.commsrouter.webservice;
 
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebListener;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import org.apache.shiro.web.env.EnvironmentLoader;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
 
 /**
  * Created by @author mapuo on 16.10.17.
  */
 @WebListener
-public class WebServletListener implements ServletContextListener {
+public class WebServletListener extends EnvironmentLoader implements ServletContextListener {
 
   private static final Logger LOGGER = LogManager.getLogger(WebServletListener.class);
 
@@ -37,8 +47,29 @@ public class WebServletListener implements ServletContextListener {
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
-    applicationContext = new ApplicationContext(sce.getServletContext());
-    sce.getServletContext().setAttribute(APPLICATION_CONTEXT, applicationContext);
+    LOGGER.debug("contextInitialized start");
+    
+    try {
+      ServletContext sc = sce.getServletContext();
+
+      applicationContext = new ApplicationContext(sc);
+      sc.setAttribute(APPLICATION_CONTEXT, applicationContext);
+
+      //shiro init
+      sc.setInitParameter("shiroConfigLocations", "classpath:shiro.ini" );
+
+      FilterRegistration filterRegistration =
+          sc.addFilter("ShiroFilter", "org.apache.shiro.web.servlet.ShiroFilter");
+      filterRegistration.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST,
+          DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR), true, "/*");
+
+      initEnvironment(sc);
+
+    } catch (Exception e) {
+      LOGGER.error("Exception: ", e);
+    }
+    
+    LOGGER.debug("contextInitialized end");
   }
 
   @Override
