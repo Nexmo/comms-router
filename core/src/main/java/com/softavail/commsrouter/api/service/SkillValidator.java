@@ -26,11 +26,15 @@ import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
+import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -177,6 +181,7 @@ public class SkillValidator {
       }
       @Override
       public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+        validateDoubleValue(value.getValue());
       }
       @Override
       public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
@@ -205,7 +210,25 @@ public class SkillValidator {
       }
       @Override
       public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
-
+        for (Double v : value.getValue()) {
+          validateDoubleValue(v);
+        }
+      }
+      private void validateDoubleValue(Double value) throws IOException {
+        List<NumberInterval> intervals = ((NumberAttributeDomainDto)skillDto.getDomain()).getIntervals();
+        if (intervals != null && !intervals.isEmpty()) {
+          NumberIntervalBoundary low = intervals.get(0).getLow();
+          NumberIntervalBoundary high = intervals.get(0).getHigh();
+          if (low.getInclusive() && low.getBoundary() > value
+          || !low.getInclusive() && low.getBoundary() >= value
+          || high.getInclusive() && high.getBoundary() < value
+          || !high.getInclusive() && high.getBoundary() <= value) {
+            String leftPar  = low.getInclusive() ? "[" : "(";
+            String rightPar = low.getInclusive() ? "]" : ")";
+            throw new IOException("Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
+                    + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
+          }
+        }
       }
     });
   }
