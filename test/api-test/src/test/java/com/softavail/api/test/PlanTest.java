@@ -54,9 +54,9 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
-import org.junit.Assume;
+import org.junit.*;
 
-public class PlanTest {
+public class PlanTest extends BaseTest {
 
     /**
      * Creates a new <code>PlanTest</code> instance.
@@ -70,12 +70,7 @@ public class PlanTest {
   private Task t = new Task(state);
   private String defaultQueueId;
 
-  //@BeforeAll
-  public static void beforeAll() throws Exception {
-    Assume.assumeTrue( System.getProperty("autHost") != null);
-  }
-
-  //@BeforeEach
+  @Before
   public void createRouterAndQueue() {
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription("Router description");
@@ -93,7 +88,7 @@ public class PlanTest {
         .getRef();
   }
 
-  //@Test
+  @Test
   //@DisplayName("Delete plan when it is in use.")
   public void deletePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
@@ -117,7 +112,7 @@ public class PlanTest {
               equalTo("Cannot delete or update 'route' as there is record in 'task' that refer to it."));
   }
 
-  //@Test
+  @Test
   //@DisplayName("Update plan when it is in use.")
   public void updatePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
