@@ -17,59 +17,37 @@
 package com.softavail.commsrouter.jpa;
 
 import com.softavail.commsrouter.api.exception.CommsRouterException;
-import com.softavail.commsrouter.app.CoreConfiguration;
-import com.softavail.commsrouter.util.ThreadPoolKiller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author ikrustev
  */
-public class PlanPurgeJob {
+public class PlanPurgeJob implements Runnable {
 
   private static final Logger LOGGER = LogManager.getLogger(PlanPurgeJob.class);
+  public static final int MAX_ROWS_PER_LOOP = 100;
 
   private final PlanRepository planRepo;
-  private final int maxRowsPerLoop = 100;
-  private final ScheduledThreadPoolExecutor threadPool;
-  private final int secondsBetweenRuns;
   private final long purgeAgeSeconds;
 
-  public PlanPurgeJob(PlanRepository planRepo, CoreConfiguration config) {
+  public PlanPurgeJob(PlanRepository planRepo, long purgeAgeSeconds) {
     this.planRepo = planRepo;
-    this.threadPool = new ScheduledThreadPoolExecutor(1);
-    this.secondsBetweenRuns = config.getPurgeJobSecondsBetweenRuns();
-    this.purgeAgeSeconds = config.getPurgeJobPurgeAgeSeconds();
-    this.threadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-    scheduleNextRun();
+    this.purgeAgeSeconds = purgeAgeSeconds;
   }
 
-  public void close() {
-    ThreadPoolKiller.shutdown(threadPool, "PlanPurgeJob");
-  }
-
-  private void scheduleNextRun() {
-    long secondsToNextRun = secondsBetweenRuns + Math.round(secondsBetweenRuns * Math.random());
-    LOGGER.info("Next run in {} seconds", secondsToNextRun);
-    threadPool.schedule(this::run, secondsToNextRun, TimeUnit.SECONDS);
-  }
-
-  private void run() {
+  @Override
+  public void run() {
     try {
-      LOGGER.info("Running...");
       purgePlans(new Date(System.currentTimeMillis() - purgeAgeSeconds * 1000));
-    } catch (Exception ex) {
-      LOGGER.error("Run failure: {}", ex, ex);
+    } catch (CommsRouterException ex) {
+      throw new RuntimeException(ex);
     }
-    LOGGER.info("Run complete");
-    scheduleNextRun();
   }
 
   private void purgePlans(Date before) throws CommsRouterException {
@@ -77,7 +55,7 @@ public class PlanPurgeJob {
     int totalCount = 0;
     int failedCount = 0;
     for (;;) {
-      deletedPlanIds = planRepo.getDeleted(before, maxRowsPerLoop);
+      deletedPlanIds = planRepo.getDeleted(before, MAX_ROWS_PER_LOOP);
       if (deletedPlanIds.isEmpty()) {
         LOGGER.info("Selected for purge: {}, failed: {}", totalCount, failedCount);
         break;
