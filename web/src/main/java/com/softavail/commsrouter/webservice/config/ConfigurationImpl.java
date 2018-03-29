@@ -62,6 +62,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
       "jpa.optimisticLock.retryCount";
   private static final String API_ENABLE_EXPRESSION_SKILL_VALIDATION =
       "api.enableExpressionSkillValidation";
+  private static final String PURGE_JOB_SECONDS_BETWEEN_RUNS = "purgeJob.secondsBetweenRuns";
+  private static final String PURGE_JOB_PURGE_AGE_SECONDS = "purgeJob.purgeAgeSeconds";
 
   private static final Properties defaultProperties;
 
@@ -86,6 +88,10 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
         String.valueOf(CoreConfiguration.DEFAULT.getJpaLockRetryCount()));
     defaultProperties.setProperty(API_ENABLE_EXPRESSION_SKILL_VALIDATION,
         String.valueOf(CoreConfiguration.DEFAULT.getApiEnableExpressionSkillValidation()));
+    defaultProperties.setProperty(PURGE_JOB_SECONDS_BETWEEN_RUNS,
+            String.valueOf(CoreConfiguration.DEFAULT.getPurgeJobSecondsBetweenRuns()));
+    defaultProperties.setProperty(PURGE_JOB_PURGE_AGE_SECONDS,
+            String.valueOf(CoreConfiguration.DEFAULT.getPurgeJobPurgeAgeSeconds()));
 
     defaultProperties.setProperty(CLIENT_TIMEOUT_CONNECT,
         String.valueOf(Configuration.DEFAULT.getClientConnectTimeout()));
@@ -199,6 +205,16 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   @Override
   public Integer getJpaLockRetryCount() {
     return provider.getProperty(JPA_OPTIMISTIC_LOCK_RETRY_COUNT, Integer.class);
+  }
+
+  @Override
+  public Integer getPurgeJobSecondsBetweenRuns() {
+    return provider.getProperty(PURGE_JOB_SECONDS_BETWEEN_RUNS, Integer.class);
+  }
+
+  @Override
+  public Long getPurgeJobPurgeAgeSeconds() {
+    return provider.getProperty(PURGE_JOB_PURGE_AGE_SECONDS, Long.class);
   }
 
 }
