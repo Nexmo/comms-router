@@ -16,6 +16,8 @@
 
 package com.softavail.commsrouter.api.service;
 
+import com.google.common.collect.ImmutableList;
+
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
@@ -27,10 +29,12 @@ import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Router;
-import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 /**
  * @author ikrustev
@@ -68,10 +72,26 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throws CommsRouterException {
 
     app.db.transactionManager.executeVoid((em) -> {
-      Plan plan = app.db.plan.get(em, objectRef);
-      PlanResolver planResolver = PlanResolver.create(app, em, plan);
-      Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
+      Plan oldPlan = app.db.plan.get(em, objectRef);
+      PlanDto oldDto = app.entityMapper.plan.toDto(oldPlan);
+      CreatePlanArg createArg = prepareCreateCopyArg(oldDto, updateArg);
+      oldPlan.markDeleted();
+      em.flush();
+      doCreate(em, createArg, objectRef);
     });
+  }
+
+  private <T> T getFirstNonNull(T first, T second) {
+    return first != null ? first : second;
+  }
+
+  private CreatePlanArg prepareCreateCopyArg(PlanDto oldDto, UpdatePlanArg updateArg) {
+    CreatePlanArg createArg = new CreatePlanArg();
+    createArg.setDescription(getFirstNonNull(updateArg.getDescription(), oldDto.getDescription()));
+    createArg.setRules(getFirstNonNull(updateArg.getRules(), oldDto.getRules()));
+    createArg.setDefaultRoute(getFirstNonNull(
+            updateArg.getDefaultRoute(), oldDto.getDefaultRoute()));
+    return createArg;
   }
 
   private ApiObjectRef doCreate(EntityManager em, CreatePlanArg createArg,
@@ -103,6 +123,13 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
     return new ApiObjectRef(planDto);
+  }
+
+  @Override
+  protected ImmutableList.Builder<Predicate> amendCiteria(CriteriaBuilder cb, Root<Plan> root,
+          ImmutableList.Builder<Predicate> predicateBuilder) {
+
+    return predicateBuilder.add(cb.isNull(root.get("deletedTime")));
   }
 
 }
