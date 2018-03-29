@@ -21,7 +21,6 @@ import com.softavail.commsrouter.domain.Agent;
 import com.softavail.commsrouter.domain.AgentQueueMapping;
 
 /**
- *
  * @author ikrustev
  */
 public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
@@ -41,7 +40,8 @@ public class AgentMapper extends RouterObjectEntityMapper<AgentDto, Agent> {
     dto.setName(jpa.getName());
     dto.setDescription(jpa.getDescription());
     dto.setState(jpa.getState());
-    dto.setQueueRefs(createIdList(jpa.getAgentQueueMappings()
+    dto.setQueueRefs(
+        createIdList(jpa.getAgentQueueMappings()
             .stream()
             .map(AgentQueueMapping::getQueue)));
     dto.setLastTimeAtBusyState(jpa.getLastTimeAtBusyState());

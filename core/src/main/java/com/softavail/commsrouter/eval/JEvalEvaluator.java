@@ -16,13 +16,11 @@
 
 package com.softavail.commsrouter.eval;
 
-
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  *
@@ -42,7 +40,9 @@ public class JEvalEvaluator implements CommsRouterEvaluator {
   }
 
   @Override
-  public CommsRouterEvaluator changeExpression(String expression, String routerRef) throws ExpressionException {
+  public CommsRouterEvaluator changeExpression(String expression, String routerRef)
+      throws ExpressionException {
+
     return factory.changeExpression(this, expression, routerRef);
   }
 

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.eval;
 
 import com.softavail.commsrouter.api.exception.ExpressionException;
-import com.softavail.commsrouter.api.exception.ExpressionException;
+
 import java.util.List;
 
 /**
@@ -80,9 +81,9 @@ public class ValidationUtils {
 
   public static Boolean parseBoolean(String bool) throws ExpressionException {
     if (bool != null) {
-      String b = bool.toLowerCase();
-      if (b.equals("true") || b.equals("false")) {
-        return Boolean.parseBoolean(b);
+      String toLowerCase = bool.toLowerCase();
+      if (toLowerCase.equals("true") || toLowerCase.equals("false")) {
+        return Boolean.parseBoolean(toLowerCase);
       }
     }
     throw new ExpressionException("Invalid boolean argument:" + bool);

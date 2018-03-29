@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.eval;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
@@ -31,28 +32,19 @@ import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+
 import java.util.Iterator;
 import java.util.List;
 
 /**
- *
  * @author vladislav
  */
-public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, String>{
+public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, String> {
 
   private final CoreSkillService coreSkillService;
 
-  public RsqlSkillValidator (CoreSkillService coreSkillService) {
+  public RsqlSkillValidator(CoreSkillService coreSkillService) {
     this.coreSkillService = coreSkillService;
-  }
-
-  @Override
-  public void validate(Node rootNode, String routerRef) throws ExpressionException {
-    try {
-      rootNode.accept(this, routerRef);
-    } catch (RuntimeException ex) {
-      throw new ExpressionException(ex.getMessage(), ex);
-    }
   }
 
   @Override
@@ -76,15 +68,28 @@ public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, Stri
   @Override
   public Void visit(ComparisonNode comparisonNode, String routerRef) {
     try {
-      validate(comparisonNode.getSelector(), comparisonNode.getOperator(),
-              comparisonNode.getArguments(), routerRef);
+      validate(
+          comparisonNode.getSelector(),
+          comparisonNode.getOperator(),
+          comparisonNode.getArguments(),
+          routerRef);
     } catch (ExpressionException ex) {
       throw new RuntimeException(ex.getMessage(), ex);
     }
     return null;
   }
 
-  private void validate(String selector, ComparisonOperator operator, List<String> arguments, String routerRef)
+  @Override
+  public void validate(Node rootNode, String routerRef) throws ExpressionException {
+    try {
+      rootNode.accept(this, routerRef);
+    } catch (RuntimeException ex) {
+      throw new ExpressionException(ex.getMessage(), ex);
+    }
+  }
+
+  private void validate(
+      String selector, ComparisonOperator operator, List<String> arguments, String routerRef)
       throws ExpressionException {
 
     // validate existance
@@ -131,6 +136,8 @@ public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, Stri
             }
           }
           break;
+        default:
+          // Nothing to do
       }
     }
   }

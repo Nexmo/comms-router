@@ -47,7 +47,9 @@ public class CommsRouterEvaluatorFactory {
     }
   }
 
-  public CommsRouterEvaluator provide(String predicate, String routerRef) throws ExpressionException {
+  public CommsRouterEvaluator provide(String predicate, String routerRef)
+      throws ExpressionException {
+
     switch (determineType(predicate)) {
       case JEVAL:
         return new JEvalEvaluator(this, predicate);
@@ -62,7 +64,8 @@ public class CommsRouterEvaluatorFactory {
     }
   }
 
-  CommsRouterEvaluator changeExpression(JEvalEvaluator evaluator, String expression, String routerRef)
+  CommsRouterEvaluator changeExpression(
+      JEvalEvaluator evaluator, String expression, String routerRef)
       throws ExpressionException {
 
     ExpressionType type = determineType(expression);
@@ -73,7 +76,8 @@ public class CommsRouterEvaluatorFactory {
     return provide(expression, routerRef);
   }
 
-  CommsRouterEvaluator changeExpression(EvaluatorBase evaluator, String expression, String routerRef)
+  CommsRouterEvaluator changeExpression(
+      EvaluatorBase evaluator, String expression, String routerRef)
       throws ExpressionException {
 
     return provide(expression, routerRef);
