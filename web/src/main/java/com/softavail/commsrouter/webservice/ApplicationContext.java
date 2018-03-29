@@ -26,16 +26,16 @@ import com.softavail.commsrouter.eval.RsqlDummyValidator;
 import com.softavail.commsrouter.eval.RsqlSkillValidator;
 import com.softavail.commsrouter.eval.RsqlValidator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
-import com.softavail.commsrouter.util.PeriodicJobRunner;
 import com.softavail.commsrouter.jpa.PlanPurgeJob;
+import com.softavail.commsrouter.util.PeriodicJobRunner;
 import com.softavail.commsrouter.util.ThreadPoolKiller;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
 import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
 
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
