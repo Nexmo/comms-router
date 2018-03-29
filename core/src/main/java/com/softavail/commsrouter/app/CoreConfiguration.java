@@ -73,8 +73,18 @@ public interface CoreConfiguration {
     }
 
     @Override
+    public Integer getPurgeJobSecondsBetweenRuns() {
+      return 60 * 10;
+    }
+
+    @Override
     public Boolean getApiEnableTaskRequirementsValidation() {
       return false;
+    }
+
+    @Override
+    public Long getPurgeJobPurgeAgeSeconds() {
+      return 60 * 60L;
     }
 
   };
@@ -96,6 +106,10 @@ public interface CoreConfiguration {
   Integer getJpaLockRetryCount();
 
   Boolean getApiEnableExpressionSkillValidation();
+
+  Integer getPurgeJobSecondsBetweenRuns();
+
+  Long getPurgeJobPurgeAgeSeconds();
 
   Boolean getApiEnableAgentCapabilitiesValidation();
 
