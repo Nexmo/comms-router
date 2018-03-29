@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.util;
 
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class ThreadPoolKillerTest {
     verify(threadPool).shutdown();
     verify(threadPool, times(2)).awaitTermination(wait, TimeUnit.SECONDS);
     verify(threadPool).shutdownNow();
+    verifyNoMoreInteractions(threadPool);
   }
 
   @Test
@@ -60,6 +62,7 @@ public class ThreadPoolKillerTest {
     verify(threadPool).shutdown();
     verify(threadPool, times(2)).awaitTermination(wait, TimeUnit.SECONDS);
     verify(threadPool).shutdownNow();
+    verifyNoMoreInteractions(threadPool);
   }
 
   @Test
@@ -70,6 +73,7 @@ public class ThreadPoolKillerTest {
     ThreadPoolKiller.shutdown(threadPool, "TestPool", wait);
     verify(threadPool).shutdown();
     verify(threadPool).awaitTermination(wait, TimeUnit.SECONDS);
+    verifyNoMoreInteractions(threadPool);
   }
 
   @Test
@@ -80,6 +84,12 @@ public class ThreadPoolKillerTest {
     ThreadPoolKiller.shutdown(threadPool, "TestPool");
     verify(threadPool).shutdown();
     verify(threadPool).awaitTermination(wait, TimeUnit.SECONDS);
+    verifyNoMoreInteractions(threadPool);
+  }
+
+  @Test
+  public void testInstantiate() {
+    new ThreadPoolKiller();
   }
 
 }
