@@ -80,11 +80,11 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     if (createArg.getDefaultRoute() == null) {
       throw new IllegalArgumentException(
-          "Default route 'default_route' is mandatory option for plan creation.");
+          "Field 'defaultRoute' is required for plan creation.");
     }
 
     if (createArg.getDefaultRoute().getQueueRef() == null) {
-      throw new IllegalArgumentException("Queue ID 'queueId' is required in the default route.");
+      throw new IllegalArgumentException("Field 'queueRef' is required in the default route.");
     }
 
     if (createArg.getRules() != null) {

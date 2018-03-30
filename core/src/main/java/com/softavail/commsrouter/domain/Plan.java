@@ -89,7 +89,6 @@ public class Plan extends RouterObject {
 
   public void setDefaultRoute(Route defaultRoute) {
     this.defaultRoute = defaultRoute;
-    this.defaultRoute.setPlan(this);
   }
 
 }

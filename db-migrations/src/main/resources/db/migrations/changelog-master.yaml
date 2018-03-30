@@ -1097,3 +1097,24 @@ databaseChangeLog:
         onUpdate: NO ACTION
         referencedColumnNames: id
         referencedTableName: attribute_domain
+- changeSet:
+    id: O8p1TRYHSorSa3WXXzCi03_drop_fk_FKiriymbg09d9dbihd9lu1m3lkk
+    author: ikrustev
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: route
+        constraintName: FKiriymbg09d9dbihd9lu1m3lkk
+- changeSet:
+    id: O8p1TRYHSorSa3WXXzCi03_drop_index_FKiriymbg09d9dbihd9lu1m3lkk
+    author: ikrustev
+    changes:
+    - dropIndex:
+        indexName: FKiriymbg09d9dbihd9lu1m3lkk
+        tableName: route
+- changeSet:
+    id: O8p1TRYHSorSa3WXXzCi03_drop_column_route_rule_id
+    author: ikrustev
+    changes:
+    - dropColumn:
+        columnName: plan_id
+        tableName: route
