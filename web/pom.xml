@@ -70,6 +70,11 @@
         <version>${pac4jVersion}</version>
     </dependency>
     <dependency>
+        <groupId>org.pac4j</groupId>
+        <artifactId>pac4j-jwt</artifactId>
+        <version>${pac4jVersion}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-web</artifactId>
     </dependency>
