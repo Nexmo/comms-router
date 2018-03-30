@@ -67,16 +67,6 @@ public interface CoreConfiguration {
       return false;
     }
 
-    @Override
-    public Integer getPurgeJobSecondsBetweenRuns() {
-      return 60 * 10;
-    }
-
-    @Override
-    public Long getPurgeJobPurgeAgeSeconds() {
-      return 60 * 60L;
-    }
-
   };
 
   Integer getBackoffDelay();
@@ -96,9 +86,5 @@ public interface CoreConfiguration {
   Integer getJpaLockRetryCount();
 
   Boolean getApiEnableExpressionSkillValidation();
-
-  Integer getPurgeJobSecondsBetweenRuns();
-
-  Long getPurgeJobPurgeAgeSeconds();
 
 }

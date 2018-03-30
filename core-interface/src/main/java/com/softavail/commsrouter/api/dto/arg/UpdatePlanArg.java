@@ -18,7 +18,6 @@ package com.softavail.commsrouter.api.dto.arg;
 
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
-
 import java.util.ArrayList;
 import java.util.List;
 
