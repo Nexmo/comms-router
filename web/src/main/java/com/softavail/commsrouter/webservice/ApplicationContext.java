@@ -26,12 +26,9 @@ import com.softavail.commsrouter.eval.RsqlDummyValidator;
 import com.softavail.commsrouter.eval.RsqlSkillValidator;
 import com.softavail.commsrouter.eval.RsqlValidator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
-import com.softavail.commsrouter.util.PeriodicJobRunner;
 import com.softavail.commsrouter.jpa.PlanPurgeJob;
-import com.softavail.commsrouter.util.ThreadPoolKiller;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
 import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -52,9 +49,9 @@ public class ApplicationContext {
 
   private final Client client;
   private final AppContext coreContext;
+  private final PlanPurgeJob planPurgeJob;
   private final ConfigurationImpl configuration;
   private final ManifestConfigurationImpl manifest;
-  private final ScheduledThreadPoolExecutor purgeJobThreadPool;
 
   public ApplicationContext(ServletContext servletContext) {
     configuration = new ConfigurationImpl(servletContext);
@@ -69,15 +66,7 @@ public class ApplicationContext {
 
     coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers);
     evaluatorFactory.setRsqlValidator(createRsqlValidator());
-
-    purgeJobThreadPool = new ScheduledThreadPoolExecutor(1);
-    purgeJobThreadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-
-    PlanPurgeJob planPurgeJob =
-            new PlanPurgeJob(db.plan, configuration.getPurgeJobPurgeAgeSeconds());
-
-    PeriodicJobRunner.start(purgeJobThreadPool, planPurgeJob,
-            configuration.getPurgeJobSecondsBetweenRuns());
+    planPurgeJob = new PlanPurgeJob(db.plan, configuration);
   }
 
   public Client getClient() {
@@ -127,7 +116,7 @@ public class ApplicationContext {
   }
 
   public void close() {
-    ThreadPoolKiller.shutdown(purgeJobThreadPool, "PurgeJob");
+    planPurgeJob.close();
     client.close();
     coreContext.taskDispatcher.close();
     coreContext.db.close();
