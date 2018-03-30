@@ -92,6 +92,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
+    // validate capabilities
+    app.validators.agentCapabilitiesValidator.validate(createArg.getCapabilities(), objectRef.getRouterRef());
+
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
     agent.setRouter(router);
@@ -186,6 +189,10 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
       Agent agent;
       if (updateArg.getCapabilities() != null) {
+
+        // validate capabilities
+        app.validators.agentCapabilitiesValidator.validate(updateArg.getCapabilities(), objectRef.getRouterRef());
+
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
         agent = app.db.agent.get(em, objectRef);
