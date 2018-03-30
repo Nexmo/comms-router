@@ -31,20 +31,23 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Created by @author mapuo on 31.08.17.
@@ -69,7 +72,10 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       value = "Add new Agent",
       notes = "Add new Agent and associate it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)})})
   public Response create(CreateAgentArg agentArg) throws CommsRouterException {
 
     LOGGER.debug("Creating agent {}", agentArg);
@@ -85,7 +91,10 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       value = "Replace an existing Agent",
       notes = "If the agent with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Agent not found",
@@ -115,15 +124,21 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       value = "Update an existing Agent",
       notes = "Update some properties of an existing Agent")
   @ApiResponses({
-      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+              response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Agent not found",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 412, message = "Precondition Failed",
           response = ExceptionPresentation.class)})
-  public void update(
-      @Context HttpHeaders headers,
+  public Response update(
+      @ApiParam(value = "ETag header from creating or retrieving resource", required = true)
+      @HeaderParam(HttpHeaders.IF_MATCH)
+          String ifMatch,
       @ApiParam(value = "ID of the agent to be updated")
       @PathParam("resourceId")
           String resourceId,
@@ -136,9 +151,14 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
     LOGGER.debug("Updating agent {}", agentArg);
 
     RouterObjectRef objectId = getRouterObjectRef(resourceId);
-    objectId.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
+    objectId.setHash(ifMatch);
 
     agentService.update(agentArg, objectId);
+    AgentDto updatedAgent = agentService.get(objectId);
+
+    return Response.status(Status.NO_CONTENT)
+        .tag(new EntityTag(updatedAgent.getHash()))
+        .build();
   }
 
 }

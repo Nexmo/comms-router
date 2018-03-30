@@ -33,6 +33,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,22 +41,24 @@ import java.util.Collection;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Created by @author mapuo on 31.08.17.
  */
+@Api("/queues")
 @Produces({MediaType.APPLICATION_JSON})
 @Consumes({MediaType.APPLICATION_JSON})
-@Api("/queues")
 public class QueueResource extends GenericRouterObjectResource<QueueDto> {
 
   private static final Logger LOGGER = LogManager.getLogger(QueueResource.class);
@@ -73,9 +76,11 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
       value = "Creates a new Queue",
       notes = "Creates a new Queue and associates it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
-  public Response create(CreateQueueArg createArg)
-      throws CommsRouterException {
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)})})
+  public Response create(CreateQueueArg createArg) throws CommsRouterException {
 
     LOGGER.debug("Creating Queue {}", createArg);
 
@@ -90,7 +95,10 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
       value = "Replace an existing Queue",
       notes = "If the queue with the specified id does not exist, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Queue not found",
@@ -122,20 +130,26 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
           + " all the Agents will be evaluated and "
           + "assignments will be created and / or removed")
   @ApiResponses({
-      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation", responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Queue not found",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 412, message = "Precondition Failed",
           response = ExceptionPresentation.class)})
-  public void update(
-      @Context HttpHeaders headers,
+  public Response update(
+      @ApiParam(value = "ETag header from creating or retrieving resource", required = true)
+      @HeaderParam(HttpHeaders.IF_MATCH)
+          String ifMatch,
       @ApiParam(value = "ID of the queue to be updated")
       @PathParam("resourceId")
           String resourceId,
-      @ApiParam(value = "UpdateQueueArg object representing parameters "
-          + "of the Queue to be updated",
+      @ApiParam(
+          value = "UpdateQueueArg object representing parameters of the Queue to be updated",
           required = true)
           UpdateQueueArg updateArg)
       throws CommsRouterException {
@@ -143,9 +157,14 @@ public class QueueResource extends GenericRouterObjectResource<QueueDto> {
     LOGGER.debug("Updating Queue {}", updateArg);
 
     RouterObjectRef objectId = getRouterObjectRef(resourceId);
-    objectId.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
+    objectId.setHash(ifMatch);
 
     queueService.update(updateArg, objectId);
+    QueueDto updatedQueue = queueService.get(objectId);
+
+    return Response.status(Status.NO_CONTENT)
+        .tag(new EntityTag(updatedQueue.getHash()))
+        .build();
   }
 
   @GET

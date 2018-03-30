@@ -44,6 +44,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -92,18 +93,15 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
       notes = "Default paging will be applied",
       responseContainer = "List")
   @ApiResponses(
-      @ApiResponse(
-          code = 200,
-          message = "Successful operation",
-          responseHeaders = {
-              @ResponseHeader(
-                  name = PaginatedService.NEXT_TOKEN_HEADER,
-                  description = "The token for the next page",
-                  response = String.class),
-              @ResponseHeader(
-                  name = HttpHeaders.ETAG,
-                  description = "Etags of the resources in the list",
-                  response = String.class)}))
+      @ApiResponse(code = 200, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(
+              name = PaginatedService.NEXT_TOKEN_HEADER,
+              description = "The token for the next page",
+              response = String.class),
+          @ResponseHeader(
+              name = HttpHeaders.ETAG,
+              description = "ETags of the resources in the list separated by semicolon",
+              response = String.class)}))
   public Response list(
       @ApiParam(
           value = "The token from the previous request",
@@ -149,16 +147,18 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
   @GET
   @Path("{resourceRef}")
   @ApiOperation(value = "Get resource by ID", notes = "Returns resource by the given ID")
-  @ApiResponses(
-      @ApiResponse(
-          code = 200,
-          message = "Successful operation",
-          responseHeaders = {
-              @ResponseHeader(
-                  name = HttpHeaders.ETAG,
-                  description = "Etag of the resource",
-                  response = String.class)}))
-  public Response get(@Context Request request, @PathParam("resourceRef") String resourceRef)
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+              response = String.class)}),
+      @ApiResponse(code = 304, message = "Not Modified", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+              response = String.class)})})
+  public Response get(
+      @Context Request request,
+      @ApiParam(value = "ETag header provided when creating or retrieving resource")
+      @HeaderParam(HttpHeaders.IF_NONE_MATCH) String ifNoneMatch,
+      @PathParam("resourceRef") String resourceRef)
       throws CommsRouterException {
 
     RouterObjectRef routerObjectId = getRouterObjectRef(resourceRef);
