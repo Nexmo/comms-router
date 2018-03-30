@@ -118,7 +118,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null, null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getRef())) {
       try {
-        if (evaluator.changeExpression(queue.getPredicate(), queue.getRouter().getRef()).evaluate(capabilities)) {
+        CommsRouterEvaluator changeExpression =
+            evaluator.changeExpression(queue.getPredicate(), queue.getRouter().getRef());
+        if (changeExpression.evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;
@@ -196,9 +198,11 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
         agent = app.db.agent.get(em, objectRef);
+        checkResourceVersion(agent, objectRef);
         updateCapabilities(em, agent, updateArg.getCapabilities());
       } else {
         agent = app.db.agent.get(em, objectRef);
+        checkResourceVersion(agent, objectRef);
       }
 
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());

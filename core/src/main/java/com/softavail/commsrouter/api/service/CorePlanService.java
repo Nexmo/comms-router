@@ -69,6 +69,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan plan = app.db.plan.get(em, objectRef);
+      checkResourceVersion(plan, objectRef);
       PlanResolver planResolver = PlanResolver.create(app, em, plan);
       Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
     });

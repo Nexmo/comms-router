@@ -41,6 +41,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -100,8 +102,7 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
 
     LOGGER.debug("Replacing plan: {}, with id: {}", createArg, resourceId);
 
-    RouterObjectRef objectRef =
-        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
+    RouterObjectRef objectRef = getRouterObjectRef(resourceId);
 
     ApiObjectRef plan = planService.replace(createArg, objectRef);
 
@@ -122,15 +123,20 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public void update(
-      @ApiParam(value = "ID of the plan to be updated") @PathParam("resourceId") String resourceId,
-      @ApiParam(value = "UpdatePlanArg object representing parameters of the Plan to be updated",
-          required = true) UpdatePlanArg planArg)
+      @Context HttpHeaders headers,
+      @ApiParam(value = "ID of the plan to be updated")
+      @PathParam("resourceId")
+          String resourceId,
+      @ApiParam(
+          value = "UpdatePlanArg object representing parameters of the Plan to be updated",
+          required = true)
+          UpdatePlanArg planArg)
       throws CommsRouterException {
 
     LOGGER.debug("Updating plan {}", planArg);
 
-    RouterObjectRef objectId =
-        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
+    RouterObjectRef objectId = getRouterObjectRef(resourceId);
+    objectId.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
 
     planService.update(planArg, objectId);
   }

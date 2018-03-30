@@ -16,13 +16,15 @@
 
 package com.softavail.commsrouter.api.service;
 
+import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
+import com.softavail.commsrouter.api.exception.PreconditionFailedException;
 import com.softavail.commsrouter.domain.ApiObject;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMapper;
 import com.softavail.commsrouter.jpa.JpaTransactionManager;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * @author ikrustev
@@ -49,6 +51,14 @@ public class CoreApiObjectService<DTOENTITYT, ENTITYT extends ApiObject> {
 
   public Class<DTOENTITYT> getDtoEntityClass() {
     return dtoEntityClass;
+  }
+
+  protected void checkResourceVersion(ENTITYT entity, ApiObjectRef objectRef)
+      throws CommsRouterException {
+
+    if (!entity.hashString().equals(objectRef.getHash())) {
+      throw new PreconditionFailedException(entity.hashString(), objectRef.getHash());
+    }
   }
 
 }

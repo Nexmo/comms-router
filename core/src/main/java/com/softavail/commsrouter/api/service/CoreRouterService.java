@@ -79,11 +79,12 @@ public class CoreRouterService
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, String routerRef)
+  public void update(UpdateRouterArg updateArg, ApiObjectRef routerRef)
       throws CommsRouterException {
 
     transactionManager.executeVoid((em) -> {
-      Router router = routerRepository.getByRef(em, routerRef);
+      Router router = routerRepository.getByRef(em, routerRef.getRef());
+      checkResourceVersion(router, routerRef);
       Fields.update(router::setName, router.getName(), updateArg.getName());
       Fields.update(router::setDescription, router.getDescription(), updateArg.getDescription());
     });
@@ -102,7 +103,7 @@ public class CoreRouterService
     router.setConfig(routerConfig);
     routerConfig.setRouter(router);
     em.persist(routerConfig);
-    return new ApiObjectRef(router.getId(), router.getRef());
+    return new ApiObjectRef(router.getId(), router.getRef(), router.hashString());
   }
 
   @Override

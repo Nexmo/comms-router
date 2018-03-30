@@ -41,6 +41,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -100,8 +102,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
 
     LOGGER.debug("Replacing agent: {}, with id: {}", agentArg, resourceId);
 
-    RouterObjectRef objectRef =
-        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
+    RouterObjectRef objectRef = getRouterObjectRef(resourceId);
 
     ApiObjectRef agent = agentService.replace(agentArg, objectRef);
 
@@ -122,6 +123,7 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public void update(
+      @Context HttpHeaders headers,
       @ApiParam(value = "ID of the agent to be updated")
       @PathParam("resourceId")
           String resourceId,
@@ -133,8 +135,8 @@ public class AgentResource extends GenericRouterObjectResource<AgentDto> {
 
     LOGGER.debug("Updating agent {}", agentArg);
 
-    RouterObjectRef objectId =
-        RouterObjectRef.builder().setRef(resourceId).setRouterRef(routerRef).build();
+    RouterObjectRef objectId = getRouterObjectRef(resourceId);
+    objectId.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
 
     agentService.update(agentArg, objectId);
   }

@@ -28,6 +28,7 @@ public class RouterMapper extends EntityMapper<RouterDto, Router> {
   public RouterDto toDto(Router jpa) {
     RouterDto dto = new RouterDto();
     dto.setRef(jpa.getRef());
+    dto.setHash(jpa.hashString());
     dto.setName(jpa.getName());
     dto.setDescription(jpa.getDescription());
     return dto;

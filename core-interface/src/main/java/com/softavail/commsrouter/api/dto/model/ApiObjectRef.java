@@ -18,13 +18,13 @@ package com.softavail.commsrouter.api.dto.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 public class ApiObjectRef {
 
   private Long id;
 
   private String ref;
+
+  private String hash;
 
   public ApiObjectRef() {}
 
@@ -32,17 +32,18 @@ public class ApiObjectRef {
     setRef(ref);
   }
 
-  public ApiObjectRef(Long id, String ref) {
+  public ApiObjectRef(Long id, String ref, String hash) {
     setId(id);
     setRef(ref);
+    setHash(hash);
   }
 
   public ApiObjectRef(ApiObjectRef rhs) {
     setId(rhs.getId());
     setRef(rhs.getRef());
+    setHash(rhs.getHash());
   }
 
-  @XmlTransient
   @JsonIgnore
   public Long getId() {
     return id;
@@ -58,6 +59,18 @@ public class ApiObjectRef {
 
   public void setRef(String ref) {
     this.ref = ref;
+  }
+
+  @JsonIgnore
+  public String getHash() {
+    return hash;
+  }
+
+  public void setHash(String hash) {
+    if (hash != null && hash.startsWith("\"") && hash.endsWith("\"")) {
+      hash = hash.substring(1, hash.length() - 1);
+    }
+    this.hash = hash;
   }
 
   @Override

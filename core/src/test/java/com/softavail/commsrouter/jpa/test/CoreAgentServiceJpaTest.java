@@ -52,7 +52,8 @@ public class CoreAgentServiceJpaTest extends TestBase {
     queueService.replace(newCreateQueueArg("1==1", "description_one"), ref);
     agentService.replace(newCreateAgentArg("address_one"), ref);
     // Updating
-    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref);
+    AgentDto beforeUpdate = agentService.get(ref);
+    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), beforeUpdate);
     AgentDto agent = agentService.get(ref);
     assertEquals(agent.getAddress(), "address_two");
     assertEquals(agent.getState(), AgentState.ready);
@@ -71,8 +72,10 @@ public class CoreAgentServiceJpaTest extends TestBase {
   public void updateStateOffline() throws CommsRouterException {
     RouterObjectRef ref = new RouterObjectRef("", "01");
     agentService.replace(newCreateAgentArg("address_one"), ref); // offline
-    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), ref); // ready
-    agentService.update(newUpdateAgentArg("address_two", AgentState.offline), ref); // offline
+    AgentDto beforeUpdate = agentService.get(ref);
+    agentService.update(newUpdateAgentArg("address_two", AgentState.ready), beforeUpdate); // ready
+    beforeUpdate = agentService.get(ref);
+    agentService.update(newUpdateAgentArg("address_two", AgentState.offline), beforeUpdate); // offline
     AgentDto agent = agentService.get(ref);
     assertEquals(agent.getState(), AgentState.offline);
   }

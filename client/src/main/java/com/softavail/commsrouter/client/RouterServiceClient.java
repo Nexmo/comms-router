@@ -74,7 +74,7 @@ public class RouterServiceClient extends ServiceClientBase<RouterDto, ApiObjectR
   }
 
   @Override
-  public void update(UpdateRouterArg updateArg, String ref)
+  public void update(UpdateRouterArg updateArg, ApiObjectRef ref)
       throws NotFoundException {
 
     post(updateArg, ref);
