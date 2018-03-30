@@ -124,7 +124,9 @@ public class PlanResource extends GenericRouterObjectResource<PlanDto> {
       value = "Update an existing Plan",
       notes = "Update some properties of an existing Plan")
   @ApiResponses({
-      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation", responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Plan not found",
