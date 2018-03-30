@@ -18,7 +18,6 @@ package com.softavail.commsrouter.domain;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -27,7 +26,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -55,10 +53,6 @@ public class Route implements Serializable {
 
   @Column(name = "queued_task_timeout")
   private Long timeout;
-
-  @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "plan_id")
-  private Plan plan;
 
   @Override
   public boolean equals(Object rhs) {
@@ -114,14 +108,6 @@ public class Route implements Serializable {
 
   public void setTimeout(Long timeout) {
     this.timeout = timeout;
-  }
-
-  public Plan getPlan() {
-    return plan;
-  }
-
-  public void setPlan(Plan plan) {
-    this.plan = plan;
   }
 
 }
