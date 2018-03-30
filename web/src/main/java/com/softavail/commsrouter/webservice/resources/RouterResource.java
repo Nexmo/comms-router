@@ -61,7 +61,9 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
@@ -152,15 +154,23 @@ public class RouterResource {
       @ApiResponse(code = 404, message = "Router with the provided id is not found",
           response = ExceptionPresentation.class)})
   public Response get(
+      @Context Request request,
       @ApiParam(value = "ID of the router to be searched") @PathParam("id") String id)
       throws CommsRouterException {
 
     LOGGER.debug("Looking for router with ref: {}", id);
 
     RouterDto routerDto = routerService.get(id);
+    EntityTag entityTag = new EntityTag(routerDto.getHash());
+
+    ResponseBuilder builder = request.evaluatePreconditions(entityTag);
+
+    if (builder != null) {
+      return builder.build();
+    }
 
     return Response.ok()
-        .tag(new EntityTag(routerDto.getHash()))
+        .tag(entityTag)
         .entity(routerDto)
         .build();
   }
