@@ -24,6 +24,7 @@ import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -222,6 +223,7 @@ public class AgentTest extends BaseTest {
   @Test
   public void agentHandlesTask() throws MalformedURLException, InterruptedException {
     a.create("en");
+    
     AgentDto resource = a.get();
     assertThat(String.format("Check attribute language (%s) is 'en'.",
         ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
@@ -231,8 +233,10 @@ public class AgentTest extends BaseTest {
         resource.getState(), is(AgentState.offline));
     assertThat(q.size(), is(0));
     a.setState(AgentState.ready);
+    assertThat(state.get(CommsRouterResource.EAGENT),not(equalTo(null)));
 
     t.createQueueTask();
+    
     assertThat(q.size(), is(0));
     completeTask();
     t.delete();

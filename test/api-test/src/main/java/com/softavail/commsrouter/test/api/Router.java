@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.ws.rs.core.HttpHeaders;
+
 public class Router extends Resource {
 
   private static final Logger LOGGER = LogManager.getLogger(Router.class);
@@ -63,32 +65,39 @@ public class Router extends Resource {
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
     return given()
+        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EROUTER))
         .contentType("application/json")
         .pathParam("routerRef", routerRef).body(args)
         .when().put("/routers/{routerRef}")
-        .then();
+        .then()
+        .header(HttpHeaders.ETAG, not(equalTo(null)));
   }
 
   public ApiObjectRef replace(CreateRouterArg args) {
-    ApiObjectRef oid = replaceResponse(args)
-        .statusCode(201)
-        .extract()
+    ValidatableResponse response = replaceResponse(args).statusCode(201);
+    
+    ApiObjectRef oid = response.extract()
         .as(ApiObjectRef.class);
     state().put(CommsRouterResource.ROUTER, oid.getRef());
+    state().put(CommsRouterResource.EROUTER, response.extract().header(HttpHeaders.ETAG));
     return oid;
   }
 
   public ApiObjectRef create(CreateRouterArg args) {
-    ApiObjectRef oid = given()
+    ValidatableResponse response = given()
         .contentType("application/json")
         .body(args)
         .when().post("/routers")
         .then().statusCode(201)
-        .body("ref", not(isEmptyString()))
-        .extract()
+        .header(HttpHeaders.ETAG, not(equalTo(null)))
+        .body("ref", not(isEmptyString()));
+    
+    ApiObjectRef oid = response.extract()
         .as(ApiObjectRef.class);
     String id = oid.getRef();
+    
     state().put(CommsRouterResource.ROUTER, id);
+    state().put(CommsRouterResource.EROUTER, response.extract().header(HttpHeaders.ETAG));
     return oid;
   }
 
@@ -116,12 +125,16 @@ public class Router extends Resource {
 
   public void update(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    given()
+    ValidatableResponse response = given()
+        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EROUTER))
         .contentType("application/json")
         .pathParam("routerRef", routerRef)
         .body(args)
         .when().post("/routers/{routerRef}")
-        .then().statusCode(204);
+        .then()
+        .header(HttpHeaders.ETAG, not(equalTo(null)))
+        .statusCode(204);
+    state().put(CommsRouterResource.EROUTER, response.extract().header(HttpHeaders.ETAG));
   }
 
 }

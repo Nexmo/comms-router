@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.ws.rs.core.HttpHeaders;
+
 public class Queue extends Resource {
 
   private static final Logger LOGGER = LogManager.getLogger(Queue.class);
@@ -56,13 +58,17 @@ public class Queue extends Resource {
 
   public ValidatableResponse replaceResponse(CreateQueueArg args) {
     String ref = state().get(CommsRouterResource.QUEUE);
-    return given()
+    ValidatableResponse response =  given()
+        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EQUEUE))
         .contentType("application/json")
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .body(args)
         .when().put("/routers/{routerRef}/queues/{ref}")
-        .then();
+        .then()
+        .header(HttpHeaders.ETAG, not(equalTo(null)));
+    state().put(CommsRouterResource.EQUEUE, response.extract().header(HttpHeaders.ETAG));
+    return response;
   }
 
   public ApiObjectRef replace(CreateQueueArg args) {
@@ -76,18 +82,20 @@ public class Queue extends Resource {
   }
 
   public ApiObjectRef create(CreateQueueArg args) {
-
-    ApiObjectRef oid = given()
+    ValidatableResponse response = given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerRef}/queues")
         .then().statusCode(201)
         .body("id", not(isEmptyString()))
-        .extract()
+        .header(HttpHeaders.ETAG, not(equalTo(null)));
+    
+    ApiObjectRef oid = response.extract()
         .as(ApiObjectRef.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.QUEUE, id);
+    state().put(CommsRouterResource.EQUEUE, response.extract().header(HttpHeaders.ETAG));
     return oid;
   }
 
@@ -107,6 +115,7 @@ public class Queue extends Resource {
         .pathParam("ref", ref)
         .when().get("/routers/{routerRef}/queues/{ref}")
         .then().statusCode(200)
+        .header(HttpHeaders.ETAG, not(equalTo(null)))
         .body("ref", equalTo(ref)).extract().as(QueueDto.class);
   }
 
@@ -139,6 +148,7 @@ public class Queue extends Resource {
   public void update(CreateQueueArg args) {
     String ref = state().get(CommsRouterResource.QUEUE);
     given()
+        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EQUEUE))
         .contentType("application/json")
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
