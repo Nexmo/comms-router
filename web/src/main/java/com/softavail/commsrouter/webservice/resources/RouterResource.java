@@ -49,6 +49,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -92,14 +93,15 @@ public class RouterResource {
       responseContainer = "List",
       tags = "routers")
   @ApiResponses(
-      @ApiResponse(
-          code = 200,
-          message = "Successful operation",
-          responseHeaders = {
-              @ResponseHeader(
-                  name = PaginatedService.NEXT_TOKEN_HEADER,
-                  description = "The token for the next page",
-                  response = String.class)}))
+      @ApiResponse(code = 200, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(
+              name = PaginatedService.NEXT_TOKEN_HEADER,
+              description = "The token for the next page",
+              response = String.class),
+          @ResponseHeader(
+              name = HttpHeaders.ETAG,
+              description = "ETags of the resources in the list separated by semicolon",
+              response = String.class)}))
   public Response list(
       @ApiParam(
           value = "The token from the previous request",
@@ -150,12 +152,20 @@ public class RouterResource {
       response = RouterDto.class,
       tags = "routers")
   @ApiResponses({
-      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 200, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+              response = String.class)}),
+      @ApiResponse(code = 304, message = "Not Modified", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+              response = String.class)}),
       @ApiResponse(code = 404, message = "Router with the provided id is not found",
           response = ExceptionPresentation.class)})
   public Response get(
       @Context Request request,
-      @ApiParam(value = "ID of the router to be searched") @PathParam("id") String id)
+      @ApiParam(value = "ETag header provided when creating or retrieving resource")
+      @HeaderParam(HttpHeaders.IF_NONE_MATCH) String ifNoneMatch,
+      @ApiParam(value = "ID of the router to be searched")
+      @PathParam("id") String id)
       throws CommsRouterException {
 
     LOGGER.debug("Looking for router with ref: {}", id);
@@ -183,14 +193,14 @@ public class RouterResource {
       code = 201,
       tags = "routers")
   @ApiResponses(
-      @ApiResponse(code = 201, message = "Created",
-          responseHeaders = @ResponseHeader(
-              name = HttpHeaders.LOCATION,
-              response = URL.class,
-              description = "The path to the newly created resource")))
+      @ApiResponse(code = 201, message = "Created", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.LOCATION, response = URL.class,
+              description = "The path to the newly created resource"),
+          @ResponseHeader(name = HttpHeaders.ETAG, response = String.class,
+              description = "ETag of the resource")}))
   public Response create(
-      @ApiParam(value = "Router object that needs to be added to the list of routers",
-          required = true) CreateRouterArg routerArg)
+      @ApiParam(value = "Router object to be added to the list of routers", required = true)
+          CreateRouterArg routerArg)
       throws CommsRouterException {
 
     LOGGER.debug("Creating router: {}", routerArg);
@@ -211,18 +221,22 @@ public class RouterResource {
   @Path("{id}")
   @ApiOperation(value = "Update an existing router properties", tags = "routers")
   @ApiResponses({
-      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, response = String.class,
+              description = "ETag of the resource")}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 412, message = "Precondition Failed",
           response = ExceptionPresentation.class)})
-  public void update(
-      @Context HttpHeaders headers,
-      @ApiParam(
-          value = "The id of the router to be updated",
-          required = true)
+  public Response update(
+      @ApiParam(value = "ETag header from creating or retrieving resource", required = true)
+      @HeaderParam(HttpHeaders.IF_MATCH)
+          String ifMatch,
+      @ApiParam(value = "The id of the router to be updated", required = true)
       @PathParam("id")
           String id,
       @ApiParam(
@@ -234,9 +248,14 @@ public class RouterResource {
     LOGGER.debug("Updating router: {}", routerArg);
 
     ApiObjectRef objectRef = new ApiObjectRef(id);
-    objectRef.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
+    objectRef.setHash(ifMatch);
 
     routerService.update(routerArg, objectRef);
+    RouterDto updatedRouter = routerService.get(id);
+
+    return Response.status(Status.NO_CONTENT)
+        .tag(new EntityTag(updatedRouter.getHash()))
+        .build();
   }
 
   @PUT
@@ -245,14 +264,17 @@ public class RouterResource {
       value = "Replace an existing router",
       notes = "If the router with the specified id does not exist, it creates it",
       tags = "routers")
-  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation", responseHeaders = {
+          @ResponseHeader(name = HttpHeaders.ETAG, response = String.class,
+              description = "ETag of the resource")}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Router not found",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
-  public Response put(
+  public Response replace(
       @ApiParam(
           value = "The id of the router to be updated",
           required = true) @PathParam("ref") String ref,

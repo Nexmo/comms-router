@@ -31,20 +31,23 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  *
@@ -70,7 +73,10 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
       value = "Add new Skill",
       notes = "Add new Skill and associate it with a Router")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class)})
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)})})
   public Response create(CreateSkillArg skillArg) throws CommsRouterException {
 
     LOGGER.debug("Creating skill {}", skillArg);
@@ -86,7 +92,10 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
       value = "Replace an existing Skill",
       notes = "If no skill with the specified ref exists, it creates it")
   @ApiResponses({
-      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class),
+      @ApiResponse(code = 201, message = "Successful operation", response = ApiObjectRef.class,
+          responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ref supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
@@ -115,15 +124,21 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
       value = "Update an existing Skill",
       notes = "Update some properties of an existing Skill")
   @ApiResponses({
-      @ApiResponse(code = 204, message = "Successful operation"),
+      @ApiResponse(code = 204, message = "Successful operation", responseHeaders = {
+              @ResponseHeader(name = HttpHeaders.ETAG, description = "ETag of the resource",
+                  response = String.class)}),
       @ApiResponse(code = 400, message = "Invalid ID supplied",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 404, message = "Skill not found",
           response = ExceptionPresentation.class),
       @ApiResponse(code = 405, message = "Validation exception",
+          response = ExceptionPresentation.class),
+      @ApiResponse(code = 412, message = "Precondition Failed",
           response = ExceptionPresentation.class)})
-  public void update(
-      @Context HttpHeaders headers,
+  public Response update(
+      @ApiParam(value = "ETag header from creating or retrieving resource", required = true)
+      @HeaderParam(HttpHeaders.IF_MATCH)
+          String ifMatch,
       @ApiParam(value = "Ref of the Skill to be updated")
       @PathParam("resourceRef")
           String resourceId,
@@ -136,9 +151,14 @@ public class SkillResource extends GenericRouterObjectResource<SkillDto> {
     LOGGER.debug("Updating skill {}", skillArg);
 
     RouterObjectRef objectId = getRouterObjectRef(resourceId);
-    objectId.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
+    objectId.setHash(ifMatch);
 
     service.update(skillArg, objectId);
+    SkillDto updatedSkill = service.get(objectId);
+
+    return Response.status(Status.NO_CONTENT)
+        .tag(new EntityTag(updatedSkill.getHash()))
+        .build();
   }
 
 }
