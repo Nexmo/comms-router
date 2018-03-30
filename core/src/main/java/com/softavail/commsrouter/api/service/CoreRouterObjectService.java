@@ -96,8 +96,6 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
           .addAll(sortPredicates)
           .add(cb.equal(router.get("ref"), request.getRouterRef()));
 
-      amendCiteria(cb, root, predicateBuilder);
-
       filterPredicate.ifPresent(predicateBuilder::add);
 
       Predicate[] predicates = predicateBuilder.build().toArray(new Predicate[0]);
@@ -122,13 +120,6 @@ public class CoreRouterObjectService<DTOT extends RouterObjectRef, ENTITYT exten
 
       return new PaginatedList<>(entityMapper.toDto(jpaResult), nextToken);
     });
-  }
-
-  // Does nothing. To be overriden by successors that want to add more criteria.
-  protected Builder<Predicate> amendCiteria(CriteriaBuilder cb, Root<ENTITYT> root,
-          Builder<Predicate> predicateBuilder) {
-
-    return predicateBuilder;
   }
 
   @Override
