@@ -32,6 +32,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 
+import javax.ws.rs.core.HttpHeaders;
+
 public class ApiAgent extends Resource {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiAgent.class);
@@ -88,6 +90,18 @@ public class ApiAgent extends Resource {
         .body(args)
         .when().post("/routers/{routerRef}/agents/{agentRef}")
         .then();
+  }
+  
+  public ValidatableResponse update(String etag, String routerRef,
+                                    String agentRef, UpdateAgentArg args) {
+    return given()
+      .header(HttpHeaders.IF_MATCH, etag)
+      .contentType("application/json")
+      .pathParam("routerRef", routerRef)
+      .pathParam("agentRef", agentRef)
+      .body(args)
+      .when().post("/routers/{routerRef}/agents/{agentRef}")
+      .then();
   }
 
   public ValidatableResponse replace(String routerRef, String agentRef, CreateAgentArg args) {

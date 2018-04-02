@@ -22,6 +22,8 @@ import com.softavail.commsrouter.test.api.*;
 import static org.hamcrest.Matchers.*;
 import com.softavail.commsrouter.api.dto.model.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.OutputStreamWriter;
@@ -36,6 +38,8 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
+import javax.ws.rs.core.HttpHeaders;
 
 public class NegativeCasesTest extends BaseTest {
   private static final String longText =  "longName със символи на кирилица345678901234567890longName със символи на кирилица345678901234567890"+"longName със символи на кирилица345678901234567890longName със символи на кирилица345678901234567890"+"longName със символи на кирилица345678901234567890longName със символи на кирилица345678901234567890";
@@ -608,28 +612,41 @@ public class NegativeCasesTest extends BaseTest {
     assertThat(String.format("Check state (%s) to be busy.", resource.getState()),
                resource.getState(), is(AgentState.busy));
     ApiAgent api_a = new ApiAgent(state);
-    api_a.update(state.get(CommsRouterResource.ROUTER),
-                 state.get(CommsRouterResource.AGENT),
-                 new UpdateAgentArg.Builder().state(AgentState.ready).build())
+    String etag = api_a.update(state.get(CommsRouterResource.EAGENT),
+                               state.get(CommsRouterResource.ROUTER),
+                               state.get(CommsRouterResource.AGENT),
+                               new UpdateAgentArg.Builder().state(AgentState.ready).build())
       .statusCode(400)
-      .body("error.description",is("Changing state of a busy agent is not implemented. Complete corresponding task."));
-    api_a.update(state.get(CommsRouterResource.ROUTER),
+      .body("error.description",is("Changing state of a busy agent is not implemented. Complete corresponding task."))
+      .extract().header(HttpHeaders.ETAG);
+    assertThat(etag,equalTo(null));
+    
+    etag = api_a.update(state.get(CommsRouterResource.EAGENT),
+                 state.get(CommsRouterResource.ROUTER),
                  state.get(CommsRouterResource.AGENT),
                  new UpdateAgentArg.Builder().state(AgentState.offline).build())
       .statusCode(400)
-      .body("error.description",is("Changing state of a busy agent is not implemented. Complete corresponding task."));
+      .body("error.description",is("Changing state of a busy agent is not implemented. Complete corresponding task."))
+      .extract().header(HttpHeaders.ETAG);
+    assertThat(etag,equalTo(null));
 
-    api_a.update(state.get(CommsRouterResource.ROUTER),
+    etag = api_a.update(state.get(CommsRouterResource.EAGENT),
+                 state.get(CommsRouterResource.ROUTER),
                  state.get(CommsRouterResource.AGENT),
                  new UpdateAgentArg.Builder().state(AgentState.unavailable).build())
       .statusCode(400)
-      .body("error.description",is("Setting agent state to 'unavailable' not allowed"));
+      .body("error.description",is("Setting agent state to 'unavailable' not allowed"))
+      .extract().header(HttpHeaders.ETAG);
+    assertThat(etag,equalTo(null));
     
-    api_a.update(state.get(CommsRouterResource.ROUTER),
+    etag = api_a.update(state.get(CommsRouterResource.EAGENT),
+                 state.get(CommsRouterResource.ROUTER),
                  state.get(CommsRouterResource.AGENT),
                  new UpdateAgentArg.Builder().state(AgentState.busy).build())
       .statusCode(400)
-      .body("error.description",is("Setting agent state to 'busy' not allowed"));
+      .body("error.description",is("Setting agent state to 'busy' not allowed"))
+      .extract().header(HttpHeaders.ETAG);
+    assertThat(etag,equalTo(null));
     
   }
 

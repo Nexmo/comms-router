@@ -63,16 +63,19 @@ public class Agent extends Resource {
 
   public ApiObjectRef replace(CreateAgentArg args) {
     String ref = state().get(CommsRouterResource.AGENT);
-    ApiObjectRef oid = given()
+    ValidatableResponse response = given()
         .contentType("application/json")
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .body(args)
         .when().put("/routers/{routerRef}/agents/{ref}")
-        .then().statusCode(201)
+        .then();
+    
+    ApiObjectRef oid = response.statusCode(201)
         .extract()
         .as(ApiObjectRef.class);
     state().put(CommsRouterResource.AGENT, oid.getRef());
+    state().put(CommsRouterResource.EAGENT, response.extract().header(HttpHeaders.ETAG));
     return oid;
   }
 
@@ -111,9 +114,11 @@ public class Agent extends Resource {
   }
 
   public AgentDto get(String ref) {
-    return given()
+    ValidatableResponse response = given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .pathParam("ref", ref).when().get("/routers/{routerRef}/agents/{ref}").then()
+        .pathParam("ref", ref).when().get("/routers/{routerRef}/agents/{ref}").then();
+    state().put(CommsRouterResource.EAGENT, response.extract().header(HttpHeaders.ETAG));      
+    return response
         .statusCode(200).body("ref", equalTo(ref))
         .extract()
         .as(AgentDto.class);
@@ -143,5 +148,4 @@ public class Agent extends Resource {
     agentArg.setState(state);
     update(agentArg);
   }
-
 }

@@ -22,14 +22,16 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
+
 import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateSkillArg;
-
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
+
+import io.restassured.response.ValidatableResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +39,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.ws.rs.core.HttpHeaders;
 
 public class Skill extends Resource {
 
@@ -72,17 +76,22 @@ public class Skill extends Resource {
   }
 
   public ApiObjectRef create(CreateSkillArg args) {
-    ApiObjectRef oid = given()
+    ValidatableResponse response = given()
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .contentType("application/json")
         .body(args)
         .when().post("/routers/{routerId}/skills")
-        .then().statusCode(201)
+        .then();
+    
+    ApiObjectRef oid = response
+        .header(HttpHeaders.ETAG, not(equalTo(null)))
+        .statusCode(201)
         .body("ref", not(isEmptyString()))
         .extract()
         .as(ApiObjectRef.class);
     String id = oid.getRef();
     state().put(CommsRouterResource.SKILL, id);
+    state().put(CommsRouterResource.ESKILL, response.extract().header(HttpHeaders.ETAG));
     return oid;
   }
 
@@ -110,13 +119,17 @@ public class Skill extends Resource {
 
   public void update(UpdateSkillArg args) {
     String ref = state().get(CommsRouterResource.SKILL);
-    given()
+    ValidatableResponse response = given()
+        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.ESKILL))
         .contentType("application/json")
         .pathParam("routerId", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .body(args)
         .when().post("/routers/{routerId}/skills/{ref}")
-        .then().statusCode(204);
+        .then()
+        .header(HttpHeaders.ETAG, not(equalTo(null)))
+        .statusCode(204);
+    state().put(CommsRouterResource.ESKILL, response.extract().header(HttpHeaders.ETAG));
   }
 
 }
