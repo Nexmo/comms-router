@@ -101,9 +101,6 @@ public class SkillValidator {
       }
 
       private void singlevalueValidation(AttributeValueDto value) throws CommsRouterException {
-        if (skillDto.getMultivalue()) {
-          throw new CommsRouterException("Skill " + skill + " should have a multivalue parameter: " + value.toString());
-        }
       }
       private void multivalueValidation(AttributeValueDto value) throws CommsRouterException {
         if (!skillDto.getMultivalue()) {
