@@ -43,61 +43,54 @@ public class ApiTask extends Resource {
   public ValidatableResponse list(String routerRef) {
     return list(routerRef, "");
   }
-
   
   public ValidatableResponse list(String routerRef, String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
       .pathParam("routerRef", routerRef)
-      .when().get("/routers/{routerRef}/tasks?{query}")
+      .get("/routers/{routerRef}/tasks?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef, String taskRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("taskRef", taskRef)
-        .when().get("/routers/{routerRef}/agents/{taskRef}")
+        .get("/routers/{routerRef}/agents/{taskRef}")
         .then();
   }
 
   public ValidatableResponse delete(String routerRef, String taskRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("taskRef", taskRef)
-        .when().delete("/routers/{routerRef}/tasks/{taskRef}")
+        .delete("/routers/{routerRef}/tasks/{taskRef}")
         .then();
   }
 
   public ValidatableResponse create(String routerRef, CreateTaskArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}/tasks")
+        .post("/routers/{routerRef}/tasks")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, String taskRef, UpdateTaskArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("taskRef", taskRef)
         .body(args)
-        .when().post("/routers/{routerRef}/tasks/{taskRef}")
+        .post("/routers/{routerRef}/tasks/{taskRef}")
         .then();
   }
 
   public ValidatableResponse replace(String routerRef, String taskRef, CreateTaskArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("taskRef", taskRef)
         .body(args)
-        .when().put("/routers/{routerRef}/tasks/{taskRef}")
+        .put("/routers/{routerRef}/tasks/{taskRef}")
         .then();
   }
 

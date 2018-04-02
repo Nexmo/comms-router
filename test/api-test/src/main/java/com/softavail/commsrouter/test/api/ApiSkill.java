@@ -45,58 +45,52 @@ public class ApiSkill extends Resource {
   }
   
   public ValidatableResponse list(String routerRef, String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
       .pathParam("routerRef", routerRef)
-      .when().get("/routers/{routerRef}/skills?{query}")
+      .get("/routers/{routerRef}/skills?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef, String skillRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("skillRef", skillRef)
-        .when().get("/routers/{routerRef}/skills/{skillRef}")
+        .get("/routers/{routerRef}/skills/{skillRef}")
         .then();
   }
 
   public ValidatableResponse delete(String routerRef, String skillRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("skillRef", skillRef)
-        .when().delete("/routers/{routerRef}/skills/{skillRef}")
+        .delete("/routers/{routerRef}/skills/{skillRef}")
         .then();
   }
 
   public ValidatableResponse create(String routerRef, CreateSkillArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}/skills")
+        .post("/routers/{routerRef}/skills")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, String skillRef, UpdateSkillArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("skillRef", skillRef)
         .body(args)
-        .when().post("/routers/{routerRef}/skills/{skillRef}")
+        .post("/routers/{routerRef}/skills/{skillRef}")
         .then();
   }
 
   public ValidatableResponse replace(String routerRef, String skillRef, CreateSkillArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("skillRef", skillRef)
         .body(args)
-        .when().put("/routers/{routerRef}/skills/{skillRef}")
+        .put("/routers/{routerRef}/skills/{skillRef}")
         .then();
   }
 
