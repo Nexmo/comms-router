@@ -50,13 +50,10 @@ import javax.persistence.EntityManager;
 public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     implements AgentService {
 
-  private SkillValidator skillValidator;
-
   private static final Logger LOGGER = LogManager.getLogger(CoreAgentService.class);
 
   public CoreAgentService(AppContext app) {
     super(app, app.db.agent, app.entityMapper.agent);
-    skillValidator = new SkillValidator();
   }
 
   @Override
@@ -96,7 +93,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
     // validate capabilities
-    skillValidator.validateCapabilities(createArg.getCapabilities(), objectRef.getRouterRef());
+    app.validators.agentCapabilitiesValidator.validate(createArg.getCapabilities(), objectRef.getRouterRef());
 
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
@@ -121,7 +118,9 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
     CommsRouterEvaluator evaluator = app.evaluatorFactory.provide(null, null);
     for (Queue queue : app.db.queue.list(em, agent.getRouter().getRef())) {
       try {
-        if (evaluator.changeExpression(queue.getPredicate(), queue.getRouter().getRef()).evaluate(capabilities)) {
+        CommsRouterEvaluator changeExpression =
+            evaluator.changeExpression(queue.getPredicate(), queue.getRouter().getRef());
+        if (changeExpression.evaluate(capabilities)) {
 
           LOGGER.info("Queue {} <=> Agent {}", queue.getRef(), agent.getRef());
           ++attachedQueuesCount;
@@ -192,12 +191,18 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
 
       Agent agent;
       if (updateArg.getCapabilities() != null) {
+
+        // validate capabilities
+        app.validators.agentCapabilitiesValidator.validate(updateArg.getCapabilities(), objectRef.getRouterRef());
+
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
         agent = app.db.agent.get(em, objectRef);
+        checkResourceVersion(agent, objectRef);
         updateCapabilities(em, agent, updateArg.getCapabilities());
       } else {
         agent = app.db.agent.get(em, objectRef);
+        checkResourceVersion(agent, objectRef);
       }
 
       Fields.update(agent::setAddress, agent.getAddress(), updateArg.getAddress());

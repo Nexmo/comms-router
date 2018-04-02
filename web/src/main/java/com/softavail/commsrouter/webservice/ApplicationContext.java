@@ -22,9 +22,9 @@ import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.app.TaskDispatcher;
 import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.eval.CommsRouterEvaluatorFactory;
-import com.softavail.commsrouter.eval.RsqlValidator;
-import com.softavail.commsrouter.eval.RsqlSkillsValidator;
 import com.softavail.commsrouter.eval.RsqlDummyValidator;
+import com.softavail.commsrouter.eval.RsqlSkillValidator;
+import com.softavail.commsrouter.eval.RsqlValidator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
 import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
@@ -61,8 +61,7 @@ public class ApplicationContext {
     EntityMappers mappers = new EntityMappers();
     TaskDispatcher taskDispatcher =
         new TaskDispatcher(db, mappers, configuration, this::handleAssignment);
-
-    coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers);
+    coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers, configuration);
     evaluatorFactory.setRsqlValidator(createRsqlValidator());
   }
 
@@ -119,8 +118,8 @@ public class ApplicationContext {
   }
 
   private RsqlValidator createRsqlValidator() {
-    if (configuration.getClientEnableSkillValidation()) {
-      return new RsqlSkillsValidator(coreContext.svc.skill);
+    if (configuration.getApiEnableExpressionSkillValidation()) {
+      return new RsqlSkillValidator(coreContext.svc.skill);
     } else {
       return new RsqlDummyValidator();
     }

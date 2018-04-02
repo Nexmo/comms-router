@@ -34,6 +34,7 @@ public interface PlanService extends RouterObjectService<PlanDto> {
   ApiObjectRef replace(CreatePlanArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)      throws CommsRouterException;
+  void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)
+      throws CommsRouterException;
 
 }

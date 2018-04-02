@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
+
 import java.util.List;
 
 /**
@@ -71,17 +72,17 @@ public class ValidationUtils {
   }
 
   public static void assertSingleParameter(String operator, List element)
-      throws EvaluatorException {
+      throws ExpressionException {
     if (element.size() != 1) {
-      throw new EvaluatorException("Invalid arguments number for operator '" + operator
+      throw new ExpressionException("Invalid arguments number for operator '" + operator
           + "'. Expected 1 but found " + element.size());
     }
   }
 
   public static void assertBoolean(String bool) throws ExpressionException {
     if (bool != null) {
-      String b = bool.toLowerCase();
-      if (b.equals("true") || b.equals("false")) {
+      String toLowerCase = bool.toLowerCase();
+      if (toLowerCase.equals("true") || toLowerCase.equals("false")) {
         return;
       }
     }

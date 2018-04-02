@@ -16,9 +16,13 @@
 
 package com.softavail.commsrouter.domain;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -73,7 +77,7 @@ public class ApiObject implements Serializable {
   }
 
   public ApiObjectRef cloneApiObjectRef() {
-    return new ApiObjectRef(id, ref);
+    return new ApiObjectRef(id, ref, hashString());
   }
 
   @Override
@@ -91,6 +95,12 @@ public class ApiObject implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(getRef(), getVersion(), getClass());
+  }
+
+  public String hashString() {
+    String hashFields = String.format("%d%s%d", id, ref, version);
+    HashCode hash = Hashing.sha256().hashString(hashFields, StandardCharsets.UTF_8);
+    return hash.toString();
   }
 
 }

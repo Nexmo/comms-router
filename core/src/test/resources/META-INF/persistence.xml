@@ -22,12 +22,15 @@
       <class>com.softavail.commsrouter.domain.RouterConfig</class>
       <class>com.softavail.commsrouter.domain.Agent</class>
       <class>com.softavail.commsrouter.domain.Attribute</class>
+      <class>com.softavail.commsrouter.domain.AttributeDomain</class>
+      <class>com.softavail.commsrouter.domain.AttributeDomainDefinition</class>
       <class>com.softavail.commsrouter.domain.AttributeGroup</class>
       <class>com.softavail.commsrouter.domain.Plan</class>
       <class>com.softavail.commsrouter.domain.Queue</class>
       <class>com.softavail.commsrouter.domain.Rule</class>
       <class>com.softavail.commsrouter.domain.Route</class>
       <class>com.softavail.commsrouter.domain.Task</class>
+      <class>com.softavail.commsrouter.domain.Skill</class>
       <class>com.softavail.commsrouter.domain.AgentQueueMapping</class>
       <properties>
           <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>

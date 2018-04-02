@@ -35,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -47,10 +48,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 /**
@@ -72,9 +77,11 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
 
   protected Response createResponse(ApiObjectRef routerObject) {
     URI createLocation = getLocation(routerObject);
+    EntityTag tag = new EntityTag(routerObject.getHash());
 
     return Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, createLocation.toString())
+        .tag(tag)
         .entity(routerObject)
         .build();
   }
@@ -92,6 +99,10 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
               @ResponseHeader(
                   name = PaginatedService.NEXT_TOKEN_HEADER,
                   description = "The token for the next page",
+                  response = String.class),
+              @ResponseHeader(
+                  name = HttpHeaders.ETAG,
+                  description = "Etags of the resources in the list",
                   response = String.class)}))
   public Response list(
       @ApiParam(
@@ -122,8 +133,14 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
         token, perPage, routerRef, pagedList);
 
     GenericEntity<List<T>> genericEntity = new GenericEntity<>(pagedList.getList(), List.class);
+
+    String tags = pagedList.getList().stream()
+        .map(ApiObjectRef::getHash)
+        .collect(Collectors.joining(";"));
+
     return Response.ok()
         .header(PaginatedService.NEXT_TOKEN_HEADER, pagedList.getNextToken())
+        .tag(new EntityTag(tags))
         .entity(genericEntity)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .build();
@@ -132,14 +149,35 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
   @GET
   @Path("{resourceRef}")
   @ApiOperation(value = "Get resource by ID", notes = "Returns resource by the given ID")
-  public T get(@PathParam("resourceRef") String resourceRef)
+  @ApiResponses(
+      @ApiResponse(
+          code = 200,
+          message = "Successful operation",
+          responseHeaders = {
+              @ResponseHeader(
+                  name = HttpHeaders.ETAG,
+                  description = "Etag of the resource",
+                  response = String.class)}))
+  public Response get(@Context Request request, @PathParam("resourceRef") String resourceRef)
       throws CommsRouterException {
 
     RouterObjectRef routerObjectId = getRouterObjectRef(resourceRef);
 
     LOGGER.debug("Getting {}", routerObjectId);
 
-    return getService().get(routerObjectId);
+    T entity = getService().get(routerObjectId);
+    EntityTag entityTag = new EntityTag(entity.getHash());
+
+    ResponseBuilder builder = request.evaluatePreconditions(entityTag);
+
+    if (builder != null) {
+      return builder.build();
+    }
+
+    return Response.ok()
+        .tag(entityTag)
+        .entity(entity)
+        .build();
   }
 
   @DELETE

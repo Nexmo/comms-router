@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -56,6 +57,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -126,8 +128,13 @@ public class RouterResource {
     GenericEntity<List<RouterDto>> genericEntity =
         new GenericEntity<>(pagedList.getList(), List.class);
 
+    String tags = pagedList.getList().stream()
+        .map(ApiObjectRef::getHash)
+        .collect(Collectors.joining(";"));
+
     return Response.ok()
         .header(PaginatedService.NEXT_TOKEN_HEADER, pagedList.getNextToken())
+        .tag(new EntityTag(tags))
         .entity(genericEntity)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .build();
@@ -135,18 +142,27 @@ public class RouterResource {
 
   @GET
   @Path("{id}")
-  @ApiOperation(value = "Find router by ID", notes = "Searches all routers by the given ID",
-      response = RouterDto.class, tags = "routers")
-  @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
+  @ApiOperation(
+      value = "Find router by ID",
+      notes = "Searches all routers by the given ID",
+      response = RouterDto.class,
+      tags = "routers")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Successful operation"),
       @ApiResponse(code = 404, message = "Router with the provided id is not found",
           response = ExceptionPresentation.class)})
-  public RouterDto get(
+  public Response get(
       @ApiParam(value = "ID of the router to be searched") @PathParam("id") String id)
       throws CommsRouterException {
 
     LOGGER.debug("Looking for router with ref: {}", id);
 
-    return routerService.get(id);
+    RouterDto routerDto = routerService.get(id);
+
+    return Response.ok()
+        .tag(new EntityTag(routerDto.getHash()))
+        .entity(routerDto)
+        .build();
   }
 
   @POST
@@ -176,6 +192,7 @@ public class RouterResource {
 
     return Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, createLocation.toString())
+        .tag(new EntityTag(router.getHash()))
         .entity(new ApiObjectRef(router))
         .build();
   }
@@ -192,15 +209,24 @@ public class RouterResource {
       @ApiResponse(code = 405, message = "Validation exception",
           response = ExceptionPresentation.class)})
   public void update(
-      @ApiParam(value = "The id of the router to be updated",
-          required = true) @PathParam("id") String id,
-      @ApiParam(value = "UpdateRouterArg object specifying parameters to be updated",
-          required = true) UpdateRouterArg routerArg)
+      @Context HttpHeaders headers,
+      @ApiParam(
+          value = "The id of the router to be updated",
+          required = true)
+      @PathParam("id")
+          String id,
+      @ApiParam(
+          value = "UpdateRouterArg object specifying parameters to be updated",
+          required = true)
+          UpdateRouterArg routerArg)
       throws CommsRouterException {
 
     LOGGER.debug("Updating router: {}", routerArg);
 
-    routerService.update(routerArg, id);
+    ApiObjectRef objectRef = new ApiObjectRef(id);
+    objectRef.setHash(headers.getHeaderString(HttpHeaders.IF_MATCH));
+
+    routerService.update(routerArg, objectRef);
   }
 
   @PUT
@@ -233,6 +259,7 @@ public class RouterResource {
 
     return Response.status(Status.CREATED)
         .header(HttpHeaders.LOCATION, createLocation.toString())
+        .tag(new EntityTag(router.getHash()))
         .entity(router)
         .build();
   }

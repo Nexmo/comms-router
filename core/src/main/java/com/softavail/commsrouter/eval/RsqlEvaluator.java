@@ -48,11 +48,7 @@ public class RsqlEvaluator extends EvaluatorBase {
 
   @Override
   public void validate() throws ExpressionException {
-    try {
-      rootNode.accept(rsqlValidator, routerRef);
-    } catch (RuntimeException ex) {
-      throw new ExpressionException(ex.getMessage(), ex);
-    }
+    rsqlValidator.validate(rootNode, routerRef);
   }
 
 }

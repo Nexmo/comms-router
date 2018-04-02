@@ -14,7 +14,7 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
+import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import cz.jirutka.rsql.parser.RSQLParser;
@@ -37,19 +37,19 @@ public class RsqlEvaluatorFactory {
     return new RSQLParser().parse(expression);
   }
 
-  public void validate(String expression) throws EvaluatorException {
+  public void validate(String expression) throws ExpressionException {
     try {
       parse(expression);
     } catch (RSQLParserException ex) {
-      throw new EvaluatorException("Invalid expression: " + ex.getMessage());
+      throw new ExpressionException("Invalid expression: " + ex.getMessage());
     }
   }
 
-  public RsqlEvaluator create(String expression, String routerRef) throws EvaluatorException {
+  public RsqlEvaluator create(String expression, String routerRef) throws ExpressionException {
     try {
       return new RsqlEvaluator(factory, parse(expression), routerRef);
     } catch (RSQLParserException ex) {
-      throw new EvaluatorException("Invalid expression: " + ex.getMessage());
+      throw new ExpressionException("Invalid expression: " + ex.getMessage());
     }
   }
 

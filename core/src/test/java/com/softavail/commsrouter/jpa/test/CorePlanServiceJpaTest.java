@@ -41,7 +41,8 @@ public class CorePlanServiceJpaTest extends TestBase {
     routerService.replace(newCreateRouterArg("router-name", ""), ROUTER_ID);
     queueService.replace(newCreateQueueArg("1==1", "queue 1"), new RouterObjectRef(queueId1, id));
     planService.replace(newCreatePlanArg("desctiption_one", "1==1", queueId1), id);
-    planService.update(newUpdatePlanArg("desctiption_two"), id);
+    PlanDto beforeUpdate = planService.get(id);
+    planService.update(newUpdatePlanArg("desctiption_two"), beforeUpdate);
     PlanDto updatedPlan = planService.get(id);
     assertEquals(updatedPlan.getDescription(), "desctiption_two");
   }

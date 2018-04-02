@@ -38,7 +38,7 @@ public class CoreQueueServiceJpaTest extends TestBase {
     queueService.replace(newCreateQueueArg("1==1", "description_one"), id);
     QueueDto queueBefore = queueService.get(id);
     // Updating
-    queueService.update(newUpdateQueueArg("1==1", "description_two"), id);
+    queueService.update(newUpdateQueueArg("1==1", "description_two"), queueBefore);
     QueueDto queueAfter = queueService.get(id);
     assertNotEquals(queueAfter, queueBefore);
   }

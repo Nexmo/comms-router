@@ -34,6 +34,7 @@ public interface AgentService extends RouterObjectService<AgentDto> {
   ApiObjectRef replace(CreateAgentArg createArg, RouterObjectRef objectRef)
       throws CommsRouterException;
 
-  void update(UpdateAgentArg updateArg, RouterObjectRef objectRef) throws CommsRouterException;
+  void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
+      throws CommsRouterException;
 
 }

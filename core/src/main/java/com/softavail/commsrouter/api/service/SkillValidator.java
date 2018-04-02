@@ -26,13 +26,15 @@ import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
+import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
+import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
-import com.softavail.commsrouter.eval.RsqlSkillsValidator;
+import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,17 +42,17 @@ import org.apache.logging.log4j.Logger;
  *
  * @author vladislav
  */
-class SkillValidator {
+public class SkillValidator {
 
   private static final Logger LOGGER = LogManager.getLogger(SkillValidator.class);
 
-  @Inject
-  private CoreSkillService coreSkillService;
+  private final CoreSkillService coreSkillService;
 
-  @Inject
-  private RsqlSkillsValidator rsqlSkillsValidator;
+  public SkillValidator(CoreSkillService coreSkillService) {
+    this.coreSkillService = coreSkillService;
+  }
 
-  public void validateCapabilities(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
+  public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
     for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
       validateCapability(capability.getKey(), capability.getValue(), routerRef);
     }
@@ -149,63 +151,79 @@ class SkillValidator {
       LOGGER.error("Unexpected exception", ex);
     }
   }
-  private void validateValuesRestrictions(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto) throws CommsRouterException {
-    try {
-      attributeValueDto.accept( new AttributeValueVisitor() {
-        @Override
-        public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
-          switch (skillDto.getDomain().getType()) {
-            case string:
-              String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
-              if (!value.getValue().matches(regExp)) {
-                throw new CommsRouterException("Invalid value for skill " + skill + ": " + value.getValue());
-              }
-              break;
-            case enumeration:
-              if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(value.getValue())) {
-                throw new CommsRouterException("Invalid value for skill " + skill + ": " + value.getValue());
-              }
-              break;
-            default:
-              throw new CommsRouterException("Unexpected skill type: " + skillDto.getDomain().getType());
-          }
-        }
-        @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
-        }
-        @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
-        }
-        @Override
-        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws CommsRouterException{
-          switch (skillDto.getDomain().getType()) {
-            case string:
-              String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
-              for (String v : value.getValue()) {
-                if (!v.matches(regExp)) {
-                  throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
-                }
-              }
-              break;
-            case enumeration:
-              for (String v : value.getValue()) {
-                if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
-                  throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
-                }
-              }
-              break;
-            default:
-              throw new CommsRouterException("Unexpected skill type: " + skillDto.getDomain().getType());
-          }
-        }
-        @Override
-        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws CommsRouterException {
 
+  private void validateValuesRestrictions(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto) throws CommsRouterException {
+    attributeValueDto.accept( new AttributeValueVisitor() {
+      @Override
+      public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
+        switch (skillDto.getDomain().getType()) {
+          case string:
+            String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
+            if (regExp != null && !value.getValue().matches(regExp)) {
+              throw new CommsRouterException("Invalid value for skill " + skill + ": " + value.getValue());
+            }
+            break;
+          case enumeration:
+            if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(value.getValue())) {
+              throw new CommsRouterException("Invalid value for skill " + skill + ": " + value.getValue());
+            }
+            break;
+          default:
+            throw new CommsRouterException("Unexpected skill type: " + skillDto.getDomain().getType());
         }
-      });
-    } catch (CommsRouterException ex) {
-      LOGGER.error("Unexpected exception", ex);
-    }
+      }
+      @Override
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
+        validateDoubleValue(value.getValue());
+      }
+      @Override
+      public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
+      }
+      @Override
+      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws CommsRouterException{
+        switch (skillDto.getDomain().getType()) {
+          case string:
+            String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
+            for (String v : value.getValue()) {
+              if (!v.matches(regExp)) {
+                throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
+              }
+            }
+            break;
+          case enumeration:
+            for (String v : value.getValue()) {
+              if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
+                throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
+              }
+            }
+            break;
+          default:
+            throw new CommsRouterException("Unexpected skill type: " + skillDto.getDomain().getType());
+        }
+      }
+      @Override
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws CommsRouterException {
+        for (Double v : value.getValue()) {
+          validateDoubleValue(v);
+        }
+      }
+      private void validateDoubleValue(Double value) throws CommsRouterException {
+        List<NumberInterval> intervals = ((NumberAttributeDomainDto)skillDto.getDomain()).getIntervals();
+        if (intervals != null && !intervals.isEmpty()) {
+          NumberIntervalBoundary low = intervals.get(0).getLow();
+          NumberIntervalBoundary high = intervals.get(0).getHigh();
+          if (low.getInclusive() && low.getBoundary() > value
+          || !low.getInclusive() && low.getBoundary() >= value
+          || high.getInclusive() && high.getBoundary() < value
+          || !high.getInclusive() && high.getBoundary() <= value) {
+            String leftPar  = low.getInclusive() ? "[" : "(";
+            String rightPar = low.getInclusive() ? "]" : ")";
+            throw new CommsRouterException("Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
+                    + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
+          }
+        }
+      }
+    });
   }
 
 }

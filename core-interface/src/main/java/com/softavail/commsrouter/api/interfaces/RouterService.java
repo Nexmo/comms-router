@@ -34,7 +34,7 @@ public interface RouterService
   ApiObjectRef replace(CreateRouterArg createArg, String routerRef)
       throws CommsRouterException;
 
-  void update(UpdateRouterArg updateArg, String routerId)
+  void update(UpdateRouterArg updateArg, ApiObjectRef routerRef)
       throws CommsRouterException;
 
   RouterDto get(String ref)

@@ -197,6 +197,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
   private TaskDispatchInfo doCreate(EntityManager em, CreateTaskArg createArg, RouterObjectRef obj)
       throws CommsRouterException {
 
+    // validate requirements
+    app.validators.taskRequirementsValidator.validate(createArg.getRequirements(), obj.getRef());
+
     Task task = fromPlan(em, createArg, obj);
     task.setState(TaskState.waiting);
     task.setCallbackUrl(createArg.getCallbackUrl().toString());

@@ -14,7 +14,6 @@
 
 package com.softavail.commsrouter.eval;
 
-import com.softavail.commsrouter.api.exception.EvaluatorException;
 import com.softavail.commsrouter.api.exception.ExpressionException;
 
 /**
@@ -30,7 +29,9 @@ public abstract class EvaluatorBase implements CommsRouterEvaluator {
   }
 
   @Override
-  public CommsRouterEvaluator changeExpression(String expression, String routerRef) throws EvaluatorException {
+  public CommsRouterEvaluator changeExpression(String expression, String routerRef)
+      throws ExpressionException {
+
     return factory.changeExpression(this, expression, routerRef);
   }
 

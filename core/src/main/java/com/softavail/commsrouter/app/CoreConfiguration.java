@@ -61,6 +61,22 @@ public interface CoreConfiguration {
     public Integer getJpaLockRetryCount() {
       return 10;
     }
+
+    @Override
+    public Boolean getApiEnableExpressionSkillValidation() {
+      return false;
+    }
+
+    @Override
+    public Boolean getApiEnableAgentCapabilitiesValidation() {
+      return false;
+    }
+
+    @Override
+    public Boolean getApiEnableTaskRequirementsValidation() {
+      return false;
+    }
+
   };
 
   Integer getBackoffDelay();
@@ -79,4 +95,9 @@ public interface CoreConfiguration {
 
   Integer getJpaLockRetryCount();
 
+  Boolean getApiEnableExpressionSkillValidation();
+
+  Boolean getApiEnableAgentCapabilitiesValidation();
+
+  Boolean getApiEnableTaskRequirementsValidation();
 }

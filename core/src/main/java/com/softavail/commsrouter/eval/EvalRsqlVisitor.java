@@ -16,10 +16,11 @@
 
 package com.softavail.commsrouter.eval;
 
+import static com.softavail.commsrouter.eval.ValidationUtils.validateAttributes;
+
 import com.softavail.commsrouter.api.exception.ExpressionException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
-import static com.softavail.commsrouter.eval.ValidationUtils.validateAttributes;
 import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
@@ -31,8 +32,6 @@ import org.apache.logging.log4j.LogManager;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-
 
 /**
  *

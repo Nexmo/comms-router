@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.eval;
 
-import cz.jirutka.rsql.parser.ast.AndNode;
-import cz.jirutka.rsql.parser.ast.ComparisonNode;
-import cz.jirutka.rsql.parser.ast.OrNode;
+import com.softavail.commsrouter.api.exception.ExpressionException;
+import cz.jirutka.rsql.parser.ast.Node;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,19 +27,11 @@ import cz.jirutka.rsql.parser.ast.OrNode;
  */
 public class RsqlDummyValidator implements RsqlValidator {
 
-  @Override
-  public Void visit(AndNode node, String routerRef) {
-    return null;
-  }
+  private static final Logger LOGGER = LogManager.getLogger(RsqlSkillValidator.class);
 
   @Override
-  public Void visit(OrNode node, String routerRef) {
-    return null;
-  }
-
-  @Override
-  public Void visit(ComparisonNode node, String routerRef) {
-    return null;
+  public void validate(Node node, String routerRef)
+      throws ExpressionException {
   }
 
 }

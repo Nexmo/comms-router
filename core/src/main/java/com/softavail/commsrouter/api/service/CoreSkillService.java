@@ -99,6 +99,7 @@ public class CoreSkillService extends CoreRouterObjectService<SkillDto, Skill>
 
     app.db.transactionManager.executeVoid((em) -> {
       Skill skill = app.db.skill.get(em, objectRef);
+      checkResourceVersion(skill, objectRef);
       Fields.update(skill::setDescription, skill.getDescription(), updateArg.getDescription());
       Fields.update(skill::setMultivalue, skill.getMultivalue(), updateArg.getMultivalue());
       if (updateArg.getDomain() != null) {
