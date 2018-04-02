@@ -17,7 +17,10 @@
 
 package com.softavail.commsrouter.test.api;
 
+import static io.restassured.RestAssured.given;
+
 import io.restassured.RestAssured;
+import io.restassured.specification.RequestSpecification;
 
 import java.util.HashMap;
 
@@ -46,6 +49,11 @@ public class Resource {
 
   public HashMap<CommsRouterResource, String> state() {
     return this.state;
+  }
+  
+  protected RequestSpecification req() {
+    return given()
+      .contentType("application/json");
   }
 
 }

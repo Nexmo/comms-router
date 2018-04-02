@@ -21,9 +21,11 @@ import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.Plan;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Agent;
+import com.softavail.commsrouter.test.api.ApiAgent;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -169,19 +171,18 @@ public class AgentTest extends BaseTest {
   
   @Test
   public void createAgentWithCapabilitiesStrangeSymbols() {
-    a.create(new CreateAgentArg.Builder("capabilities")
-             .capabilities(
-                           new AttributeGroupDto()
-                           .withKeyValue("l-t.&$/'%@! ype",
-                                         new StringAttributeValueDto("language")))
-             .build());
-    AgentDto resource = a.get();
-    assertThat(String.format("Check attribute language (%s) is 'en'.",
-                             ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
-               ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue(),
-               is("en"));
-    assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
-               resource.getState(), is(AgentState.offline));
+    ApiAgent api_a = new ApiAgent(state);
+    
+    api_a.create(state.get(CommsRouterResource.ROUTER),
+                 new CreateAgentArg.Builder("capabilities")
+                 .capabilities(
+                               new AttributeGroupDto()
+                               .withKeyValue("l-t.&$/'%@! ype",
+                                             new StringAttributeValueDto("language")))
+                 .build())
+      .statusCode(400)
+      .body("error.description",
+            equalTo("A variable or function name can not contain a quote character."));;
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
@@ -222,6 +223,7 @@ public class AgentTest extends BaseTest {
   @Test
   public void agentHandlesTask() throws MalformedURLException, InterruptedException {
     a.create("en");
+    
     AgentDto resource = a.get();
     assertThat(String.format("Check attribute language (%s) is 'en'.",
         ((StringAttributeValueDto) resource.getCapabilities().get("language")).getValue()),
@@ -231,8 +233,10 @@ public class AgentTest extends BaseTest {
         resource.getState(), is(AgentState.offline));
     assertThat(q.size(), is(0));
     a.setState(AgentState.ready);
+    assertThat(state.get(CommsRouterResource.EAGENT),not(equalTo(null)));
 
     t.createQueueTask();
+    
     assertThat(q.size(), is(0));
     completeTask();
     t.delete();
@@ -349,7 +353,6 @@ public class AgentTest extends BaseTest {
     a.setState(AgentState.ready);
     assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString((state.get(CommsRouterResource.TASK)))));
-
 
     resource = a.get();
     assertThat(String

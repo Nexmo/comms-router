@@ -32,6 +32,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 
+import javax.ws.rs.core.HttpHeaders;
+
 public class ApiAgent extends Resource {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiAgent.class);
@@ -45,58 +47,63 @@ public class ApiAgent extends Resource {
   }
   
   public ValidatableResponse list(String routerRef, String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
       .pathParam("routerRef", routerRef)
-      .when().get("/routers/{routerRef}/agents?{query}")
+      .get("/routers/{routerRef}/agents?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef, String agentRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("agentRef", agentRef)
-        .when().get("/routers/{routerRef}/agents/{agentRef}")
+        .get("/routers/{routerRef}/agents/{agentRef}")
         .then();
   }
 
   public ValidatableResponse delete(String routerRef, String agentRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("agentRef", agentRef)
-        .when().delete("/routers/{routerRef}/agents/{agentRef}")
+        .delete("/routers/{routerRef}/agents/{agentRef}")
         .then();
   }
 
   public ValidatableResponse create(String routerRef, CreateAgentArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}/agents")
+        .post("/routers/{routerRef}/agents")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, String agentRef, UpdateAgentArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("agentRef", agentRef)
         .body(args)
-        .when().post("/routers/{routerRef}/agents/{agentRef}")
+        .post("/routers/{routerRef}/agents/{agentRef}")
         .then();
+  }
+  
+  public ValidatableResponse update(String etag, String routerRef,
+                                    String agentRef, UpdateAgentArg args) {
+    return req()
+      .header(HttpHeaders.IF_MATCH, etag)
+      .pathParam("routerRef", routerRef)
+      .pathParam("agentRef", agentRef)
+      .body(args)
+      .post("/routers/{routerRef}/agents/{agentRef}")
+      .then();
   }
 
   public ValidatableResponse replace(String routerRef, String agentRef, CreateAgentArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("agentRef", agentRef)
         .body(args)
-        .when().put("/routers/{routerRef}/agents/{agentRef}")
+        .put("/routers/{routerRef}/agents/{agentRef}")
         .then();
   }
 

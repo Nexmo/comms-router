@@ -45,58 +45,52 @@ public class ApiPlan extends Resource {
   }
 
   public ValidatableResponse list(String routerRef, String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
       .pathParam("routerRef", routerRef)
-      .when().get("/routers/{routerRef}/plans?{query}")
+      .get("/routers/{routerRef}/plans?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef, String planRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("planRef", planRef)
-        .when().get("/routers/{routerRef}/agents/{planRef}")
+        .get("/routers/{routerRef}/agents/{planRef}")
         .then();
   }
 
   public ValidatableResponse delete(String routerRef, String planRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("planRef", planRef)
-        .when().delete("/routers/{routerRef}/plans/{planRef}")
+        .delete("/routers/{routerRef}/plans/{planRef}")
         .then();
   }
 
   public ValidatableResponse create(String routerRef, CreatePlanArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}/plans")
+        .post("/routers/{routerRef}/plans")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, String planRef, UpdatePlanArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("planRef", planRef)
         .body(args)
-        .when().post("/routers/{routerRef}/plans/{planRef}")
+        .post("/routers/{routerRef}/plans/{planRef}")
         .then();
   }
 
   public ValidatableResponse replace(String routerRef, String planRef, CreatePlanArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("planRef", planRef)
         .body(args)
-        .when().put("/routers/{routerRef}/plans/{planRef}")
+        .put("/routers/{routerRef}/plans/{planRef}")
         .then();
   }
 

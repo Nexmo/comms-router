@@ -45,58 +45,52 @@ public class ApiQueue extends Resource {
   }
 
   public ValidatableResponse list(String routerRef, String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
       .pathParam("routerRef", routerRef)
-      .when().get("/routers/{routerRef}/queues?{query}")
+      .get("/routers/{routerRef}/queues?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef, String queueRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("queueRef", queueRef)
-        .when().get("/routers/{routerRef}/agents/{queueRef}")
+        .get("/routers/{routerRef}/agents/{queueRef}")
         .then();
   }
 
   public ValidatableResponse delete(String routerRef, String queueRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("queueRef", queueRef)
-        .when().delete("/routers/{routerRef}/queues/{queueRef}")
+        .delete("/routers/{routerRef}/queues/{queueRef}")
         .then();
   }
 
   public ValidatableResponse create(String routerRef, CreateQueueArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}/queues")
+        .post("/routers/{routerRef}/queues")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, String queueRef, UpdateQueueArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("queueRef", queueRef)
         .body(args)
-        .when().post("/routers/{routerRef}/queues/{queueRef}")
+        .post("/routers/{routerRef}/queues/{queueRef}")
         .then();
   }
 
   public ValidatableResponse replace(String routerRef, String queueRef, CreateQueueArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .pathParam("queueRef", queueRef)
         .body(args)
-        .when().put("/routers/{routerRef}/queues/{queueRef}")
+        .put("/routers/{routerRef}/queues/{queueRef}")
         .then();
   }
 

@@ -17,6 +17,7 @@
 package com.softavail.api.test;
 
 import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.ApiQueue;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
@@ -91,6 +92,7 @@ public class QueueTest extends BaseTest{
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     state.put(CommsRouterResource.QUEUE, queueRef);
+    state.put(CommsRouterResource.EQUEUE, queueRef);
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
@@ -109,6 +111,8 @@ public class QueueTest extends BaseTest{
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
     state.put(CommsRouterResource.QUEUE, queueRef);
+    state.put(CommsRouterResource.EQUEUE, queueRef);
+    
     ApiObjectRef ref = q.replace(queueArg);
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
@@ -230,8 +234,12 @@ public class QueueTest extends BaseTest{
 
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==1");
-
-    q.replaceResponse(queueArg).statusCode(500).body("error.description",
+    ApiQueue api_q = new ApiQueue(state);
+    
+    api_q.replace(state.get(CommsRouterResource.ROUTER),
+                  state.get(CommsRouterResource.QUEUE),
+                  queueArg)
+      .statusCode(500).body("error.description",
         equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
@@ -289,7 +297,12 @@ public class QueueTest extends BaseTest{
     queueArg.setDescription("qdescription");
     queueArg.setPredicate("1==something1");
 
-    q.replaceResponse(queueArg).statusCode(500).body("error.description",
+    ApiQueue api_q = new ApiQueue(state);
+    
+    api_q.replace(state.get(CommsRouterResource.ROUTER),
+                  state.get(CommsRouterResource.QUEUE),
+                  queueArg)
+      .statusCode(500).body("error.description",
         equalTo("Cannot delete or update 'queue' as there is record in 'task' that refer to it."));
     QueueDto queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));

@@ -20,8 +20,10 @@ import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Plan;
 import com.softavail.commsrouter.test.api.Router;
+import com.softavail.commsrouter.test.api.ApiRouter;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Queue;
+import com.softavail.commsrouter.test.api.ApiQueue;
 
 import org.junit.*;
 
@@ -85,8 +87,10 @@ public class BaseRouterTest extends BaseTest{
     CreateRouterArg routerArg = new CreateRouterArg();
     routerArg.setDescription(description);
     routerArg.setName(name);
+    ApiRouter api_r = new ApiRouter(state);
+    
+    api_r.replace(routerId, routerArg).statusCode(201);
     state.put(CommsRouterResource.ROUTER, routerId);
-    ApiObjectRef ref = r.replace(routerArg);
 
     RouterDto router = r.get();
     assertThat(router.getName(), is(name));
@@ -140,7 +144,8 @@ public class BaseRouterTest extends BaseTest{
     ApiObjectRef qRef = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
 
     // replace with null values
-    r.replaceResponse(new CreateRouterArg())
+    ApiRouter api_r = new ApiRouter(state);
+    api_r.replace(state.get(CommsRouterResource.ROUTER),new CreateRouterArg())
         .statusCode(500)
         .body(
             "error.description",
@@ -226,16 +231,21 @@ public class BaseRouterTest extends BaseTest{
     state.put(CommsRouterResource.QUEUE, queueRef);
 
     state.put(CommsRouterResource.ROUTER, router1.getRef());
-    q.replace(new CreateQueueArg.Builder()
+
+    ApiQueue api_q = new ApiQueue(state);
+
+    api_q.replace(router1.getRef(), queueRef, new CreateQueueArg.Builder()
               .description(description1)
               .predicate(predicate1)
-              .build());
+                  .build())
+      .statusCode(201);
 
     state.put(CommsRouterResource.ROUTER, router2.getRef());
-    q.replace(new CreateQueueArg.Builder()
-              .description(description2)
-              .predicate(predicate2)
-              .build());
+    api_q.replace(router2.getRef(), queueRef, new CreateQueueArg.Builder()
+                  .description(description2)
+                  .predicate(predicate2)
+                  .build())
+      .statusCode(201);
 
     state.put(CommsRouterResource.ROUTER, router1.getRef());
     QueueDto queue = q.get();

@@ -25,7 +25,14 @@ import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.response.ValidatableResponse;
+
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
+
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,53 +51,44 @@ public class ApiRouter extends Resource {
   }
 
   public ValidatableResponse list(String query) {
-    return given()
+    return req()
       .pathParam("query", query)
-      .contentType("application/json")
-      .when().get("/routers?{query}")
+      .get("/routers?{query}")
       .then();
   }
 
   public ValidatableResponse get(String routerRef) {
-    return given()
-        .contentType("application/json")
-        .pathParam("routerRef", routerRef)
-        .when().get("/routers/{routerRef}")
-        .then();
+    return req().pathParam("routerRef", routerRef).get("/routers/{routerRef}").then();
+    
   }
 
   public ValidatableResponse delete(String routerRef) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
-        .when().delete("/routers/{routerRef}")
-        .then();
-  }
-
-  public ValidatableResponse create(CreateRouterArg args) {
-    return given()
-        .contentType("application/json")
-        .body(args)
-        .when().post("/routers")
+        .delete("/routers/{routerRef}")
         .then();
   }
 
   public ValidatableResponse update(String routerRef, CreateRouterArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().post("/routers/{routerRef}")
+        .post("/routers/{routerRef}")
         .then();
   }
 
   public ValidatableResponse replace(String routerRef, CreateRouterArg args) {
-    return given()
-        .contentType("application/json")
+    return req()
         .pathParam("routerRef", routerRef)
         .body(args)
-        .when().put("/routers/{routerRef}")
+        .put("/routers/{routerRef}")
         .then();
   }
 
+  public ValidatableResponse create(CreateRouterArg args) {
+    return req()
+      .body(args)
+      .post("/routers")
+      .then();
+  }
 }
