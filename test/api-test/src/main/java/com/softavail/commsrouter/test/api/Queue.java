@@ -147,7 +147,7 @@ public class Queue extends Resource {
 
   public void update(CreateQueueArg args) {
     String ref = state().get(CommsRouterResource.QUEUE);
-    given()
+    ValidatableResponse response = given()
         .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EQUEUE))
         .contentType("application/json")
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
@@ -155,5 +155,6 @@ public class Queue extends Resource {
         .body(args)
         .when().post("/routers/{routerRef}/queues/{ref}")
         .then().statusCode(204);
+    state().put(CommsRouterResource.EQUEUE, response.extract().header(HttpHeaders.ETAG));
   }
 }
