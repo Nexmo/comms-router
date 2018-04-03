@@ -17,6 +17,8 @@ package com.softavail.commsrouter.shiro;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.apache.shiro.web.util.WebUtils;
@@ -27,6 +29,7 @@ import org.apache.shiro.web.util.WebUtils;
  */
 public class CommsRouterAuthFilter extends AuthenticationFilter {
 
+  @Override
   protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
       throws Exception {
     if (isLoginRequest(request, response)) {

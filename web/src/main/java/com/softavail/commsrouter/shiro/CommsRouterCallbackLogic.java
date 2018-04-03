@@ -16,11 +16,9 @@
 package com.softavail.commsrouter.shiro;
 
 import io.buji.pac4j.profile.ShiroProfileManager;
-import io.buji.pac4j.subject.Pac4jPrincipal;
 import java.util.ArrayList;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.Subject;
+import java.util.Map;
+import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import org.joda.time.DateTime;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
@@ -123,6 +121,11 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
 
     HttpAction action;
     try {
+      final Map<String, String[]> requestParams = context.getRequestParameters();
+      if (isNotEmpty(requestParams)) {
+        logger.debug("requestParams: {}", requestParams);
+      }
+
       final Credentials credentials = client.getCredentials(context);
       logger.debug("credentials: {}", credentials);
 
@@ -142,10 +145,6 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
   }
 
   protected HttpAction respondWithCredentials(final C context, final String inputContent) {
-    final String requestedUrl = (String) context.getSessionAttribute(Pac4jConstants.REQUESTED_URL);
-    if (isNotBlank(requestedUrl)) {
-      context.setSessionAttribute(Pac4jConstants.REQUESTED_URL, null);
-    }
     logger.debug("respond OK content: {}", inputContent);
     return HttpAction.ok("OK", context, inputContent);
   }
@@ -153,9 +152,9 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
   protected String getJwt(CommonProfile profile) {
     String token = "";
     if (profile != null) {
-        Object firstName = profile.getAttribute(PROFILE_ATTR_KEY_FIRSTNAME);
+      Object firstName = profile.getAttribute(PROFILE_ATTR_KEY_FIRSTNAME);
       Object lastName = profile.getAttribute(PROFILE_ATTR_KEY_LASTNAME);
-        Object dt = profile.getAttribute(PROFILE_ATTR_KEY_EXP_TIME);
+      Object dt = profile.getAttribute(PROFILE_ATTR_KEY_EXP_TIME);
         
         
         String name = "";
