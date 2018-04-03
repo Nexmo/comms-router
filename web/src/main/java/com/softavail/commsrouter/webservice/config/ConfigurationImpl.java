@@ -61,6 +61,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   private static final String JPA_OPTIMISTIC_LOCK_RETRY_COUNT =
       "jpa.optimisticLock.retryCount";
 
+  private static final String SHIRO_CONFIG_LOCATIONS = "shiro.configLocations";
+
   private static final Properties defaultProperties;
 
   static {
@@ -89,6 +91,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
         String.valueOf(Configuration.DEFAULT.getClientReadTimeout()));
     defaultProperties.setProperty(CLIENT_FOLLOW_REDIRECTS,
         String.valueOf(Configuration.DEFAULT.getClientFollowRedirects()));
+    defaultProperties.setProperty(SHIRO_CONFIG_LOCATIONS,
+        String.valueOf(Configuration.DEFAULT.getShiroConfigLocations()));
   }
 
   private final ConfigurationProvider provider;
@@ -152,6 +156,11 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
     return provider.getProperty(CLIENT_FOLLOW_REDIRECTS, Boolean.class);
   }
 
+  @Override
+  public String getShiroConfigLocations() {
+    return provider.getProperty(SHIRO_CONFIG_LOCATIONS, String.class);
+  }
+  
   @Override
   public Integer getBackoffDelay() {
     return provider.getProperty(BACKOFF_DELAY_SECONDS, Integer.class);

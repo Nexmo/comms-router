@@ -38,6 +38,12 @@ public interface Configuration {
     public Boolean getClientFollowRedirects() {
       return true;
     }
+
+    @Override
+    public String getShiroConfigLocations() {
+      return "classpath:shiro.ini";
+    }
+
   };
 
 
@@ -46,5 +52,7 @@ public interface Configuration {
   Integer getClientReadTimeout();
 
   Boolean getClientFollowRedirects();
+  
+  String getShiroConfigLocations();
 
 }

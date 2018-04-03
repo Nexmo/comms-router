@@ -55,15 +55,7 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
       applicationContext = new ApplicationContext(sc);
       sc.setAttribute(APPLICATION_CONTEXT, applicationContext);
 
-      //shiro init
-      sc.setInitParameter("shiroConfigLocations", "classpath:shiro.ini" );
-
-      FilterRegistration filterRegistration =
-          sc.addFilter("ShiroFilter", "org.apache.shiro.web.servlet.ShiroFilter");
-      filterRegistration.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST,
-          DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR), true, "/*");
-
-      initEnvironment(sc);
+      initializeShiro(sc, applicationContext);
 
     } catch (Exception e) {
       LOGGER.error("Exception: ", e);
@@ -79,4 +71,17 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
     }
   }
 
+  
+  private void initializeShiro(ServletContext sc, ApplicationContext appContext) {
+    String shiroConfigLocations = appContext.getConfiguration().getShiroConfigLocations();
+    
+    sc.setInitParameter("shiroConfigLocations", shiroConfigLocations );
+
+    FilterRegistration filterRegistration =
+        sc.addFilter("ShiroFilter", "org.apache.shiro.web.servlet.ShiroFilter");
+    filterRegistration.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST,
+        DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR), true, "/*");
+
+    initEnvironment(sc);
+  }
 }
