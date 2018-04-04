@@ -1,15 +1,17 @@
 /*
  * Copyright 2018 SoftAvail Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.softavail.commsrouter.api.service;
@@ -30,6 +32,7 @@ import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
+import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +44,7 @@ import java.util.Map;
 
 /**
  * Validator
- * 
+ *
  * @author vladislav
  */
 public class SkillValidator {
@@ -64,7 +67,7 @@ public class SkillValidator {
   private void validateCapability(String skill, AttributeValueDto value, String routerRef)
       throws CommsRouterException {
     SkillDto skillDto = validateSkillExistance(skill, routerRef);
-    validateValuesNumber(skillDto, skill, value);
+    validateValuesCount(skillDto, skill, value);
     validateValuesType(skillDto, skill, value);
     validateValuesRestrictions(skillDto, skill, value);
   }
@@ -74,14 +77,11 @@ public class SkillValidator {
     try {
       return coreSkillService.get(new RouterObjectRef(skill, routerRef));
     } catch (NotFoundException ex) {
-      throw new CommsRouterException("Skill " + skill + " was not found.", ex);
-    } catch (CommsRouterException ex) {
-      throw new CommsRouterException("Error while retrieving skill " + skill + " from database.",
-          ex);
+      throw new BadValueException("Skill " + skill + " was not found.", ex);
     }
   }
 
-  private void validateValuesNumber(SkillDto skillDto, String skill,
+  private void validateValuesCount(SkillDto skillDto, String skill,
       AttributeValueDto attributeValueDto) throws CommsRouterException {
 
     attributeValueDto.accept(new AttributeValueVisitor() {
@@ -116,7 +116,7 @@ public class SkillValidator {
 
       private void multivalueValidation(AttributeValueDto value) throws CommsRouterException {
         if (!skillDto.getMultivalue()) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Skill " + skill + " does not support multiple values: " + value.toString());
         }
       }
@@ -130,7 +130,7 @@ public class SkillValidator {
       public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
         if (skillDto.getDomain().getType() != AttributeType.string
             && skillDto.getDomain().getType() != AttributeType.enumeration) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Invalid value for skill " + skill + ": " + value.toString());
         }
       }
@@ -138,7 +138,7 @@ public class SkillValidator {
       @Override
       public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
         if (skillDto.getDomain().getType() != AttributeType.number) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Invalid value for skill " + skill + ": " + value.toString());
         }
       }
@@ -146,7 +146,7 @@ public class SkillValidator {
       @Override
       public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
         if (skillDto.getDomain().getType() != AttributeType.bool) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Invalid value for skill " + skill + ": " + value.toString());
         }
       }
@@ -156,7 +156,7 @@ public class SkillValidator {
           throws CommsRouterException {
         if (skillDto.getDomain().getType() != AttributeType.string
             && skillDto.getDomain().getType() != AttributeType.enumeration) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Invalid value for skill " + skill + ": " + value.toString());
         }
       }
@@ -165,7 +165,7 @@ public class SkillValidator {
       public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
           throws CommsRouterException {
         if (skillDto.getDomain().getType() != AttributeType.number) {
-          throw new CommsRouterException(
+          throw new BadValueException(
               "Invalid value for skill " + skill + ": " + value.toString());
         }
       }
@@ -181,19 +181,19 @@ public class SkillValidator {
           case string:
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
             if (regExp != null && !value.getValue().matches(regExp)) {
-              throw new CommsRouterException(
+              throw new BadValueException(
                   "Invalid value for skill " + skill + ": " + value.getValue());
             }
             break;
           case enumeration:
             if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues()
                 .contains(value.getValue())) {
-              throw new CommsRouterException(
+              throw new BadValueException(
                   "Invalid value for skill " + skill + ": " + value.getValue());
             }
             break;
           default:
-            throw new CommsRouterException(
+            throw new BadValueException(
                 "Unexpected skill type: " + skillDto.getDomain().getType());
         }
       }
@@ -214,14 +214,14 @@ public class SkillValidator {
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
             for (String v : value.getValue()) {
               if (!v.matches(regExp)) {
-                throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
+                throw new BadValueException("Invalid value for skill " + skill + ": " + v);
               }
             }
             break;
           case enumeration:
             for (String v : value.getValue()) {
               if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
-                throw new CommsRouterException("Invalid value for skill " + skill + ": " + v);
+                throw new BadValueException("Invalid value for skill " + skill + ": " + v);
               }
             }
             break;
@@ -251,7 +251,7 @@ public class SkillValidator {
               || !high.getInclusive() && high.getBoundary() <= value) {
             String leftPar = low.getInclusive() ? "[" : "(";
             String rightPar = low.getInclusive() ? "]" : ")";
-            throw new CommsRouterException(
+            throw new BadValueException(
                 "Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
                     + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
           }
