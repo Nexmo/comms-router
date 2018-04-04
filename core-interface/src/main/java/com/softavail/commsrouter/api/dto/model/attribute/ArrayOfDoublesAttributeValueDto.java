@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.api.dto.model.attribute;
 
-import java.io.IOException;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 /**
  * Created by @author mapuo on 15.10.17.
@@ -29,7 +29,7 @@ public class ArrayOfDoublesAttributeValueDto extends ArrayAttributeValueDto<Doub
   }
 
   @Override
-  public void accept(AttributeValueVisitor visitor) throws IOException {
+  public void accept(AttributeValueVisitor visitor) throws CommsRouterException {
     visitor.handleArrayOfDoublesValue(this);
   }
 

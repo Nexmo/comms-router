@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -39,7 +40,8 @@ public class Validators {
     } else {
       return new SkillValidator(null) {
         @Override
-        public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
+        public void validate(AttributeGroupDto capabilities, String routerRef)
+            throws CommsRouterException {
           // empty validation
         }
       };
@@ -52,7 +54,8 @@ public class Validators {
     } else {
       return new SkillValidator(null) {
         @Override
-        public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
+        public void validate(AttributeGroupDto capabilities, String routerRef)
+            throws CommsRouterException {
           // empty validation
         }
       };

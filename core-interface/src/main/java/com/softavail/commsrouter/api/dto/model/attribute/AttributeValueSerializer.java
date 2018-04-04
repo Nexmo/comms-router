@@ -19,12 +19,12 @@ package com.softavail.commsrouter.api.dto.model.attribute;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 import java.io.IOException;
 
 
 /**
- * Custom serializer for AttributeValueDto.
  *
  * @author Ergyun Syuleyman
  */
@@ -48,42 +48,84 @@ public class AttributeValueSerializer extends StdSerializer<AttributeValueDto> {
   public void serialize(AttributeValueDto av, JsonGenerator gen, SerializerProvider sp)
       throws IOException {
 
-    av.accept(new AttributeValueVisitor() {
-      @Override
-      public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+    AttributeValueSerializerVisitor visitor = new AttributeValueSerializerVisitor(gen);
+    try {
+      av.accept(visitor);
+    } catch (CommsRouterException ex) {
+      throw (IOException) ex.getCause();
+    }
+    IOException ex = visitor.getException();
+    if (ex != null) {
+      throw new IOException("Attibute value serialization failure: " + ex.toString(), ex);
+    }
+  }
+
+  private static class AttributeValueSerializerVisitor implements AttributeValueVisitor {
+
+    private final JsonGenerator gen;
+    private IOException exception;
+
+    public AttributeValueSerializerVisitor(JsonGenerator gen) {
+      this.gen = gen;
+      this.exception = null;
+    }
+
+    public IOException getException() {
+      return exception;
+    }
+
+    @Override
+    public void handleBooleanValue(BooleanAttributeValueDto value) {
+      try {
         gen.writeBoolean(value.getValue());
+      } catch (IOException ex) {
+        exception = ex;
       }
+    }
 
-      @Override
-      public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+    @Override
+    public void handleDoubleValue(DoubleAttributeValueDto value) {
+      try {
         gen.writeNumber(value.getValue());
+      } catch (IOException ex) {
+        exception = ex;
       }
+    }
 
-      @Override
-      public void handleStringValue(StringAttributeValueDto value) throws IOException {
+    @Override
+    public void handleStringValue(StringAttributeValueDto value) {
+      try {
         gen.writeString(value.getValue());
+      } catch (IOException ex) {
+        exception = ex;
       }
+    }
 
-      @Override
-      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
-          throws IOException {
+    @Override
+    public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) {
+      try {
         gen.writeStartArray();
         for (Object object : value.getValue()) {
           gen.writeObject(object);
         }
         gen.writeEndArray();
+      } catch (IOException ex) {
+        exception = ex;
       }
+    }
 
-      @Override
-      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-          throws IOException {
+    @Override
+    public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) {
+      try {
         gen.writeStartArray();
         for (Object object : value.getValue()) {
           gen.writeObject(object);
         }
         gen.writeEndArray();
+      } catch (IOException ex) {
+        exception = ex;
       }
-    });
+    }
   }
 
 }

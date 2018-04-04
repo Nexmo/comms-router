@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.domain.dto.mappers;
 
-
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfDoublesAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.ArrayOfStringsAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -24,12 +23,12 @@ import com.softavail.commsrouter.api.dto.model.attribute.AttributeValueVisitor;
 import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Attribute;
 import com.softavail.commsrouter.domain.AttributeGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -69,8 +68,8 @@ public class AttributesMapper {
           assert jpaAttribute.isScalar();
           break;
         default:
-          throw new RuntimeException("Unexpected attribute value type " + type + " for " + name
-              + "in " + jpa.getId());
+          throw new RuntimeException(
+              "Unexpected attribute value type " + type + " for " + name + "in " + jpa.getId());
       }
     });
 
@@ -89,23 +88,24 @@ public class AttributesMapper {
         }
         value.accept(new AttributeValueVisitor() {
           @Override
-          public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+          public void handleBooleanValue(BooleanAttributeValueDto value)
+              throws CommsRouterException {
             jpa.add(key, value.getValue());
           }
 
           @Override
-          public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+          public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
             jpa.add(key, value.getValue());
           }
 
           @Override
-          public void handleStringValue(StringAttributeValueDto value) throws IOException {
+          public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
             jpa.add(key, value.getValue());
           }
 
           @Override
           public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
-              throws IOException {
+              throws CommsRouterException {
             List<String> elements = value.getValue();
             elements.forEach(element -> {
               jpa.addArrayItem(key, element);
@@ -114,14 +114,14 @@ public class AttributesMapper {
 
           @Override
           public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-              throws IOException {
+              throws CommsRouterException {
             List<Double> elements = value.getValue();
             elements.forEach(element -> {
               jpa.addArrayItem(key, element);
             });
           }
         });
-      } catch (IOException ex) {
+      } catch (CommsRouterException ex) {
         LOGGER.error(ex.getLocalizedMessage());
       }
     });

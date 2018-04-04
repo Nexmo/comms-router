@@ -87,13 +87,13 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   }
 
   private ApiObjectRef doCreate(EntityManager em, CreateAgentArg createArg,
-      RouterObjectRef objectRef)
-      throws CommsRouterException {
+      RouterObjectRef objectRef) throws CommsRouterException {
 
     app.db.router.lockConfigByRef(em, objectRef.getRouterRef());
 
     // validate capabilities
-    app.validators.agentCapabilitiesValidator.validate(createArg.getCapabilities(), objectRef.getRouterRef());
+    app.validators.agentCapabilitiesValidator.validate(createArg.getCapabilities(),
+        objectRef.getRouterRef());
 
     Router router = getRouter(em, objectRef);
     Agent agent = new Agent(objectRef);
@@ -181,8 +181,7 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
   private AgentDispatchInfo updateAgent(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    if (updateArg.getState() == AgentState.busy
-        || updateArg.getState() == AgentState.unavailable) {
+    if (updateArg.getState() == AgentState.busy || updateArg.getState() == AgentState.unavailable) {
       throw new BadValueException(
           "Setting agent state to '" + updateArg.getState() + "' not allowed");
     }
@@ -193,7 +192,8 @@ public class CoreAgentService extends CoreRouterObjectService<AgentDto, Agent>
       if (updateArg.getCapabilities() != null) {
 
         // validate capabilities
-        app.validators.agentCapabilitiesValidator.validate(updateArg.getCapabilities(), objectRef.getRouterRef());
+        app.validators.agentCapabilitiesValidator.validate(updateArg.getCapabilities(),
+            objectRef.getRouterRef());
 
         // ! get the agent after the router config lock
         app.db.router.lockConfigByRef(em, objectRef.getRouterRef());

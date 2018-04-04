@@ -24,6 +24,7 @@ import com.softavail.commsrouter.api.dto.model.attribute.BooleanAttributeValueDt
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.client.TaskServiceClient;
 import org.apache.logging.log4j.LogManager;
@@ -317,37 +318,37 @@ public class CommsCallbackResource {
 
       valueDto.accept( new AttributeValueVisitor() {
         @Override
-        public void handleStringValue(StringAttributeValueDto value) throws IOException {
+        public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
           result.add(value.getValue());
         }
 
         @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+        public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
+        public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
         public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
-            throws IOException {
+            throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
 
         @Override
         public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
-            throws IOException {
+            throws CommsRouterException {
           // TODO Auto-generated method stub
 
         }
       });
-    } catch (IOException e) {
+    } catch (CommsRouterException e) {
       LOGGER.error(e.getLocalizedMessage());
     }
 

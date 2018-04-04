@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.api.dto.model.attribute;
 
-import java.io.IOException;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 /**
  *
@@ -30,7 +30,7 @@ public class ArrayOfStringsAttributeValueDto extends ArrayAttributeValueDto<Stri
   }
 
   @Override
-  public void accept(AttributeValueVisitor visitor) throws IOException {
+  public void accept(AttributeValueVisitor visitor) throws CommsRouterException {
     visitor.handleArrayOfStringsValue(this);
   }
 

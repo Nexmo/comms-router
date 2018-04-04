@@ -16,7 +16,7 @@
 
 package com.softavail.commsrouter.api.dto.model.attribute;
 
-import java.io.IOException;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 
 /**
  *
@@ -24,14 +24,14 @@ import java.io.IOException;
  */
 public interface AttributeValueVisitor {
 
-  void handleBooleanValue(BooleanAttributeValueDto value) throws IOException;
+  void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException;
 
-  void handleDoubleValue(DoubleAttributeValueDto value) throws IOException;
+  void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException;
 
-  void handleStringValue(StringAttributeValueDto value) throws IOException;
+  void handleStringValue(StringAttributeValueDto value) throws CommsRouterException;
 
-  void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException;
+  void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws CommsRouterException;
 
-  void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException;
+  void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws CommsRouterException;
 
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.webservice.config;
 
 import com.google.common.collect.ImmutableList;
@@ -55,10 +56,8 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   private static final String THREAD_POOL_SHUTDOWN_TIMEOUT =
       "task_dispatcher.thread_pool.shutdown.delaySeconds";
   private static final String QUEUE_RETRY_DELAY_SECONDS = "queue.retry.delaySeconds";
-  private static final String QUEUE_PROCESSOR_EVICTION_DELAY =
-      "queue.remove.idleDelaySeconds";
-  private static final String JPA_OPTIMISTIC_LOCK_RETRY_COUNT =
-      "jpa.optimisticLock.retryCount";
+  private static final String QUEUE_PROCESSOR_EVICTION_DELAY = "queue.remove.idleDelaySeconds";
+  private static final String JPA_OPTIMISTIC_LOCK_RETRY_COUNT = "jpa.optimisticLock.retryCount";
   private static final String API_ENABLE_EXPRESSION_SKILL_VALIDATION =
       "api.enableExpressionSkillValidation";
   private static final String API_ENABLE_ENABLE_AGENT_CAPABILITIES_VALIDATION =
@@ -106,32 +105,26 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
 
   public ConfigurationImpl(ServletContext servletContext) {
     ConfigurationSource configurationSource = getConfigFileParam(servletContext)
-        .map(this::getConfigurationSource)
-        .orElse(new EmptyConfigurationSource());
+        .map(this::getConfigurationSource).orElse(new EmptyConfigurationSource());
 
     ConfigurationSource master = new SkipMissingConfigurationSource(
-        new InMemoryConfigurationSource(defaultProperties),
-        configurationSource);
+        new InMemoryConfigurationSource(defaultProperties), configurationSource);
 
     provider = getProvider(master);
   }
 
   private Optional<Path> getConfigFileParam(ServletContext servletContext) {
-    Set<String> configFileParams = Sets.newHashSet(
-        servletContext.getInitParameter(Configuration.SYSTEM_PROPERTY_KEY),
-        System.getProperty(Configuration.SYSTEM_PROPERTY_KEY));
+    Set<String> configFileParams =
+        Sets.newHashSet(servletContext.getInitParameter(Configuration.SYSTEM_PROPERTY_KEY),
+            System.getProperty(Configuration.SYSTEM_PROPERTY_KEY));
 
-    return configFileParams.stream()
-        .filter(Objects::nonNull)
-        .map(Paths::get)
-        .filter(p -> p.toFile().exists())
-        .findFirst();
+    return configFileParams.stream().filter(Objects::nonNull).map(Paths::get)
+        .filter(p -> p.toFile().exists()).findFirst();
   }
 
   private ConfigurationSource getConfigurationSource(Path configFilePath) {
 
-    ConfigFilesProvider configFilesProvider = () ->
-        ImmutableList.of(configFilePath);
+    ConfigFilesProvider configFilesProvider = () -> ImmutableList.of(configFilePath);
 
     if (configFilePath.isAbsolute()) {
       LOGGER.debug("loading config from: {}", configFilePath);
@@ -143,9 +136,7 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   }
 
   private ConfigurationProvider getProvider(ConfigurationSource configurationSource) {
-    return new ConfigurationProviderBuilder()
-        .withConfigurationSource(configurationSource)
-        .build();
+    return new ConfigurationProviderBuilder().withConfigurationSource(configurationSource).build();
   }
 
   @Override

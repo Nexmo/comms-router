@@ -18,8 +18,8 @@ package com.softavail.commsrouter.api.dto.model.attribute;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.softavail.commsrouter.api.exception.CommsRouterException;
 
-import java.io.IOException;
 
 /**
  *
@@ -29,6 +29,6 @@ import java.io.IOException;
 @JsonSerialize(using = AttributeValueSerializer.class)
 public abstract class AttributeValueDto {
 
-  public abstract void accept(AttributeValueVisitor visitor) throws IOException;
+  public abstract void accept(AttributeValueVisitor visitor) throws CommsRouterException;
 
 }

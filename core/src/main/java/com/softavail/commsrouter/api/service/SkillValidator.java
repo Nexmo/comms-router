@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.api.service;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
@@ -31,15 +32,18 @@ import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
 import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
+import com.softavail.commsrouter.api.exception.BadValueException;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.api.exception.NotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
+import java.util.Map;
+
+
 /**
+ * Validator
  *
  * @author vladislav
  */
@@ -53,179 +57,202 @@ public class SkillValidator {
     this.coreSkillService = coreSkillService;
   }
 
-  public void validate(AttributeGroupDto capabilities, String routerRef) throws CommsRouterException {
-    try {
-      for(Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
-        validateCapability(capability.getKey(), capability.getValue(), routerRef);
-      }
-    } catch (IOException ex) {
-      throw new CommsRouterException(ex);
+  public void validate(AttributeGroupDto capabilities, String routerRef)
+      throws CommsRouterException {
+    for (Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
+      validateCapability(capability.getKey(), capability.getValue(), routerRef);
     }
   }
 
-  private void validateCapability(String skill, AttributeValueDto value, String routerRef) throws IOException {
+  private void validateCapability(String skill, AttributeValueDto value, String routerRef)
+      throws CommsRouterException {
     SkillDto skillDto = validateSkillExistance(skill, routerRef);
-    validateValuesNumber(skillDto, skill, value);
+    validateValuesCount(skillDto, skill, value);
     validateValuesType(skillDto, skill, value);
     validateValuesRestrictions(skillDto, skill, value);
   }
 
-  private SkillDto validateSkillExistance(String skill, String routerRef) throws IOException {
+  private SkillDto validateSkillExistance(String skill, String routerRef)
+      throws CommsRouterException {
     try {
       return coreSkillService.get(new RouterObjectRef(skill, routerRef));
     } catch (NotFoundException ex) {
-      throw new IOException("Skill " + skill + " was not found.", ex);
-    } catch (CommsRouterException ex) {
-      throw new IOException("Error while retrieving skill " + skill + " from database.", ex);
+      throw new BadValueException("Skill " + skill + " was not found.", ex);
     }
   }
 
-  private void validateValuesNumber(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto)
-          throws IOException {
-    try {
-      attributeValueDto.accept( new AttributeValueVisitor() {
-        @Override
-        public void handleStringValue(StringAttributeValueDto value) throws IOException {
-          singlevalueValidation(value);
-        }
-        @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-          singlevalueValidation(value);
-        }
-        @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-          singlevalueValidation(value);
-        }
-        @Override
-        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException{
-          multivalueValidation(value);
-        }
-        @Override
-        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
-          multivalueValidation(value);
-        }
+  private void validateValuesCount(SkillDto skillDto, String skill,
+      AttributeValueDto attributeValueDto) throws CommsRouterException {
 
-        private void singlevalueValidation(AttributeValueDto value) throws IOException {
-          if (skillDto.getMultivalue()) {
-            throw new IOException("Skill " + skill + " should have a multivalue parameter: " + value.toString());
-          }
-        }
-        private void multivalueValidation(AttributeValueDto value) throws IOException {
-          if (!skillDto.getMultivalue()) {
-              throw new IOException("Skill " + skill + " does not support multiple values: " + value.toString());
-          }
-        }
-      });
-    } catch (IOException ex) {
-      LOGGER.error("Unexpected exception", ex);
-    }
-  }
-
-  private void validateValuesType(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto) throws IOException {
-    try {
-      attributeValueDto.accept( new AttributeValueVisitor() {
-        @Override
-        public void handleStringValue(StringAttributeValueDto value) throws IOException {
-          if (skillDto.getDomain().getType() != AttributeType.string && skillDto.getDomain().getType() != AttributeType.enumeration) {
-            throw new IOException("Invalid value for skill " + skill + ": " + value.toString());
-          }
-        }
-        @Override
-        public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
-          if (skillDto.getDomain().getType() != AttributeType.number) {
-            throw new IOException("Invalid value for skill " + skill + ": " + value.toString());
-          }
-        }
-        @Override
-        public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-          if (skillDto.getDomain().getType() != AttributeType.bool) {
-            throw new IOException("Invalid value for skill " + skill + ": " + value.toString());
-          }
-        }
-        @Override
-        public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException{
-          if (skillDto.getDomain().getType() != AttributeType.string && skillDto.getDomain().getType() != AttributeType.enumeration) {
-            throw new IOException("Invalid value for skill " + skill + ": " + value.toString());
-          }
-        }
-        @Override
-        public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
-          if (skillDto.getDomain().getType() != AttributeType.number) {
-            throw new IOException("Invalid value for skill " + skill + ": " + value.toString());
-          }
-        }
-      });
-    } catch (IOException ex) {
-      LOGGER.error("Unexpected exception", ex);
-    }
-  }
-  private void validateValuesRestrictions(SkillDto skillDto, String skill, AttributeValueDto attributeValueDto) throws IOException {
-    attributeValueDto.accept( new AttributeValueVisitor() {
+    attributeValueDto.accept(new AttributeValueVisitor() {
       @Override
-      public void handleStringValue(StringAttributeValueDto value) throws IOException {
+      public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
+        singlevalueValidation(value);
+      }
+
+      @Override
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
+        singlevalueValidation(value);
+      }
+
+      @Override
+      public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
+        singlevalueValidation(value);
+      }
+
+      @Override
+      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+          throws CommsRouterException {
+        multivalueValidation(value);
+      }
+
+      @Override
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+          throws CommsRouterException {
+        multivalueValidation(value);
+      }
+
+      private void singlevalueValidation(AttributeValueDto value) throws CommsRouterException {}
+
+      private void multivalueValidation(AttributeValueDto value) throws CommsRouterException {
+        if (!skillDto.getMultivalue()) {
+          throw new BadValueException(
+              "Skill " + skill + " does not support multiple values: " + value.toString());
+        }
+      }
+    });
+  }
+
+  private void validateValuesType(SkillDto skillDto, String skill,
+      AttributeValueDto attributeValueDto) throws CommsRouterException {
+    attributeValueDto.accept(new AttributeValueVisitor() {
+      @Override
+      public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
+        if (skillDto.getDomain().getType() != AttributeType.string
+            && skillDto.getDomain().getType() != AttributeType.enumeration) {
+          throw new BadValueException(
+              "Invalid value for skill " + skill + ": " + value.toString());
+        }
+      }
+
+      @Override
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
+        if (skillDto.getDomain().getType() != AttributeType.number) {
+          throw new BadValueException(
+              "Invalid value for skill " + skill + ": " + value.toString());
+        }
+      }
+
+      @Override
+      public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {
+        if (skillDto.getDomain().getType() != AttributeType.bool) {
+          throw new BadValueException(
+              "Invalid value for skill " + skill + ": " + value.toString());
+        }
+      }
+
+      @Override
+      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+          throws CommsRouterException {
+        if (skillDto.getDomain().getType() != AttributeType.string
+            && skillDto.getDomain().getType() != AttributeType.enumeration) {
+          throw new BadValueException(
+              "Invalid value for skill " + skill + ": " + value.toString());
+        }
+      }
+
+      @Override
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+          throws CommsRouterException {
+        if (skillDto.getDomain().getType() != AttributeType.number) {
+          throw new BadValueException(
+              "Invalid value for skill " + skill + ": " + value.toString());
+        }
+      }
+    });
+  }
+
+  private void validateValuesRestrictions(SkillDto skillDto, String skill,
+      AttributeValueDto attributeValueDto) throws CommsRouterException {
+    attributeValueDto.accept(new AttributeValueVisitor() {
+      @Override
+      public void handleStringValue(StringAttributeValueDto value) throws CommsRouterException {
         switch (skillDto.getDomain().getType()) {
           case string:
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
             if (regExp != null && !value.getValue().matches(regExp)) {
-              throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
+              throw new BadValueException(
+                  "Invalid value for skill " + skill + ": " + value.getValue());
             }
             break;
           case enumeration:
-            if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(value.getValue())) {
-              throw new IOException("Invalid value for skill " + skill + ": " + value.getValue());
+            if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues()
+                .contains(value.getValue())) {
+              throw new BadValueException(
+                  "Invalid value for skill " + skill + ": " + value.getValue());
             }
             break;
           default:
-            throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
+            throw new BadValueException(
+                "Unexpected skill type: " + skillDto.getDomain().getType());
         }
       }
+
       @Override
-      public void handleDoubleValue(DoubleAttributeValueDto value) throws IOException {
+      public void handleDoubleValue(DoubleAttributeValueDto value) throws CommsRouterException {
         validateDoubleValue(value.getValue());
       }
+
       @Override
-      public void handleBooleanValue(BooleanAttributeValueDto value) throws IOException {
-      }
+      public void handleBooleanValue(BooleanAttributeValueDto value) throws CommsRouterException {}
+
       @Override
-      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value) throws IOException{
+      public void handleArrayOfStringsValue(ArrayOfStringsAttributeValueDto value)
+          throws CommsRouterException {
         switch (skillDto.getDomain().getType()) {
           case string:
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
             for (String v : value.getValue()) {
               if (!v.matches(regExp)) {
-                throw new IOException("Invalid value for skill " + skill + ": " + v);
+                throw new BadValueException("Invalid value for skill " + skill + ": " + v);
               }
             }
             break;
           case enumeration:
             for (String v : value.getValue()) {
               if (!((EnumerationAttributeDomainDto) skillDto.getDomain()).getValues().contains(v)) {
-                throw new IOException("Invalid value for skill " + skill + ": " + v);
+                throw new BadValueException("Invalid value for skill " + skill + ": " + v);
               }
             }
             break;
           default:
-            throw new IOException("Unexpected skill type: " + skillDto.getDomain().getType());
+            throw new CommsRouterException(
+                "Unexpected skill type: " + skillDto.getDomain().getType());
         }
       }
+
       @Override
-      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value) throws IOException {
+      public void handleArrayOfDoublesValue(ArrayOfDoublesAttributeValueDto value)
+          throws CommsRouterException {
         for (Double v : value.getValue()) {
           validateDoubleValue(v);
         }
       }
-      private void validateDoubleValue(Double value) throws IOException {
-        List<NumberInterval> intervals = ((NumberAttributeDomainDto)skillDto.getDomain()).getIntervals();
+
+      private void validateDoubleValue(Double value) throws CommsRouterException {
+        List<NumberInterval> intervals =
+            ((NumberAttributeDomainDto) skillDto.getDomain()).getIntervals();
         if (intervals != null && !intervals.isEmpty()) {
           NumberIntervalBoundary low = intervals.get(0).getLow();
           NumberIntervalBoundary high = intervals.get(0).getHigh();
           if (low.getInclusive() && low.getBoundary() > value
-          || !low.getInclusive() && low.getBoundary() >= value
-          || high.getInclusive() && high.getBoundary() < value
-          || !high.getInclusive() && high.getBoundary() <= value) {
-            String leftPar  = low.getInclusive() ? "[" : "(";
+              || !low.getInclusive() && low.getBoundary() >= value
+              || high.getInclusive() && high.getBoundary() < value
+              || !high.getInclusive() && high.getBoundary() <= value) {
+            String leftPar = low.getInclusive() ? "[" : "(";
             String rightPar = low.getInclusive() ? "]" : ")";
-            throw new IOException("Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
+            throw new BadValueException(
+                "Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
                     + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
           }
         }
