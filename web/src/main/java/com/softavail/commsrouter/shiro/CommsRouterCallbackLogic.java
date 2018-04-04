@@ -52,31 +52,6 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
   private final static String TOKEN_ATTR_KEY_EXPIRATION     = "expiration";
 
   private final static String JWT_SALT = "12345678901234567890123456789012";
-  private final static String HTML_CONTENT_FORMAT = "<!DOCTYPE html>\n" +
-      "<html>\n" +
-"<head>\n" +
-"<title>Authentication</title>\n" +
-"<meta charset=\"UTF-8\">\n" +
-"<meta content=\"width=device-width, initial-scale=1.0\" name=\"viewport\">\n" +
-"</head>\n" +
-"<body>\n" +
-"<div></div>\n" +
-"<script>\n" +
-"    var search = location.search;\n" + "    if (window.opener) {\n" + "        "
-      + "var message = {};\n" + "        message.type = \"sso-message\";\n" + "        "
-      + "        message.token = \"%s\";\n" + "        message.accessToken = \"%s\";\n"
-      + "        //check for IE11\n"
-      + "        if (!(window.ActiveXObject) && \"ActiveXObject\" in window) {\n" +
-"            window.opener.handleSsoAuthentication(message);\n" +
-"            window.close();\n" +
-"        } else {\n" +
-"            window.opener.postMessage(message, '*');\n" +
-"            window.close();\n" +
-"        }\n" +
-"    }     \n" +
-"</script>\n" +
-"</body>\n" +
-"</html>";
 
   public CommsRouterCallbackLogic() {
         super();
@@ -133,7 +108,7 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
       logger.debug("profile: {}", profile);
       saveUserProfile(context, config, profile, multiProfile, renewSession);
       String cookie = context.getSessionStore().getOrCreateSessionId(context);
-      String formatedContent = String.format(HTML_CONTENT_FORMAT, getJwt(profile), cookie);
+      String formatedContent = String.format(ShiroConstants.AUTH_HTTP_CONTENT_FORMAT, getJwt(profile), cookie);
       action = respondWithCredentials(context, formatedContent);
 
     } catch (final HttpAction e) {
