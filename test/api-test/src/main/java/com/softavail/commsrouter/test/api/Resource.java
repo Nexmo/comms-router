@@ -43,7 +43,17 @@ public class Resource {
       // you can specify it using -DautHost=http://localhost:8080
       RestAssured.baseURI = System.getProperty("autHost");
     }
-    RestAssured.basePath = "/comms-router-web/api";
+    if (System.getProperty("autPath") == null) {
+      String host = env.get("AUT_PATH");
+      if (host != null) {
+        RestAssured.basePath = host;
+      } else {
+        RestAssured.basePath = "/comms-router-web/api";
+      }
+    } else {
+      RestAssured.basePath = System.getProperty("autPath");
+    }
+
     this.state = state;
   }
 

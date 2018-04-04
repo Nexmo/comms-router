@@ -69,10 +69,13 @@
       #'(lambda(url method headers &optional body)
           (funcall transport (format nil "~A~A" path url) method headers body))) )
 
-(defun set-endpoint(&key(protocol "http") (host "localhost")(port 8080))
-  (api-endpoint (format nil "~A://~A:~A/comms-router-web/api" protocol host port)))
+(defun set-endpoint(&key(protocol "http") (prefix "comms-router-web/api") (host "localhost")(port 8080))
+  (api-endpoint (format nil "~A://~A:~A/~A" protocol host port prefix)))
 
 (defvar *endpoint* (set-endpoint))
 
-(defun set-server (&key(protocol "http") (host "localhost")(port 8080))
-  (setf *endpoint* (set-endpoint :protocol protocol :host host :port port)))
+(defun set-server (&key(protocol "http") (host "localhost")(port 8080) (prefix "comms-router-web/api"))
+  (setf *endpoint* (set-endpoint :protocol protocol :host host :port port :prefix prefix)))
+(defun set-server-dev()
+  (set-server :host "192.168.1.166" :prefix "comms-router-web-pure/api")
+)

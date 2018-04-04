@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterDto;
 import io.restassured.response.ValidatableResponse;
@@ -35,12 +36,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Router extends Resource {
+public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Router.class);
 
   public Router(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers");
   }
 
   public List<RouterDto> list() {
@@ -123,7 +124,7 @@ public class Router extends Resource {
         .as(RouterDto.class);
   }
 
-  public void update(CreateRouterArg args) {
+  public void update(UpdateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
     ValidatableResponse response = given()
         .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EROUTER))

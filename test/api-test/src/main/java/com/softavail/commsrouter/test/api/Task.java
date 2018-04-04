@@ -42,12 +42,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Task extends Resource {
+public class Task extends GResource<CreatedTaskDto, UpdateTaskArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Task.class);
 
   public Task(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}");
   }
 
   public List<TaskDto> list(String params) {
