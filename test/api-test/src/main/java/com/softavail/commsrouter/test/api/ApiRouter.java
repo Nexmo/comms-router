@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
@@ -38,12 +39,12 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 
-public class ApiRouter extends Resource {
+public class ApiRouter extends GResource<CreateRouterArg, UpdateRouterArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiRouter.class);
 
   public ApiRouter(HashMap<CommsRouterResource, String> state) {
-      super(state);
+    super(state,"/routers");
   }
 
   public ValidatableResponse list() {
@@ -51,44 +52,26 @@ public class ApiRouter extends Resource {
   }
 
   public ValidatableResponse list(String query) {
-    return req()
-      .pathParam("query", query)
-      .get("/routers?{query}")
-      .then();
+    return list(querySpec(query));
   }
 
   public ValidatableResponse get(String routerRef) {
-    return req().pathParam("routerRef", routerRef).get("/routers/{routerRef}").then();
-    
+    return get(getSpec(routerRef));
   }
 
   public ValidatableResponse delete(String routerRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .delete("/routers/{routerRef}")
-        .then();
+    return delete(getSpec(routerRef));
   }
 
-  public ValidatableResponse update(String routerRef, CreateRouterArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .post("/routers/{routerRef}")
-        .then();
+  public ValidatableResponse update(String routerRef, UpdateRouterArg args) {
+    return update(getSpec(routerRef),args);
   }
 
   public ValidatableResponse replace(String routerRef, CreateRouterArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .put("/routers/{routerRef}")
-        .then();
+    return replace(getSpec(routerRef),args);
   }
 
   public ValidatableResponse create(CreateRouterArg args) {
-    return req()
-      .body(args)
-      .post("/routers")
-      .then();
+    return create(createSpec(),args);
   }
 }

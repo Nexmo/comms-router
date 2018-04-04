@@ -34,77 +34,45 @@ import java.util.HashMap;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class ApiAgent extends Resource {
+public class ApiAgent extends GResource<CreateAgentArg,UpdateAgentArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiAgent.class);
 
   public ApiAgent(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/agents");
   }
-
+  
   public ValidatableResponse list(String routerRef) {
     return list(routerRef,"");
   }
   
   public ValidatableResponse list(String routerRef, String query) {
-    return req()
-      .pathParam("query", query)
-      .pathParam("routerRef", routerRef)
-      .get("/routers/{routerRef}/agents?{query}")
-      .then();
+    return list(querySpec(routerRef,query));
   }
 
   public ValidatableResponse get(String routerRef, String agentRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("agentRef", agentRef)
-        .get("/routers/{routerRef}/agents/{agentRef}")
-        .then();
+    return get(getSpec(routerRef,agentRef));
   }
 
   public ValidatableResponse delete(String routerRef, String agentRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("agentRef", agentRef)
-        .delete("/routers/{routerRef}/agents/{agentRef}")
-        .then();
+    return delete(getSpec(routerRef,agentRef));
   }
 
   public ValidatableResponse create(String routerRef, CreateAgentArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .post("/routers/{routerRef}/agents")
-        .then();
+    return create(createSpec(routerRef),args);
   }
 
   public ValidatableResponse update(String routerRef, String agentRef, UpdateAgentArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("agentRef", agentRef)
-        .body(args)
-        .post("/routers/{routerRef}/agents/{agentRef}")
-        .then();
+    return update(getSpec(routerRef,agentRef),args);
   }
   
   public ValidatableResponse update(String etag, String routerRef,
                                     String agentRef, UpdateAgentArg args) {
-    return req()
-      .header(HttpHeaders.IF_MATCH, etag)
-      .pathParam("routerRef", routerRef)
-      .pathParam("agentRef", agentRef)
-      .body(args)
-      .post("/routers/{routerRef}/agents/{agentRef}")
-      .then();
+    return update(getSpec(etag, routerRef,agentRef),args);
   }
 
   public ValidatableResponse replace(String routerRef, String agentRef, CreateAgentArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("agentRef", agentRef)
-        .body(args)
-        .put("/routers/{routerRef}/agents/{agentRef}")
-        .then();
+    return replace(getSpec(routerRef, agentRef), args);
   }
 
 }

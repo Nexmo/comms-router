@@ -32,12 +32,12 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 
-public class ApiSkill extends Resource {
+public class ApiSkill extends GResource<CreateSkillArg, UpdateSkillArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiSkill.class);
 
   public ApiSkill(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/skills");
   }
 
   public ValidatableResponse list(String routerRef) {
@@ -45,53 +45,27 @@ public class ApiSkill extends Resource {
   }
   
   public ValidatableResponse list(String routerRef, String query) {
-    return req()
-      .pathParam("query", query)
-      .pathParam("routerRef", routerRef)
-      .get("/routers/{routerRef}/skills?{query}")
-      .then();
+    return list(querySpec(routerRef,query));
   }
 
   public ValidatableResponse get(String routerRef, String skillRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("skillRef", skillRef)
-        .get("/routers/{routerRef}/skills/{skillRef}")
-        .then();
+    return get(getSpec(routerRef, skillRef));
   }
 
   public ValidatableResponse delete(String routerRef, String skillRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("skillRef", skillRef)
-        .delete("/routers/{routerRef}/skills/{skillRef}")
-        .then();
+    return delete(getSpec(routerRef, skillRef));
   }
 
   public ValidatableResponse create(String routerRef, CreateSkillArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .post("/routers/{routerRef}/skills")
-        .then();
+    return create(createSpec(routerRef), args);
   }
 
   public ValidatableResponse update(String routerRef, String skillRef, UpdateSkillArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("skillRef", skillRef)
-        .body(args)
-        .post("/routers/{routerRef}/skills/{skillRef}")
-        .then();
+    return update(getSpec(routerRef, skillRef), args);
   }
 
   public ValidatableResponse replace(String routerRef, String skillRef, CreateSkillArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("skillRef", skillRef)
-        .body(args)
-        .put("/routers/{routerRef}/skills/{skillRef}")
-        .then();
+    return replace(getSpec(routerRef, skillRef), args);
   }
 
 }

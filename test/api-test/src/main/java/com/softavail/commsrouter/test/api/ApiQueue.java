@@ -32,12 +32,12 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 
-public class ApiQueue extends Resource {
+public class ApiQueue extends GResource<CreateQueueArg, UpdateQueueArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiQueue.class);
 
   public ApiQueue(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state, "/routers/{routerRef}/queues");
   }
 
   public ValidatableResponse list(String routerRef) {
@@ -45,53 +45,27 @@ public class ApiQueue extends Resource {
   }
 
   public ValidatableResponse list(String routerRef, String query) {
-    return req()
-      .pathParam("query", query)
-      .pathParam("routerRef", routerRef)
-      .get("/routers/{routerRef}/queues?{query}")
-      .then();
+    return list(querySpec(routerRef, query));
   }
 
   public ValidatableResponse get(String routerRef, String queueRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("queueRef", queueRef)
-        .get("/routers/{routerRef}/agents/{queueRef}")
-        .then();
+    return get(getSpec(routerRef,queueRef));
   }
 
   public ValidatableResponse delete(String routerRef, String queueRef) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("queueRef", queueRef)
-        .delete("/routers/{routerRef}/queues/{queueRef}")
-        .then();
+    return delete(getSpec(routerRef,queueRef));
   }
 
   public ValidatableResponse create(String routerRef, CreateQueueArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .post("/routers/{routerRef}/queues")
-        .then();
+    return create(createSpec(routerRef), args);
   }
 
   public ValidatableResponse update(String routerRef, String queueRef, UpdateQueueArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("queueRef", queueRef)
-        .body(args)
-        .post("/routers/{routerRef}/queues/{queueRef}")
-        .then();
+    return update(getSpec(routerRef,queueRef), args);
   }
 
   public ValidatableResponse replace(String routerRef, String queueRef, CreateQueueArg args) {
-    return req()
-        .pathParam("routerRef", routerRef)
-        .pathParam("queueRef", queueRef)
-        .body(args)
-        .put("/routers/{routerRef}/queues/{queueRef}")
-        .then();
+    return replace(getSpec(routerRef,queueRef), args);
   }
 
 }

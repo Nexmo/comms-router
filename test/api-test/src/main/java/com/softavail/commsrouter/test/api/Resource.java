@@ -55,5 +55,11 @@ public class Resource {
     return given()
       .contentType("application/json");
   }
-
+  
+  protected RequestSpecification req(RequestSpecification spec) {
+    return given()
+      .contentType("application/json")
+      .spec(spec);
+  }
+  
 }
