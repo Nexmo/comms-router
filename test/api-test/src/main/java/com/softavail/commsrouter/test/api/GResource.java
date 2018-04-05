@@ -30,40 +30,40 @@ import javax.ws.rs.core.HttpHeaders;
 public class GResource<C,U> {
 
   private HashMap<CommsRouterResource, String> state;
-  private String prefix = "/routers/{routerRef}/plans";
+  private String prefix = "";
   
   public SpecInfo querySpec(String query) {
     return new SpecInfo(new RequestSpecBuilder()
-                        .addParam("query",query)
+                        .addPathParam("query",query)
                         .build(),
                         prefix + "?{query}");
   }
   
   public SpecInfo querySpec(String routerRef, String query) {
     return new SpecInfo(new RequestSpecBuilder()
-                        .addParam("query",query)
-                        .addParam("routerRef",routerRef).build(),
+                        .addPathParam("query",query)
+                        .addPathParam("routerRef",routerRef).build(),
                         prefix + "?{query}");
   }
   
   public SpecInfo getSpec(String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
-                        .addParam("itemRef",itemRef).build(),
+                        .addPathParam("itemRef",itemRef).build(),
                         prefix + "{itemRef}");
   }
 
   public SpecInfo getSpec(String routerRef, String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
-                        .addParam("itemRef",itemRef)
-                        .addParam("routerRef",routerRef).build(),
+                        .addPathParam("itemRef",itemRef)
+                        .addPathParam("routerRef",routerRef).build(),
                         prefix + "{itemRef}");
   }
 
   public SpecInfo getSpec(String etag, String routerRef, String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addHeader(HttpHeaders.IF_MATCH, etag)
-                        .addParam("itemRef",itemRef)
-                        .addParam("routerRef",routerRef).build(),
+                        .addPathParam("itemRef",itemRef)
+                        .addPathParam("routerRef",routerRef).build(),
                         prefix + "{itemRef}");
   }
 
@@ -74,7 +74,7 @@ public class GResource<C,U> {
   
   public SpecInfo createSpec(String routerRef) {
     return new SpecInfo(new RequestSpecBuilder()
-                        .addParam("routerRef",routerRef).build(),
+                        .addPathParam("routerRef",routerRef).build(),
                         prefix);
   }
   
@@ -117,8 +117,7 @@ public class GResource<C,U> {
   }
   
   protected RequestSpecification req(RequestSpecification spec) {
-    return req()
-      .spec(spec);
+    return req().spec(spec);
   }
 
   public ValidatableResponse list(SpecInfo specInfo) {
