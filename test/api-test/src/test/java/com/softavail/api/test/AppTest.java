@@ -64,7 +64,7 @@ public class AppTest extends BaseTest {
     r.list(); // @todo: fix this to consider pagination: assertThat(r.list(),
     // hasItems(hasProperty("ref", is(ref.getRef()))));
     r.replace(new CreateRouterArg());
-    r.update(new CreateRouterArg());
+    r.update(new UpdateRouterArg());
     r.delete();
     r.delete();
   }

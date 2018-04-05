@@ -42,6 +42,7 @@ import java.util.Collections;
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
@@ -176,21 +177,21 @@ public class BaseRouterTest extends BaseTest{
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
 
-    r.update(new CreateRouterArg()); // should not change values
+    r.update(new UpdateRouterArg()); // should not change values
     router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is(description));
-
-    routerArg.setDescription("changed");
-    routerArg.setName(null);
-    r.update(routerArg); // should change only description
+    UpdateRouterArg uRouterArg = new UpdateRouterArg();
+    uRouterArg.setDescription("changed");
+    uRouterArg.setName(null);
+    r.update(uRouterArg); // should change only description
     router = r.get();
     assertThat(router.getName(), is(name));
     assertThat(router.getDescription(), is("changed"));
 
-    routerArg.setDescription(null);
-    routerArg.setName("changedName");
-    r.update(routerArg); // should change only description
+    uRouterArg.setDescription(null);
+    uRouterArg.setName("changedName");
+    r.update(uRouterArg); // should change only description
     router = r.get();
     assertThat(router.getName(), is("changedName"));
     assertThat(router.getDescription(), is("changed"));
