@@ -49,14 +49,14 @@ public class GResource<C,U> {
   public SpecInfo getSpec(String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addPathParam("itemRef",itemRef).build(),
-                        prefix + "{itemRef}");
+                        prefix + "/{itemRef}");
   }
 
   public SpecInfo getSpec(String routerRef, String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addPathParam("itemRef",itemRef)
                         .addPathParam("routerRef",routerRef).build(),
-                        prefix + "{itemRef}");
+                        prefix + "/{itemRef}");
   }
 
   public SpecInfo getSpec(String etag, String routerRef, String itemRef) {
@@ -64,7 +64,7 @@ public class GResource<C,U> {
                         .addHeader(HttpHeaders.IF_MATCH, etag)
                         .addPathParam("itemRef",itemRef)
                         .addPathParam("routerRef",routerRef).build(),
-                        prefix + "{itemRef}");
+                        prefix + "/{itemRef}");
   }
 
   public SpecInfo createSpec() {

@@ -146,6 +146,8 @@ public class BaseRouterTest extends BaseTest{
 
     // replace with null values
     ApiRouter api_r = new ApiRouter(state);
+    System.out.println("RouterID:--------------------"+state.get(CommsRouterResource.ROUTER));
+    
     api_r.replace(state.get(CommsRouterResource.ROUTER),new CreateRouterArg())
         .statusCode(500)
         .body(
