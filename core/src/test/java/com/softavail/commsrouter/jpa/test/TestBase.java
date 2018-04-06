@@ -128,6 +128,8 @@ public class TestBase {
       public Boolean getApiEnableExpressionSkillValidation() {
         return false;
       }
+
+      @Override
       public Boolean getApiEnableAgentCapabilitiesValidation() {
         return false;
       }
@@ -136,8 +138,6 @@ public class TestBase {
       public Boolean getApiEnableTaskRequirementsValidation() {
         return false;
       }
-
-      @Override
     }, null);
     EntityMappers enm = new EntityMappers();
     app = new AppContext(db, evf, td, enm, CoreConfiguration.DEFAULT);

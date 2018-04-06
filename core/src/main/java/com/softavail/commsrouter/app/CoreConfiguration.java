@@ -67,6 +67,7 @@ public interface CoreConfiguration {
       return false;
     }
 
+    @Override
     public Boolean getApiEnableAgentCapabilitiesValidation() {
       return false;
     }
@@ -76,7 +77,6 @@ public interface CoreConfiguration {
       return false;
     }
 
-    @Override
   };
 
   Integer getBackoffDelay();
