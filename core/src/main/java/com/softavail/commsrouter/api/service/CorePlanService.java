@@ -78,6 +78,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     if (updateArg.canDoNoBackupUpdate()) {
       app.db.transactionManager.executeVoid((em) -> {
         Plan plan = app.db.plan.get(em, objectRef);
+        checkResourceVersion(plan, objectRef);
         Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
       });
       return;
@@ -87,6 +88,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
 
     app.db.transactionManager.executeVoid((em) -> {
       Plan oldPlan = app.db.plan.get(em, objectRef);
+      checkResourceVersion(oldPlan, objectRef);
       int revision = calculateNextRevision(oldPlan);
       PlanDto oldDto = app.entityMapper.plan.toDto(oldPlan);
       CreatePlanArg createArg = prepareCreateCopyArg(oldDto, updateArg);
