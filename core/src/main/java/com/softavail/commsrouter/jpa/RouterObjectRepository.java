@@ -71,13 +71,14 @@ public class RouterObjectRepository<ENTITYT extends RouterObject>
         .getResultList();
   }
 
-  public void delete(EntityManager em, RouterObjectRef routerObjectRef)
+  public ENTITYT delete(EntityManager em, RouterObjectRef routerObjectRef)
       throws CommsRouterException {
 
     ENTITYT entity = getNoThrow(em, routerObjectRef);
     if (entity != null) {
       em.remove(entity);
     }
+    return entity;
   }
 
 }

@@ -1138,3 +1138,16 @@ databaseChangeLog:
             name: deleted_time
         indexName: idx_plan_deleted_time
         tableName: plan
+- changeSet:
+    id: y02sTgnHlejhQUF7auywm6_add_column_plan_revision
+    author: ikrustev
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: revision
+            type: INT
+            defaultValueNumeric: 1
+            constraints:
+              nullable: false
+        tableName: plan

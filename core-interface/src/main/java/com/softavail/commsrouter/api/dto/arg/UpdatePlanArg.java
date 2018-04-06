@@ -16,10 +16,10 @@
 
 package com.softavail.commsrouter.api.dto.arg;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,8 +29,13 @@ import java.util.List;
 public class UpdatePlanArg {
 
   private String description;
-  private List<RuleDto> rules = new ArrayList<>();
+  private List<RuleDto> rules;
   private RouteDto defaultRoute;
+
+  @JsonIgnore
+  public boolean canDoNoBackupUpdate() {
+    return getRules() == null && getDefaultRoute() == null;
+  }
 
   public String getDescription() {
     return description;

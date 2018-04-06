@@ -17,7 +17,6 @@
 package com.softavail.commsrouter.domain;
 
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
-import com.softavail.commsrouter.util.Uuid;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,6 +53,8 @@ public class Plan extends RouterObject {
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "deleted_time")
   private Date deletedTime;
+
+  private Integer revision;
 
   public Plan() {}
 
@@ -108,9 +109,22 @@ public class Plan extends RouterObject {
     this.deletedTime = deletedTime;
   }
 
-  public void markDeleted() {
-    setRef(getRef() + "_" + Uuid.get());
-    setDeletedTime(new Date());
+  public void markBackup(String newDescription) {
+    String rev = String.valueOf(revision);
+    setRef(getRef() + "_" + rev);
+
+    // if no new description change the old for easier ditinction
+    if (newDescription == null && getDescription() != null) {
+      setDescription("Backup " + rev + " of " + getDescription());
+    }
+  }
+
+  public Integer getRevision() {
+    return revision;
+  }
+
+  public void setRevision(Integer revision) {
+    this.revision = revision;
   }
 
 }

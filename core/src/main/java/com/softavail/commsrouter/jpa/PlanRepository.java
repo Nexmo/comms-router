@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Plan;
 
@@ -32,16 +31,6 @@ public class PlanRepository extends RouterObjectRepository<Plan> {
 
   public PlanRepository(JpaTransactionManager transactionManager) {
     super(transactionManager);
-  }
-
-  @Override
-  public void delete(EntityManager em, RouterObjectRef routerObjectRef)
-      throws CommsRouterException {
-
-    Plan plan = getNoThrow(em, routerObjectRef);
-    if (plan != null) {
-      plan.markDeleted();
-    }
   }
 
   public void purge(Long planId) throws CommsRouterException {

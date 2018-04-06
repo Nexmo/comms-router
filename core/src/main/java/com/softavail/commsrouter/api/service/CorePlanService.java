@@ -29,6 +29,7 @@ import com.softavail.commsrouter.api.interfaces.PlanService;
 import com.softavail.commsrouter.app.AppContext;
 import com.softavail.commsrouter.domain.Plan;
 import com.softavail.commsrouter.domain.Router;
+import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
@@ -41,6 +42,8 @@ import javax.persistence.criteria.Root;
  */
 public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> implements PlanService {
 
+  static final int INITIAL_REVISION = 1;
+
   public CorePlanService(AppContext app) {
     super(app, app.db.plan, app.entityMapper.plan);
   }
@@ -52,7 +55,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
         RouterObjectRef.builder().setRef(Uuid.get()).setRouterRef(routerId).build();
 
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, routerObjectRef);
+      return doCreate(em, createArg, routerObjectRef, INITIAL_REVISION);
     });
   }
 
@@ -61,23 +64,39 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.plan.delete(em, objectRef);
+      Plan oldPlan = app.db.plan.delete(em, objectRef);
+      int revision = calculateNextRevision(oldPlan);
       em.flush();
-      return doCreate(em, createArg, objectRef);
+      return doCreate(em, createArg, objectRef, revision);
     });
+  }
+
+  private static int calculateNextRevision(Plan oldPlan) {
+    return oldPlan == null ? INITIAL_REVISION : oldPlan.getRevision() + 1;
   }
 
   @Override
   public void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
+    if (updateArg.canDoNoBackupUpdate()) {
+      app.db.transactionManager.executeVoid((em) -> {
+        Plan plan = app.db.plan.get(em, objectRef);
+        Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
+      });
+      return;
+    }
+
+    // Create a copy of the plan and keep the old one as a backup, but under different ref
+
     app.db.transactionManager.executeVoid((em) -> {
       Plan oldPlan = app.db.plan.get(em, objectRef);
+      int revision = calculateNextRevision(oldPlan);
       PlanDto oldDto = app.entityMapper.plan.toDto(oldPlan);
       CreatePlanArg createArg = prepareCreateCopyArg(oldDto, updateArg);
-      oldPlan.markDeleted();
+      oldPlan.markBackup(updateArg.getDescription());
       em.flush();
-      doCreate(em, createArg, objectRef);
+      doCreate(em, createArg, objectRef, revision);
     });
   }
 
@@ -95,7 +114,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
   }
 
   private ApiObjectRef doCreate(EntityManager em, CreatePlanArg createArg,
-      RouterObjectRef objectRef)
+      RouterObjectRef objectRef, int revision)
       throws CommsRouterException {
 
     if (createArg.getDefaultRoute() == null) {
@@ -117,6 +136,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     Plan plan = new Plan(objectRef);
     plan.setRouter(router);
     plan.setDescription(createArg.getDescription());
+    plan.setRevision(revision);
 
     PlanResolver.create(app, em, plan).addDtoRules(createArg.getRules())
             .setDefaultDtoRoute(createArg.getDefaultRoute());
