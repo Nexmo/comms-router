@@ -8,6 +8,8 @@
             </goals>
             <properties>
                 <autHost>http://localhost:8080</autHost>
+                <runTestsOn>http://localhost</runTestsOn>
+                <autPath>/comms-router-web/api</autPath>
             </properties>
         </action>
         
