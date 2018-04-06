@@ -16,13 +16,8 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.domain.Plan;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.EntityManager;
 
 /**
  * @author ikrustev
@@ -31,29 +26,6 @@ public class PlanRepository extends RouterObjectRepository<Plan> {
 
   public PlanRepository(JpaTransactionManager transactionManager) {
     super(transactionManager);
-  }
-
-  public void purge(Long planId) throws CommsRouterException {
-    transactionManager.executeVoid((EntityManager em) -> {
-      super.delete(em, planId);
-    });
-  }
-
-  @SuppressWarnings("unchecked")
-  public List<Long> getDeleted(Date before, int limit) throws CommsRouterException {
-
-    final String query = "SELECT p.id "
-        + "FROM Plan p "
-        + "WHERE p.deletedTime < :before "
-        + "ORDER BY p.deletedTime ASC";
-
-    return transactionManager.execute((EntityManager em) -> {
-      List<Long> result = em.createQuery(query)
-          .setParameter("before", before)
-          .setMaxResults(limit)
-          .getResultList();
-      return result;
-    });
   }
 
 }

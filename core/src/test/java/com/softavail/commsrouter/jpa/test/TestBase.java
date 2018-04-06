@@ -128,15 +128,8 @@ public class TestBase {
       public Boolean getApiEnableExpressionSkillValidation() {
         return false;
       }
-
-      @Override
       public Boolean getApiEnableAgentCapabilitiesValidation() {
         return false;
-      }
-
-      @Override
-      public Integer getPurgeJobSecondsBetweenRuns() {
-        return CoreConfiguration.DEFAULT.getPurgeJobSecondsBetweenRuns();
       }
 
       @Override
@@ -145,9 +138,6 @@ public class TestBase {
       }
 
       @Override
-      public Long getPurgeJobPurgeAgeSeconds() {
-        return CoreConfiguration.DEFAULT.getPurgeJobPurgeAgeSeconds();
-      }
     }, null);
     EntityMappers enm = new EntityMappers();
     app = new AppContext(db, evf, td, enm, CoreConfiguration.DEFAULT);

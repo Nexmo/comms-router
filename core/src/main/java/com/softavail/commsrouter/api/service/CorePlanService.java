@@ -16,7 +16,6 @@
 
 package com.softavail.commsrouter.api.service;
 
-import com.google.common.collect.ImmutableList;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
@@ -33,9 +32,6 @@ import com.softavail.commsrouter.util.Fields;
 import com.softavail.commsrouter.util.Uuid;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 /**
  * @author ikrustev
@@ -143,13 +139,6 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     em.persist(plan);
     PlanDto planDto = entityMapper.toDto(plan);
     return new ApiObjectRef(planDto);
-  }
-
-  @Override
-  protected ImmutableList.Builder<Predicate> amendCiteria(CriteriaBuilder cb, Root<Plan> root,
-          ImmutableList.Builder<Predicate> predicateBuilder) {
-
-    return predicateBuilder.add(cb.isNull(root.get("deletedTime")));
   }
 
 }

@@ -1119,26 +1119,6 @@ databaseChangeLog:
         columnName: plan_id
         tableName: route
 - changeSet:
-    id: MWF0bcqpMUdiLkYCNffKl7_add_column_plan_deleted_time
-    author: ikrustev
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: deleted_time
-            type: TIMESTAMP(3)
-        tableName: plan
-- changeSet:
-    id: MWF0bcqpMUdiLkYCNffKl7_create_index_idx_plan_deleted_time
-    author: mapuo (generated)
-    changes:
-    - createIndex:
-        columns:
-        - column:
-            name: deleted_time
-        indexName: idx_plan_deleted_time
-        tableName: plan
-- changeSet:
     id: y02sTgnHlejhQUF7auywm6_add_column_plan_revision
     author: ikrustev
     changes:

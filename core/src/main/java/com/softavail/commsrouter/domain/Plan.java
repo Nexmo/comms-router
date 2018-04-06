@@ -19,18 +19,14 @@ package com.softavail.commsrouter.domain;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 /**
  *
@@ -49,10 +45,6 @@ public class Plan extends RouterObject {
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "default_route")
   private Route defaultRoute;
-
-  @Temporal(TemporalType.TIMESTAMP)
-  @Column(name = "deleted_time")
-  private Date deletedTime;
 
   private Integer revision;
 
@@ -99,14 +91,6 @@ public class Plan extends RouterObject {
 
   public void setDefaultRoute(Route defaultRoute) {
     this.defaultRoute = defaultRoute;
-  }
-
-  public Date getDeletedTime() {
-    return deletedTime;
-  }
-
-  public void setDeletedTime(Date deletedTime) {
-    this.deletedTime = deletedTime;
   }
 
   public void markBackup(String newDescription) {

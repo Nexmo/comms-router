@@ -26,16 +26,12 @@ import com.softavail.commsrouter.eval.RsqlDummyValidator;
 import com.softavail.commsrouter.eval.RsqlSkillValidator;
 import com.softavail.commsrouter.eval.RsqlValidator;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
-import com.softavail.commsrouter.jpa.PlanPurgeJob;
-import com.softavail.commsrouter.util.PeriodicJobRunner;
-import com.softavail.commsrouter.util.ThreadPoolKiller;
 import com.softavail.commsrouter.webservice.config.ConfigurationImpl;
 import com.softavail.commsrouter.webservice.config.ManifestConfigurationImpl;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -54,7 +50,6 @@ public class ApplicationContext {
   private final AppContext coreContext;
   private final ConfigurationImpl configuration;
   private final ManifestConfigurationImpl manifest;
-  private final ScheduledThreadPoolExecutor purgeJobThreadPool;
 
   public ApplicationContext(ServletContext servletContext) {
     configuration = new ConfigurationImpl(servletContext);
@@ -68,15 +63,6 @@ public class ApplicationContext {
         new TaskDispatcher(db, mappers, configuration, this::handleAssignment);
     coreContext = new AppContext(db, evaluatorFactory, taskDispatcher, mappers, configuration);
     evaluatorFactory.setRsqlValidator(createRsqlValidator());
-
-    purgeJobThreadPool = new ScheduledThreadPoolExecutor(1);
-    purgeJobThreadPool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-
-    PlanPurgeJob planPurgeJob =
-            new PlanPurgeJob(db.plan, configuration.getPurgeJobPurgeAgeSeconds());
-
-    PeriodicJobRunner.start(purgeJobThreadPool, planPurgeJob,
-            configuration.getPurgeJobSecondsBetweenRuns());
   }
 
   public Client getClient() {
@@ -126,7 +112,6 @@ public class ApplicationContext {
   }
 
   public void close() {
-    ThreadPoolKiller.shutdown(purgeJobThreadPool, "PurgeJob");
     client.close();
     coreContext.taskDispatcher.close();
     coreContext.db.close();
