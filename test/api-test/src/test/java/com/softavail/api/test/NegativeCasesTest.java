@@ -649,6 +649,4 @@ public class NegativeCasesTest extends BaseTest {
     assertThat(etag,equalTo(null));
     
   }
-
-  
 }

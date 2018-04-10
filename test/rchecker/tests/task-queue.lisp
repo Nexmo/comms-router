@@ -459,10 +459,11 @@
                                                                                 ("department" (fourth id)))
                                                     :name (fifth id)
                                                     :router-id router-id)
-                                        (eagent-set :id (first id) :state "ready":address :null
-                                                    :capabilities :null
-                                                    :name :null
-                                                    :router-id router-id )))
+                                        ;; (eagent-set :id (first id) :state "ready":address :null
+                                        ;;             :capabilities :null
+                                        ;;             :name :null
+                                        ;;             :router-id router-id )
+                                        ))
                      '(("en-es-support" "12312377880" ("en" "es") "support" "Pablo Jenkins")
                        ("en-sales" "12017621651" ("en") "sales" "John Seller")
                        ("es-sales" "12017621652" ("es") "sales" "Domingo Secada")))

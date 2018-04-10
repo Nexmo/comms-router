@@ -45,38 +45,30 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
   }
 
   public List<RouterDto> list() {
-    RouterDto[] routers = given()
-        .when().get("/routers")
-        .then().statusCode(200)
+    RouterDto[] routers = list(querySpec(""))
+        .statusCode(200)
         .extract()
         .as(RouterDto[].class);
     return Arrays.asList(routers);
   }
 
   public List<RouterDto> list(String query) {
-    RouterDto[] routers = given()
-      .pathParam("query", query)
-      .when().get("/routers?{query}")
-      .then().statusCode(200)
-      .extract()
-      .as(RouterDto[].class);
+    RouterDto[] routers = list(querySpec(query))
+        .statusCode(200)
+        .extract()
+        .as(RouterDto[].class);
     return Arrays.asList(routers);
   }
 
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    return given()
-        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EROUTER))
-        .contentType("application/json")
-        .pathParam("routerRef", routerRef).body(args)
-        .when().put("/routers/{routerRef}")
-        .then()
+    return replace(getSpec(state().get(CommsRouterResource.EROUTER),
+                           state().get(CommsRouterResource.ROUTER)),args)
         .header(HttpHeaders.ETAG, not(equalTo(null)));
   }
 
   public ApiObjectRef replace(CreateRouterArg args) {
     ValidatableResponse response = replaceResponse(args).statusCode(201);
-    
     ApiObjectRef oid = response.extract()
         .as(ApiObjectRef.class);
     state().put(CommsRouterResource.ROUTER, oid.getRef());
@@ -85,11 +77,8 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
   }
 
   public ApiObjectRef create(CreateRouterArg args) {
-    ValidatableResponse response = given()
-        .contentType("application/json")
-        .body(args)
-        .when().post("/routers")
-        .then().statusCode(201)
+    ValidatableResponse response = create(createSpec(),args)
+        .statusCode(201)
         .header(HttpHeaders.ETAG, not(equalTo(null)))
         .body("ref", not(isEmptyString()));
     
@@ -103,10 +92,7 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
   }
 
   public ValidatableResponse deleteResponse() {
-    return  given()
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .when().delete("/routers/{routerRef}")
-        .then();
+    return delete(getSpec(state().get(CommsRouterResource.ROUTER)));
   }
 
   public void delete() {
@@ -115,10 +101,8 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
 
   public RouterDto get() {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    return given()
-        .pathParam("routerRef", routerRef)
-        .when().get("/routers/{routerRef}")
-        .then().statusCode(200)
+    return get(getSpec(routerRef))
+        .statusCode(200)
         .body("ref", equalTo(routerRef))
         .extract()
         .as(RouterDto.class);
@@ -126,13 +110,9 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
 
   public void update(UpdateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    ValidatableResponse response = given()
-        .header(HttpHeaders.IF_MATCH, state().get(CommsRouterResource.EROUTER))
-        .contentType("application/json")
-        .pathParam("routerRef", routerRef)
-        .body(args)
-        .when().post("/routers/{routerRef}")
-        .then()
+    ValidatableResponse response = update(getSpec(state().get(CommsRouterResource.EROUTER),
+                                                  routerRef),
+                                          args)
         .header(HttpHeaders.ETAG, not(equalTo(null)))
         .statusCode(204);
     state().put(CommsRouterResource.EROUTER, response.extract().header(HttpHeaders.ETAG));
