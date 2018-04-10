@@ -42,7 +42,12 @@ public class Validators {
         @Override
         public void validate(AttributeGroupDto capabilities, String routerRef)
             throws CommsRouterException {
-          // empty validation
+
+          // validate skill name
+          for (String skillName : capabilities.keySet()) {
+              context.evaluatorFactory.validateRsqlSelector(skillName);
+          }
+
         }
       };
     }
@@ -56,7 +61,12 @@ public class Validators {
         @Override
         public void validate(AttributeGroupDto capabilities, String routerRef)
             throws CommsRouterException {
-          // empty validation
+
+          // validate skill name
+          for (String skillName : capabilities.keySet()) {
+              context.evaluatorFactory.validateRsqlSelector(skillName);
+          }
+
         }
       };
     }
