@@ -24,10 +24,8 @@ import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
 import com.softavail.commsrouter.api.dto.arg.CreateAgentArg;
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
@@ -38,6 +36,7 @@ import com.softavail.commsrouter.api.dto.model.AgentDto;
 import com.softavail.commsrouter.api.dto.model.AgentState;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.CreatedTaskDto;
+import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -78,9 +77,6 @@ public class PlanTest extends BaseTest {
     ApiObjectRef ref = r.create(routerArg);
 
     String predicate = "1==1";
-    CreateQueueArg queueArg = new CreateQueueArg();
-    queueArg.setDescription("queue description");
-    queueArg.setPredicate(predicate);
     q = new Queue(state);
     defaultQueueId = q.create(new CreateQueueArg.Builder()
                               .predicate(predicate)
@@ -88,8 +84,13 @@ public class PlanTest extends BaseTest {
         .getRef();
   }
 
+  @After
+  public void cleanup() {
+    q.delete();
+    r.delete();
+  }
+
   @Test
-  //@DisplayName("Delete plan when it is in use.")
   public void deletePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
     String predicate = "1 == 1";
@@ -110,10 +111,12 @@ public class PlanTest extends BaseTest {
         .statusCode(500)
         .body("error.description",
               equalTo("Cannot delete or update 'route' as there is record in 'task' that refer to it."));
+    t.delete();
+    p.delete();
+    
   }
 
   @Test
-  //@DisplayName("Update plan when it is in use.")
   public void updatePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
     String predicate = "1 == 1";
@@ -133,5 +136,151 @@ public class PlanTest extends BaseTest {
     UpdatePlanArg updateArgs = new UpdatePlanArg();
     updateArgs.setDescription("updated description");
     p.update(updateArgs);
+    t.delete();
+    p.delete();
   }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void updatePlanForceBackup() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    String predicate = "1 == 1";
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                          new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                          new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+    t.createWithPlan(new CreateTaskArg.Builder()
+                     .callback(new URL("http://localhost:8080"))
+                     .requirements(new AttributeGroupDto()
+                                   .withKeyValue("lang", new StringAttributeValueDto("en")))
+                                   .build());
+    UpdatePlanArg updateArgs = new UpdatePlanArg();
+    updateArgs.setDescription("updated description");
+    updateArgs.setRules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                                  .build()));
+    
+    p.update(updateArgs);
+    assertThat(p.list(), hasItems(hasProperty("description", is("updated description"))));
+    assertThat(p.list(), hasItems(hasProperty("description", is("Rule with predicate " + predicate))));
+    t.delete();
+    assertThat(p.list().stream().map((PlanDto dto)-> { p.delete(dto.getRef());return dto;}).count()
+               , is(2L));
+    
+    p.delete();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void updatePlanBackupDescription() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    String predicate = "1 == 1";
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                          new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                          new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+    t.createWithPlan(new CreateTaskArg.Builder()
+                     .callback(new URL("http://localhost:8080"))
+                     .requirements(new AttributeGroupDto()
+                                   .withKeyValue("lang", new StringAttributeValueDto("en")))
+                                   .build());
+    UpdatePlanArg updateArgs = new UpdatePlanArg();
+    updateArgs.setRules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                                  .build()));
+    
+    p.update(updateArgs);
+    assertThat(p.list(), hasItems(hasProperty("description", is("Backup 1 of Rule with predicate " + predicate))));
+    assertThat(p.list(), hasItems(hasProperty("description", is("Rule with predicate " + predicate))));
+    t.delete();
+    assertThat(p.list().stream().map((PlanDto dto)-> { p.delete(dto.getRef());return dto;}).count()
+               , is(2L));
+    
+    p.delete();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void updatePlanBackupMultiple() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    String predicate = "1 == 1";
+    p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                          new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                          new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+    t.createWithPlan(new CreateTaskArg.Builder()
+                     .callback(new URL("http://localhost:8080"))
+                     .requirements(new AttributeGroupDto()
+                                   .withKeyValue("lang", new StringAttributeValueDto("en")))
+                                   .build());
+    UpdatePlanArg updateArgs = new UpdatePlanArg();
+    updateArgs.setRules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                                  .build()));
+    
+    p.update(updateArgs);
+    p.update(updateArgs);
+    assertThat(p.list(), hasItems(hasProperty("description", is("Backup 1 of Rule with predicate " + predicate))));
+    assertThat(p.list(), hasItems(hasProperty("description", is("Backup 2 of Rule with predicate " + predicate))));
+    assertThat(p.list(), hasItems(hasProperty("description", is("Rule with predicate " + predicate))));
+    t.delete();
+    assertThat(p.list().stream().map((PlanDto dto)-> { p.delete(dto.getRef());return dto;}).count()
+               , is(3L));
+    
+    p.delete();
+  }
+
+  @SuppressWarnings("unchecked")
+  //@Test TBD Enable when issue is resolved: Update plan failed when plan description is too big #97
+  public void updatePlanBigDescription() throws MalformedURLException {
+    assertThat(q.size(), is(0));
+    String predicate = "1 == 1";
+    p.create(new CreatePlanArg.Builder("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678912345")
+             .rules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                              .routes(Arrays.asList(
+                                                          new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                          new RouteDto.Builder(defaultQueueId).build()))
+                                              .build()))
+             .defaultRoute(new RouteDto.Builder(defaultQueueId).build())
+             .build());
+    t.createWithPlan(new CreateTaskArg.Builder()
+                     .callback(new URL("http://localhost:8080"))
+                     .requirements(new AttributeGroupDto()
+                                   .withKeyValue("lang", new StringAttributeValueDto("en")))
+                                   .build());
+    UpdatePlanArg updateArgs = new UpdatePlanArg();
+    updateArgs.setRules(Collections.singletonList(new RuleDto.Builder(predicate)
+                                                  .routes(Arrays.asList(
+                                                                        new RouteDto.Builder(defaultQueueId).timeout(1L).build(),
+                                                                        new RouteDto.Builder(defaultQueueId).build()))
+                                                  .build()));
+    
+    p.update(updateArgs);
+    assertThat(p.list(), hasItems(hasProperty("description", is("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678912345"))));
+    assertThat(p.list(), hasItems(hasProperty("description", is("Rule with predicate " + predicate))));
+    t.delete();
+    assertThat(p.list().stream().map((PlanDto dto)-> { p.delete(dto.getRef());return dto;}).count()
+               , is(3L));
+    
+    p.delete();
+  }
+
 }
