@@ -45,12 +45,12 @@ public class Plan extends Resource {
   }
 
   public List<PlanDto> list() {
-    PlanDto[] routers = given()
+    PlanDto[] plans = given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .when().get("/routers/{routerRef}/plans")
         .then().statusCode(200)
         .extract().as(PlanDto[].class);
-    return Arrays.asList(routers);
+    return Arrays.asList(plans);
   }
 
   public ApiObjectRef replace(CreatePlanArg args) {
@@ -94,14 +94,22 @@ public class Plan extends Resource {
   public void delete() {
     deleteResponse().statusCode(204);
   }
+  
+  public void delete(String ref) {
+    deleteResponse(ref).statusCode(204);
+  }
 
-  public ValidatableResponse deleteResponse() {
-    String ref = state().get(CommsRouterResource.PLAN);
+  public ValidatableResponse deleteResponse(String ref) {
     return given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .when().delete("/routers/{routerRef}/plans/{ref}")
         .then();
+  }
+  
+  public ValidatableResponse deleteResponse() {
+    String ref = state().get(CommsRouterResource.PLAN);
+    return deleteResponse(ref);
   }
 
   public PlanDto get() {
@@ -127,7 +135,6 @@ public class Plan extends Resource {
           .then();
     state().put(CommsRouterResource.EPLAN, response.extract().header(HttpHeaders.ETAG));
     return response;
-    
   }
 
   public void update(UpdatePlanArg args) {

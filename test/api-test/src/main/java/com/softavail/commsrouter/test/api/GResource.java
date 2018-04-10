@@ -32,13 +32,22 @@ public class GResource<C,U> {
   private HashMap<CommsRouterResource, String> state;
   private String prefix = "";
   
+
+  public SpecInfo getSpecEtag(String etag, String itemRef) {
+    return new SpecInfo(new RequestSpecBuilder()
+                        .addHeader(HttpHeaders.IF_MATCH, etag)
+                        .addPathParam("itemRef",itemRef).build(),
+                        prefix + "/{itemRef}");
+  }
+
+  
   public SpecInfo querySpec(String query) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addPathParam("query",query)
                         .build(),
                         prefix + "?{query}");
   }
-  
+
   public SpecInfo querySpec(String routerRef, String query) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addPathParam("query",query)
@@ -58,7 +67,7 @@ public class GResource<C,U> {
                         .addPathParam("routerRef",routerRef).build(),
                         prefix + "/{itemRef}");
   }
-
+  
   public SpecInfo getSpec(String etag, String routerRef, String itemRef) {
     return new SpecInfo(new RequestSpecBuilder()
                         .addHeader(HttpHeaders.IF_MATCH, etag)

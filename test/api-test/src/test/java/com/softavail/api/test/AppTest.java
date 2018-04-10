@@ -61,8 +61,8 @@ public class AppTest extends BaseTest {
     ApiObjectRef ref = r.create(new CreateRouterArg());
     RouterDto router = r.get();
     assertThat(router.getName(), nullValue());
-    r.list(); // @todo: fix this to consider pagination: assertThat(r.list(),
-    // hasItems(hasProperty("ref", is(ref.getRef()))));
+    r.list();
+    //hasItems(hasProperty("ref", is(ref.getRef()))));
     r.replace(new CreateRouterArg());
     r.update(new UpdateRouterArg());
     r.delete();

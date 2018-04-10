@@ -62,8 +62,7 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
 
   public ValidatableResponse replaceResponse(CreateRouterArg args) {
     String routerRef = state().get(CommsRouterResource.ROUTER);
-    return replace(getSpec(state().get(CommsRouterResource.EROUTER),
-                           state().get(CommsRouterResource.ROUTER)),args)
+    return replace(getSpec(state().get(CommsRouterResource.ROUTER)),args)
         .header(HttpHeaders.ETAG, not(equalTo(null)));
   }
 
@@ -109,9 +108,9 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
   }
 
   public void update(UpdateRouterArg args) {
-    String routerRef = state().get(CommsRouterResource.ROUTER);
-    ValidatableResponse response = update(getSpec(state().get(CommsRouterResource.EROUTER),
-                                                  routerRef),
+
+    ValidatableResponse response = update(getSpecEtag(state().get(CommsRouterResource.EROUTER),
+                                                  state().get(CommsRouterResource.ROUTER)),
                                           args)
         .header(HttpHeaders.ETAG, not(equalTo(null)))
         .statusCode(204);

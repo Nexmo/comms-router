@@ -97,7 +97,7 @@ public class Plan extends RouterObject {
     String rev = String.valueOf(revision);
     setRef(getRef() + "_" + rev);
 
-    // if no new description change the old for easier ditinction
+    // if no new description change the old for easier distinction
     if (newDescription == null && getDescription() != null) {
       setDescription("Backup " + rev + " of " + getDescription());
     }
