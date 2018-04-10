@@ -16,8 +16,8 @@
 
 package com.softavail.commsrouter.jpa;
 
-import com.softavail.commsrouter.api.dto.model.PlanDto;
 import com.softavail.commsrouter.domain.Plan;
+
 
 /**
  * @author ikrustev

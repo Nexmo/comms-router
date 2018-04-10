@@ -66,11 +66,12 @@ public class GenericRepository<ENTITYT> {
     return result;
   }
 
-  public void delete(EntityManager em, Long id) throws CommsRouterException {
+  public ENTITYT delete(EntityManager em, Long id) throws CommsRouterException {
     ENTITYT entity = em.find(entityClass, id);
     if (entity != null) {
       em.remove(entity);
     }
+    return entity;
   }
 
 }

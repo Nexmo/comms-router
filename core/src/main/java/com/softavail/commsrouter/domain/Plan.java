@@ -46,6 +46,8 @@ public class Plan extends RouterObject {
   @JoinColumn(name = "default_route")
   private Route defaultRoute;
 
+  private Integer revision;
+
   public Plan() {}
 
   public Plan(RouterObjectRef objectId) {
@@ -89,6 +91,24 @@ public class Plan extends RouterObject {
 
   public void setDefaultRoute(Route defaultRoute) {
     this.defaultRoute = defaultRoute;
+  }
+
+  public void markBackup(String newDescription) {
+    String rev = String.valueOf(revision);
+    setRef(getRef() + "_" + rev);
+
+    // if no new description change the old for easier ditinction
+    if (newDescription == null && getDescription() != null) {
+      setDescription("Backup " + rev + " of " + getDescription());
+    }
+  }
+
+  public Integer getRevision() {
+    return revision;
+  }
+
+  public void setRevision(Integer revision) {
+    this.revision = revision;
   }
 
 }

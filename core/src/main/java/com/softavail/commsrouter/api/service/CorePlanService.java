@@ -16,6 +16,7 @@
 
 package com.softavail.commsrouter.api.service;
 
+
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.UpdatePlanArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
@@ -37,6 +38,8 @@ import javax.persistence.EntityManager;
  */
 public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> implements PlanService {
 
+  static final int INITIAL_REVISION = 1;
+
   public CorePlanService(AppContext app) {
     super(app, app.db.plan, app.entityMapper.plan);
   }
@@ -48,7 +51,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
         RouterObjectRef.builder().setRef(Uuid.get()).setRouterRef(routerId).build();
 
     return app.db.transactionManager.execute((em) -> {
-      return doCreate(em, createArg, routerObjectRef);
+      return doCreate(em, createArg, routerObjectRef, INITIAL_REVISION);
     });
   }
 
@@ -57,26 +60,59 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
       throws CommsRouterException {
 
     return app.db.transactionManager.execute((em) -> {
-      app.db.plan.delete(em, objectRef);
+      Plan oldPlan = app.db.plan.delete(em, objectRef);
+      int revision = calculateNextRevision(oldPlan);
       em.flush();
-      return doCreate(em, createArg, objectRef);
+      return doCreate(em, createArg, objectRef, revision);
     });
+  }
+
+  private static int calculateNextRevision(Plan oldPlan) {
+    return oldPlan == null ? INITIAL_REVISION : oldPlan.getRevision() + 1;
   }
 
   @Override
   public void update(UpdatePlanArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
+    if (updateArg.canDoNoBackupUpdate()) {
+      app.db.transactionManager.executeVoid((em) -> {
+        Plan plan = app.db.plan.get(em, objectRef);
+        checkResourceVersion(plan, objectRef);
+        Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
+      });
+      return;
+    }
+
+    // Create a copy of the plan and keep the old one as a backup, but under different ref
+
     app.db.transactionManager.executeVoid((em) -> {
-      Plan plan = app.db.plan.get(em, objectRef);
-      checkResourceVersion(plan, objectRef);
-      PlanResolver planResolver = PlanResolver.create(app, em, plan);
-      Fields.update(plan::setDescription, plan.getDescription(), updateArg.getDescription());
+      Plan oldPlan = app.db.plan.get(em, objectRef);
+      checkResourceVersion(oldPlan, objectRef);
+      int revision = calculateNextRevision(oldPlan);
+      PlanDto oldDto = app.entityMapper.plan.toDto(oldPlan);
+      CreatePlanArg createArg = prepareCreateCopyArg(oldDto, updateArg);
+      oldPlan.markBackup(updateArg.getDescription());
+      em.flush();
+      doCreate(em, createArg, objectRef, revision);
     });
   }
 
+  private <T> T getFirstNonNull(T first, T second) {
+    return first != null ? first : second;
+  }
+
+  private CreatePlanArg prepareCreateCopyArg(PlanDto oldDto, UpdatePlanArg updateArg) {
+    CreatePlanArg createArg = new CreatePlanArg();
+    createArg.setDescription(getFirstNonNull(updateArg.getDescription(), oldDto.getDescription()));
+    createArg.setRules(getFirstNonNull(updateArg.getRules(), oldDto.getRules()));
+    createArg.setDefaultRoute(getFirstNonNull(
+            updateArg.getDefaultRoute(), oldDto.getDefaultRoute()));
+    return createArg;
+  }
+
   private ApiObjectRef doCreate(EntityManager em, CreatePlanArg createArg,
-      RouterObjectRef objectRef)
+      RouterObjectRef objectRef, int revision)
       throws CommsRouterException {
 
     if (createArg.getDefaultRoute() == null) {
@@ -98,6 +134,7 @@ public class CorePlanService extends CoreRouterObjectService<PlanDto, Plan> impl
     Plan plan = new Plan(objectRef);
     plan.setRouter(router);
     plan.setDescription(createArg.getDescription());
+    plan.setRevision(revision);
 
     PlanResolver.create(app, em, plan).addDtoRules(createArg.getRules())
             .setDefaultDtoRoute(createArg.getDefaultRoute());

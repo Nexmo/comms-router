@@ -32,6 +32,7 @@ import com.softavail.commsrouter.domain.dto.mappers.EntityMappers;
 import com.softavail.commsrouter.domain.result.MatchResult;
 import com.softavail.commsrouter.jpa.JpaDbFacade;
 import com.softavail.commsrouter.jpa.result.TaskEnumerableResult;
+import com.softavail.commsrouter.util.ThreadPoolKiller;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.logging.log4j.LogManager;
@@ -103,24 +104,8 @@ public class TaskDispatcher {
   }
 
   public void close() {
-    // @todo: logs
-    threadPool.shutdown();
-    try {
-      final Integer shutdownDelay = configuration.getDispatcherThreadShutdownDelay();
-      if (threadPool.awaitTermination(shutdownDelay, TimeUnit.SECONDS)) {
-        LOGGER.info("Dispatcher thread pool down.");
-      } else {
-        LOGGER.warn("Dispatcher thread pool shutdown timeout. Forcing ...");
-        threadPool.shutdownNow();
-        if (threadPool.awaitTermination(shutdownDelay, TimeUnit.SECONDS)) {
-          LOGGER.info("Dispatcher thread pool down after being forced.");
-        } else {
-          LOGGER.error("Dispatcher thread pool did not shut down.");
-        }
-      }
-    } catch (InterruptedException ex) {
-      LOGGER.warn("Interrupted while waiting for the dispatcher thread pool to go shut down.");
-    }
+    final Integer shutdownDelay = configuration.getDispatcherThreadShutdownDelay();
+    ThreadPoolKiller.shutdown(threadPool, "TaskDispatcher", shutdownDelay);
   }
 
   public void dispatchTask(TaskDispatchInfo dispatchInfo) {
