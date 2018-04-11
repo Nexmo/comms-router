@@ -91,4 +91,12 @@ public class CommsRouterEvaluatorFactory {
     this.rsqlValidator = rsqlValidator;
   }
 
+  public void validateRsqlSelector(String selector) throws ExpressionException {
+    try {
+      rsqlFactory.validate(selector + ">1");
+    } catch (ExpressionException ex) {
+      throw new ExpressionException("Invalid selector: " + selector);
+    }
+  }
+
 }

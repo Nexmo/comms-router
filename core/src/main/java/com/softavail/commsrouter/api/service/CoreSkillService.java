@@ -74,6 +74,8 @@ public class CoreSkillService extends CoreRouterObjectService<SkillDto, Skill>
       RouterObjectRef objectRef)
       throws CommsRouterException {
 
+    app.evaluatorFactory.validateRsqlSelector(objectRef.getRef());
+
     if (createArg.getDomain() == null) {
       throw new BadValueException("Field 'domain' is required.");
     }
