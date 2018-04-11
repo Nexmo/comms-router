@@ -59,7 +59,7 @@ public class ApiAgent extends GResource<CreateAgentArg,UpdateAgentArg> {
   }
 
   public ValidatableResponse create(String routerRef, CreateAgentArg args) {
-    return create(createSpec(routerRef),args);
+    return create(createSpec(routerRef), args);
   }
 
   public ValidatableResponse update(String routerRef, String agentRef, UpdateAgentArg args) {

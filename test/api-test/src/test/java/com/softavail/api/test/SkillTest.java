@@ -59,7 +59,21 @@ public class SkillTest extends BaseTest {
   public void createNoDomain(){
     ApiSkill api_s = new ApiSkill(state);
     api_s.create(state.get(CommsRouterResource.ROUTER), new CreateSkillArg.Builder().description("no domain").build())
-      .statusCode(400);
+      .statusCode(400)
+      .body("error.description",is("Field 'domain' is required."));
+  }
+
+  @Test
+  public void createInvalidSymbols(){
+    ApiSkill api_s = new ApiSkill(state);
+    api_s.create(state.get(CommsRouterResource.ROUTER), new CreateSkillArg.Builder()
+                 .name("with spaces")
+                 .description("invalid name")
+                 .domain( new BoolAttributeDomainDto())
+                 .build())
+      .statusCode(400)
+      .body("error.description",is("Field 'domain' is required."));
+    
   }
 
   @Test

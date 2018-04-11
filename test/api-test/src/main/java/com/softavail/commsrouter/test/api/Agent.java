@@ -104,13 +104,16 @@ public class Agent extends Resource {
     return create(arg);
   }
 
-  public void delete() {
-    String ref = state().get(CommsRouterResource.AGENT);
+  public void delete(String ref) {
     given()
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .pathParam("ref", ref)
-        .when().delete("/routers/{routerRef}/agents/{ref}")
-        .then().statusCode(204);
+      .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+      .pathParam("ref", ref)
+      .when().delete("/routers/{routerRef}/agents/{ref}")
+      .then().statusCode(204);
+  }
+
+  public void delete() {
+    delete(state().get(CommsRouterResource.AGENT));
   }
 
   public AgentDto get(String ref) {

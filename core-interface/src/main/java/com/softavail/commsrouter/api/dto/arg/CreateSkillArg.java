@@ -72,6 +72,11 @@ public class CreateSkillArg {
       return this;
     }
 
+    public Builder name(String name) {
+      skillArg.setName(name);
+      return this;
+    }
+
     public Builder multivalue(Boolean multi) {
       skillArg.setMultivalue(multi);
       return this;
