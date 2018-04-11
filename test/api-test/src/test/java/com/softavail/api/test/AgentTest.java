@@ -113,21 +113,23 @@ public class AgentTest extends BaseTest {
   }
 
   @Test
-  public void createAgent() {
+  public void createAgentNoCapability() {
     a.create(new CreateAgentArg.Builder("simpleAgent").build());
     AgentDto resource = a.get();
-    assertThat(resource.getCapabilities(), nullValue());
+    assertThat(resource.getCapabilities().toString(), is("Attributes [ language:en ]"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
-        resource.getState(), is(AgentState.offline));
+               resource.getState(), is(AgentState.offline));
   }
 
   @Test
   public void createAgentNameDescription() {
     String name = "simpleAgent";
     String description = "agent description";
-    a.create(new CreateAgentArg.Builder(name).description(description).build());
+    a.create(new CreateAgentArg.Builder(name).description(description)
+             .capabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")))
+             .build());
     AgentDto resource = a.get();
-    assertThat(resource.getCapabilities(), nullValue());
+    assertThat(resource.getCapabilities().toString(), is("Attributes [ language:en ]"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
                resource.getState(), is(AgentState.offline));
     assertThat(String.format("Check name (%s) to be set.", resource.getName()),
@@ -140,14 +142,16 @@ public class AgentTest extends BaseTest {
   public void updateAgentNameDescription() {
     String name = "newAgent";
     String description = "newDescription";
-    a.create(new CreateAgentArg.Builder("agent").build());
+    a.create(new CreateAgentArg.Builder(name).description(description)
+             .capabilities(new AttributeGroupDto().withKeyValue("language", new StringAttributeValueDto("en")))
+             .build());
     a.update(new UpdateAgentArg.Builder()
              .name(name)
              .description(description)
              .build());
     AgentDto resource = a.get();
     
-    assertThat(resource.getCapabilities(), nullValue());
+    assertThat(resource.getCapabilities().toString(), is("Attributes [ language:en ]"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
                resource.getState(), is(AgentState.offline));
     assertThat(String.format("Check name (%s) to be set.", resource.getName()),
@@ -182,7 +186,7 @@ public class AgentTest extends BaseTest {
                  .build())
       .statusCode(400)
       .body("error.description",
-            equalTo("A variable or function name can not contain a quote character."));;
+            equalTo("Invalid selector: l-t.&$/'%@! ype"));;
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
@@ -660,6 +664,9 @@ public class AgentTest extends BaseTest {
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(0L).build())
         .build());
     CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
                                             .callback(testServer())
         .build());
     p.create(new CreatePlanArg.Builder("priority 5")
@@ -668,14 +675,20 @@ public class AgentTest extends BaseTest {
         .build());
     CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
                                             .callback(testServer())
-        .build());
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
+                                            .build());
     p.create(new CreatePlanArg.Builder("priority 3")
         .defaultRoute(
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(3L).build())
         .build());
     CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
                                             .callback(testServer())
-        .build());
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
+                                            .build());
 
     assertThat(q.size(), is(3));
     a.setState(AgentState.ready);
@@ -724,7 +737,10 @@ public class AgentTest extends BaseTest {
         .build());
     CreatedTaskDto task0 = t.createWithPlan(new CreateTaskArg.Builder()
                                             .callback(testServer())
-        .build());
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
+                                            .build());
     q.create(
         new CreateQueueArg.Builder().description("queue priority 5").predicate("1==1").build());
     p.create(new CreatePlanArg.Builder("priority 5")
@@ -732,8 +748,11 @@ public class AgentTest extends BaseTest {
             new RouteDto.Builder(state.get(CommsRouterResource.QUEUE)).priority(5L).build())
         .build());
     CreatedTaskDto task5 = t.createWithPlan(new CreateTaskArg.Builder()
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
                                             .callback(testServer())
-        .build());
+                                            .build());
     q.create(
         new CreateQueueArg.Builder().description("queue priority 3").predicate("1==1").build());
     p.create(new CreatePlanArg.Builder("priority 3")
@@ -742,7 +761,10 @@ public class AgentTest extends BaseTest {
         .build());
     CreatedTaskDto task3 = t.createWithPlan(new CreateTaskArg.Builder()
                                             .callback(testServer())
-        .build());
+                                            .requirements(new AttributeGroupDto()
+                                                          .withKeyValue("language",
+                                                                        new StringAttributeValueDto("en")))
+                                            .build());
     a.setState(AgentState.ready);
     assertThat(waitToConnect(3000), allOf(containsString(state.get(CommsRouterResource.AGENT)),
                                           containsString(task5.getRef())));
