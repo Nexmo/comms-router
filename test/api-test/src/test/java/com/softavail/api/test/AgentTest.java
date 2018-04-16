@@ -116,7 +116,7 @@ public class AgentTest extends BaseTest {
   public void createAgentNoCapability() {
     a.create(new CreateAgentArg.Builder("simpleAgent").build());
     AgentDto resource = a.get();
-    assertThat(resource.getCapabilities().toString(), is("Attributes [ language:en ]"));
+    assertThat(resource.getCapabilities().toString(), isNull());
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
                resource.getState(), is(AgentState.offline));
   }
