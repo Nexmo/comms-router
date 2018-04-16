@@ -51,8 +51,10 @@ public class Validators {
             throws CommsRouterException {
 
           // validate skill name
-          for (String skillName : capabilities.keySet()) {
-              context.evaluatorFactory.validateRsqlSelector(skillName);
+          if (capabilities != null) {
+            for (String skillName : capabilities.keySet()) {
+                context.evaluatorFactory.validateRsqlSelector(skillName);
+            }
           }
 
         }
@@ -73,8 +75,10 @@ public class Validators {
             throws CommsRouterException {
 
           // validate skill name
-          for (String skillName : capabilities.keySet()) {
-              context.evaluatorFactory.validateRsqlSelector(skillName);
+          if (capabilities != null) {
+            for (String skillName : capabilities.keySet()) {
+                context.evaluatorFactory.validateRsqlSelector(skillName);
+            }
           }
 
         }
