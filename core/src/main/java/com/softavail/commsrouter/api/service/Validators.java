@@ -42,7 +42,7 @@ public class Validators {
 
     LOGGER.info("api.enableAgentCapabilitiesValidation: " + context.coreConfiguration.getApiEnableAgentCapabilitiesValidation());
 
-    if (context.coreConfiguration.getApiEnableTaskRequirementsValidation()) {
+    if (context.coreConfiguration.getApiEnableAgentCapabilitiesValidation()) {
       return new SkillValidator(context.svc.skill);
     } else {
       return new SkillValidator(null) {
