@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -177,7 +177,7 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   public String getShiroConfigLocations() {
     return provider.getProperty(SHIRO_CONFIG_LOCATIONS, String.class);
   }
-  
+
   @Override
   public Integer getBackoffDelay() {
     return provider.getProperty(BACKOFF_DELAY_SECONDS, Integer.class);
@@ -216,6 +216,14 @@ public class ConfigurationImpl implements CoreConfiguration, Configuration {
   @Override
   public Integer getJpaLockRetryCount() {
     return provider.getProperty(JPA_OPTIMISTIC_LOCK_RETRY_COUNT, Integer.class);
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("ConfigurationImpl{");
+    sb.append("provider=").append(provider.allConfigurationAsProperties());
+    sb.append('}');
+    return sb.toString();
   }
 
 }
