@@ -56,13 +56,13 @@ queue.remove.idleDelaySeconds=
 jpa.optimisticLock.retryCount=
 # Should we validate the expression when adding/updating skill
 # Default: false
-api.enableExpressionSkillValidation=true
+api.enableExpressionSkillValidation=
 # Should we validate agent capabilities when adding/updating agent
 # Default: false
-api.enableAgentCapabilitiesValidation=true
+api.enableAgentCapabilitiesValidation=
 # Should we validate task requirements when adding task
 # Default: false
-api.enableTaskRequirementsValidation=true
+api.enableTaskRequirementsValidation=
 # The locations where Shiro configuration can be found
 # Default: classpath:shiro.ini
 shiro.configLocations=
