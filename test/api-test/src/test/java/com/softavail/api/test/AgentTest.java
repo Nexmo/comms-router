@@ -22,6 +22,7 @@ import com.softavail.commsrouter.test.api.Plan;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.ApiAgent;
+import com.softavail.commsrouter.test.api.Skill;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,6 +40,7 @@ import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.*;
 import com.softavail.commsrouter.api.dto.model.AgentDto;
 
 import com.softavail.commsrouter.api.dto.model.AgentState;
@@ -49,6 +51,7 @@ import com.softavail.commsrouter.api.dto.model.TaskDto;
 import com.softavail.commsrouter.api.dto.model.TaskState;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,7 +61,11 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import java.io.OutputStreamWriter;
 import org.hamcrest.Matchers;
@@ -82,21 +89,31 @@ public class AgentTest extends BaseTest {
   private Router r = new Router(state);
   private Queue q = new Queue(state);
   private Agent a = new Agent(state);
+  private Skill s = new Skill(state);
   private Task t = new Task(state);
   private Plan p = new Plan(state);
   private ServerSocket server;
 
   @Before
   public void setup() throws IOException {
+  
     server = new ServerSocket(0);
     r.create(new CreateRouterArg());
     q.create(
         new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
+    Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
+    System.out.println("---------------->"+ s.create(new CreateSkillArg.Builder()
+                                                     .name("language")
+                                                     .description("domain")
+                                                     .domain( new EnumerationAttributeDomainDto(options))
+                                                     .multivalue(false)
+                                                     .build()).getRef());
   }
 
   @After
   public void cleanup() throws IOException {
     server.close();
+    s.delete();
   }
 
   private String waitToConnect(int timeout) throws IOException {
