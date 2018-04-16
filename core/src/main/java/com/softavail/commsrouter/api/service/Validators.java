@@ -19,12 +19,16 @@ package com.softavail.commsrouter.api.service;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.exception.CommsRouterException;
 import com.softavail.commsrouter.app.AppContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
  * @author vladislav
  */
 public class Validators {
+
+  private static final Logger LOGGER = LogManager.getLogger(Validators.class);
 
   public final SkillValidator taskRequirementsValidator;
   public final SkillValidator agentCapabilitiesValidator;
@@ -35,6 +39,9 @@ public class Validators {
   }
 
   private SkillValidator getAgentCapabilitiesValidator(AppContext context) {
+
+    LOGGER.info("api.enableAgentCapabilitiesValidation: " + context.coreConfiguration.getApiEnableAgentCapabilitiesValidation());
+
     if (context.coreConfiguration.getApiEnableTaskRequirementsValidation()) {
       return new SkillValidator(context.svc.skill);
     } else {
@@ -54,6 +61,9 @@ public class Validators {
   }
 
   private SkillValidator getTaskRequirementsValidator(AppContext context) {
+
+    LOGGER.info("api.enableTaskRequirementsValidation: " + context.coreConfiguration.getApiEnableTaskRequirementsValidation());
+
     if (context.coreConfiguration.getApiEnableTaskRequirementsValidation()) {
       return new SkillValidator(context.svc.skill);
     } else {
