@@ -34,8 +34,8 @@ public class Validators {
   public final SkillValidator agentCapabilitiesValidator;
 
   public Validators(AppContext context) {
-    taskRequirementsValidator = getAgentCapabilitiesValidator(context);
-    agentCapabilitiesValidator = getTaskRequirementsValidator(context);
+    taskRequirementsValidator = getTaskRequirementsValidator(context);
+    agentCapabilitiesValidator = getAgentCapabilitiesValidator(context);
   }
 
   private SkillValidator getAgentCapabilitiesValidator(AppContext context) {
