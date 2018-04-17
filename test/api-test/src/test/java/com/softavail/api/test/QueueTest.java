@@ -16,9 +16,11 @@
 
 package com.softavail.api.test;
 
+import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.ApiQueue;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Skill;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,14 +30,20 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import com.softavail.commsrouter.test.api.Agent;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.*;
 
@@ -48,6 +56,7 @@ public class QueueTest extends BaseTest{
 
   private HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
   private Router r = new Router(state);
+  private Skill s = new Skill(state);
   private Queue q = new Queue(state);
 
   @Before
@@ -58,11 +67,18 @@ public class QueueTest extends BaseTest{
     routerArg.setDescription(description);
     routerArg.setName(name);
     ApiObjectRef ref = r.create(routerArg);
+    s.replace("language", new CreateSkillArg.Builder()
+              .name("language")
+              .description("domain")
+              .domain( new EnumerationAttributeDomainDto(Stream.of("en","es").collect(Collectors.toSet())))
+              .multivalue(false)
+              .build());
   }
   
   @After
   public void deleteRouter() {
     q.delete();
+    s.delete();
     r.delete();
   }
 

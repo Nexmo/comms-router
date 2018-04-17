@@ -102,12 +102,13 @@ public class AgentTest extends BaseTest {
     q.create(
         new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    s.create(new CreateSkillArg.Builder()
-             .name("language")
-             .description("domain")
-             .domain( new EnumerationAttributeDomainDto(options))
-             .multivalue(false)
-             .build());
+    s.replace("language", 
+              new CreateSkillArg.Builder()
+                .name("language")
+                .description("domain")
+                .domain( new EnumerationAttributeDomainDto(options))
+                .multivalue(false)
+                .build());
   }
 
   @After
@@ -207,7 +208,7 @@ public class AgentTest extends BaseTest {
                  .build())
       .statusCode(400)
       .body("error.description",
-            equalTo("Invalid selector: l-t.&$/'%@! ype"));;
+            equalTo("Skill l-t.&$/'%@! ype was not found."));;
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {

@@ -578,7 +578,7 @@ public class NegativeCasesTest extends BaseTest {
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
     Agent a = new Agent(state);
-    a.create("en");
+    a.create(new CreateAgentArg());
     Queue q = new Queue(state);
     q.create(new CreateQueueArg.Builder()
              .predicate("true")
