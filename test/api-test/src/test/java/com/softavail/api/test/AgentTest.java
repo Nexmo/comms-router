@@ -102,12 +102,12 @@ public class AgentTest extends BaseTest {
     q.create(
         new CreateQueueArg.Builder().description("queue description").predicate("1==1").build());
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    System.out.println("---------------->"+ s.create(new CreateSkillArg.Builder()
-                                                     .name("language")
-                                                     .description("domain")
-                                                     .domain( new EnumerationAttributeDomainDto(options))
-                                                     .multivalue(false)
-                                                     .build()).getRef());
+    s.create(new CreateSkillArg.Builder()
+             .name("language")
+             .description("domain")
+             .domain( new EnumerationAttributeDomainDto(options))
+             .multivalue(false)
+             .build());
   }
 
   @After
@@ -136,6 +136,7 @@ public class AgentTest extends BaseTest {
     assertThat(resource.getCapabilities(), nullValue());
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
                resource.getState(), is(AgentState.offline));
+    a.delete();
   }
 
   @Test
@@ -153,6 +154,7 @@ public class AgentTest extends BaseTest {
                resource.getName(), is(name));
     assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
                resource.getDescription(), is(description));
+    a.delete();
   }
 
   @Test
@@ -175,6 +177,7 @@ public class AgentTest extends BaseTest {
                resource.getName(), is(name));
     assertThat(String.format("Check description (%s) to be set.", resource.getDescription()),
                resource.getDescription(), is(description));
+    a.delete();
   }
   
   @Test
@@ -187,6 +190,7 @@ public class AgentTest extends BaseTest {
                is("en"));
     assertThat(String.format("Check state (%s) to be offline.", resource.getState()),
         resource.getState(), is(AgentState.offline));
+    a.delete();
   }
 
   
@@ -262,6 +266,7 @@ public class AgentTest extends BaseTest {
     completeTask();
     t.delete();
     a.setState(AgentState.offline);
+    a.delete();
   }
 
   @Test

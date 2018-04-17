@@ -17,9 +17,10 @@
 
 package com.softavail.api.test;
 
+import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.Plan;
-import com.softavail.commsrouter.test.api.CommsRouterResource;
+import com.softavail.commsrouter.test.api.Skill;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
 
@@ -29,20 +30,27 @@ import static org.hamcrest.Matchers.is;
 import org.junit.*;
 
 import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.*;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 /**
  * Unit test for Task to queue mapping.
@@ -55,6 +63,7 @@ public class TaskQueueTest extends BaseTest {
   private Router r = new Router(state);
   private Queue q = new Queue(state);
   private Plan p = new Plan(state);
+  private Skill s = new Skill(state);
   private Task t = new Task(state);
   private String defaultQ;
 
@@ -65,6 +74,21 @@ public class TaskQueueTest extends BaseTest {
     routerArg.setName("router-name");
     ApiObjectRef ref = r.create(routerArg);
 
+    Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
+    s.create(new CreateSkillArg.Builder()
+             .name("language")
+             .description("domain")
+             .domain( new EnumerationAttributeDomainDto(options))
+             .multivalue(false)
+             .build());
+
+    s.create(new CreateSkillArg.Builder()
+             .name("age")
+             .description("domain")
+             .domain( new EnumerationAttributeDomainDto(options))
+             .multivalue(false)
+             .build());
+    
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setPredicate(predicate);
