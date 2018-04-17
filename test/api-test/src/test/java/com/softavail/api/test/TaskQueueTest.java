@@ -75,16 +75,16 @@ public class TaskQueueTest extends BaseTest {
     ApiObjectRef ref = r.create(routerArg);
 
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    s.create(new CreateSkillArg.Builder()
+    s.replace("language", new CreateSkillArg.Builder()
              .name("language")
-             .description("domain")
+             .description("language domain")
              .domain( new EnumerationAttributeDomainDto(options))
              .multivalue(false)
              .build());
 
-    s.create(new CreateSkillArg.Builder()
+    s.replace("age", new CreateSkillArg.Builder()
              .name("age")
-             .description("domain")
+             .description("age domain")
              .domain( new EnumerationAttributeDomainDto(options))
              .multivalue(false)
              .build());

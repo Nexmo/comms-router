@@ -84,7 +84,7 @@ public class PlanTest extends BaseTest {
     routerArg.setName("router-name");
     ApiObjectRef ref = r.create(routerArg);
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    s.create(new CreateSkillArg.Builder()
+    s.replace("lang", new CreateSkillArg.Builder()
              .name("lang")
              .description("domain")
              .domain( new EnumerationAttributeDomainDto(options))

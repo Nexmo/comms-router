@@ -62,6 +62,10 @@ public class Skill extends Resource {
 
   public ApiObjectRef replace(CreateSkillArg args) {
     String ref = state().get(CommsRouterResource.SKILL);
+    return replace(ref, args);
+  }
+
+  public ApiObjectRef replace(String ref, CreateSkillArg args) {
     ApiObjectRef oid = given()
         .contentType("application/json")
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
@@ -71,7 +75,7 @@ public class Skill extends Resource {
         .then().statusCode(201)
         .extract()
         .as(ApiObjectRef.class);
-    state().put(CommsRouterResource.SKILL, oid.getRef());
+    state().put(CommsRouterResource.SKILL, ref);
     return oid;
   }
 
