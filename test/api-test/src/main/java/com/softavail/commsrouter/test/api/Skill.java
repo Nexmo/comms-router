@@ -99,13 +99,17 @@ public class Skill extends Resource {
     return oid;
   }
 
+  public void delete(String ref) {
+    given()
+      .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
+      .pathParam("ref", ref)
+      .when().delete("/routers/{routerRef}/skills/{ref}")
+      .then().statusCode(204);
+  }
+
   public void delete() {
     String ref = state().get(CommsRouterResource.SKILL);
-    given()
-        .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
-        .pathParam("ref", ref)
-        .when().delete("/routers/{routerRef}/skills/{ref}")
-        .then().statusCode(204);
+    delete(ref);
   }
 
   public SkillDto get(String ref) {

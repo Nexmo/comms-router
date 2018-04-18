@@ -102,13 +102,15 @@ public class TaskQueueTest extends BaseTest {
     q.create(queueArg);
   }
 
-  //  @After
+  @After
   public void cleanup() {
     t.delete();
     p.delete();
     q.delete();
     state.put(CommsRouterResource.QUEUE,defaultQ);
     q.delete();
+    assertThat(s.list().stream().map((SkillDto dto)-> { s.delete(dto.getRef());return dto;}).count()
+               , is(2L));
     r.delete();
   }
 
