@@ -198,7 +198,7 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
       throws CommsRouterException {
 
     // validate requirements
-    app.validators.taskRequirementsValidator.validate(createArg.getRequirements(), obj.getRef());
+    app.validators.taskRequirementsValidator.validate(createArg.getRequirements(), obj.getRouterRef());
 
     Task task = fromPlan(em, createArg, obj);
     task.setState(TaskState.waiting);
