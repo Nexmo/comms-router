@@ -84,6 +84,14 @@ public class PTaskQueueTest extends BaseTest {
               .multivalue(false)
               .build());
 
+    Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
+    s.replace("language", new CreateSkillArg.Builder()
+              .name("language")
+              .description("language domain")
+              .domain( new EnumerationAttributeDomainDto(options))
+              .multivalue(false)
+              .build());
+
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription("queue description");

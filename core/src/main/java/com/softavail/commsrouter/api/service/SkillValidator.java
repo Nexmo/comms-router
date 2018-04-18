@@ -247,29 +247,30 @@ public class SkillValidator {
         NumberIntervalBoundary low = interval.getLow();
         NumberIntervalBoundary high = interval.getHigh();
             
-        return !(low.getInclusive() && low.getBoundary() > value
+        return (low.isInclusive() && low.getBoundary() > value
                  || !low.isInclusive() && low.getBoundary() >= value
                  || high.isInclusive() && high.getBoundary() < value
                  || !high.isInclusive() && high.getBoundary() <= value);
       }
 
-      private String describeInterval(NumberInterval interval) {
+      private String describeInterval(Double value, NumberInterval interval) {
         NumberIntervalBoundary low = interval.getLow();
         NumberIntervalBoundary high = interval.getHigh();
         String par = low.getInclusive() ? "[]" : "()";
-        return String.valueOf(par.charAt(0)) + low.getBoundary() + "," + high.getBoundary() + String.valueOf(par.charAt(1));
+        return String.valueOf(!isInvalidInterval(value,interval))+ String.valueOf(par.charAt(0))
+          + low.getBoundary() + "," + high.getBoundary() + String.valueOf(par.charAt(1));
       }
         
       private void validateDoubleValue(Double value) throws CommsRouterException {
         List<NumberInterval> intervals =
             ((NumberAttributeDomainDto) skillDto.getDomain()).getIntervals();
 
-        if ( intervals.stream().anyMatch( interval -> !isInvalidInterval(value, interval))) {
+        if ( !intervals.isEmpty() && !intervals.stream().anyMatch( interval -> !isInvalidInterval(value, interval))) {
           throw new BadValueException("Invalid value for skill " + skill + ": " 
                                       + value + ". Accepted is " 
                                       + intervals
                                         .stream()
-                                        .map(interval -> describeInterval(interval))
+                                        .map(interval -> describeInterval(value, interval))
                                         .collect( Collectors.joining( " or ") ));
         }
       }
