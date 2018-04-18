@@ -48,6 +48,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,19 +76,30 @@ public class TaskQueueTest extends BaseTest {
     ApiObjectRef ref = r.create(routerArg);
 
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    s.replace("language", new CreateSkillArg.Builder()
+    s.replace("lang", new CreateSkillArg.Builder()
              .name("language")
              .description("language domain")
              .domain( new EnumerationAttributeDomainDto(options))
              .multivalue(false)
              .build());
 
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
     s.replace("age", new CreateSkillArg.Builder()
              .name("age")
              .description("age domain")
-             .domain( new EnumerationAttributeDomainDto(options))
+             .domain( new NumberAttributeDomainDto(intervals))
              .multivalue(false)
              .build());
+    
+    s.replace("float", new CreateSkillArg.Builder()
+              .name("float")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
     
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
@@ -110,7 +122,7 @@ public class TaskQueueTest extends BaseTest {
     state.put(CommsRouterResource.QUEUE,defaultQ);
     q.delete();
     assertThat(s.list().stream().map((SkillDto dto)-> { s.delete(dto.getRef());return dto;}).count()
-               , is(2L));
+               , is(3L));
     r.delete();
   }
 

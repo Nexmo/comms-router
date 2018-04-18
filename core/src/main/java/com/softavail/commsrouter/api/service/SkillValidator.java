@@ -256,7 +256,7 @@ public class SkillValidator {
       private String describeInterval(Double value, NumberInterval interval) {
         NumberIntervalBoundary low = interval.getLow();
         NumberIntervalBoundary high = interval.getHigh();
-        String par = low.getInclusive() ? "[]" : "()";
+        String par = low.isInclusive() ? "[]" : "()";
         return String.valueOf(!isInvalidInterval(value,interval))+ String.valueOf(par.charAt(0))
           + low.getBoundary() + "," + high.getBoundary() + String.valueOf(par.charAt(1));
       }
