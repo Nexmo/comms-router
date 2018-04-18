@@ -19,6 +19,7 @@ package com.softavail.api.test;
 
 import com.softavail.commsrouter.test.api.Queue;
 import com.softavail.commsrouter.test.api.Plan;
+import com.softavail.commsrouter.test.api.Skill;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Task;
 import com.softavail.commsrouter.test.api.Router;
@@ -36,6 +37,12 @@ import com.softavail.commsrouter.api.dto.model.RuleDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
+import com.softavail.commsrouter.api.dto.model.skill.*;
+import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,6 +59,7 @@ public class PTaskQueueTest extends BaseTest {
   private Router r = new Router(state);
   private Queue q = new Queue(state);
   private Plan p = new Plan(state);
+  private Skill s = new Skill(state);
   private Task t = new Task(state);
   private String defaultQueueId;
   private String backupQueueId;
@@ -63,6 +71,18 @@ public class PTaskQueueTest extends BaseTest {
     routerArg.setDescription("Router description");
     routerArg.setName("router-name");
     ApiObjectRef ref = r.create(routerArg);
+
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+
+    s.replace("age", new CreateSkillArg.Builder()
+              .name("age")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
 
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
@@ -99,7 +119,8 @@ public class PTaskQueueTest extends BaseTest {
     t.delete();
     p.delete();
     q.delete();
-    //r.delete();
+    s.delete();
+    r.delete();
   }
 
   private void addPlanTask(AttributeGroupDto requirements, String predicate)
