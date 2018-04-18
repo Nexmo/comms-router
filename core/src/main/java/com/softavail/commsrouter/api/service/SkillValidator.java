@@ -59,11 +59,11 @@ public class SkillValidator {
 
   public void validate(AttributeGroupDto capabilities, String routerRef)
       throws CommsRouterException {
-      if (capabilities != null) {
-        for (Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
-          validateCapability(capability.getKey(), capability.getValue(), routerRef);
-        }
+    if (capabilities != null) {
+      for (Map.Entry<String, AttributeValueDto> capability : capabilities.entrySet()) {
+        validateCapability(capability.getKey(), capability.getValue(), routerRef);
       }
+    }
   }
 
   private void validateCapability(String skill, AttributeValueDto value, String routerRef)

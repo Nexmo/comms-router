@@ -75,6 +75,13 @@ public class TaskTest extends BaseTest{
               .multivalue(false)
               .build());
 
+    s.replace("age", new CreateSkillArg.Builder()
+              .name("age")
+              .description("age domain")
+              .domain( new EnumerationAttributeDomainDto(Stream.of("en","es").collect(Collectors.toSet())))
+              .multivalue(false)
+              .build());
+
     String predicate = "1==1";
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription("queue description");
@@ -87,7 +94,8 @@ public class TaskTest extends BaseTest{
   public void cleanup() {
     t.delete();
     q.delete();
-    s.delete();
+    assertThat(s.list().stream().map((SkillDto dto)-> { s.delete(dto.getRef());return dto;}).count()
+               , is(2L));
     r.delete();
   }
 
@@ -98,7 +106,7 @@ public class TaskTest extends BaseTest{
     CreateTaskArg arg = new CreateTaskArg();
     arg.setCallbackUrl(new URL("http://example.com"));
     arg.setRequirements(new AttributeGroupDto()
-        .withKeyValue("language", new StringAttributeValueDto("en")));
+                        .withKeyValue("language", new StringAttributeValueDto("en")));
     arg.setQueueRef(state.get(CommsRouterResource.QUEUE));
     t.createWithPlan(arg);
     assertThat(q.size(), is(1));

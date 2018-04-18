@@ -102,6 +102,7 @@ public class PlanTest extends BaseTest {
   @After
   public void cleanup() {
     q.delete();
+    s.delete();
     r.delete();
   }
 
