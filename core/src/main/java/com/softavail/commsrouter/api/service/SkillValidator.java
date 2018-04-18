@@ -40,6 +40,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -241,22 +243,34 @@ public class SkillValidator {
         }
       }
 
+      private boolean isInvalidInterval(Double value,NumberInterval interval) {
+        NumberIntervalBoundary low = interval.getLow();
+        NumberIntervalBoundary high = interval.getHigh();
+            
+        return !(low.getInclusive() && low.getBoundary() > value
+                 || !low.isInclusive() && low.getBoundary() >= value
+                 || high.isInclusive() && high.getBoundary() < value
+                 || !high.isInclusive() && high.getBoundary() <= value);
+      }
+
+      private String describeInterval(NumberInterval interval) {
+        NumberIntervalBoundary low = interval.getLow();
+        NumberIntervalBoundary high = interval.getHigh();
+        String par = low.getInclusive() ? "[]" : "()";
+        return String.valueOf(par.charAt(0)) + low.getBoundary() + "," + high.getBoundary() + String.valueOf(par.charAt(1));
+      }
+        
       private void validateDoubleValue(Double value) throws CommsRouterException {
         List<NumberInterval> intervals =
             ((NumberAttributeDomainDto) skillDto.getDomain()).getIntervals();
-        if (intervals != null && !intervals.isEmpty()) {
-          NumberIntervalBoundary low = intervals.get(0).getLow();
-          NumberIntervalBoundary high = intervals.get(0).getHigh();
-          if (low.getInclusive() && low.getBoundary() > value
-              || !low.getInclusive() && low.getBoundary() >= value
-              || high.getInclusive() && high.getBoundary() < value
-              || !high.getInclusive() && high.getBoundary() <= value) {
-            String leftPar = low.getInclusive() ? "[" : "(";
-            String rightPar = low.getInclusive() ? "]" : ")";
-            throw new BadValueException(
-                "Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
-                    + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
-          }
+
+        if ( intervals.stream().anyMatch( interval -> !isInvalidInterval(value, interval))) {
+          throw new BadValueException("Invalid value for skill " + skill + ": " 
+                                      + value + ". Accepted is " 
+                                      + intervals
+                                        .stream()
+                                        .map(interval -> describeInterval(interval))
+                                        .collect( Collectors.joining( " or ") ));
         }
       }
     });
