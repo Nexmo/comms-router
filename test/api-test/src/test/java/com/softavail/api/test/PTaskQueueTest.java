@@ -34,6 +34,7 @@ import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouteDto;
 import com.softavail.commsrouter.api.dto.model.RuleDto;
+import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.attribute.DoubleAttributeValueDto;
 import com.softavail.commsrouter.api.dto.model.attribute.StringAttributeValueDto;
@@ -85,8 +86,8 @@ public class PTaskQueueTest extends BaseTest {
               .build());
 
     Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
-    s.replace("language", new CreateSkillArg.Builder()
-              .name("language")
+    s.replace("lang", new CreateSkillArg.Builder()
+              .name("lang")
               .description("language domain")
               .domain( new EnumerationAttributeDomainDto(options))
               .multivalue(false)
@@ -126,8 +127,10 @@ public class PTaskQueueTest extends BaseTest {
   public void cleanup() {
     t.delete();
     p.delete();
-    q.delete();
-    s.delete();
+    assertThat(q.list().stream().map((QueueDto dto)-> { q.delete(dto.getRef());return dto;}).count()
+               , is(3L));
+    assertThat(s.list().stream().map((SkillDto dto)-> { s.delete(dto.getRef());return dto;}).count()
+               , is(2L));
     r.delete();
   }
 

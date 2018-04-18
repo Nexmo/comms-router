@@ -99,13 +99,17 @@ public class Queue extends Resource {
     return oid;
   }
 
-  public void delete() {
-    String ref = state().get(CommsRouterResource.QUEUE);
+  public void delete(String ref) {
     given()
         .pathParam("routerRef", state().get(CommsRouterResource.ROUTER))
         .pathParam("ref", ref)
         .when().delete("/routers/{routerRef}/queues/{ref}")
         .then().statusCode(204);
+  }
+
+  public void delete() {
+    String ref = state().get(CommsRouterResource.QUEUE);
+    delete(ref);
   }
 
   public QueueDto get() {
