@@ -29,7 +29,6 @@ import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
-import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
@@ -245,18 +244,15 @@ public class SkillValidator {
         List<NumberInterval> intervals =
             ((NumberAttributeDomainDto) skillDto.getDomain()).getIntervals();
         if (intervals != null && !intervals.isEmpty()) {
-          NumberIntervalBoundary low = intervals.get(0).getLow();
-          NumberIntervalBoundary high = intervals.get(0).getHigh();
-          if (low.getInclusive() && low.getBoundary() > value
-              || !low.getInclusive() && low.getBoundary() >= value
-              || high.getInclusive() && high.getBoundary() < value
-              || !high.getInclusive() && high.getBoundary() <= value) {
-            String leftPar = low.getInclusive() ? "[" : "(";
-            String rightPar = low.getInclusive() ? "]" : ")";
-            throw new BadValueException(
-                "Invalid value for skill " + skill + ": " + value + ". Accepted interval is "
-                    + leftPar + low.getBoundary() + "," + high.getBoundary() + rightPar);
+          for (NumberInterval interval : intervals) {
+            if (interval.contains(value)) {
+              return;
+            }
           }
+
+          throw new BadValueException(
+            "Invalid value for skill " + skill + ": " + value
+            + ". Accepted intervals are " + intervals);
         }
       }
     });
