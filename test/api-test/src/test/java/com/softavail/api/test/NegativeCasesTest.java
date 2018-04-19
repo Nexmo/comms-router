@@ -21,6 +21,7 @@ import com.softavail.commsrouter.api.dto.arg.*;
 import com.softavail.commsrouter.test.api.*;
 import static org.hamcrest.Matchers.*;
 import com.softavail.commsrouter.api.dto.model.*;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -30,6 +31,8 @@ import java.io.OutputStreamWriter;
 import java.io.IOException;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Stream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -205,6 +208,19 @@ public class NegativeCasesTest extends BaseTest {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Skill s = new Skill(state);
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+
+    s.replace("true", new CreateSkillArg.Builder()
+              .name("true")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
+
     ApiQueue api_q = new ApiQueue(state);
     api_q.create(state.get(CommsRouterResource.ROUTER)
                  , new CreateQueueArg.Builder()
@@ -246,7 +262,20 @@ public class NegativeCasesTest extends BaseTest {
   public void createQueueWrongPredicateSubexp() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
+    Skill s = new Skill(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+
+    s.replace("true", new CreateSkillArg.Builder()
+              .name("true")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
+
     ApiQueue api_q = new ApiQueue(state);
     api_q.create(state.get(CommsRouterResource.ROUTER)
                  , new CreateQueueArg.Builder()
@@ -261,13 +290,26 @@ public class NegativeCasesTest extends BaseTest {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
+    Skill s = new Skill(state);
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+
+    s.replace("true", new CreateSkillArg.Builder()
+              .name("true")
+              .description("true domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
+
     ApiQueue api_q = new ApiQueue(state);
     api_q.create(state.get(CommsRouterResource.ROUTER)
                  , new CreateQueueArg.Builder()
                  .predicate("true==(invalidConstant)")
                  .description("desc").build())
-      .statusCode(201)
-      .body("ref",notNullValue());
+      .statusCode(400)
+      .body("error.description", containsString("Invalid number argument:(invalidConstant)"));
   }
 
   @Test
@@ -275,12 +317,26 @@ public class NegativeCasesTest extends BaseTest {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg.Builder().description(utfText).build());
+
+    Skill s = new Skill(state);
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+
+    s.replace("true", new CreateSkillArg.Builder()
+              .name("true")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
     ApiQueue api_q = new ApiQueue(state);
     api_q.create(state.get(CommsRouterResource.ROUTER)
                  , new CreateQueueArg.Builder()
                  .predicate("true==[invalidConstant]")
                  .description("desc").build())
-      .statusCode(201);
+      .statusCode(400) 
+      .body("error.description", containsString("Invalid number argument:[invalidConstant]"));
   }
   
   @Test
