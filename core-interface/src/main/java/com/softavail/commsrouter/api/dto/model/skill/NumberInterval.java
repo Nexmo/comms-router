@@ -104,22 +104,22 @@ public class NumberInterval {
   }
 
   public boolean contains(Double value) {
-    if (low.getInclusive() && high.getInclusive()) {
+    if (low.isInclusive() && high.isInclusive()) {
       if (low.getBoundary() <= value && value <= high.getBoundary()) {
         return true;
       }
     }
-    if (low.getInclusive() && !high.getInclusive()) {
+    if (low.isInclusive() && !high.isInclusive()) {
       if (low.getBoundary() <= value && value < high.getBoundary()) {
         return true;
       }
     }
-    if (!low.getInclusive() && high.getInclusive()) {
+    if (!low.isInclusive() && high.isInclusive()) {
       if (low.getBoundary() < value && value <= high.getBoundary()) {
         return true;
       }
     }
-    if (!low.getInclusive() && !high.getInclusive()) {
+    if (!low.isInclusive() && !high.isInclusive()) {
       if (low.getBoundary() < value && value < high.getBoundary()) {
         return true;
       }

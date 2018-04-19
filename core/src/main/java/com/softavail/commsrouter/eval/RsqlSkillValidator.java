@@ -51,7 +51,7 @@ public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, Stri
   public Void visit(AndNode andNode, String routerRef) {
     Iterator<Node> nodes = andNode.iterator();
     while (nodes.hasNext()) {
-      nodes.next().accept(this, null);
+      nodes.next().accept(this, routerRef);
     }
     return null;
   }
@@ -60,7 +60,7 @@ public class RsqlSkillValidator implements RsqlValidator, RSQLVisitor<Void, Stri
   public Void visit(OrNode orNode, String routerRef) {
     Iterator<Node> nodes = orNode.iterator();
     while (nodes.hasNext()) {
-      nodes.next().accept(this, null);
+      nodes.next().accept(this, routerRef);
     }
     return null;
   }
