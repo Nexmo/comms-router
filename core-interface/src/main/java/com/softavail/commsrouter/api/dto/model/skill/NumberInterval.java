@@ -103,6 +103,30 @@ public class NumberInterval {
         || compareRhsLowToHigh == 0 && (!rhs.getLow().isInclusive() || !high.isInclusive());
   }
 
+  public boolean contains(Double value) {
+    if (low.getInclusive() && high.getInclusive()) {
+      if (low.getBoundary() <= value && value <= high.getBoundary()) {
+        return true;
+      }
+    }
+    if (low.getInclusive() && !high.getInclusive()) {
+      if (low.getBoundary() <= value && value < high.getBoundary()) {
+        return true;
+      }
+    }
+    if (!low.getInclusive() && high.getInclusive()) {
+      if (low.getBoundary() < value && value <= high.getBoundary()) {
+        return true;
+      }
+    }
+    if (!low.getInclusive() && !high.getInclusive()) {
+      if (low.getBoundary() < value && value < high.getBoundary()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public NumberIntervalBoundary getLow() {
     return low;
   }

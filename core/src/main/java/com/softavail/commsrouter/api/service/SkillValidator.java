@@ -29,7 +29,6 @@ import com.softavail.commsrouter.api.dto.model.skill.AttributeType;
 import com.softavail.commsrouter.api.dto.model.skill.EnumerationAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberAttributeDomainDto;
 import com.softavail.commsrouter.api.dto.model.skill.NumberInterval;
-import com.softavail.commsrouter.api.dto.model.skill.NumberIntervalBoundary;
 import com.softavail.commsrouter.api.dto.model.skill.SkillDto;
 import com.softavail.commsrouter.api.dto.model.skill.StringAttributeDomainDto;
 import com.softavail.commsrouter.api.exception.BadValueException;
@@ -40,8 +39,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -243,35 +240,19 @@ public class SkillValidator {
         }
       }
 
-      private boolean isInvalidInterval(Double value,NumberInterval interval) {
-        NumberIntervalBoundary low = interval.getLow();
-        NumberIntervalBoundary high = interval.getHigh();
-            
-        return (low.isInclusive() && low.getBoundary() > value
-                 || !low.isInclusive() && low.getBoundary() >= value
-                 || high.isInclusive() && high.getBoundary() < value
-                 || !high.isInclusive() && high.getBoundary() <= value);
-      }
-
-      private String describeInterval(Double value, NumberInterval interval) {
-        NumberIntervalBoundary low = interval.getLow();
-        NumberIntervalBoundary high = interval.getHigh();
-        String par = low.isInclusive() ? "[]" : "()";
-        return String.valueOf(!isInvalidInterval(value,interval))+ String.valueOf(par.charAt(0))
-          + low.getBoundary() + "," + high.getBoundary() + String.valueOf(par.charAt(1));
-      }
-        
       private void validateDoubleValue(Double value) throws CommsRouterException {
         List<NumberInterval> intervals =
             ((NumberAttributeDomainDto) skillDto.getDomain()).getIntervals();
+        if (intervals != null && !intervals.isEmpty()) {
+          for (NumberInterval interval : intervals) {
+            if (interval.contains(value)) {
+              return;
+            }
+          }
 
-        if ( !intervals.isEmpty() && !intervals.stream().anyMatch( interval -> !isInvalidInterval(value, interval))) {
-          throw new BadValueException("Invalid value for skill " + skill + ": " 
-                                      + value + ". Accepted is " 
-                                      + intervals
-                                        .stream()
-                                        .map(interval -> describeInterval(value, interval))
-                                        .collect( Collectors.joining( " or ") ));
+          throw new BadValueException(
+            "Invalid value for skill " + skill + ": " + value
+            + ". Accepted intervals are " + intervals);
         }
       }
     });
