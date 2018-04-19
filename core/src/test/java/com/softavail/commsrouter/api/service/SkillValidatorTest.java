@@ -52,6 +52,7 @@ public class SkillValidatorTest extends TestBase {
 
     createBooleanSkill("isTechnical", routerRef);
     createNumericSkill("ageWithBoundary", 18, true, 45, false, 50, true, 60, false, Boolean.FALSE, routerRef);
+    createMultiNumericSkill("multiAgeWithBoundary", 18, true, 45, true, Boolean.FALSE, routerRef);
     createNumericSkill("age", Boolean.FALSE, routerRef);
     createEnumerationSkill("language", new HashSet<String>(Arrays.asList("en", "fr", "es", "ru", "bg")), routerRef);
     createStringSkill("nameWithRegex", "[a-zA-Z]+", Boolean.TRUE, routerRef);
@@ -65,6 +66,7 @@ public class SkillValidatorTest extends TestBase {
     attributeGroupDto.add("isTechnical", true);
     attributeGroupDto.add("age", 5.0);
     attributeGroupDto.add("ageWithBoundary", 18.0);
+    attributeGroupDto.add("multiAgeWithBoundary", 18.0);
     attributeGroupDto.add("language", "en");
     attributeGroupDto.add("nameWithRegex", "suzie");
     attributeGroupDto.add("name", "suzie5");
@@ -153,6 +155,16 @@ public class SkillValidatorTest extends TestBase {
     NumberInterval interval1 = new NumberInterval(numberIntervalBoundary1, numberIntervalBoundary2);
     NumberInterval interval2 = new NumberInterval(numberIntervalBoundary3, numberIntervalBoundary4);
     AttributeDomainDto attributeDomainDto = new NumberAttributeDomainDto(Lists.newArrayList(interval1, interval2));
+    createSkill(name, attributeDomainDto, multivalue, routerRef);
+  }
+
+  private void createMultiNumericSkill(String name, double b1, boolean inclusiveB1, double b2, boolean inclusiveB2, boolean multivalue, String routerRef) throws CommsRouterException {
+    NumberIntervalBoundary numberIntervalBoundary1 = new NumberIntervalBoundary(b1, inclusiveB1);
+    NumberIntervalBoundary numberIntervalBoundary2 = new NumberIntervalBoundary(b2, inclusiveB2);
+    NumberInterval interval = new NumberInterval(numberIntervalBoundary1, numberIntervalBoundary2);
+    NumberInterval interval1 = new NumberInterval(new NumberIntervalBoundary(0.0, false), new NumberIntervalBoundary(1.0, false));
+
+    AttributeDomainDto attributeDomainDto = new NumberAttributeDomainDto(Lists.newArrayList(interval1, interval));
     createSkill(name, attributeDomainDto, multivalue, routerRef);
   }
 
