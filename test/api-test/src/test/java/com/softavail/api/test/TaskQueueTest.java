@@ -75,7 +75,7 @@ public class TaskQueueTest extends BaseTest {
     routerArg.setName("router-name");
     ApiObjectRef ref = r.create(routerArg);
 
-    Set<String> options = Stream.of("en","es").collect(Collectors.toSet());
+    Set<String> options = Stream.of("en","es","bg").collect(Collectors.toSet());
     s.replace("lang", new CreateSkillArg.Builder()
              .name("language")
              .description("language domain")
@@ -170,7 +170,7 @@ public class TaskQueueTest extends BaseTest {
   public void addTaskDoNotMatch() throws MalformedURLException {
     q.checkSize(0);
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
-    addPlanTask(taskAttribs, "1==2");
+    addPlanTask(taskAttribs, "lang=out=(\"bg\",\"en\",\"es\")");
     q.checkSize(0);
   }
 
