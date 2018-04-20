@@ -281,8 +281,7 @@ public class NegativeCasesTest extends BaseTest {
                  , new CreateQueueArg.Builder()
                  .predicate("true==[invalidConstant")
                  .description("desc").build())
-      .statusCode(201)
-      .body("ref",notNullValue());
+      .statusCode(400).body("error.description", containsString("Invalid number argument:[invalidConstant"));
   }
   
   @Test
@@ -309,7 +308,7 @@ public class NegativeCasesTest extends BaseTest {
                  .predicate("true==(invalidConstant)")
                  .description("desc").build())
       .statusCode(400)
-      .body("error.description", containsString("Invalid number argument:(invalidConstant)"));
+      .body("error.description", containsString("Invalid number argument:invalidConstant"));
   }
 
   @Test

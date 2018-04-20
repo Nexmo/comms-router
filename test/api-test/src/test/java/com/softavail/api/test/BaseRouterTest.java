@@ -19,6 +19,7 @@ package com.softavail.api.test;
 import com.softavail.commsrouter.test.api.Agent;
 import com.softavail.commsrouter.test.api.CommsRouterResource;
 import com.softavail.commsrouter.test.api.Plan;
+import com.softavail.commsrouter.test.api.Skill;
 import com.softavail.commsrouter.test.api.Router;
 import com.softavail.commsrouter.test.api.ApiRouter;
 import com.softavail.commsrouter.test.api.Task;
@@ -44,6 +45,7 @@ import com.softavail.commsrouter.api.dto.arg.CreatePlanArg;
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.CreateTaskArg;
+import com.softavail.commsrouter.api.dto.arg.CreateSkillArg;
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
 import com.softavail.commsrouter.api.dto.model.attribute.AttributeGroupDto;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
@@ -56,9 +58,32 @@ import com.softavail.commsrouter.api.dto.model.RouterDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.stream.Collectors;
+import com.softavail.commsrouter.api.dto.model.*;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 
 /** Unit test for simple App. */
 public class BaseRouterTest extends BaseTest{
+
+  private Skill s = null;
+
+  private void createSkill(HashMap<CommsRouterResource, String> state) {
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+    s  = new Skill(state);
+    
+    s.replace("num", new CreateSkillArg.Builder()
+              .name("num")
+              .description("age domain")
+              .domain( new NumberAttributeDomainDto(intervals))
+              .multivalue(false)
+              .build());
+  }
 
   @Test
   public void createRouter() {
@@ -146,7 +171,6 @@ public class BaseRouterTest extends BaseTest{
 
     // replace with null values
     ApiRouter api_r = new ApiRouter(state);
-    System.out.println("RouterID:--------------------"+state.get(CommsRouterResource.ROUTER));
     
     api_r.replace(state.get(CommsRouterResource.ROUTER),new CreateRouterArg())
         .statusCode(500)
@@ -223,12 +247,14 @@ public class BaseRouterTest extends BaseTest{
     Router r = new Router(state);
     ApiObjectRef router1 = r.create(new CreateRouterArg());
     ApiObjectRef router2 = r.create(new CreateRouterArg());
+    createSkill(state);
+    
     Queue q = new Queue(state);
 
     String description1 = "queue1 description";
     String predicate1 = "1==1";
     String description2 = "queue2 description";
-    String predicate2 = "2==2";
+    String predicate2 = "num==2";
     String queueRef = "Queue-ref";
 
     state.put(CommsRouterResource.QUEUE, queueRef);

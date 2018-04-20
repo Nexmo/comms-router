@@ -170,6 +170,7 @@ public class TaskQueueTest extends BaseTest {
   public void addTaskDoNotMatch() throws MalformedURLException {
     q.checkSize(0);
     AttributeGroupDto taskAttribs = new AttributeGroupDto();
+    taskAttribs.put("lang", new StringAttributeValueDto("en"));
     addPlanTask(taskAttribs, "lang=out=(\"bg\",\"en\",\"es\")");
     q.checkSize(0);
   }

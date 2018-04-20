@@ -136,11 +136,11 @@ public class QueueTest extends BaseTest{
     assertThat(queue.getRef(), is(queueRef));
 
     queueArg.setDescription("newDescription");
-    queueArg.setPredicate("2==2");
+    queueArg.setPredicate("language==en");
 
     ref = q.replace(queueArg);
     queue = q.get();
-    assertThat(queue.getPredicate(), is("2==2"));
+    assertThat(queue.getPredicate(), is("language==en"));
     assertThat(queue.getDescription(), is("newDescription"));
     assertThat(queue.getRef(), is(queueRef));
 
@@ -174,7 +174,7 @@ public class QueueTest extends BaseTest{
     queue = q.get();
     assertThat(queue.getPredicate(), is(predicate));
     assertThat(queue.getDescription(), is(newDescription));
-    String newPredicate = "2==2";
+    String newPredicate = "language==en";
     queueArg.setDescription(null);
     queueArg.setPredicate(newPredicate);
 
@@ -282,11 +282,11 @@ public class QueueTest extends BaseTest{
     assertThat(q.size(), is(0));
 
     queueArg.setDescription("qdescription");
-    queueArg.setPredicate("2==2");
+    queueArg.setPredicate("language==en");
 
     q.replaceResponse(queueArg).statusCode(201);
     QueueDto queue = q.get();
-    assertThat(queue.getPredicate(), is("2==2"));
+    assertThat(queue.getPredicate(), is("language==en"));
     assertThat(queue.getDescription(), is("qdescription"));
     assertThat(queue.getRef(), is(ref.getRef()));
     a.delete();    

@@ -91,7 +91,7 @@ public class PlanTest extends BaseTest {
              .multivalue(false)
              .build());
 
-    String predicate = "1==1";
+    String predicate = "lang==en";
     q = new Queue(state);
     defaultQueueId = q.create(new CreateQueueArg.Builder()
                               .predicate(predicate)
@@ -109,7 +109,7 @@ public class PlanTest extends BaseTest {
   @Test
   public void deletePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(
@@ -135,7 +135,7 @@ public class PlanTest extends BaseTest {
   @Test
   public void updatePlanInUse() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(
@@ -160,7 +160,7 @@ public class PlanTest extends BaseTest {
   @Test
   public void updatePlanForceBackup() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(
@@ -196,7 +196,7 @@ public class PlanTest extends BaseTest {
   @Test
   public void updatePlanBackupDescription() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(
@@ -231,7 +231,7 @@ public class PlanTest extends BaseTest {
   @Test
   public void updatePlanBackupMultiple() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("Rule with predicate " + predicate)
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(
@@ -268,7 +268,7 @@ public class PlanTest extends BaseTest {
   //@Test TBD Enable when issue is resolved: Update plan failed when plan description is too big #97
   public void updatePlanBigDescription() throws MalformedURLException {
     assertThat(q.size(), is(0));
-    String predicate = "1 == 1";
+    String predicate = "lang==en";
     p.create(new CreatePlanArg.Builder("012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678912345")
              .rules(Collections.singletonList(new RuleDto.Builder(predicate)
                                               .routes(Arrays.asList(

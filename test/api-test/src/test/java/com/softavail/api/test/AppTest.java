@@ -35,10 +35,31 @@ import org.junit.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.stream.Collectors;
+import com.softavail.commsrouter.api.dto.model.*;
+import com.softavail.commsrouter.api.dto.model.skill.*;
 
 /** Unit test for simple App. */
 public class AppTest extends BaseTest {
-
+  private Skill s = null;
+  private void createSkill(HashMap<CommsRouterResource, String> state) {
+    List<NumberInterval> intervals = Stream.of(new NumberInterval(new NumberIntervalBoundary(1.0),new NumberIntervalBoundary(2.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(2.0),new NumberIntervalBoundary(3.0)),
+                                               new NumberInterval(new NumberIntervalBoundary(4.0,false),new NumberIntervalBoundary(50.0,true))
+                                               ).collect(Collectors.toList());
+    s  = new Skill(state);
+    
+    s.replace("num", new CreateSkillArg.Builder()
+                             .name("num")
+                             .description("age domain")
+                             .domain( new NumberAttributeDomainDto(intervals))
+                             .multivalue(false)
+                             .build());
+  }
+  
   @Test
   public void crudRouter1() {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
@@ -75,15 +96,17 @@ public class AppTest extends BaseTest {
     HashMap<CommsRouterResource, String> state = new HashMap<CommsRouterResource, String>();
     Router r = new Router(state);
     r.create(new CreateRouterArg());
-
+    createSkill(state);
+    
     Queue q = new Queue(state);
-    ApiObjectRef ref = q.create(new CreateQueueArg.Builder().predicate("1==1").build());
+    ApiObjectRef ref = q.create(new CreateQueueArg.Builder().predicate("num==1").build());
     QueueDto queue = q.get();
     assertThat(queue.getDescription(), nullValue());
     assertThat(q.list(), hasItems(hasProperty("ref", is(ref.getRef()))));
-    q.replace(new CreateQueueArg.Builder().predicate("2==2").build());
-    q.update(new CreateQueueArg.Builder().predicate("1==1").build());
+    q.replace(new CreateQueueArg.Builder().predicate("num==2").build());
+    q.update(new CreateQueueArg.Builder().predicate("num==1").build());
     q.delete();
+    s.delete();
     r.delete();
   }
 
