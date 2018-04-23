@@ -47,7 +47,8 @@ public class Task extends GResource<CreatedTaskDto, UpdateTaskArg> {
   private static final Logger LOGGER = LogManager.getLogger(Task.class);
 
   public Task(HashMap<CommsRouterResource, String> state) {
-    super(state,"/routers/{routerRef}");
+
+    super(state,"/routers/{routerRef}/tasks");
   }
 
   public List<TaskDto> list(String params) {

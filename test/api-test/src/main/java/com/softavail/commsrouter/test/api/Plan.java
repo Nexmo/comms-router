@@ -36,12 +36,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Plan extends Resource {
+public class Plan extends GResource<CreatePlanArg, UpdatePlanArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Plan.class);
 
   public Plan(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/plans");
   }
 
   public List<PlanDto> list() {

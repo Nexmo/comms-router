@@ -17,11 +17,6 @@
 
 package com.softavail.commsrouter.test.api;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hamcrest.Matchers.not;
-
 import com.softavail.commsrouter.api.dto.arg.CreateRouterArg;
 import com.softavail.commsrouter.api.dto.arg.UpdateRouterArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
@@ -30,11 +25,12 @@ import io.restassured.response.ValidatableResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.ws.rs.core.HttpHeaders;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.ws.rs.core.HttpHeaders;
+import static org.hamcrest.Matchers.*;
 
 public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
 
@@ -44,20 +40,16 @@ public class Router extends GResource<CreateRouterArg, UpdateRouterArg> {
     super(state,"/routers");
   }
 
-  public List<RouterDto> list() {
-    RouterDto[] routers = list(querySpec(""))
-        .statusCode(200)
-        .extract()
-        .as(RouterDto[].class);
+  public List<RouterDto> list(String query) {
+    RouterDto[] routers = list(querySpec(query))
+            .statusCode(200)
+            .extract()
+            .as(RouterDto[].class);
     return Arrays.asList(routers);
   }
 
-  public List<RouterDto> list(String query) {
-    RouterDto[] routers = list(querySpec(query))
-        .statusCode(200)
-        .extract()
-        .as(RouterDto[].class);
-    return Arrays.asList(routers);
+  public List<RouterDto> list() {
+    return list("");
   }
 
   public ValidatableResponse replaceResponse(CreateRouterArg args) {

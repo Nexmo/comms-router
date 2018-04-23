@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
 import com.softavail.commsrouter.api.dto.arg.CreateQueueArg;
+import com.softavail.commsrouter.api.dto.arg.UpdateQueueArg;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.QueueDto;
 import com.softavail.commsrouter.api.dto.model.TaskDto;
@@ -37,12 +38,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Queue extends Resource {
+public class Queue extends GResource<CreateQueueArg, UpdateQueueArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Queue.class);
 
   public Queue(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/queues");
   }
 
   public List<QueueDto> list() {

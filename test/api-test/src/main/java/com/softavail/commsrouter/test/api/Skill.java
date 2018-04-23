@@ -42,12 +42,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Skill extends Resource {
+public class Skill extends GResource<CreateSkillArg, UpdateSkillArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Skill.class);
 
   public Skill(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/skills");
   }
 
   public List<SkillDto> list() {

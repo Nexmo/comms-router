@@ -175,9 +175,10 @@ public class SkillTest extends BaseTest {
         public void handleEnumerationValues(Set<String> values){
           assertThat(values,is(options));
         }
-        public void handleNumberIntervals(List<NumberInterval> intervals){assert(false);};
-        public void handleRegex(String regex){assert(false);};
-      });
+        public void handleNumberIntervals(List<NumberInterval> intervals){assert(false);}
+
+      public void handleRegex(String regex){assert(false);}
+    });
     
     assertThat(resource.getDomain().getType(),is(AttributeType.enumeration));
     assertThat(resource.getMultivalue(), is(false));

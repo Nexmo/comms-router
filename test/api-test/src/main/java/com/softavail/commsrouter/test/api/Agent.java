@@ -43,12 +43,12 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
-public class Agent extends Resource {
+public class Agent extends GResource<CreateAgentArg, UpdateAgentArg> {
 
   private static final Logger LOGGER = LogManager.getLogger(Agent.class);
 
   public Agent(HashMap<CommsRouterResource, String> state) {
-    super(state);
+    super(state,"/routers/{routerRef}/agents");
   }
 
   public List<AgentDto> list() {

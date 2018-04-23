@@ -208,7 +208,7 @@ public class AgentTest extends BaseTest {
                  .build())
       .statusCode(400)
       .body("error.description",
-            equalTo("Skill l-t.&$/'%@! ype was not found."));;
+            equalTo("Skill l-t.&$/'%@! ype was not found."));
   }
 
   public void completeTask() throws MalformedURLException, InterruptedException {
