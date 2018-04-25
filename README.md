@@ -59,6 +59,15 @@ Details on how to do this in Tomcat can be found [here](docs/ConfiguringDatabase
 Deploy comms-router-web.war into Tomcat.
 Depending on your Tomcat settings this can be done by simple copying it to the Tomcat's webapps directory.
 
+### Configuration
+
+Properties for the comms-router are stored in a file.
+It's location is specified by java property that can be specified in tomcat's command line with:
+`-Dcomms.router.config.file=/opt/tomcat/conf/application.properties`
+
+Alternatively, in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml` with adding
+`<Parameter name="comms.router.config.file" value="/opt/tomcat/conf/application.properties"/>`
+
 ### Test
 
 List routers:
