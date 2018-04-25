@@ -119,7 +119,7 @@ public class QueueSkillValidationTest extends BaseTest{
   }
 
   @Test
-  public void createQueueSkillBooleanInvalidValue() {
+  public void createQueueSkillOutOfRangeValue() {
     String description = "queue description";
     String predicate = "num==110";
 
@@ -139,11 +139,10 @@ public class QueueSkillValidationTest extends BaseTest{
     CreateQueueArg queueArg = new CreateQueueArg();
     queueArg.setDescription(description);
     queueArg.setPredicate(predicate);
-    ApiQueue api_q = new ApiQueue(state);
 
-    api_q.create(state.get(CommsRouterResource.ROUTER), queueArg)
-            .statusCode(400).body("error.description",
-            is("1' is not a valid value for skill language."));
+    q.create(queueArg);
+    q.delete();
+    s.delete();
   }
 
 }

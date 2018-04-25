@@ -138,6 +138,7 @@ public class AgentSkillValidateTest extends BaseTest {
                     .build())
             .statusCode(400).body("error.description", is("Invalid value for skill language: missing"));
 
+    s.delete();
     assertThat(a.list().stream().map((AgentDto dto)-> { a.delete(dto.getRef());return dto;}).count(),
             is(0L));
   }
