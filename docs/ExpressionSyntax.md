@@ -1,25 +1,20 @@
 # Using CommsRouter Expressions
-</br>
+
 ## Introduction
 
-CommsRouter uses two flavors of expression syntax for binding Agents to Queues and filtering Tasks into different Queues in a Plan configuration. Those are RSQL and JEVAL. Expressions are composed of constants, functions, as well as logical and comparison operators.
+CommsRouter uses RSQL expression syntax for binding Agents to Queues and filtering Tasks into different Queues in a Plan configuration. The older JEVAL expression syntax is still supported, but is deprecated and may be removed in subsequent release, so its use is discouraged.
 
 For example, a Queue expression can look like:
 
 ```
-RSQL:  "skills==electronics and language=in=('en','ru','es')"
-or
-JEVAL: "HAS(#{skills},'electronics') && IN(#{language},['en','ru','es'])"
+    skills==electronics and language=in=('en','ru','es')
 ```
 
 And a Plan filter expression can look like:
 
 ```
-RSQL:  "customer_value=='Gold' and type=='ticket'"
-or
-JEVAL: "#{customer_value} == 'Gold' && #{type} == 'ticket'"
+    customer_value=='Gold' and type=='ticket'
 ```
-</br>
 
 ## RSQL Expression Structure
 _The following grammar specification is written in EBNF notation (ISO 14977)._
