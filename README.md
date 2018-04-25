@@ -18,7 +18,7 @@ A [demo application](demo-application/README.md) shows how to apply the router t
 
 User application creates a router and then one or more queues, agents and plans.
 
-Then the application calls the router to creates a task with its requirements and either places it in a queue or assigns a plan to it.
+Then the application calls the router to create a task with its requirements and either places it in a queue or assigns a plan to it.
 
 The plan contains list of rules, which the router executes in order. First rule which predicate matches the task requirements determines the queue for this task.
 
@@ -112,6 +112,8 @@ And one more handled by these speaking Spanish:
 `
 curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'es\')"}}'
 `
+
+More detailed explanation of the expression language can be found [here](docs/ExpressionSyntax.md)
 
 **Create agents.**
 
