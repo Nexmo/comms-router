@@ -55,7 +55,7 @@ Please put the values inside the application properties as follow:
 * __app.musicOnHoldUrl__ This is an URL to the mp3 file to stream to the customer until an available Agent is found.
 
 * __comms.routerUrl__ This the base URL to the CommsRouter REST API.
-  For example  http://commsrouterhost:port/comms-router-web-api/api
+  For example  http://commsrouterhost:port/comms-router-web-api-no-auth/api
 
 * __comms.routerId__ This is the id of the router object in the CommsRouter
 
@@ -83,9 +83,11 @@ Ex. With Tomcat JVM properties are set like this:
   ```bat
   set CATALINA_OPTS=%CATALINA_OPTS% -Dcomms.demo.app.config.path=c:\configDir
   ```
+Copy demo-application/target/demo-application*.war to tomcat's webapps folder
 
 ## Initialize CommsRouter
 
+Demo application does not use authentication, so it requires instance of CommsRouter with turned off authentication.
 Before using the demo app, you'll need to create Router, Queue, Agent and Plan objects in the CommsRouter via its REST API.
 
 Router, Queue, Plan objects, must be with an ID equal to the id specified in the *comms.routerId* parameter
