@@ -22,11 +22,11 @@ echo[
 echo[
 
 echo Create some queues.
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H "Content-Type:application/json" -d "{\"predicate\":\"HAS(#{language},'en')\"}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H "Content-Type:application/json" -d "{\"predicate\":\"language=in=(en)\"}"
 
 echo[
 
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"HAS(#{language},'es')\"}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"language=in=(es)\"}"
 
 echo[
 echo[
@@ -36,11 +36,11 @@ curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/
 
 echo[
 
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/juan -H "Content-Type:application/json" -d "{\"address\":\"sip:juan@comms-router.org\",\"capabilities\":{\"language\":[\"es\"]}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/juan -H "Content-Type:application/json" -d "{\"address\":\"sip:juan@comms-router.org\",\"capabilities\":{\"language\":[\"es\"]}"
 
 echo[
 
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H "Content-Type:application/json" -d "{\"address\":\"sip:maria@comms-router.org\",\"capabilities\":{\"language\":[\"en\",\"es\"]}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H "Content-Type:application/json" -d "{\"address\":\"sip:maria@comms-router.org\",\"capabilities\":{\"language\":[\"en\",\"es\"]}"
 
 echo[
 echo[

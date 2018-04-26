@@ -1,4 +1,4 @@
-
+set -e 
 #for testing - https://requestb.in/1koh4zk1?inspect
 
 if [ "$1" = "" ]
@@ -17,11 +17,11 @@ echo
 echo
 
 echo Create some queues.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'en\')"}}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H 'Content-Type:application/json' -d '{"predicate":"language=in=(en)"}'
 
 echo
 
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'es\')"}}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d '{"predicate":"language=in=(es)"}'
 
 echo
 echo
@@ -47,19 +47,19 @@ echo
 echo
 
 echo Create a plan.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueRef":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueRef":"queue-en"}}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d '{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"language==es", "routes":[{"queueRef":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueRef":"queue-en"}}'
 
 echo
 echo
 
 echo Create tasks.
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d$'{"requirements":{"language":"es"},"planRef":"by-language","callbackUrl":'"\"$callback\""'}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-es -H 'Content-Type:application/json' -d '{"requirements":{"language":"es"},"planRef":"by-language","callbackUrl":'"\"$callback\""'}'
 
 echo
 echo
 
 echo In addition to using a plan to route tasks, the user accepts direct queue assignment by the user application:
-curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d$'{"queueRef":"queue-en","callbackUrl":'"\"$callback\""'}'
+curl -s -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/tasks/task-en -H 'Content-Type:application/json' -d '{"queueRef":"queue-en","callbackUrl":'"\"$callback\""'}'
 
 echo
 echo
@@ -71,8 +71,9 @@ echo
 echo
 
 echo Change agent’s state.
-curl -s -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d '{"state":"ready"}'
-
+ETAG=`curl -sI http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria | grep ETag | cut -f2 -d\ `
+curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -H "IF-MATCH:$ETAG" -d '{"state":"ready"}'
+sleep 3
 echo
 
 echo Complete Task.
