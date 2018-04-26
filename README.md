@@ -81,7 +81,7 @@ Note that the commands listed below are meant to be used with a Unix shell. Some
 For example, the command for creating queues would look like this:
 
 `
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"HAS(#{language},'es')\"}}"
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H "Content-Type:application/json" -d "{\"predicate\":\"language==es\"}"
 `
 
 For more information take a look at [this](winComms.bat) batch file.
@@ -113,13 +113,13 @@ And URL of the created entity is in the header LOCATION of the response:
 For example, let's create one handled by English speaking agents:
 
 `
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'en\')"}}'
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-en -H 'Content-Type:application/json' -d$'{"predicate":"language==en"}}'
 `
 
 And one more handled by these speaking Spanish:
 
 `
-curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d$'{"predicate":"HAS(#{language},\'es\')"}}'
+curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/queues/queue-es -H 'Content-Type:application/json' -d$'{"predicate":"language==es"}}'
 `
 
 More detailed explanation of the expression language can be found [here](docs/ExpressionSyntax.md)
@@ -158,11 +158,13 @@ Note the _address_ field. It does not affect the router logic and is used by the
     "ref": "alice",
     "routerRef": "my-router",
     "capabilities": {
-      "language": "en"
+      "language": [
+        "en"
+      ]
     },
     "address": "sip:alice@comms-router.org",
     "state": "offline",
-    "queueIds": [
+    "queueRefs": [
       "queue-en"
     ]
   },
@@ -170,11 +172,13 @@ Note the _address_ field. It does not affect the router logic and is used by the
     "ref": "juan",
     "routerRef": "my-router",
     "capabilities": {
-      "language": "es"
+      "language": [
+        "es"
+      ]
     },
     "address": "sip:juan@comms-router.org",
     "state": "offline",
-    "queueIds": [
+    "queueRefs": [
       "queue-es"
     ]
   },
@@ -183,15 +187,15 @@ Note the _address_ field. It does not affect the router logic and is used by the
     "routerRef": "my-router",
     "capabilities": {
       "language": [
-        "es",
-        "en"
+        "en",
+        "es"
       ]
     },
     "address": "sip:maria@comms-router.org",
     "state": "offline",
-    "queueIds": [
-      "queue-es",
-      "queue-en"
+    "queueRefs": [
+      "queue-en",
+      "queue-es"
     ]
   }
 ]
@@ -201,7 +205,7 @@ Note the _address_ field. It does not affect the router logic and is used by the
 
 Let's create a plan with a rule that will route tasks requiring Spanish agent in our Spanish queue. Tasks that don't match this rule we will route to the English queue.
 
-`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"#{language} == \'es\'", "routes":[{"queueRef":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueRef":"queue-en"}}'`
+`curl -X PUT http://localhost:8080/comms-router-web/api/routers/my-router/plans/by-language -H 'Content-Type:application/json' -d$'{"description":"put your plan description", "rules":[{"tag":"spanish", "predicate":"language==es", "routes":[{"queueRef":"queue-es", "priority":3, "timeout":300}, {"priority":10, "timeout":800}]}], "defaultRoute":{"queueRef":"queue-en"}}'`
 
 **Create tasks.**
 
@@ -227,23 +231,24 @@ In addition to using a plan to route tasks, the router accepts direct queue assi
     "requirements": {
       "language": "es"
     },
-    "userContext": null,
     "state": "waiting",
-    "planRef": null,
     "queueRef": "queue-es",
-    "agentRef": null,
-    "callbackUrl": "https://requestb.in/1koh4zk1"
+    "callbackUrl": "https://requestb.in/1koh4zk1?inspect",
+    "priority": 3,
+    "createDate": 1524735116224,
+    "updateDate": 1524735116224,
+    "queuedTimeout": 300
   },
   {
     "ref": "task-en",
     "routerRef": "my-router",
-    "requirements": null,
-    "userContext": null,
     "state": "waiting",
-    "planRef": null,
     "queueRef": "queue-en",
-    "agentRef": null,
-    "callbackUrl": "https://requestb.in/1koh4zk1?inspect"
+    "callbackUrl": "https://requestb.in/1koh4zk1?inspect",
+    "priority": 0,
+    "createDate": 1524735126376,
+    "updateDate": 1524735126376,
+    "queuedTimeout": 3600
   }
 ]
 ```
@@ -251,8 +256,29 @@ In addition to using a plan to route tasks, the router accepts direct queue assi
 All tasks are in state "waiting" as all our agents are in state "offline".
 
 **Change agent's state.**
-
-`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -d '{"state":"ready"}'`
+ In api it is post request with data we want to change, but the data can be chaged in parallel. We use optimistic locking.
+ It is done through ETAGS header.
+```curl -vX GET http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json'
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> GET /comms-router-web/api/routers/my-router/agents/maria HTTP/1.1
+> User-Agent: curl/7.35.0
+> Host: localhost:8080
+> Accept: */*
+> Content-Type:application/json
+>
+< HTTP/1.1 200
+< ETag: "73b6d85f48e15bae419180ce208f9fc5ae7ca9af290aac96c983467e891ba072"
+< Content-Type: application/json
+< Content-Length: 172
+< Date: Thu, 26 Apr 2018 07:19:09 GMT
+<
+* Connection #0 to host localhost left intact
+{"ref":"maria","routerRef":"my-router","capabilities":{"language":["en","es"]},"address":"sip:maria@comms-router.org","state":"offline","queueRefs":["queue-es","queue-en"]}
+```
+Value of ETags header is placed in IF-MATCH header of the request for change in agent's state:
+`curl -X POST http://localhost:8080/comms-router-web/api/routers/my-router/agents/maria -H 'Content-Type:application/json' -H 'IF-MATCH:"73b6d85f48e15bae419180ce208f9fc5ae7ca9af290aac96c983467e891ba072"' -d '{"state":"ready"}'`
 
 Now the router assigns a task this agent and changes its state to "busy". Call to the provided callbackUrl can be observed in requestb.in.
 
@@ -274,23 +300,24 @@ The router then releases the agent and it is available for other tasks. As in th
     "requirements": {
       "language": "es"
     },
-    "userContext": null,
     "state": "completed",
-    "planId": null,
-    "queueRef": "queue-es",
-    "agentRef": null,
-    "callbackUrl": "https://requestb.in/1koh4zk1"
+    "callbackUrl": "https://requestb.in/1koh4zk1?inspect",
+    "priority": 3,
+    "createDate": 1524735116224,
+    "updateDate": 1524735299382,
+    "queuedTimeout": 300
   },
   {
     "ref": "task-en",
     "routerRef": "my-router",
-    "requirements": null,
-    "userContext": null,
     "state": "assigned",
-    "planRef": null,
     "queueRef": "queue-en",
     "agentRef": "maria",
-    "callbackUrl": "https://requestb.in/1koh4zk1"
+    "callbackUrl": "https://requestb.in/1koh4zk1?inspect",
+    "priority": 0,
+    "createDate": 1524735126376,
+    "updateDate": 1524735299403,
+    "queuedTimeout": 3600
   }
 ]
 ```
