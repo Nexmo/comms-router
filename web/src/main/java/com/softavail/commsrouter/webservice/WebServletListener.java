@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 SoftAvail Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,17 @@
 
 package com.softavail.commsrouter.webservice;
 
-import java.util.EnumSet;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.shiro.web.env.EnvironmentLoader;
 
+import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.apache.shiro.web.env.EnvironmentLoader;
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
 
 /**
  * Created by @author mapuo on 16.10.17.
@@ -48,7 +43,7 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
   @Override
   public void contextInitialized(ServletContextEvent sce) {
     LOGGER.debug("contextInitialized start");
-    
+
     try {
       ServletContext sc = sce.getServletContext();
 
@@ -60,7 +55,7 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
     } catch (Exception e) {
       LOGGER.error("Exception: ", e);
     }
-    
+
     LOGGER.debug("contextInitialized end");
   }
 
@@ -71,11 +66,11 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
     }
   }
 
-  
+
   private void initializeShiro(ServletContext sc, ApplicationContext appContext) {
     String shiroConfigLocations = appContext.getConfiguration().getShiroConfigLocations();
-    
-    sc.setInitParameter("shiroConfigLocations", shiroConfigLocations );
+
+    sc.setInitParameter("shiroConfigLocations", shiroConfigLocations);
 
     FilterRegistration filterRegistration =
         sc.addFilter("ShiroFilter", "org.apache.shiro.web.servlet.ShiroFilter");
@@ -84,4 +79,5 @@ public class WebServletListener extends EnvironmentLoader implements ServletCont
 
     initEnvironment(sc);
   }
+
 }

@@ -40,7 +40,8 @@ public class Validators {
 
   private SkillValidator getAgentCapabilitiesValidator(AppContext context) {
 
-    LOGGER.info("api.enableAgentCapabilitiesValidation: " + context.coreConfiguration.getApiEnableAgentCapabilitiesValidation());
+    LOGGER.info("api.enableAgentCapabilitiesValidation: {}",
+        context.coreConfiguration.getApiEnableAgentCapabilitiesValidation());
 
     if (context.coreConfiguration.getApiEnableAgentCapabilitiesValidation()) {
       return new SkillValidator(context.svc.skill);
@@ -64,7 +65,8 @@ public class Validators {
 
   private SkillValidator getTaskRequirementsValidator(AppContext context) {
 
-    LOGGER.info("api.enableTaskRequirementsValidation: " + context.coreConfiguration.getApiEnableTaskRequirementsValidation());
+    LOGGER.info("api.enableTaskRequirementsValidation: {}",
+        context.coreConfiguration.getApiEnableTaskRequirementsValidation());
 
     if (context.coreConfiguration.getApiEnableTaskRequirementsValidation()) {
       return new SkillValidator(context.svc.skill);

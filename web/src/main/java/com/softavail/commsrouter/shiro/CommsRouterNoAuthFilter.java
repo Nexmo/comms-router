@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.shiro;
 
-import java.util.ArrayList;
+import org.apache.shiro.web.filter.authc.AuthenticationFilter;
+import org.apache.shiro.web.util.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.web.filter.PathMatchingFilter;
-import org.apache.shiro.web.filter.authc.AuthenticationFilter;
-import org.apache.shiro.web.util.WebUtils;
-import org.joda.time.DateTime;
-import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.jwt.config.signature.SecretSignatureConfiguration;
-import org.pac4j.jwt.profile.JwtGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.softavail.commsrouter.webservice.resources.QueueResource;
 
 /**
  *
@@ -44,7 +34,8 @@ public class CommsRouterNoAuthFilter extends AuthenticationFilter {
   protected Logger logger = LoggerFactory.getLogger(getClass());
 
   @Override
-  protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+  protected boolean isAccessAllowed(
+      ServletRequest request, ServletResponse response, Object mappedValue) {
     boolean allowed = false;
 
     logger.debug("isAccessAllowed: {}", allowed);
@@ -66,7 +57,9 @@ public class CommsRouterNoAuthFilter extends AuthenticationFilter {
   }
 
   @Override
-  public void afterCompletion(ServletRequest request, ServletResponse response, Exception exception) throws Exception {
+  public void afterCompletion(ServletRequest request, ServletResponse response, Exception exception)
+      throws Exception {
+
     logger.debug("afterCompletion");
     
     HttpServletResponse httpResponse = WebUtils.toHttp(response);

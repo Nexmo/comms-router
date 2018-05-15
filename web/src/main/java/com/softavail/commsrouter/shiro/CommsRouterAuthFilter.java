@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.softavail.commsrouter.shiro;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
+package com.softavail.commsrouter.shiro;
 
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.apache.shiro.web.util.WebUtils;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 /**
  *

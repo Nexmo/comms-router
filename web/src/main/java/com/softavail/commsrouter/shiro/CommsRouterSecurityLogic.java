@@ -11,10 +11,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.softavail.commsrouter.shiro;
 
+import static org.pac4j.core.util.CommonHelper.assertNotNull;
+import static org.pac4j.core.util.CommonHelper.isEmpty;
+import static org.pac4j.core.util.CommonHelper.isNotEmpty;
+
 import io.buji.pac4j.profile.ShiroProfileManager;
-import java.util.List;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.pac4j.core.client.Client;
@@ -30,12 +34,10 @@ import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.http.HttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileManager;
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-import static org.pac4j.core.util.CommonHelper.isEmpty;
-import static org.pac4j.core.util.CommonHelper.isNotEmpty;
+
+import java.util.List;
 
 /**
- *
  * @author Ergyun Syuleyman
  */
 public class CommsRouterSecurityLogic<R, C extends WebContext> extends DefaultSecurityLogic<R, C> {
@@ -50,11 +52,17 @@ public class CommsRouterSecurityLogic<R, C extends WebContext> extends DefaultSe
   }
 
 
+  @SuppressWarnings("unchecked")
   @Override
-  public R perform(final C context, final Config config,
+  public R perform(
+      final C context,
+      final Config config,
       final SecurityGrantedAccessAdapter<R, C> securityGrantedAccessAdapter,
-      final HttpActionAdapter<R, C> httpActionAdapter, final String clients,
-      final String authorizers, final String matchers, final Boolean inputMultiProfile,
+      final HttpActionAdapter<R, C> httpActionAdapter,
+      final String clients,
+      final String authorizers,
+      final String matchers,
+      final Boolean inputMultiProfile,
       final Object... parameters) {
 
     logger.debug("=== SECURITY ===");
@@ -91,7 +99,7 @@ public class CommsRouterSecurityLogic<R, C extends WebContext> extends DefaultSe
 
         final boolean loadProfilesFromSession = loadProfilesFromSession(context, currentClients);
         logger.debug("loadProfilesFromSession: {}", loadProfilesFromSession);
-        final ProfileManager manager = getProfileManager(context, config);
+        final ProfileManager<CommonProfile> manager = getProfileManager(context, config);
         List<CommonProfile> profiles = manager.getAll(loadProfilesFromSession);
         logger.debug("profiles: {}", profiles);
 
@@ -99,7 +107,7 @@ public class CommsRouterSecurityLogic<R, C extends WebContext> extends DefaultSe
         if (isEmpty(profiles) && isNotEmpty(currentClients)) {
           boolean updated = false;
           // loop on all clients searching direct ones to perform authentication
-          for (final Client currentClient : currentClients) {
+          for (final Client<Credentials, CommonProfile> currentClient : currentClients) {
             if (currentClient instanceof DirectClient) {
               logger.debug("Performing authentication for direct client: {}", currentClient);
 
@@ -108,10 +116,10 @@ public class CommsRouterSecurityLogic<R, C extends WebContext> extends DefaultSe
               final CommonProfile profile = currentClient.getUserProfile(credentials, context);
               logger.debug("profile: {}", profile);
               if (profile != null) {
-                final boolean saveProfileInSession = saveProfileInSession(context, currentClients,
-                    (DirectClient) currentClient, profile);
-                logger.debug("saveProfileInSession: {} / multiProfile: {}", saveProfileInSession,
-                    multiProfile);
+                final boolean saveProfileInSession = saveProfileInSession(
+                    context, currentClients, (DirectClient) currentClient, profile);
+                logger.debug("saveProfileInSession: {} / multiProfile: {}",
+                    saveProfileInSession, multiProfile);
                 manager.save(saveProfileInSession, profile, multiProfile);
                 updated = true;
                 if (!multiProfile) {

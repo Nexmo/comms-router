@@ -24,21 +24,22 @@ import org.pac4j.core.profile.CommonProfile;
 import java.util.List;
 
 /**
- *
  * @author Ergyun Syuleyman
  */
 public final class RouterCustomAuthorizer extends ProfileAuthorizer<CommonProfile> {
 
   @Override
-    public boolean isAuthorized(final WebContext context, final List<CommonProfile> profiles) throws HttpAction {
-    return isAnyAuthorized(context, profiles);
-    }
+  public boolean isAuthorized(final WebContext context, final List<CommonProfile> profiles)
+      throws HttpAction {
 
-    @Override
-    public boolean isProfileAuthorized(final WebContext context, final CommonProfile profile) {
-        if (profile == null) {
-            return false;
-        }
-        return (!profile.getUsername().isEmpty() && profile.getAttribute("roles") != null);
+    return isAnyAuthorized(context, profiles);
+  }
+
+  @Override
+  public boolean isProfileAuthorized(final WebContext context, final CommonProfile profile) {
+    if (profile == null) {
+      return false;
     }
+    return (!profile.getUsername().isEmpty() && profile.getAttribute("roles") != null);
+  }
 }

@@ -13,57 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.softavail.commsrouter.shiro;
 
-import io.buji.pac4j.profile.ShiroProfileManager;
-import java.util.ArrayList;
-import java.util.Map;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
+import static org.pac4j.core.util.CommonHelper.assertNotNull;
+import static org.pac4j.core.util.CommonHelper.assertTrue;
+
+import io.buji.pac4j.profile.ShiroProfileManager;
 import org.joda.time.DateTime;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.IndirectClient;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.http.HttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-import static org.pac4j.core.util.CommonHelper.assertTrue;
-import static org.pac4j.core.util.CommonHelper.isNotBlank;
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration;
 import org.pac4j.jwt.profile.JwtGenerator;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 /**
- *
  * @author Ergyun Syuleyman
  */
-public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultCallbackLogic<R, C> {
+public class CommsRouterCallbackLogic<R, C extends WebContext> extends DefaultCallbackLogic<R, C> {
 
   private JwtGenerator jwtGenerator;
 
-  private final static String PROFILE_ATTR_KEY_FIRSTNAME    = "firstName";
-  private final static String PROFILE_ATTR_KEY_LASTNAME     = "lastName";
-  private final static String PROFILE_ATTR_KEY_EXP_TIME     = "notOnOrAfter";
-  private final static String TOKEN_ATTR_KEY_NAME           = "name";
-  private final static String TOKEN_ATTR_KEY_EXPIRATION     = "expiration";
+  private static final String PROFILE_ATTR_KEY_FIRSTNAME = "firstName";
+  private static final String PROFILE_ATTR_KEY_LASTNAME = "lastName";
+  private static final String PROFILE_ATTR_KEY_EXP_TIME = "notOnOrAfter";
+  private static final String TOKEN_ATTR_KEY_NAME = "name";
+  private static final String TOKEN_ATTR_KEY_EXPIRATION = "expiration";
 
-  private final static String JWT_SALT = "12345678901234567890123456789012";
+  private static final String JWT_SALT = "12345678901234567890123456789012";
 
   public CommsRouterCallbackLogic() {
-        super();
+    super();
     this.setProfileManagerFactory(ShiroProfileManager::new);
     jwtGenerator = new JwtGenerator(new SecretSignatureConfiguration(JWT_SALT));
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public R perform(final C context, final Config config,
-      final HttpActionAdapter<R, C> httpActionAdapter, final String inputDefaultUrl,
+  public R perform(
+      final C context,
+      final Config config,
+      final HttpActionAdapter<R, C> httpActionAdapter,
+      final String inputDefaultUrl,
       final Boolean inputMultiProfile,
-          final Boolean inputRenewSession) {
+      final Boolean inputRenewSession) {
 
     logger.debug("=== CALLBACK ===");
 
@@ -108,7 +112,9 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
       logger.debug("profile: {}", profile);
       saveUserProfile(context, config, profile, multiProfile, renewSession);
       String cookie = context.getSessionStore().getOrCreateSessionId(context);
-      String formatedContent = String.format(ShiroConstants.AUTH_HTTP_CONTENT_FORMAT, getJwt(profile), cookie);
+      String formatedContent = String.format(
+          ShiroConstants.AUTH_HTTP_CONTENT_FORMAT,
+          getJwt(profile), cookie);
       action = respondWithCredentials(context, formatedContent);
 
     } catch (final HttpAction e) {
@@ -124,49 +130,52 @@ public class CommsRouterCallbackLogic<R, C extends WebContext>  extends DefaultC
     return HttpAction.ok("OK", context, inputContent);
   }
 
+  @SuppressWarnings("unchecked")
   protected String getJwt(CommonProfile profile) {
     String token = "";
     if (profile != null) {
       Object firstName = profile.getAttribute(PROFILE_ATTR_KEY_FIRSTNAME);
-      Object lastName = profile.getAttribute(PROFILE_ATTR_KEY_LASTNAME);
-      Object dt = profile.getAttribute(PROFILE_ATTR_KEY_EXP_TIME);
-        
-        
-        String name = "";
-        if (firstName != null) {
-            if (firstName instanceof ArrayList &&
-                    ((ArrayList)firstName).size() > 0) {
-                name += ((ArrayList)firstName).get(0);
-            } else if (firstName instanceof String) {
-                name += firstName;
-            }
-        }
-        if (lastName != null) {
-            if (lastName instanceof ArrayList &&
-                    ((ArrayList)lastName).size() > 0) {
-                if (!name.isEmpty()) {
-                    name += " ";
-                }
-                name += ((ArrayList)lastName).get(0);
-            } else if (lastName instanceof String) {
-                if (!name.isEmpty()) {
-                    name += " ";
-                }
-                name += lastName;
-            }
-        }
-        if (!name.isEmpty()) {
-            profile.removeAttribute(TOKEN_ATTR_KEY_NAME);
-            profile.addAttribute(TOKEN_ATTR_KEY_NAME, name);
-        }
 
-        if (dt != null) {
-            profile.removeAttribute(TOKEN_ATTR_KEY_EXPIRATION);
-            long expiration = ((DateTime)dt).getMillis();
-            profile.addAttribute(TOKEN_ATTR_KEY_EXPIRATION, expiration);
+      String name = "";
+      if (firstName != null) {
+        if (firstName instanceof ArrayList
+            && ((ArrayList) firstName).size() > 0) {
+          name += ((ArrayList) firstName).get(0);
+        } else if (firstName instanceof String) {
+          name += firstName;
         }
-        
-        token = jwtGenerator.generate(profile);
+      }
+
+      Object lastName = profile.getAttribute(PROFILE_ATTR_KEY_LASTNAME);
+
+      if (lastName != null) {
+        if (lastName instanceof ArrayList
+            && ((ArrayList) lastName).size() > 0) {
+          if (!name.isEmpty()) {
+            name += " ";
+          }
+          name += ((ArrayList) lastName).get(0);
+        } else if (lastName instanceof String) {
+          if (!name.isEmpty()) {
+            name += " ";
+          }
+          name += lastName;
+        }
+      }
+      if (!name.isEmpty()) {
+        profile.removeAttribute(TOKEN_ATTR_KEY_NAME);
+        profile.addAttribute(TOKEN_ATTR_KEY_NAME, name);
+      }
+
+      Object dt = profile.getAttribute(PROFILE_ATTR_KEY_EXP_TIME);
+
+      if (dt != null) {
+        profile.removeAttribute(TOKEN_ATTR_KEY_EXPIRATION);
+        long expiration = ((DateTime) dt).getMillis();
+        profile.addAttribute(TOKEN_ATTR_KEY_EXPIRATION, expiration);
+      }
+
+      token = jwtGenerator.generate(profile);
     }
     return token;
   }
