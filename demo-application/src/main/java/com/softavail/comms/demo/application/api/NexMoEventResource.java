@@ -1,6 +1,7 @@
 package com.softavail.comms.demo.application.api;
 
 import com.nexmo.client.NexmoClientException;
+import com.nexmo.client.voice.ModifyCallAction;
 import com.softavail.comms.demo.application.services.Configuration;
 import com.softavail.comms.demo.application.services.NexMoService;
 import com.softavail.comms.nexmo.model.NexmoCallEvent;
@@ -189,7 +190,7 @@ public class NexMoEventResource {
   private void hangupCall(String uuid) {
     try {
       LOGGER.debug("Request to hangup call uuid: {}", uuid);
-      nexMoService.getVoiceClient().modifyCall(uuid, "hangup");
+      nexMoService.getVoiceClient().modifyCall(uuid, ModifyCallAction.HANGUP);
     } catch (IOException | NexmoClientException e) {
       LOGGER.error("Hangup call failed with error: {}", e.getLocalizedMessage());
       e.printStackTrace();
