@@ -119,6 +119,11 @@ public class FilterHelper {
       LOGGER.debug("selector: {}", comp.getSelector());
       LOGGER.debug("arguments: {}", comp.getArguments());
 
+      if (!comp.getOperator().getSymbol().equals(ATTR_OPERATOR)) {
+        throw new IllegalArgumentException(
+            "AttributeOpStrategy does not support operator: " + comp.getOperator().getSymbol());
+      }
+
       Matcher matcher = SELECTOR_PATTERN.matcher(comp.getSelector());
       if (matcher.find()) {
         String property = matcher.group("property");
