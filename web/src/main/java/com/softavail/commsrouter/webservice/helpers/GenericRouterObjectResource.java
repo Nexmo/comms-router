@@ -119,8 +119,8 @@ public abstract class GenericRouterObjectResource<T extends RouterObjectRef>
       @QueryParam(PaginatedService.ITEMS_PER_PAGE_PARAM) int perPage,
       @Valid
       @Pattern(regexp = PaginationHelper.SORT_REGEX, message = "{resource.list.sort.message}")
-      @QueryParam("sort") String sort,
-      @QueryParam("q") String query)
+      @QueryParam(PaginatedService.SORT_PARAM) String sort,
+      @QueryParam(PaginatedService.QUERY_PARAM) String query)
       throws CommsRouterException {
 
     PagingRequest pagingRequest = new PagingRequest(routerRef, token, perPage, sort, query);

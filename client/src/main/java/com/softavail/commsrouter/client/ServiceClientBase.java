@@ -147,7 +147,9 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   protected PaginatedList<T> getList(PagingRequest request) {
     UriBuilder uriBuilder = getApiUrl().clone()
         .queryParam(PaginatedService.TOKEN_PARAM, request.getToken())
-        .queryParam(PaginatedService.ITEMS_PER_PAGE_PARAM, request.getPerPage());
+        .queryParam(PaginatedService.ITEMS_PER_PAGE_PARAM, request.getPerPage())
+        .queryParam(PaginatedService.SORT_PARAM, request.getSort())
+        .queryParam(PaginatedService.QUERY_PARAM, request.getQuery());
     URI uri;
     if (request.isRouterRefAvailable()) {
       uri = uriBuilder.build(request.getRouterRef());

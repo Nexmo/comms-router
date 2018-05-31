@@ -170,8 +170,9 @@ public class CoreTaskService extends CoreRouterObjectService<TaskDto, Task> impl
     });
   }
 
-  private Route getMatchedRoute(String taskId, AttributeGroup attributesGroup, Rule rule,
-      CommsRouterEvaluator evaluator) throws CommsRouterException {
+  private Route getMatchedRoute(
+      String taskId, AttributeGroup attributesGroup, Rule rule, CommsRouterEvaluator evaluator)
+      throws CommsRouterException {
     if (rule != null) {
       if (rule.getRoutes().isEmpty()) {
         return null;

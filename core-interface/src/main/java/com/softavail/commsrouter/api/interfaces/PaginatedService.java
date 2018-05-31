@@ -28,6 +28,8 @@ public interface PaginatedService<DTOENTITYT> {
   String NEXT_TOKEN_HEADER = "X-Next-Token";
   String ITEMS_PER_PAGE_PARAM = "per_page";
   String TOKEN_PARAM = "token";
+  String SORT_PARAM = "sort";
+  String QUERY_PARAM = "q";
 
   PaginatedList<DTOENTITYT> list(PagingRequest request)
       throws CommsRouterException;

@@ -28,19 +28,18 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author Vladislav Todorov
  */
 public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
 
-  private static final org.apache.logging.log4j.Logger LOGGER
-          = LogManager.getLogger(EvalRsqlVisitor.class);
+  private static final Logger LOGGER = LogManager.getLogger(EvalRsqlVisitor.class);
 
   @Override
   public Boolean visit(AndNode andNode, AttributeGroup attributeGroup) {
@@ -73,7 +72,7 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
 
     Boolean result = null;
     try {
-      result = comapre(comparisonNode.getSelector(), comparisonNode.getOperator(),
+      result = compare(comparisonNode.getSelector(), comparisonNode.getOperator(),
           comparisonNode.getArguments(), attributeGroup);
     } catch (ExpressionException ex) {
       throw new RuntimeException(ex.getMessage(), ex);
@@ -82,8 +81,12 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
     return result;
   }
 
-  private Boolean comapre(String selector, ComparisonOperator comparisonOperator,
-      List<String> arguments, AttributeGroup attributeGroup) throws ExpressionException {
+  private Boolean compare(
+      String selector,
+      ComparisonOperator comparisonOperator,
+      List<String> arguments,
+      AttributeGroup attributeGroup)
+      throws ExpressionException {
 
     List<Attribute> attributes = attributeGroup.getAttributes(selector);
     String operator = comparisonOperator.getSymbol();
@@ -120,16 +123,16 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
         return !getValues(attributes).contains(parseArgument(arguments.get(0), type));
       case "=gt=":
       case ">":
-        return compare(attributes.get(0), arguments.get(0)) > 0;
+        return compareType(attributes.get(0), arguments.get(0)) > 0;
       case "=ge=":
       case ">=":
-        return compare(attributes.get(0), arguments.get(0)) >= 0;
+        return compareType(attributes.get(0), arguments.get(0)) >= 0;
       case "=lt=":
       case "<":
-        return compare(attributes.get(0), arguments.get(0)) < 0;
+        return compareType(attributes.get(0), arguments.get(0)) < 0;
       case "=le=":
       case "<=":
-        return compare(attributes.get(0), arguments.get(0)) <= 0;
+        return compareType(attributes.get(0), arguments.get(0)) <= 0;
       case "=in=":
         return compareIn(attributes, parseArguments(arguments, type));
       case "=out=":
@@ -140,7 +143,7 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
   }
 
   private List<Object> getValues(List<Attribute> attributes) {
-    return attributes.stream().map(a -> a.getValue()).collect(Collectors.toList());
+    return attributes.stream().map(Attribute::getValue).collect(Collectors.toList());
   }
 
   private Object parseArgument(String argument, Attribute.Type type) {
@@ -161,7 +164,7 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
         .collect(Collectors.toList());
   }
 
-  private int compare(Attribute attribute, String argument) {
+  private int compareType(Attribute attribute, String argument) {
     switch (attribute.getType()) {
       case STRING:
         return attribute.getStringValue().compareTo(argument);
@@ -178,4 +181,5 @@ public class EvalRsqlVisitor implements RSQLVisitor<Boolean, AttributeGroup> {
   private boolean compareIn(List<Attribute> attributes, List<Object> arguments) {
     return attributes.stream().anyMatch(attribute -> arguments.contains(attribute.getValue()));
   }
+
 }

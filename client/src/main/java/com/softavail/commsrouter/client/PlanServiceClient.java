@@ -71,8 +71,8 @@ public class PlanServiceClient extends ServiceClientBase<PlanDto, ApiObjectRef>
 
   @Override
   public PaginatedList<PlanDto> list(PagingRequest request) {
-    PagingRequest pagingRequest =
-        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
+    PagingRequest pagingRequest = new PagingRequest(
+        routerRef, request.getToken(), request.getPerPage(), request.getSort(), request.getQuery());
     return getList(pagingRequest);
   }
 

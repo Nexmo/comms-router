@@ -85,5 +85,44 @@ public class PagingRequest {
         .append(", query=").append(query)
         .append('}').toString();
   }
+  
+  public static class Builder {
+
+    private String token = null;
+    private int perPage = 10;
+    private String routerRef = null;
+    private String sort = null;
+    private String query = null;
+
+    public Builder setToken(String token) {
+      this.token = token;
+      return this;
+    }
+
+    public Builder setPerPage(int perPage) {
+      this.perPage = perPage;
+      return this;
+    }
+
+    public Builder setRouterRef(String routerRef) {
+      this.routerRef = routerRef;
+      return this;
+    }
+
+    public Builder setSort(String sort) {
+      this.sort = sort;
+      return this;
+    }
+
+    public Builder setQuery(String query) {
+      this.query = query;
+      return this;
+    }
+
+    public PagingRequest build() {
+      return new PagingRequest(routerRef, token, perPage, sort, query);
+    }
+
+  }
 
 }

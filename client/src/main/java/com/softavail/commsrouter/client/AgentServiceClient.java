@@ -94,8 +94,8 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef
   public PaginatedList<AgentDto> list(PagingRequest request)
       throws CommsRouterException {
 
-    PagingRequest pagingRequest =
-        new PagingRequest(routerRef, request.getToken(), request.getPerPage(), null, null); // TODO
+    PagingRequest pagingRequest = new PagingRequest(
+        routerRef, request.getToken(), request.getPerPage(), request.getSort(), request.getQuery());
     return getList(pagingRequest);
   }
 
