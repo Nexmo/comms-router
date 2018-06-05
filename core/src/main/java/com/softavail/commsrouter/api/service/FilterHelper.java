@@ -21,18 +21,23 @@ import com.github.tennaito.rsql.builder.BuilderTools;
 import com.github.tennaito.rsql.jpa.JpaPredicateVisitor;
 import com.github.tennaito.rsql.jpa.PredicateBuilderStrategy;
 import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.AndNode;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
+import cz.jirutka.rsql.parser.ast.LogicalNode;
 import cz.jirutka.rsql.parser.ast.Node;
+import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -83,15 +88,40 @@ public class FilterHelper {
     }
 
     @Override
+    public Predicate visit(AndNode nodes, EntityManager entityManager) {
+      CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+      List<Predicate> predicates = getPredicates(nodes, entityManager);
+
+      return builder.and(predicates.toArray(new Predicate[0]));
+    }
+
+    @Override
+    public Predicate visit(OrNode nodes, EntityManager entityManager) {
+      CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+      List<Predicate> predicates = getPredicates(nodes, entityManager);
+
+      return builder.or(predicates.toArray(new Predicate[0]));
+    }
+
+    @Override
     public Predicate visit(ComparisonNode node, EntityManager entityManager) {
       try {
         return getBuilderTools().getPredicateBuilder().createPredicate(
             node, root, entityClass, entityManager, getBuilderTools());
       } catch (IllegalArgumentException exp) {
-        LOGGER.error("Error!", exp);
         return super.visit(node, entityManager);
       }
     }
+
+    private List<Predicate> getPredicates(LogicalNode nodes, EntityManager entityManager) {
+      return nodes.getChildren()
+          .stream() // .parallelStream()?
+          .map(node -> visit((ComparisonNode) node, entityManager))
+          .collect(Collectors.toList());
+    }
+
   }
 
   public static class AttributeOpStrategy implements PredicateBuilderStrategy {

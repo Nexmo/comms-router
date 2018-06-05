@@ -214,7 +214,7 @@ public class SkillValidator {
           case string:
             String regExp = ((StringAttributeDomainDto) skillDto.getDomain()).getRegex();
             for (String v : value.getValue()) {
-              if (!v.matches(regExp)) {
+              if (regExp != null && !v.matches(regExp)) {
                 throw new BadValueException("Invalid value for skill " + skill + ": " + v);
               }
             }
