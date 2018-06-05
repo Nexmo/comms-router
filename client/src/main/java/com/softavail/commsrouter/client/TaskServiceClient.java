@@ -29,9 +29,11 @@ import com.softavail.commsrouter.api.exception.NotFoundException;
 import com.softavail.commsrouter.api.interfaces.TaskService;
 
 import java.net.URI;
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
@@ -127,7 +129,7 @@ public class TaskServiceClient extends ServiceClientBase<TaskDto, CreatedTaskDto
   public PaginatedList<TaskDto> list(PagingRequest request) {
     PagingRequest pagingRequest = new PagingRequest(
         routerRef, request.getToken(), request.getPerPage(), request.getSort(), request.getQuery());
-    return getList(pagingRequest);
+    return getList(pagingRequest, new GenericType<List<TaskDto>>() {});
   }
 
   @Override

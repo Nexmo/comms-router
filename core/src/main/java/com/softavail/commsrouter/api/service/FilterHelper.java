@@ -118,7 +118,21 @@ public class FilterHelper {
     private List<Predicate> getPredicates(LogicalNode nodes, EntityManager entityManager) {
       return nodes.getChildren()
           .stream() // .parallelStream()?
-          .map(node -> visit((ComparisonNode) node, entityManager))
+          .map(node -> {
+            if (node instanceof ComparisonNode) {
+              ComparisonNode comparisonNode = (ComparisonNode) node;
+              return visit(comparisonNode, entityManager);
+            }
+            if (node instanceof OrNode) {
+              OrNode orNode = (OrNode) node;
+              return visit(orNode, entityManager);
+            }
+            if (node instanceof AndNode) {
+              AndNode andNode = (AndNode) node;
+              return visit(andNode, entityManager);
+            }
+            return null;
+          })
           .collect(Collectors.toList());
     }
 

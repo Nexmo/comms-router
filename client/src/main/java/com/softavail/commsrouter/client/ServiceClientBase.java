@@ -144,12 +144,22 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .get(new GenericType<List<T>>() {});
   }
 
-  protected PaginatedList<T> getList(PagingRequest request) {
+  protected PaginatedList<T> getList(PagingRequest request, GenericType<List<T>> genericType) {
     UriBuilder uriBuilder = getApiUrl().clone()
-        .queryParam(PaginatedService.TOKEN_PARAM, request.getToken())
-        .queryParam(PaginatedService.ITEMS_PER_PAGE_PARAM, request.getPerPage())
-        .queryParam(PaginatedService.SORT_PARAM, request.getSort())
-        .queryParam(PaginatedService.QUERY_PARAM, request.getQuery());
+        .queryParam(PaginatedService.ITEMS_PER_PAGE_PARAM, request.getPerPage());
+
+    if (request.getToken() != null) {
+      uriBuilder.queryParam(PaginatedService.TOKEN_PARAM, request.getToken());
+    }
+
+    if (request.getSort() != null) {
+      uriBuilder.queryParam(PaginatedService.SORT_PARAM, request.getSort());
+    }
+
+    if (request.getQuery() != null) {
+      uriBuilder.queryParam(PaginatedService.QUERY_PARAM, request.getQuery());
+    }
+
     URI uri;
     if (request.isRouterRefAvailable()) {
       uri = uriBuilder.build(request.getRouterRef());
@@ -162,7 +172,7 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .request(MediaType.APPLICATION_JSON_TYPE)
         .get();
 
-    List<T> list = response.readEntity(new GenericType<List<T>>() {});
+    List<T> list = response.readEntity(genericType);
     String nextToken = response.getHeaderString(PaginatedService.NEXT_TOKEN_HEADER);
 
     return new PaginatedList<>(list, nextToken);
