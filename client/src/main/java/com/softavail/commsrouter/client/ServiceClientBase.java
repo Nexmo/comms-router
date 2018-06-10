@@ -21,6 +21,7 @@ import com.softavail.commsrouter.api.dto.misc.PagingRequest;
 import com.softavail.commsrouter.api.dto.model.ApiObjectRef;
 import com.softavail.commsrouter.api.dto.model.RouterObjectRef;
 import com.softavail.commsrouter.api.interfaces.PaginatedService;
+import javax.ws.rs.core.Response.Status.Family;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,9 +29,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -93,10 +97,14 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .path("{resourceRef}")
         .build(ref.getRouterRef(), ref.getRef());
 
-    getClient()
+    Response response = getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
+        .header(HttpHeaders.IF_MATCH, ref.getHash())
         .post(Entity.entity(obj, MediaType.APPLICATION_JSON_TYPE));
+    if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
+      // TODO Throw exception!
+    }
   }
 
   protected R put(Object obj, String ref) {
@@ -121,27 +129,30 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   protected T getItem(ApiObjectRef ref) {
     URI uri = getApiUrl().clone().path(ref.getRef()).build();
 
-    return getClient()
+    Response response = getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .get(responseType);
+        .get();
+
+    T t = response.readEntity(responseType);
+    t.setHash(response.getHeaderString(HttpHeaders.ETAG));
+
+    return t;
   }
 
   protected T getItem(RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
 
-    return getClient()
+    Response response = getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .get(responseType);
-  }
+        .get();
 
-  protected List<T> getList() {
-    return getClient()
-        .target(getApiUrl().clone())
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .get(new GenericType<List<T>>() {});
+    T t = response.readEntity(responseType);
+    t.setHash(response.getHeaderString(HttpHeaders.ETAG));
+
+    return t;
   }
 
   protected PaginatedList<T> getList(PagingRequest request, GenericType<List<T>> genericType) {
@@ -174,6 +185,15 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
 
     List<T> list = response.readEntity(genericType);
     String nextToken = response.getHeaderString(PaginatedService.NEXT_TOKEN_HEADER);
+
+    String etag = Optional
+        .ofNullable(response.getHeaderString(HttpHeaders.ETAG))
+        .orElse("");
+    String[] etags = etag.split(";");
+    if (list.size() == etags.length) {
+      IntStream.range(0, list.size())
+          .forEach(idx -> list.get(idx).setHash(etags[idx]));
+    }
 
     return new PaginatedList<>(list, nextToken);
   }

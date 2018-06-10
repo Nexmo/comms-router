@@ -82,7 +82,7 @@ public class AgentServiceClient extends ServiceClientBase<AgentDto, ApiObjectRef
   public void update(UpdateAgentArg updateArg, RouterObjectRef objectRef)
       throws CommsRouterException {
 
-    put(updateArg, objectRef);
+    post(updateArg, objectRef);
   }
 
   @Override
