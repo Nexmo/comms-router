@@ -61,13 +61,14 @@ Depending on your Tomcat settings this can be done by simple copying it to the T
 
 ### Configuration
 
-Properties for the comms-router are stored in a file.
+Properties for the comms-router are stored in a [file](web/src/main/resources/application.properties.template).
 It's location is specified by java property that can be specified in tomcat's command line with:
 `-Dcomms.router.config.file=/opt/tomcat/conf/application.properties`
 
 Alternatively, in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml` with adding
 `<Parameter name="comms.router.config.file" value="/opt/tomcat/conf/application.properties"/>`
 
+Authentication setup is described [here](docs/Authentication.md)
 ### Test
 
 List routers:
