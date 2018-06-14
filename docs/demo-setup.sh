@@ -1,12 +1,36 @@
-# Replace or create agent.
+# create router.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr' -H 'Content-type:application/json' -d "{\"name\":\"name\",\"description\":\"description\"}"
+# Response:{"ref":"router-ivr"}
+
+# create queue.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/queues/en-support' -H 'Content-type:application/json' -d "{\"description\":\"Support in English\",\"predicate\":\"HAS(#{language},'en') && #{department}=='support'\"}"
+# Response:{"ref":"en-support"}
+
+# create queue.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/queues/es-support' -H 'Content-type:application/json' -d "{\"description\":\"Support in Spanish\",\"predicate\":\"HAS(#{language},'es') && #{department}=='support'\"}"
+# Response:{"ref":"es-support"}
+
+# create queue.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/queues/en-sales' -H 'Content-type:application/json' -d "{\"description\":\"Sales in English\",\"predicate\":\"HAS(#{language},'en') && #{department}=='sales'\"}"
+# Response:{"ref":"en-sales"}
+
+# create queue.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/queues/es-sales' -H 'Content-type:application/json' -d "{\"description\":\"Sales in Spanish\",\"predicate\":\"HAS(#{language},'es') && #{department}=='sales'\"}"
+# Response:{"ref":"es-sales"}
+
+# create queue.
+curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/queues/queue-ivr' -H 'Content-type:application/json' -d "{\"description\":\"Other\",\"predicate\":\"1==1\"}"
+# Response:{"ref":"queue-ivr"}
+
+# create agent.
 curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/agents/en-es-support' -H 'Content-type:application/json' -d "{\"address\":\"12312377880\",\"name\":\"Pablo Jenkins\",\"capabilities\":{\"language\":[\"en\",\"es\"],\"department\":\"support\"}}"
 # Response:{"ref":"en-es-support"}
 
-# Replace or create agent.
+# create agent.
 curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/agents/en-sales' -H 'Content-type:application/json' -d "{\"address\":\"12017621651\",\"name\":\"John Seller\",\"capabilities\":{\"language\":[\"en\"],\"department\":\"sales\"}}"
 # Response:{"ref":"en-sales"}
 
-# Replace or create agent.
+# create agent.
 curl -s -X PUT 'http://localhost:8080/comms-router-web/api/routers/router-ivr/agents/es-sales' -H 'Content-type:application/json' -d "{\"address\":\"12017621652\",\"name\":\"Domingo Secada\",\"capabilities\":{\"language\":[\"es\"],\"department\":\"sales\"}}"
 # Response:{"ref":"es-sales"}
 
