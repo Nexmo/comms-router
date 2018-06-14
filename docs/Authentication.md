@@ -102,6 +102,19 @@ callbackFilter.callbackLogic = $callbackLogic
 ```
 * Note: items in ```shiro.ini``` enclosed with ```[]``` are specific with the comms-router deployemnt and must be defined by the deployer of the comms router service.
 
+# No authentication
+In order to turn off authentication, the minimal shiro.ini file should be:
+```ini
+[main]
+
+noAuthFilter = com.softavail.commsrouter.shiro.CommsRouterNoAuthFilter
+
+[urls]
+/login = noAuthFilter
+/** = anon
+
+```
+
 # Deployment Configuration
 
 In the deployment configuration, `shiro.ini` file must be specified in the ```application.properties``` file as follow:
