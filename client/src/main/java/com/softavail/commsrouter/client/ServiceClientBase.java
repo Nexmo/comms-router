@@ -62,6 +62,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
     URI uri = getApiUrl().clone()
         .build();
 
+    LOGGER.debug("Doing POST to: {} with payload: {}", uri, obj);
+
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -72,6 +74,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   protected R post(Object obj, String containerId) {
     URI uri = getApiUrl().clone()
         .build(containerId);
+
+    LOGGER.debug("Doing POST to: {} with payload: {}", uri, obj);
 
     return getClient()
         .target(uri)
@@ -85,6 +89,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .path("{resourceRef}")
         .build(ref.getRef());
 
+    LOGGER.debug("Doing POST to: {} with payload: {}", uri, obj);
+
     getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -97,6 +103,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .path("{resourceRef}")
         .build(ref.getRouterRef(), ref.getRef());
 
+    LOGGER.debug("Doing POST to: {} with payload: {}", uri, obj);
+
     Response response = getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -108,7 +116,11 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   }
 
   protected R put(Object obj, String ref) {
-    URI uri = getApiUrl().clone().build(ref);
+    URI uri = getApiUrl().clone()
+        .build(ref);
+
+    LOGGER.debug("Doing PUT to: {} with payload: {}", uri, obj);
+
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -120,6 +132,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
         .path("{resourceRef}")
         .build(ref.getRouterRef(), ref.getRef());
 
+    LOGGER.debug("Doing PUT to: {} with payload: {}", uri, obj);
+
     return getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -128,6 +142,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
 
   protected T getItem(ApiObjectRef ref) {
     URI uri = getApiUrl().clone().path(ref.getRef()).build();
+
+    LOGGER.debug("Doing GET from: {}", uri);
 
     Response response = getClient()
         .target(uri)
@@ -143,6 +159,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   protected T getItem(RouterObjectRef ref) {
     URI uri = getApiUrl().clone()
         .path("{resourceId}").build(ref.getRouterRef(), ref.getRef());
+
+    LOGGER.debug("Doing GET from: {}", uri);
 
     Response response = getClient()
         .target(uri)
@@ -178,6 +196,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
       uri = uriBuilder.build();
     }
 
+    LOGGER.debug("Doing GET from: {}", uri);
+
     Response response = getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -201,6 +221,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
   protected void deleteRequest(ApiObjectRef ref) {
     URI uri = getApiUrl().clone().path(ref.getRef()).build();
 
+    LOGGER.debug("Doing DELETE to: {}", uri);
+
     getClient()
         .target(uri)
         .request(MediaType.APPLICATION_JSON_TYPE)
@@ -211,6 +233,8 @@ public abstract class ServiceClientBase<T extends ApiObjectRef, R extends ApiObj
     URI uri = getApiUrl().clone()
         .path("{resourceRef}")
         .build(ref.getRouterRef(), ref.getRef());
+
+    LOGGER.debug("Doing DELETE to: {}", uri);
 
     getClient()
         .target(uri)
