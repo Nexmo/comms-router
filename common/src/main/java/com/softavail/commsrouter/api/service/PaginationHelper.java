@@ -30,10 +30,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -82,7 +84,12 @@ public class PaginationHelper {
 
           Predicate predicate;
           if (sortOrder.get(key) == OrderType.DESCENDING) {
-            predicate = cb.lessThan(root.get(key), value);
+            if (root.get(key).getJavaType().equals(Date.class)) {
+              Timestamp timestamp = Timestamp.valueOf(value);
+              predicate = cb.lessThan(root.get(key), timestamp);
+            } else {
+              predicate = cb.lessThan(root.get(key), value);
+            }
           } else {
             predicate = cb.greaterThan(root.get(key), value);
           }
