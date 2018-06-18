@@ -19,6 +19,7 @@ package com.softavail.commsrouter.api.service;
 
 import com.github.tennaito.rsql.builder.BuilderTools;
 import com.github.tennaito.rsql.jpa.JpaPredicateVisitor;
+import com.github.tennaito.rsql.jpa.PredicateBuilder;
 import com.github.tennaito.rsql.jpa.PredicateBuilderStrategy;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.AndNode;
@@ -42,6 +43,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -179,11 +181,22 @@ public class FilterHelper {
         Join attributeGroup = root.join(property);
         Join attribute = attributeGroup.join("attributes");
 
-        Predicate where = cb.and(
-            cb.equal(attribute.get("name"), key),
-            attribute.get("stringValue").in(comp.getArguments()));
+        Path stringValue = attribute.get("stringValue");
+        if (comp.getArguments().size() == 1) {
+          String argument = comp.getArguments().get(0);
+          String like = argument.replace(PredicateBuilder.LIKE_WILDCARD, '%');
+          Predicate where = cb.and(
+              cb.equal(attribute.get("name"), key),
+              cb.like(stringValue, like));
 
-        return cb.and(where);
+          return cb.and(where);
+        } else {
+          Predicate where = cb.and(
+              cb.equal(attribute.get("name"), key),
+              stringValue.in(comp.getArguments()));
+
+          return cb.and(where);
+        }
       }
 
       return null;
