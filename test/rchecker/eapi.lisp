@@ -57,6 +57,14 @@
   (tstep description
          (tapply (http-get "/routers" router-id "queues" id (with-q "size" q)))
          checks ))
+(defun equeue-tasks (&key (router-id (get-event :router))
+                      (id (get-event :queue))
+                      (description (format nil "Get size of the queue."))
+                      (checks (check-and (has-json) (has-key "size")))
+                      (q""))
+  (tstep description
+         (tapply (http-get "/routers" router-id "queues" id (with-q "tasks" q)))
+         checks ))
 
 (defun equeue-put (&key (router-id (get-event :router))
                      (id (get-event :queue))
