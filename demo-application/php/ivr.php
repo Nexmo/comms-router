@@ -5,7 +5,7 @@ use React\Http\Response;
 use React\Http\Server;
 // sample ivr using nexmo api
 // 
-require __DIR__ . '/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 $config=["base_path" => "http://e08f9800.ngrok.io/ivr"];
 
@@ -54,7 +54,7 @@ $handleNexmoEvent = function(ServerRequestInterface $request) {
     if($info['status']=='completed'){
         // find task associated to this conversation id and complete it.
         echo "\n   completing task";
-        completeTask( getTask("router-ivr","?q=userContext.conversation==" . $info["conversation_uuid"])[0]["ref"]);
+        completeTask("router-ivr", getTask("router-ivr","?q=userContext.conversation=attr=" . $info["conversation_uuid"])[0]["ref"]);
     }
     echo "\n";
     return new Response(200);
@@ -66,7 +66,7 @@ $handleNexmoAnswer = function(ServerRequestInterface $request) use ($config){
                         , json_encode ([[
                             'action' => 'talk',
                             'bargeIn' => true,
-                            'text' => 'Thanks for calling our service. Press 1 for english support, Press 2 for Espanian support, Press 3 for English sales, press 4 for Espanian sales.'],[
+                            'text' => 'Thanks for calling our service. Press 1 for english support, Press 2 for Espanian support, Press 3 for English sales, press 4 for Espanian sales. Complete with #.'],[
                             'action' => 'input',
                             'eventUrl' => [$config['base_path'] . '?nexmo=ivr'],
                             'timeOut' => '20',
