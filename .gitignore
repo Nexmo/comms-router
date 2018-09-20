@@ -94,10 +94,10 @@ Servers/
 /core/bin/
 
 **/META-INF/context.xml
-/demo-application/src/main/webapp
-/demo-application/src/main/resources/*.pem
+/applications/demo-application/src/main/webapp
+/applications/demo-application/src/main/resources/*.pem
 
 **/liquibase.properties
 **/application.properties
 /core-interface/nbproject/
-/common/nbproject/
+
