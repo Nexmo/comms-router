@@ -1,0 +1,92 @@
+@import "~assets/volta/scss/lib/_variables.scss";
+
+#app {
+  background: $white;
+}
+
+.Vlt-blue {
+  color: $blue !important;
+  fill: $blue !important;
+}
+
+.Vlt-green {
+  color: $green !important;
+  fill: $green !important;
+}
+
+.Vlt-grey {
+  color: $grey !important;
+  fill: $grey !important;
+}
+
+.Vlt-purple {
+  color: $purple !important;
+  fill: $purple !important;
+}
+
+.Vlt-purple-light {
+  color: $purple-light !important;
+  fill: $purple-light !important;
+}
+
+.Vlt-orange-light {
+  color: $orange-light !important;
+  fill: $orange-light !important;
+}
+
+.Vlt-teal-light {
+  color: $teal-light !important;
+  fill: $teal-light !important;
+}
+
+.Vlt-white {
+  color: white !important;
+  fill: white !important;
+}
+
+//TODO: fix this we shouldn't need it
+.Vlt-composite__prepend--icon {
+  height: auto !important;
+}
+
+$radius: 4px;
+$input-radius: $radius;
+$tag-radius: 1111px;
+
+//dropdown
+$dropdown-item-hover-background-color: $blue;
+$dropdown-item-hover-color: $white;
+
+//Flow Diagram styles
+//Need to include these here otherwise Webpack will not include them 
+//as the elements are dynamically added
+svg.jtk-connector {
+  path {
+    stroke: $blue-dark !important;
+  }
+  .arrow {
+    fill: $blue-dark;
+  }
+}
+
+.Cr-rules__add {
+  transform: translate(-0%, -67%) !important;
+}
+
+.clock.jtk-overlay.middle-of-line {
+  background-color: white;
+  border-radius: 300px;
+
+  svg {
+    fill: #117bb8;
+  }
+}
+
+.jtk-overlay.middle-of-line {
+  background: $grey-lighter;
+  color: $blue-dark;
+}
+
+::-webkit-search-cancel-button {
+  margin-right: $unit1;
+}

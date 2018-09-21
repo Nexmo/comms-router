@@ -1,0 +1,46 @@
+hr {
+	border-bottom: 0;
+	border-top: 1px solid $grey-light;
+	flex: 0 0 100%;
+	margin: $unit3 0;
+}
+
+.hr--tall {
+	margin: $unit4 0;
+}
+
+.Vlt-icon {
+	display: inline-block;
+	height: 24px;
+	vertical-align: middle;
+	width: 24px;
+
+	&--18 {
+		height: 18px;
+		width: 18px;
+	}
+
+	&--small {
+		height: 20px;
+		width: 20px;
+	}
+
+	&--smaller {
+		height: 16px;
+		width: 16px;
+	}
+
+	&--text-bottom {
+		vertical-align: text-bottom;
+	}
+
+	&--large {
+		height: 32px;
+		width: 32px;
+	}
+
+	&--larger {
+		height: 40px;
+		width: 40px;
+	}
+}

@@ -1,0 +1,34 @@
+.Vlt-sidenav {
+	.Vlt-sidemenu {
+		&.Vlt-sidemenu--rounded {
+			padding: 10px;
+
+			.Vlt-sidemenu__title {
+				padding-left: 10px;
+			}
+
+			li {
+				.Vlt-sidemenu__link,
+				.Vlt-sidemenu__trigger {
+					padding-left: 10px;
+					padding-right: 10px;
+				}
+
+				li {
+					margin-left: 2.5rem;
+
+					.Vlt-sidemenu__link,
+					.Vlt-sidemenu__trigger {
+						padding-left: 10px;
+					}
+				}
+			}
+
+			.Vlt-sidemenu__link,
+			.Vlt-sidemenu__trigger {
+				border-radius: 4px;
+				margin-bottom: 5px;
+			}
+		}
+	}
+}

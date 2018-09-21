@@ -1,0 +1,352 @@
+.Vlt-sidenav {
+	display: flex;
+	flex: 0 0 270px;
+	flex-flow: column;
+	font-weight: 600;
+	height: 100vh;
+	width: 270px;
+
+	@media #{$S-only} {
+		height: 100vh;
+		padding-top: 5px;
+		position: fixed;
+		top: 0;
+		transform: translate(-100vw, 0);
+		transition: transform 0.2s;
+		width: 80vw;
+		z-index: $z-index-sidenav;
+
+		&_visible {
+			box-shadow: 4px 0 12px rgba($black, 0.15), 20vw 0 0 rgba($black, 0.15);
+			transform: translate(0, 0);
+		}
+	}
+
+	&--animate {
+		transition: width 0.2s, flex-basis 0.2s;
+	}
+
+	&__mobile-trigger {
+		display: none;
+
+		@media #{$S-only} {
+			display: block;
+		}
+	}
+
+	&__block {
+		flex-shrink: 0;
+		padding: 10px 20px;
+		position: relative;
+
+		&:before,
+		&:after {
+			content: '';
+			display: none;
+			flex: 0 0 100%;
+			height: 1px;
+			left: 20px;
+			margin: 0 auto;
+			position: absolute;
+			top: 0;
+			width: calc(100% - 40px);
+		}
+
+		&:after {
+			bottom: 0;
+			top: auto;
+		}
+
+		img,
+		svg {
+			max-width: 100%;
+		}
+
+		&--logo {
+			align-items: center;
+			display: flex;
+			flex-flow: row wrap;
+			padding-bottom: 15px;
+			padding-top: 15px;
+
+			&:after {
+				display: block;
+				margin-top: 15px;
+			}
+
+			.Vlt-sidenav__logo {
+				flex: 1;
+
+				svg {
+					width: 100%; // For IE
+				}
+
+				img {
+					height: 40px;
+				}
+			}
+		}
+
+		&--link {
+			padding: 0;
+		}
+
+		&--border-top {
+			&:before {
+				display: block;
+			}
+		}
+
+		&--border-bottom {
+			&:after {
+				display: block;
+			}
+		}
+	}
+
+	&__scroll {
+		flex: auto; // not flex: 1 because IE11 needs flex-basis: auto
+		overflow-y: auto;
+		padding-bottom: 10px;
+
+		@media #{$S-only} {
+			-webkit-overflow-scrolling: touch;
+			overflow-y: scroll;
+		}
+	}
+
+	.Vlt-sidemenu {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+
+		ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		// Setting main margins
+
+		.Vlt-sidemenu__title {
+			padding-left: 20px;
+		}
+
+		li {
+			margin: 0;
+			padding: 0;
+
+			.Vlt-sidemenu__link,
+			.Vlt-sidemenu__trigger {
+				font-size: 1.5rem;
+				padding-left: 24px;
+				padding-right: 20px;
+
+				@media #{$S-only} {
+					font-size: 1.7rem;
+				}
+			}
+
+			li {
+				.Vlt-sidemenu__link,
+				.Vlt-sidemenu__trigger {
+					font-size: 1.5rem;
+					padding-left: 53px;
+
+					@media #{$S-only} {
+						font-size: 1.7rem;
+					}
+				}
+
+				.Vlt-sidemenu__title {
+					padding-left: 53px;
+				}
+
+				li {
+					.Vlt-sidemenu__link,
+					.Vlt-sidemenu__trigger {
+						font-size: 1.5rem;
+						padding-left: 81px;
+
+						@media #{$S-only} {
+							font-size: 1.7rem;
+						}
+					}
+
+					.Vlt-sidemenu__title {
+						padding-left: 81px;
+					}
+				}
+			}
+		}
+
+		// Dropdown arrow
+
+		&__trigger {
+			&:after {
+				content: '';
+				display: inline-block;
+				float: right;
+				height: 20px;
+				margin-left: 10px;
+				margin-top: -2px;
+				transition: transform 0.2s;
+				width: 20px;
+			}
+
+			&_active {
+				&:after {
+					transform: rotate(180deg);
+				}
+			}
+		}
+
+		// Styling links and triggers
+
+		&__link,
+		&__trigger {
+			align-items: flex-start;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			line-height: 1.3;
+			margin: 0;
+			padding: 8px 10px;
+			text-decoration: none;
+			transition: background 0.2s;
+
+			@media #{$S-only} {
+				padding-bottom: 11px;
+				padding-top: 11px;
+			}
+
+			&:hover {
+				text-decoration: none;
+			}
+
+			&--disabled {
+				cursor: default;
+				opacity: 0.3;
+				pointer-events: none;
+			}
+
+			svg {
+				flex: 0 0 20px;
+				height: 20px;
+				margin-bottom: -3px;
+				margin-right: 10px;
+				opacity: 0.8;
+				vertical-align: middle;
+				width: 20px;
+
+				@media #{$S-only} {
+					flex: 0 0 23px;
+					height: 23px;
+					width: 23px;
+				}
+			}
+		}
+
+		// Labels
+
+		&__label {
+			flex: 1;
+		}
+
+		// Titles
+
+		&__title {
+			font-size: 1.2rem;
+			font-weight: 400;
+			margin: 0;
+			padding: 10px;
+			text-transform: uppercase;
+		}
+
+		// Behavior of triggers (expanding and collapsing branches)
+
+		&__trigger {
+			position: relative;
+
+			& + ul {
+				margin-bottom: 0;
+				max-height: 0;
+				overflow: hidden;
+				transition: max-height 0.3s, margin 0.3s;
+
+				a {
+					transition: all 0.2s;
+				}
+			}
+
+			&_active {
+
+				& + ul {
+					margin-bottom: $unit1;
+					max-height: 100vh !important;
+				}
+			}
+
+			.Vlt-badge {
+				position: absolute;
+			    right: 15px;
+			    top: 7px;
+			}
+		}
+
+		// Badge
+
+		&__link {
+			.Vlt-badge {
+				margin-right: 0;
+			}
+		}
+	}
+
+	&__mobile {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		left: 0;
+		padding: 10px;
+		position: fixed;
+		top: 0;
+		width: 100%;
+
+		@media #{$M-plus} {
+			display: none;
+		}
+
+		&__logo {
+			height: 34px;
+		}
+
+		button {
+			@extend .reset-button;
+			flex: 0 0 40px;
+			height: 40px;
+
+			svg {
+				height: 24px;
+				width: 24px;
+			}
+		}
+
+		.Vlt-template--header & {
+			padding-bottom: 5px;
+			padding-top: 5px;
+		}
+	}
+}
+
+body {
+	@media #{$S-only} {
+		&.Vlt-body--has-sidenav {
+			padding-top: 60px;
+		}
+
+		&.Vlt-body--mobile-menu-open {
+			overflow: hidden;
+		}
+	}
+}

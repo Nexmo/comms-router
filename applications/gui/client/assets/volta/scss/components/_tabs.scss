@@ -1,0 +1,178 @@
+%tabs-panel {
+	// We use display and not visibility to prevent problems with nested tabs
+	display: none;
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+%tabs-panel-active {
+	display: block;
+	position: static;
+}
+
+%tabs-link {
+	background: none;
+	border: 0;
+	border-radius: 0;
+	color: $black;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin: 0 20px 0 0; // iOS adds margin around buttons so the 0s need to be declared
+	outline: none;
+	padding: 14px 0px;
+	position: relative;
+
+	svg {
+		height: 20px;
+		margin-bottom: -$unit0;
+		width: 20px;
+
+		& + span {
+			margin-left: $unit1;
+		}
+	}
+
+	&:after {
+		background: $blue-lighter;
+		bottom: 0;
+		content: '';
+		height: 3px;
+		left: 50%;
+		position: absolute;
+		transition: none;
+		width: 0px;
+	}
+
+	@media #{$L-plus} {
+		// On iOS, the browsers treat the first click as :hover if there's a style for it
+		// So we're keeping this only on desktop
+
+		&:hover {
+			background: none;
+			color: $black;
+
+			&:after {
+				left: 0;
+				transition: all 0.2s;
+				width: 100%;
+			}
+		}
+	}
+}
+
+%tabs-link-active {
+	background: none;
+
+	&:after {
+		background: $blue;
+		left: 0;
+		width: 100%;
+
+		@media #{$M-less} {
+			transition: all 0.2s;
+		}
+	}
+}
+
+%tabs-header {
+	border-bottom: 1px solid $grey-light;
+	margin: 0;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+
+.Vlt-tabs {
+	&__header {
+		@extend %tabs-header;
+
+		&--spaced {
+			display: flex;
+			justify-content: space-evenly;
+		}
+	}
+
+	&__link {
+		@extend %tabs-link;
+
+		svg {
+			fill: $blue;
+		}
+
+		&_active,
+		&:active {
+			@extend %tabs-link-active
+		}
+
+		&:focus {
+			background: none;
+		}
+
+		&_disabled {
+			color: $grey;
+			cursor: default;
+			pointer-events: none;
+
+			&:after {
+				display: none;
+			}
+
+			svg {
+				fill: $grey;
+			}
+		}
+	}
+
+	&__content {
+		margin-top: $unit2;
+		position: relative;
+
+		&--flush {
+			margin-top: 0;
+		}
+	}
+
+	&__panel {
+		@extend %tabs-panel;
+
+		&_active {
+			@extend %tabs-panel-active;
+		}
+	}
+
+	&--icons {
+		.Vlt-tabs__header {
+			overflow-x: visible;
+			white-space: normal;
+		}
+
+		.Vlt-tabs__link {
+			display: inline-block;
+			padding: 8px 4px;
+
+			&_disabled {
+				pointer-events: inherit;
+			}
+
+			.Vlt-tooltip--js[x-placement^='bottom'] {
+				margin-top: 15px;
+			}
+		}
+	}
+}
+
+.Vlt-js-tabs__link {
+	cursor: pointer;
+}
+
+.Vlt-js-tabs__panel {
+	@extend %tabs-panel;
+
+	&_active {
+		@extend %tabs-panel-active;
+	}
+}

@@ -1,0 +1,5 @@
+.idea
+*.iml
+.git
+/dist
+/node_modules

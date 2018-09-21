@@ -100,4 +100,16 @@ Servers/
 **/liquibase.properties
 **/application.properties
 /core-interface/nbproject/
+/common/nbproject/
+
+!**/gui/build
+!**/gui/**/*.json
+
+**/gui/node_modules/
+**/gui/dist/
+**/gui/npm-debug.log
+**/gui/yarn-error.log
+**/gui/selenium-debug.log
+**/gui/test/unit/coverage
+**/gui/test/e2e/reports
 
