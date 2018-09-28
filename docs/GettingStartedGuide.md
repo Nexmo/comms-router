@@ -13,7 +13,7 @@ This guide provides an overview of the main resources for the Comms Router API, 
 7. Create Tasks
 
 ## Supporting documentation
-* Predicate [expression guide](docs/ExpressionSyntax.md) for Plans, Queues and Agents.
+* Predicate [expression guide](ExpressionSyntax.md) for Plans, Queues and Agents.
 * Localhost OpenAPI spec http://localhost:8080/comms-router-web/swagger-ui.html
 * Interactive Voice Response (IVR) guide https://developer.nexmo.com/voice/voice-api/guides/interactive-voice-response
 
@@ -34,7 +34,7 @@ When creating a router you can either specify the router `ref` ID for example `M
 curl -X PUT http://localhost:8080/comms-router-web/api/routers/MY_ROUTER
 ```
 ## 3. Create a Skill
-For more example of how to correctly format Skills read our Predicate [expression guide](docs/ExpressionSyntax.md) for Skills, Agents and Queues.
+For more example of how to correctly format Skills read our Predicate [expression guide](ExpressionSyntax.md) for Skills, Agents and Queues.
 ```curl
 curl -X PUT http://localhost:8080/comms-router-web/api/routers/MY_ROUTER/skills/MY_SKILL \
   -H 'Content-Type:application/json' \

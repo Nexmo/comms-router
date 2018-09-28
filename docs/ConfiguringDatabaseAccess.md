@@ -49,7 +49,7 @@ GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
     * `comms-router-web.xml` in `CATALINA_BASE/conf/ENGINE_NAME/HOST_NAME/` or use another file.
     * Add a resource defined in `CATALINA_BASE/conf/context.xml` or in `CATALINA_BASE/conf/ENGINE_NAME/context.xml`
 
-    For more help read the [documention][1].
+    For more help read the [Apache Tomcat 8 Configuration Reference][1] documentation.
 
 2. In the chosen file add the datasource resource definition with the recommended configuration.
 
@@ -65,7 +65,7 @@ GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
       />
     ```
  
-    Optionally it is possible to enable Database Connection Pool by setting additional options. See documentation [here][4] and [here][5].
+    Optionally it is possible to enable Database Connection Pool by setting additional options. See [Database Connection Pool (DBCP 2) Configurations][4] and [BasicDataSource Configuration Parameters][5] documentation.
 
     ```xml
     <Resource
@@ -84,7 +84,7 @@ GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
     />
     ```
 
-    For more help read the [documention][2].
+    For more help read the [JNDI Datasource HOW-TO][2].
 
     **Note:** Remember to update the following parameters above for your environment `{USERNAME}`, `{PASSWORD}`, `{HOST}`, `{PORT}` and `{DATABASE_NAME}`.
 

@@ -5,7 +5,7 @@ Comms Router is a key building block within the Contact Center complete solution
 
 This repository also includes:
 * A [Demo Application](applications/demo/README.md) to show how to apply the API in a Contact Center use case.
-* A [Graphical User Interface Application](applications/demo/gui/README.md) to enable admins to manage agents.
+* A [Graphical User Interface Application](applications/gui/README.md) to enable admins to manage agents.
 
 ## Pre-requisites
 * Nexmo Account https://dashboard.nexmo.com/sign-up
