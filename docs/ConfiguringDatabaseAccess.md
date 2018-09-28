@@ -1,58 +1,57 @@
-Configuring Database Access
-==
+# Configuring Database Access
+The application expects database access to be provided from the Application Container via JNDI.
 
-The application expects database access to be provided
-from the Application Container via JNDI.
+## System requirements
+* Java - Oracle JDK/JRE 8 (build/runtime)
+* Apache Maven - 3.5 (build)
+* SQL Server - MySQL 5.7 (runtime)
+* Java Servlet Container - Tomcat 8 (runtime)
 
-## Configure MySQL
+The Comms Router API may work with different types of Java, SQL Server or Web Container and is currently being tested and maintained with the above component versions.
 
-### Create the Database
+# Configure MySQL
 
+## Create the Database
 Create the database with `CHARACTER SET utf8 COLLATE utf8_general_ci`.
 
 ```sql
 CREATE DATABASE `comms_router_core` CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
 ```
 
-### Create Users
+## Create Users
+There are two options for setting up your Comms Router application database.
+* Create two users Database Admin with full permissions (create, edit, delete) and Application Admin to manage Tasks, Agents, Queues and Plans.
+* Create a Super Admin user to manage both database and content.
 
-1. You can, optionally, create two users - one for the migration management 
-    (with create/drop table permissions) and another one for the application to manipulate the data.
-
-    Migration user:
+### Creating Database and Application Admins
+#### Database Admin
+```mysql
+CREATE USER 'comms_router_admin'@'localhost' IDENTIFIED BY 'comms_router_admin_password';
+GRANT ALL ON `comms_router_core`.* TO 'comms_router_admin'@'localhost';
+```
     
-    ```mysql
-    CREATE USER 'comms_migration'@'localhost' IDENTIFIED BY 'comms_migration_password';
-    GRANT ALL ON `comms_router_core`.* TO 'comms_migration'@'localhost';
-    ```
-    
-    Application user:
-    
-    ```mysql
-    CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
-    GRANT LOCK TABLES, SELECT, INSERT, DELETE, UPDATE ON `comms_router_core`.* TO 'comms_router'@'localhost';
-    ```
+#### Application Admin
+```mysql
+CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_router_password';
+GRANT LOCK TABLES, SELECT, INSERT, DELETE, UPDATE ON `comms_router_core`.* TO 'comms_router'@'localhost';
+```
 
-2. Or just create one user for both with all privileges:
+### Creating Super Admin
+```mysql
+CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_router_password';
+GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
+```
 
-    ```mysql
-    CREATE USER 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
-    GRANT ALL ON `comms_router_core`.* TO 'comms_router'@'localhost';
-    ```
+# Configure Tomcat
 
-## Configure Tomcat
+1. First create `context.xml` configuration for Tomcat deployment either by updating:
+   
+    * `comms-router-web.xml` in `CATALINA_BASE/conf/ENGINE_NAME/HOST_NAME/` or use another file.
+    * Add a resource defined in `CATALINA_BASE/conf/context.xml` or in `CATALINA_BASE/conf/ENGINE_NAME/context.xml`
 
-Setting up the JNDI datasource on Tomcat.
+    For more help read the [documention][1].
 
-1. You can create `comms-router-web.xml` in `$CATALINA_BASE/conf/[enginename]/[hostname]/`
-    or use some other relevant file. [See Documentation][1]
-
-    Alternatively this resource can be added to encompassing contexts defined
-    in `$CATALINA_BASE/conf/context.xml` or in `$CATALINA_BASE/conf/[engine_name]/context.xml`.
-
-2. In the chosen file you should put the datasource resource definition. [See Documentation][2]
-
-    Example:
+2. In the chosen file add the datasource resource definition with the recommended configuration.
 
     ```xml
     <Resource
@@ -62,48 +61,11 @@ Setting up the JNDI datasource on Tomcat.
       username="{USERNAME}"
       password="{PASSWORD}"
       driverClassName="com.mysql.jdbc.Driver"
-      url="jdbc:mysql://{HOST}:{PORT}/{DB_NAME}"/>
+      url="jdbc:mysql://{HOST}:{PORT}/{DATABASE_NAME}?zeroDateTimeBehavior=convertToNull&amp;useLegacyDatetimeCode=false&amp;useJDBCCompliantTimezoneShift=false&amp;serverTimezone=UTC&amp;useUnicode=yes&amp;characterEncoding=UTF-8"
+      />
     ```
-
-    The expected resource name is: `jdbc/commsRouterDB`
-
-    The application requires [additional properties][3] to be set for MySQL:
-
-    - `zeroDateTimeBehavior=convertToNull`  
-    What should happen when the driver encounters DATETIME values that are composed 
-    entirely of zeros (used by MySQL to represent invalid dates)?
-
-    - `useLegacyDatetimeCode=false`  
-    Use code for DATE/TIME/DATETIME/TIMESTAMP handling in result sets and statements that 
-    consistently handles time zone conversions from client to server and back again, or use the 
-    legacy code for these datatypes that has been in the driver for backwards-compatibility?    
-
-    - `useJDBCCompliantTimezoneShift=false`  
-    Should the driver use JDBC-compliant rules when converting TIME/TIMESTAMP/DATETIME values' 
-    time zone information for those JDBC arguments which take a java.util.Calendar argument? 
-    This is part of the legacy date-time code, thus the property has an effect 
-    only when "useLegacyDatetimeCode=true."
-
-    - `serverTimezone=UTC`  
-    Override detection/mapping of time zone. 
-    Used when time zone from server doesn't map to Java time zone
-
-    - `useUnicode=true`  
-    Should the driver use Unicode character encodings when handling strings?
-
-    - `characterEncoding=UTF-8`  
-    If 'useUnicode' is set to true, what character encoding should the driver use when dealing with strings?
-
-    So the recommended URL for MySQL should looks like this:
-
-    `url="jdbc:mysql://{HOST}:{PORT}/{DB_NAME}?zeroDateTimeBehavior=convertToNull&amp;useLegacyDatetimeCode=false&amp;useJDBCCompliantTimezoneShift=false&amp;serverTimezone=UTC&amp;useUnicode=yes&amp;characterEncoding=UTF-8"`
-
-3. Optionally enable Database Connection Pool
-
-    You can set additional options to enable Database Connection Pooling. 
-    See documentation [here][4] and [here][5].
-
-    Example:
+ 
+    Optionally it is possible to enable Database Connection Pool by setting additional options. See documentation [here][4] and [here][5].
 
     ```xml
     <Resource
@@ -113,7 +75,7 @@ Setting up the JNDI datasource on Tomcat.
       username="{USERNAME}"
       password="{PASSWORD}"
       driverClassName="com.mysql.jdbc.Driver"
-      url="jdbc:mysql://{HOST}:{PORT}/{DB_NAME}"
+      url="jdbc:mysql://{HOST}:{PORT}/{DATABASE_NAME}?zeroDateTimeBehavior=convertToNull&amp;useLegacyDatetimeCode=false&amp;useJDBCCompliantTimezoneShift=false&amp;serverTimezone=UTC&amp;useUnicode=yes&amp;characterEncoding=UTF-8"
       validationQuery="/* ping */"
       removeAbandonedOnBorrow="true"
       removeAbandonedOnMaintenance="true"
@@ -122,38 +84,34 @@ Setting up the JNDI datasource on Tomcat.
     />
     ```
 
+    For more help read the [documention][2].
 
-4. Provide the JDBC driver in the JVM path
+    **Note:** Remember to update the following parameters above for your environment `{USERNAME}`, `{PASSWORD}`, `{HOST}`, `{PORT}` and `{DATABASE_NAME}`.
 
-    For Tomcat that means to copy the _.jar_ file in `$CATALINA_BASE/lib`.
-
-    Ex. The [MySQL driver][6] is named _mysql-connector-java-5.1.XX-bin.jar_ and
-    should be placed in the `lib` directory in the Tomcat installation.
-
-5. Hibernate, the JPA provider we use, by default creates tables in MySQL with the MyISAM engine 
-    which is non-transactional storage engine. 
+3. Add the Java Database Controller (JDBC) driver to the Java Virtual Machine (JVM). For Tomcat this means copying the [MySQL driver][6] `.jar` file to `CATALINA_BASE/lib`.
     
-    The CommsRouter **requires** _transactional_ storage engine. To enable that with MySQL 
-    you should set the dialect for Hibernate in the JVM options at start:  
+    ##### UNIX
+    ```bash
+    mv ~/Downloads/mysql-connector-java-5.1.XX/mysql-connector-java-5.1.XX-bin.jar CATALINA_BASE/lib
     ```
-    -Dhibernate.dialect=org.hibernate.dialect.MySQL57Dialect
-    ``` 
-      - Note that MySQL**5**Dialect is still using the MyISAM engine, 
-        so use MySQL**55**Dialect or MySQL**57**Dialect
 
-    Ex. With Tomcat JVM properties are set like this:
-    * UNIX: `$CATALINA_BASE/bin/setenv.sh`
+4. Comms Router uses Hibernate Java Persistence API (JPA). By default Hibernate creates tables in MySQL with the MyISAM engine which is non-transactional storage engine. Comms Router **requires a transactional storage engine** so a dialect is required to enable transactional storage at in the JVM running time.
+    
+    ##### UNIX
+    Find or create `$CATALINA_BASE/bin/setenv.sh` then add dialect:
     ```bash
     export CATALINA_OPTS="$CATALINA_OPTS -Dhibernate.dialect=org.hibernate.dialect.MySQL57Dialect"
     ```
-    * Windows: `%CATALINA_BASE%\bin\setenv.bat`
+    Note that MySQL**5**Dialect is still using the MyISAM engine, so use MySQL**55**Dialect or MySQL**57**Dialect
+
+    ##### Windows
+    Find or create `%CATALINA_BASE%\bin\setenv.bat` then add dialect:
     ```bat
     set CATALINA_OPTS=%CATALINA_OPTS% -Dhibernate.dialect.storage_engine=innodb
     ```
 
-6. Edit `db-migrations/src/main/resources/liquibase.properties` file and fill the details 
-    for the user that has all permissions granted.  
-    It should look like this:
+5. Create a new `db-migrations/src/main/resources/liquibase.properties` file from the `db-migrations/src/main/resources/liquibase.properties.template` and make the following changes:
+    
     ```properties
     verbose = true
     driver = com.mysql.jdbc.Driver
@@ -162,14 +120,17 @@ Setting up the JNDI datasource on Tomcat.
     username = {USERNAME}
     password = {PASSWORD}
     ```
+
+    **Note** Username and password should be the user that has all permissions granted to access and manage database e.g. `username=comms_router` and `password=comms_router_password`
     
-    Then you can populate/migrate the database to the latest version with:
+ 6. Populate and migrate the database to the latest version with:
+
     ```bash
-    cd db-migrations/
+    cd comms-router/db-migrations/
     mvn liquibase:update
     ``` 
 
-    Also see [Manage DB Migrations]
+    Also see [Manage DB Migrations] for help.
 
 
 [1]: 

@@ -1,104 +1,93 @@
-# How-To Manage DB Migrations
+# How to manage database migrations
 
-We use [Liquibase] to manage the Database Schema over time.  
-The integration is done with [Maven Liquibase Plugin] and you can issue commands with 
-the `mvn liquibase:<command>` in the `db-migrations` directory.  
+We use [Liquibase] to manage the Database Schema over time. The integration is done with [Maven Liquibase Plugin] and you can issue commands with the `mvn liquibase:<command>` in the `db-migrations` directory.  
 
-Following the [best practices] document we have main changelog file at `src/main/resources/db/changelog.yaml`. 
-This file has `include` statement(s) in the correct order to the `migrations` directory where are the changelog files by major release.  
-The _master_ file at `src/main/resources/db/migrations/changelog-master.yaml` has all the change sets for the initial schema creation. 
+Following the [best practices] document we have main changelog file at `db-migrations/src/main/resources/db/changelog.yaml`. This file has `include` statement(s) in the correct order to the `migrations` directory where are the changelog files by major release. The _master_ file at `src/main/resources/db/migrations/changelog-master.yaml` has all the change sets for the initial schema creation. 
 
+## Standard migratiom 
 
-## Setting up the connection
+1. Setting up the connection. The Liquibase plug-in settings are expected to be stored in `db-migrations/src/main/resources/liquibase.properties`. If the file does not exists copy it from the template provided at `db-migrations/src/main/resources/liquibase.properties.template` and update the following properties.
 
-The Liquibase plug-in settings are expected to be stored in `db-migrations/src/main/resources/liquibase.properties`.
-If the file does not exists copy it from the template provided at `db-migrations/src/main/resources/liquibase.properties.template`   
-Common properties are:
+    ```properties
+    verbose = true
+    driver = com.mysql.jdbc.Driver
+    url = jdbc:mysql://localhost:3306/comms_router_core
+    username = {USERNAME}
+    password = {PASSWORD}
+    ```
 
-```properties
-verbose = true
-driver = com.mysql.jdbc.Driver
-url = jdbc:mysql://localhost:3306/comms_router_core
-username = {USERNAME}
-password = {PASSWORD}
-```
-You should edit the file appropriately with properties required for the command you execute.
+2. Update the database to the latest migration.
 
-## Update
+3. Check and update the `changeLogFile` property in `db-migrations/src/main/resources/liquibase.properties`. Required by [`liquibase:update`][liquibase:update].
 
-Updates the database to the latest migration.  
-Required by [`liquibase:update`][liquibase:update] is the `changeLogFile` property with the path to the changelog file.
+    ```properties
+	changeLogFile = src/main/resources/db/changelog.yaml
+    ```
 
-```properties
-changeLogFile = src/main/resources/db/changelog.yaml
-```
+4. Update liquidbase by running the following command in the `db-migrations` directory.
 
-After adding the property issue this command:
+    ```bash
+	mvn liquibase:update
+    ```
 
-```bash
-mvn liquibase:update
-```
+## Create diff with changes
+Generate changeSet(s) with the difference between two given databases. In this example we will create an additional database names `comms_router_dev`.
 
-### Create diff with changes
+**Note:** Prerequisite for this task is to have an identical database with the new changes.
 
-That will generate changeSet(s) with the difference between two given databases.
-
-* Prerequisite for this task is to have an identical database with the new changes.
+1. Create new database.
 
     ```sql
     CREATE DATABASE `comms_router_dev` CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
     ```
     
+2. Create new Super Admin.
+
     ```mysql
-    CREATE USER IF NOT EXISTS 'comms_router'@'localhost' IDENTIFIED BY 'comms_password';
+    CREATE USER IF NOT EXISTS 'comms_router'@'localhost' IDENTIFIED BY 'comms_router_password';
     GRANT ALL ON `comms_router_dev`.* TO 'comms_router'@'localhost';
     ```
 
-Required by [`liquibase:diff`][liquibase:diff] are the reference arguments:
+3. Check and update reference arguments in `db-migrations/src/main/resources/liquibase.properties`. Required by [`liquibase:diff`][liquibase:diff].
 
-```properties
-referenceDriver=com.mysql.jdbc.Driver
-referenceUrl=jdbc:mysql://localhost:3306/comms_router_core
-referenceUsername=comms_router
-referencePassword=comms_password
-```
+    ```properties
+	referenceDriver=com.mysql.jdbc.Driver
+	referenceUrl=jdbc:mysql://localhost:3306/comms_router_core
+	referenceUsername=comms_router
+	referencePassword=comms_password
+    ```
 
-Add the `diffChangeLogFile` property with file where the changeSet(s) will be saved:
+4. Add the `diffChangeLogFile` property in `db-migrations/src/main/resources/liquibase.properties` where the changeSet(s) will be saved.
 
-```properties
-diffChangeLogFile=src/main/resources/db/migrations/changelog-next.yaml
-```
+    ```properties
+	diffChangeLogFile=src/main/resources/db/migrations/changelog-next.yaml
+    ```
 
-Edit the standard connection settings to point to the _dev_ database instance:
+5. Edit the `url` property in `db-migrations/src/main/resources/liquibase.properties` by updating the standard connection settings to point to the _dev_ database instance.
 
-```properties
-url=jdbc:mysql://localhost:3306/comms_router_dev
-```
+    ```properties
+	url=jdbc:mysql://localhost:3306/comms_router_dev
+    ```
 
-Finally execute:
+6. Update liquidbase by running the following command.
 
-```bash
-mvn liquibase:diff
-```
+    ```bash
+	mvn liquibase:update
+    ```
 
 ## Generate ChangeLog
 
-To generate a changelog from existing database.
+1. Add the `outputChangeLogFile` property in `db-migrations/src/main/resources/liquibase.properties` to where the schema from the current database will be imported from. Required by [`liquibase:generateChangeLog`][liquibase:generateChangeLog].
+    
+    ```properties
+    outputChangeLogFile	 = src/main/resources/db/changelog.yaml
+    ```
 
-Required by [`liquibase:generateChangeLog`][liquibase:generateChangeLog] is the `outputChangeLogFile` property where 
-the schema from the current database will be imported.
+2. Update liquidbase by running the following command.
 
-```properties
-outputChangeLogFile	 = src/main/resources/db/changelog.yaml
-```
-
-Execute:
-
-```bash
-mvn liquibase:generateChangeLog
-```
-
-
+    ```bash
+    mvn liquibase:generateChangeLog
+    ```
 
 [Liquibase]: 
 http://www.liquibase.org 
