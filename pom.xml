@@ -57,7 +57,7 @@
     <module>core</module>
     <module>web</module>
     <module>db-migrations</module>
-    <module>applications/demo-application</module>
+    <module>applications/demo</module>
     <module>test/api-test</module>
   </modules>
 
