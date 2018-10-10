@@ -34,15 +34,16 @@ public class PeriodicJobRunner {
   private final Runnable job;
   private final int secondsBetweenRuns;
 
-  public static void start(ScheduledThreadPoolExecutor threadPool, Runnable job,
-          int secondsBetweenRuns) {
+  public static void start(
+      ScheduledThreadPoolExecutor threadPool, Runnable job, int secondsBetweenRuns) {
 
     PeriodicJobRunner runner = new PeriodicJobRunner(threadPool, job, secondsBetweenRuns);
     runner.start();
   }
 
-  public PeriodicJobRunner(ScheduledThreadPoolExecutor threadPool, Runnable job,
-          int secondsBetweenRuns) {
+  public PeriodicJobRunner(
+      ScheduledThreadPoolExecutor threadPool, Runnable job, int secondsBetweenRuns) {
+
     this.threadPool = threadPool;
     this.job = job;
     this.secondsBetweenRuns = secondsBetweenRuns;

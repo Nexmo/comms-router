@@ -51,6 +51,8 @@
   </scm>
 
   <modules>
+    <module>common-exceptions</module>
+    <module>common-db</module>
     <module>core-interface</module>
     <module>common</module>
     <module>client</module>
@@ -199,7 +201,7 @@
             <configuration>
               <!-- NetBeans -->
               <rules>
-                <!--  implmentation is needed only for Maven 2  -->
+                <!--  implementation is needed only for Maven 2  -->
                 <rule implementation="org.jacoco.maven.RuleConfiguration">
                   <element>BUNDLE</element>
                   <limits>
