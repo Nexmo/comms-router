@@ -53,6 +53,7 @@
         <artifactId>liquibase-maven-plugin</artifactId>
         <configuration>
           <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+          <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
         </configuration>
         <dependencies>
           <dependency>
