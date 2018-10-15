@@ -6,6 +6,7 @@
     <artifactId>comms-router-master</artifactId>
     <groupId>com.softavail.comms-router</groupId>
     <version>0.9.4-SNAPSHOT</version>
+    <relativePath>../../</relativePath>
   </parent>
 
   <artifactId>demo-application</artifactId>

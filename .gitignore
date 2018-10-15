@@ -94,8 +94,8 @@ Servers/
 /core/bin/
 
 **/META-INF/context.xml
-/applications/demo-application/src/main/webapp
-/applications/demo-application/src/main/resources/*.pem
+/applications/demo/src/main/webapp
+/applications/demo/src/main/resources/*.pem
 
 **/liquibase.properties
 **/application.properties
