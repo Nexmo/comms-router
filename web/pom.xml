@@ -20,7 +20,7 @@
   <parent>
     <artifactId>comms-router-master</artifactId>
     <groupId>com.softavail.comms-router</groupId>
-    <version>0.9.4-SNAPSHOT</version>
+    <version>0.10.1</version>
   </parent>
 
   <name>Comms Router Web</name>
