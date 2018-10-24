@@ -33,7 +33,7 @@ This repository also includes:
 Can be set up using the current [demo application](applications/demo) for an inbound Contact Center use case.
 
 1. Customer calls Nexmo phone number
-2. Client receives request via Webhook and NCCO request with predefined IVR options
+2. Client receives a request via Webhook and NCCO request with predefined IVR options
 3. Client receives IVR option from Voice API
 4. Comms Router Task created from client
 5. Available Agent found with matching criteria
@@ -45,7 +45,7 @@ Can be set up using the current [demo application](applications/demo) for an inb
 Require creating a custom application to handle the inbound request and a client for connecting an Agent to a Customer through a PSTN call. [View documentation](https://developer.nexmo.com/voice/voice-api/building-blocks/make-an-outbound-call) for creating an outbound Voice application.
 
 1. Customer submits an online callback request form
-2. Form submitted to server application
+2. Form submitted to the server application
 3. Task is created with routing requirements from customer request
 4. Available Agent is found with matching skills
 5. Agent accepts reservation and dials customer phone number (PSTN)
@@ -90,7 +90,7 @@ The Comms Router API may work with different types of Java, SQL Server or Web Co
 	- Navigate to `web/target/`
 	- Deploy application to Tomcat `mv comms-router-web.war /usr/local/apache-tomcat-8.0.XX/webapps/`
 
-**Note:** Depending Tomcat settings this can be done by simple copying it to the Tomcat's webapps directory.
+**Note:** Depending on Tomcat settings this can be done by simply copying it to the Tomcat's webapps directory.
 
 ## Test installation
 1. Start Tomcat
