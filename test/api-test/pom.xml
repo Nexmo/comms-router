@@ -4,7 +4,7 @@
   <parent>
     <artifactId>comms-router-master</artifactId>
     <groupId>com.softavail.comms-router</groupId>
-    <version>0.9.4-SNAPSHOT</version>
+    <version>0.10.2-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
