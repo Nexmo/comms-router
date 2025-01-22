@@ -326,7 +326,7 @@
       <dependency>
         <groupId>com.nexmo</groupId>
         <artifactId>client</artifactId>
-        <version>3.3.0</version>
+        <version>4.3.1</version>
       </dependency>
       <dependency>
         <groupId>org.cfg4j</groupId>
