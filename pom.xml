@@ -368,7 +368,7 @@
       <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>pac4j-saml</artifactId>
-        <version>2.3.1</version>
+        <version>5.4.1</version>
       </dependency>
       <dependency>
         <groupId>org.pac4j</groupId>
