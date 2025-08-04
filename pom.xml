@@ -304,9 +304,9 @@
         <version>5.2.11.Final</version>
       </dependency>
       <dependency>
-        <groupId>org.hibernate</groupId>
+        <groupId>org.hibernate.validator</groupId>
         <artifactId>hibernate-validator</artifactId>
-        <version>5.4.1.Final</version>
+        <version>8.0.2.Final</version>
       </dependency>
       <dependency>
         <groupId>net.sourceforge.jeval</groupId>
