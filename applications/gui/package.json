@@ -48,7 +48,7 @@
     "vue-flag-icon": "^1.0.6",
     "vue-good-table": "^1.18.2",
     "vue-i18n": "^7.4.1",
-    "vue-lory": "0.0.4",
+    "vue-lory": "0.0.5",
     "vue-nprogress": "0.1.5",
     "vue-router": "^2.3.0",
     "vuex": "^2.2.1",
