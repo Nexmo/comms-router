@@ -39,7 +39,7 @@
     "lodash": "^4.17.5",
     "tooltip.js": "^1.2.0",
     "v-tooltip": "^2.0.0-rc.32",
-    "vue": "^2.2.2",
+    "vue": "^3.0.0",
     "vue-avatar": "^2.1.5",
     "vue-axios": "^2.0.1",
     "vue-bulma-breadcrumb": "^1.0.1",
