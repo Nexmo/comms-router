@@ -353,7 +353,7 @@
       <dependency>
         <groupId>io.buji</groupId>
         <artifactId>buji-pac4j</artifactId>
-        <version>3.2.0</version>
+        <version>9.1.1</version>
       </dependency>
       <dependency>
         <groupId>io.buji</groupId>
